@@ -12,7 +12,6 @@
   let quipuWorker;
 
   const handleQuipuWorker = (msg: MessageEvent) => {
-    console.log(msg);
     if (msg.data.type === "exchange-rates") {
       const exchangeRates = msg.data.payload;
       const updatedTokensExchangeRates = { ...$store.tokensExchangeRates };
@@ -75,13 +74,30 @@
 </script>
 
 <style lang="scss">
+  #under-construction {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 0.5rem;
+    text-align: center;
+    padding: 15px;
+    border: solid 1px #f9fafb;
+    border-radius: 50%;
+  }
+
   main {
     width: 60%;
     margin: 0 auto;
+    min-height: 100%;
+    margin-bottom: -50px;
   }
 </style>
 
 <Header />
+<div id="under-construction">
+  <span class="material-icons"> construction </span><br />
+  <span>Under <br /> construction</span>
+</div>
 <main>
   {#if appReady}
     <Main />

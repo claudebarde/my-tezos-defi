@@ -1,9 +1,10 @@
 <style lang="scss">
   footer {
+    height: 50px;
     font-size: 0.7rem;
     text-align: center;
     padding: 10px;
-    margin-top: 30px;
+    margin-top: 50px;
 
     a {
       color: #fcd34d;
