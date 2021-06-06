@@ -126,7 +126,7 @@
     if (user) {
       return bytes2Char(user.name);
     } else {
-      return address;
+      return address.slice(0, 5) + "..." + address.slice(-5);
     }
   };
 
