@@ -31,4 +31,10 @@
     target="_blank"
     rel="noopener noreferrer nofollow">QuipuSwap</a
   >
+  -
+  <a
+    href="https://github.com/claudebarde/my-tezos-defi"
+    target="_blank"
+    rel="noopener noreferrer nofollow">Github</a
+  >
 </footer>
