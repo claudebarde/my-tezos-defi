@@ -14,27 +14,30 @@
 </style>
 
 <footer>
-  Created by <a
-    href="https://tzkt.io/tz1Me1MGhK7taay748h4gPnX2cXvbgL6xsYL/operations/"
-    target="_blank"
-    rel="noopener noreferrer nofollow">Claude Barde</a
-  >
-  with
-  <a
-    href="https://tezostaquito.io/"
-    target="_blank"
-    rel="noopener noreferrer nofollow">Taquito</a
-  >
-  and
-  <a
-    href="https://quipuswap.com/"
-    target="_blank"
-    rel="noopener noreferrer nofollow">QuipuSwap</a
-  >
-  -
-  <a
-    href="https://github.com/claudebarde/my-tezos-defi"
-    target="_blank"
-    rel="noopener noreferrer nofollow">Github</a
-  >
+  <div>The accuracy of the exchange rates or balances is not guaranteed!</div>
+  <div>
+    Created by <a
+      href="https://tzkt.io/tz1Me1MGhK7taay748h4gPnX2cXvbgL6xsYL/operations/"
+      target="_blank"
+      rel="noopener noreferrer nofollow">Claude Barde</a
+    >
+    with
+    <a
+      href="https://tezostaquito.io/"
+      target="_blank"
+      rel="noopener noreferrer nofollow">Taquito</a
+    >
+    and
+    <a
+      href="https://quipuswap.com/"
+      target="_blank"
+      rel="noopener noreferrer nofollow">QuipuSwap</a
+    >
+    -
+    <a
+      href="https://github.com/claudebarde/my-tezos-defi"
+      target="_blank"
+      rel="noopener noreferrer nofollow">Github</a
+    >
+  </div>
 </footer>
