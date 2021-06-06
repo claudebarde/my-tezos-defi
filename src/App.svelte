@@ -4,6 +4,7 @@
   import store from "./store";
   import Main from "./Main.svelte";
   import Header from "./lib/Header/Header.svelte";
+  import Footer from "./lib/Footer/Footer.svelte";
   import QuipuWorker from "worker-loader!./quipuswap.worker";
   import type { TokenContract } from "./types";
 
@@ -88,3 +89,4 @@
     <div>Loading...</div>
   {/if}
 </main>
+<Footer />
