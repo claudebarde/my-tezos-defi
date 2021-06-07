@@ -66,8 +66,8 @@
   const searchUserTokens = async (userAddress: TezosAccountAddress) => {
     // search for user address in tokens ledgers
     const balances = await Promise.all(
-      Object.values($store.tokens).map(async (token, i) => {
-        const tokenSymbol = Object.keys($store.tokens)[i];
+      Object.entries($store.tokens).map(async (tokenInfo, i) => {
+        const [tokenSymbol, token] = tokenInfo;
         const contract = await $store.Tezos.wallet.at(
           token.address[$store.network]
         );
@@ -85,7 +85,11 @@
         if (token.ledgerKey === "address" && token.type == "fa1.2") {
           const user = await ledger.get(userAddress);
           if (user) {
-            balance = user.balance.toNumber() / 10 ** token.decimals;
+            if (user.hasOwnProperty("balance")) {
+              balance = user.balance.toNumber() / 10 ** token.decimals;
+            } else {
+              balance = user.toNumber() / 10 ** token.decimals;
+            }
           } else {
             balance = undefined;
           }
