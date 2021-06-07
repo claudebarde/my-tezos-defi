@@ -38,6 +38,6 @@
       href="https://github.com/claudebarde/my-tezos-defi"
       target="_blank"
       rel="noopener noreferrer nofollow">Github</a
-    > - v1.0.1
+    > - v1.1.0
   </div>
 </footer>
