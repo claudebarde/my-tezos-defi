@@ -14,12 +14,15 @@
   const handleQuipuWorker = (msg: MessageEvent) => {
     if (msg.data.type === "exchange-rates") {
       const exchangeRates = msg.data.payload;
+      //console.log(exchangeRates);
       const updatedTokensExchangeRates = { ...$store.tokensExchangeRates };
       exchangeRates.forEach(rate => {
-        updatedTokensExchangeRates[rate[0]] = {
-          tezToToken: rate[1],
-          tokenToTez: rate[2]
-        };
+        if (rate) {
+          updatedTokensExchangeRates[rate[0]] = {
+            tezToToken: rate[1],
+            tokenToTez: rate[2]
+          };
+        }
       });
       store.updateTokensExchangeRates(updatedTokensExchangeRates);
     } else if (msg.data.type === "xtz-fiat-exchange-rate") {

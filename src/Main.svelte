@@ -17,7 +17,11 @@
           if (!tokenVal) return 0;
 
           const exchangeRate = $store.tokensExchangeRates[tokenSymbol];
-          return +tokenVal * +exchangeRate.tokenToTez;
+          if (exchangeRate) {
+            return +tokenVal * +exchangeRate.tokenToTez;
+          } else {
+            return 0;
+          }
         })
         .reduce((a, b) => a + b);
 
@@ -75,7 +79,11 @@
       Owned tokens: {Object.values($store.tokensBalances).filter(tk => tk)
         .length}
     </div>
-    <div>1 XTZ = {$store.xtzFiatExchangeRate} USD</div>
+    <div>
+      1 XTZ = {$store.xtzFiatExchangeRate
+        ? $store.xtzFiatExchangeRate + " USD"
+        : "N/A"}
+    </div>
   </div>
   <div class="stats">
     <div>
@@ -98,29 +106,26 @@
       <div class="icon">
         <img src={`images/${token[0]}.png`} alt={token[0]} />
       </div>
-      {#if ["tzBTC", "ETHtz"].includes(token[0])}
-        <div class="info">Coming soon</div>
-        <div />
-      {:else}
+      <div class="info">
+        {#if $store.tokensExchangeRates[token[0]]}
+          <div>
+            1 XTZ = {$store.tokensExchangeRates[token[0]].tezToToken}
+            {token[0]}
+          </div>
+          <div>
+            1 {token[0]} = {$store.tokensExchangeRates[token[0]].tokenToTez} XTZ
+          </div>
+        {:else}
+          <div>No data</div>
+        {/if}
+      </div>
+      {#if $store.userAddress}
         <div class="info">
-          {#if $store.tokensExchangeRates[token[0]]}
+          {#if $store.tokensBalances[token[0]]}
             <div>
-              1 XTZ = {$store.tokensExchangeRates[token[0]].tezToToken}
-              {token[0]}
+              Balance: {+$store.tokensBalances[token[0]].toFixed(3) / 1}
             </div>
-            <div>
-              1 {token[0]} = {$store.tokensExchangeRates[token[0]].tokenToTez} XTZ
-            </div>
-          {:else}
-            <div>No data</div>
-          {/if}
-        </div>
-        {#if $store.userAddress}
-          <div class="info">
-            {#if $store.tokensBalances[token[0]]}
-              <div>
-                Balance: {+$store.tokensBalances[token[0]].toFixed(3) / 1}
-              </div>
+            {#if $store.tokensExchangeRates[token[0]]}
               <div>
                 {+(
                   +$store.tokensExchangeRates[token[0]].tokenToTez *
@@ -128,12 +133,14 @@
                 ).toFixed(2) / 1} USD
               </div>
             {:else}
-              <div>No balance</div>
+              <div>N/A</div>
             {/if}
-          </div>
-        {:else}
-          <div />
-        {/if}
+          {:else}
+            <div>No balance</div>
+          {/if}
+        </div>
+      {:else}
+        <div />
       {/if}
     </div>
   {/each}
