@@ -56,18 +56,14 @@ const getTokensExchangeRates = async () => {
             } ${tokenSymbol}`
           );*/
 
-          if (["STKR", "ETHtz", "hDAO"].includes(tokenSymbol)) {
-            return [
-              tokenSymbol,
-              (inTokenValue.toNumber() / 10 ** tokenInfo.decimals).toFixed(4),
-              (inTezValue.toNumber() / 10 ** 6).toFixed(4)
-            ];
+          if (tokenSymbol === "tzBTC") {
+            console.log(inTokenValue.toNumber(), inTezValue.toNumber());
           }
 
           return [
             tokenSymbol,
-            (inTezValue.toNumber() / 10 ** 6).toFixed(4),
-            (inTokenValue.toNumber() / 10 ** tokenInfo.decimals).toFixed(4)
+            (inTokenValue.toNumber() / 10 ** tokenInfo.decimals).toFixed(4),
+            (inTezValue.toNumber() / 10 ** 6).toFixed(4)
           ];
         } else {
           console.error(tokenSymbol, "no dex");
