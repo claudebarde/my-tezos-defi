@@ -77,6 +77,8 @@
 </script>
 
 <style lang="scss">
+  @import "./styles/settings.scss";
+
   #under-construction {
     position: absolute;
     top: 10px;
@@ -93,6 +95,16 @@
     margin: 0 auto;
     min-height: 100%;
     margin-bottom: -50px;
+  }
+
+  @media only screen and (max-width: $mobile-break-point) {
+    main {
+      width: 100%;
+    }
+
+    #under-construction {
+      display: none;
+    }
   }
 </style>
 

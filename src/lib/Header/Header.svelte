@@ -3,6 +3,8 @@
 </script>
 
 <style lang="scss">
+  @import "../../styles/settings.scss";
+
   header {
     height: 100px;
     display: flex;
@@ -20,6 +22,13 @@
       display: flex;
       justify-content: center;
       align-items: center;
+    }
+  }
+
+  @media only screen and (max-width: $mobile-break-point) {
+    header {
+      flex-direction: column;
+      margin-bottom: 20px;
     }
   }
 </style>

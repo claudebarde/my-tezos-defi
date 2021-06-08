@@ -36,6 +36,8 @@
 </script>
 
 <style lang="scss">
+  @import "./styles/settings.scss";
+
   .stats {
     display: flex;
     justify-content: space-around;
@@ -88,6 +90,19 @@
       }
     }
   }
+
+  @media only screen and (max-width: $mobile-break-point) {
+    .container {
+      .row {
+        display: flex;
+        flex-direction: column;
+
+        .info {
+          margin: 10px 0px;
+        }
+      }
+    }
+  }
 </style>
 
 {#if $store.userAddress}
@@ -116,6 +131,7 @@
       {/if}
     </div>
   </div>
+  <br />
 {/if}
 <div class="container">
   <div class="title">Assets</div>
@@ -158,7 +174,7 @@
           {/if}
         </div>
       {:else}
-        <div />
+        <div class="info" />
       {/if}
     </div>
   {/each}
