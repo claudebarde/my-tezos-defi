@@ -62,8 +62,8 @@ const getTokensExchangeRates = async () => {
 
           return [
             tokenSymbol,
-            (inTokenValue.toNumber() / 10 ** tokenInfo.decimals).toFixed(4),
-            (inTezValue.toNumber() / 10 ** 6).toFixed(4)
+            (inTokenValue.toNumber() / 10 ** tokenInfo.decimals).toFixed(5),
+            (inTezValue.toNumber() / 10 ** 6).toFixed(5)
           ];
         } else {
           console.error(tokenSymbol, "no dex");
