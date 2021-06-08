@@ -56,6 +56,14 @@ const getTokensExchangeRates = async () => {
             } ${tokenSymbol}`
           );*/
 
+          if (["STKR", "ETHtz"].includes(tokenSymbol)) {
+            return [
+              tokenSymbol,
+              (inTokenValue.toNumber() / 10 ** tokenInfo.decimals).toFixed(4),
+              (inTezValue.toNumber() / 10 ** 6).toFixed(4)
+            ];
+          }
+
           return [
             tokenSymbol,
             (inTezValue.toNumber() / 10 ** 6).toFixed(4),
