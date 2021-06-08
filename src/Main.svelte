@@ -49,6 +49,23 @@
     width: 80%;
     margin: 0 auto;
     background-color: #1e3a8a;
+    position: relative;
+
+    .title {
+      $title-height: 15px;
+
+      height: $title-height;
+      font-size: $title-height;
+      background-color: #4b5563;
+      position: absolute;
+      left: $title-height;
+      top: calc(calc(#{$title-height} * -1) - 5px);
+      padding: 5px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 5px;
+    }
 
     .row {
       display: grid;
@@ -101,6 +118,7 @@
   </div>
 {/if}
 <div class="container">
+  <div class="title">Assets</div>
   {#each Object.entries($store.tokens) as token}
     <div class="row">
       <div class="icon">
