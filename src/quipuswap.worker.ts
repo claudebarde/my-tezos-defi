@@ -56,10 +56,6 @@ const getTokensExchangeRates = async () => {
             } ${tokenSymbol}`
           );*/
 
-          if (tokenSymbol === "tzBTC") {
-            console.log(inTokenValue.toNumber(), inTezValue.toNumber());
-          }
-
           return [
             tokenSymbol,
             (inTokenValue.toNumber() / 10 ** tokenInfo.decimals).toFixed(5),

@@ -4,6 +4,16 @@
   import type { TokenContract } from "./types";
 
   let totalAmounts = { XTZ: undefined, FIAT: undefined };
+  let balancesInUsd = {
+    kUSD: undefined,
+    hDAO: undefined,
+    PLENTY: undefined,
+    wXTZ: undefined,
+    STKR: undefined,
+    tzBTC: undefined,
+    USDtz: undefined,
+    ETHtz: undefined
+  };
   let updating = false;
 
   afterUpdate(async () => {
@@ -29,6 +39,20 @@
         XTZ: valueInXTZ,
         FIAT: valueInXTZ * $store.xtzFiatExchangeRate
       };
+
+      // calculates balances in USD
+      if ($store.tokensBalances && $store.xtzFiatExchangeRate) {
+        Object.entries($store.tokensBalances).forEach(
+          ([tokenSymbol, balance]) => {
+            if (balance) {
+              balancesInUsd[tokenSymbol] =
+                balance *
+                $store.tokensExchangeRates[tokenSymbol].tokenToTez *
+                $store.xtzFiatExchangeRate;
+            }
+          }
+        );
+      }
 
       updating = false;
     }
@@ -168,10 +192,9 @@
             </div>
             {#if $store.tokensExchangeRates[token[0]]}
               <div>
-                {+(
-                  +$store.tokensExchangeRates[token[0]].tokenToTez *
-                  +$store.xtzFiatExchangeRate
-                ).toFixed(2) / 1} USD
+                {balancesInUsd[token[0]]
+                  ? balancesInUsd[token[0]].toFixed(2) / 1
+                  : ""} USD
               </div>
             {:else}
               <div>N/A</div>
