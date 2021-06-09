@@ -3,7 +3,8 @@ import { TezosToolkit } from "@taquito/taquito";
 import {
   findDex,
   estimateTezInToken,
-  estimateTokenInTez
+  estimateTokenInTez,
+  estimateSwap
 } from "@quipuswap/sdk";
 
 const ctx: Worker = self as any;
@@ -42,10 +43,35 @@ const getTokensExchangeRates = async () => {
       try {
         const dex = await findDex(Tezos, factories, token);
         if (dex) {
-          const dexStorage = await dex.contract.storage();
           const tokenValue = 1 * 10 ** tokenInfo.decimals;
-          const inTezValue = estimateTezInToken(dexStorage, tokenValue);
-          const inTokenValue = estimateTokenInTez(dexStorage, 1_000_000);
+          //const dexStorage = await dex.contract.storage();
+          //const inTezValue = estimateTezInToken(dexStorage, tokenValue);
+          //const inTokenValue = estimateTokenInTez(dexStorage, 1_000_000);
+
+          const estimatedTokenToTezSwap = await estimateSwap(
+            Tezos,
+            factories,
+            token,
+            "tez",
+            {
+              inputValue: tokenValue
+            }
+          );
+          const estimatedTezToTokenSwap = await estimateSwap(
+            Tezos,
+            factories,
+            "tez",
+            token,
+            {
+              inputValue: 1_000_000
+            }
+          );
+          /*console.log(
+            tokenSymbol,
+            "tez",
+            estimatedTokenToTezSwap.toNumber(),
+            estimatedTezToTokenSwap.toNumber()
+          );*/
 
           /*console.info(
             `1 ${tokenSymbol} = ${inTezValue.toNumber() / 10 ** 6} XTZ`
@@ -58,8 +84,11 @@ const getTokensExchangeRates = async () => {
 
           return [
             tokenSymbol,
-            (inTokenValue.toNumber() / 10 ** tokenInfo.decimals).toFixed(5),
-            (inTezValue.toNumber() / 10 ** 6).toFixed(5)
+            (
+              estimatedTezToTokenSwap.toNumber() /
+              10 ** tokenInfo.decimals
+            ).toFixed(5),
+            (estimatedTokenToTezSwap.toNumber() / 10 ** 6).toFixed(5)
           ];
         } else {
           console.error(tokenSymbol, "no dex");

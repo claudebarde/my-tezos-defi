@@ -170,16 +170,9 @@
             1 XTZ = {$store.tokensExchangeRates[token[0]].tezToToken}
             {token[0]}
           </div>
-          {#if ["tzBTC", "ETHtz"].includes(token[0])}
-            <div>
-              1 {token[0]} =
-              <del>{$store.tokensExchangeRates[token[0]].tokenToTez} XTZ</del>
-            </div>
-          {:else}
-            <div>
-              1 {token[0]} = {$store.tokensExchangeRates[token[0]].tokenToTez} XTZ
-            </div>
-          {/if}
+          <div>
+            1 {token[0]} = {$store.tokensExchangeRates[token[0]].tokenToTez} XTZ
+          </div>
         {:else}
           <div>No data</div>
         {/if}
