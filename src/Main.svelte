@@ -202,3 +202,15 @@
     </div>
   {/each}
 </div>
+<br />
+<br />
+<div class="container">
+  <div class="title">Investments</div>
+  <div class="row">Coming soon</div>
+</div>
+<br />
+<br />
+<div class="container">
+  <div class="title">Live traffic</div>
+  <div class="row">Coming soon</div>
+</div>

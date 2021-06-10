@@ -1,10 +1,14 @@
 <style lang="scss">
   footer {
-    height: 50px;
+    height: 100px;
     font-size: 0.7rem;
     text-align: center;
     padding: 10px;
-    margin-top: 50px;
+    margin-top: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
 
     a {
       color: #fcd34d;
@@ -38,6 +42,6 @@
       href="https://github.com/claudebarde/my-tezos-defi"
       target="_blank"
       rel="noopener noreferrer nofollow">Github</a
-    > - v1.3.0
+    > - v1.4.0
   </div>
 </footer>

@@ -11,7 +11,8 @@ export enum AvailableToken {
   STKR = "STKR",
   TZBTC = "tzBTC",
   USDTZ = "USDtz",
-  ETHTZ = "ETHtz"
+  ETHTZ = "ETHtz",
+  CRUNCH = "CRUNCH"
 }
 
 export interface TokenContract {

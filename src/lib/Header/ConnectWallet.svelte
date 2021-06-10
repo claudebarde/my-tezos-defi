@@ -82,7 +82,10 @@
               );
         //return [Object.keys($store.tokens)[i], ledger];
         let balance;
-        if (token.ledgerKey === "address" && token.type == "fa1.2") {
+        if (
+          token.ledgerKey === "address" &&
+          (token.type == "fa1.2" || token.type == "fa2")
+        ) {
           const user = await ledger.get(userAddress);
           if (user) {
             if (user.hasOwnProperty("balance")) {

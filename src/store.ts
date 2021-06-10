@@ -121,6 +121,18 @@ const initialState: State = {
       ledgerKey: "address",
       type: "fa1.2",
       storage: undefined
+    },
+    CRUNCH: {
+      address: {
+        mainnet: "KT1BHCumksALJQJ8q8to2EPigPW6qpyTr7Ng",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4",
+      decimals: 8,
+      ledgerPath: "assets/ledger",
+      ledgerKey: "address",
+      type: "fa2",
+      storage: undefined
     }
   },
   tokensBalances: {
@@ -131,7 +143,8 @@ const initialState: State = {
     STKR: undefined,
     tzBTC: undefined,
     USDtz: undefined,
-    ETHtz: undefined
+    ETHtz: undefined,
+    CRUNCH: undefined
   },
   tokensExchangeRates: {
     kUSD: undefined,
@@ -141,7 +154,8 @@ const initialState: State = {
     STKR: undefined,
     tzBTC: undefined,
     USDtz: undefined,
-    ETHtz: undefined
+    ETHtz: undefined,
+    CRUNCH: undefined
   },
   xtzFiatExchangeRate: undefined
 };

@@ -94,7 +94,7 @@
     width: 60%;
     margin: 0 auto;
     min-height: 100%;
-    margin-bottom: -50px;
+    margin-bottom: -100px;
   }
 
   @media only screen and (max-width: $mobile-break-point) {
