@@ -93,24 +93,33 @@
       border-radius: 5px;
     }
 
-    .row {
-      display: grid;
-      grid-template-columns: 20% 40% 40%;
-      align-items: center;
-      padding: 10px 20px;
+    .container-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
 
-      .icon {
-        padding: 10px;
-        img {
-          width: 50px;
-          height: 50px;
-        }
-      }
-
-      .info {
+      .box {
         display: flex;
         flex-direction: column;
-        text-align: center;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        margin: 10px;
+
+        .icon {
+          padding: 10px;
+          img {
+            width: 50px;
+            height: 50px;
+          }
+        }
+
+        .info {
+          display: flex;
+          flex-direction: column;
+          text-align: center;
+        }
       }
     }
   }
@@ -159,48 +168,49 @@
 {/if}
 <div class="container">
   <div class="title">Assets</div>
-  {#each Object.entries($store.tokens) as token}
-    <div class="row">
-      <div class="icon">
-        <img src={`images/${token[0]}.png`} alt={token[0]} />
-      </div>
-      <div class="info">
-        {#if $store.tokensExchangeRates[token[0]]}
-          <div>
-            1 XTZ = {$store.tokensExchangeRates[token[0]].tezToToken}
-            {token[0]}
-          </div>
-          <div>
-            1 {token[0]} = {$store.tokensExchangeRates[token[0]].tokenToTez} XTZ
-          </div>
-        {:else}
-          <div>No data</div>
-        {/if}
-      </div>
-      {#if $store.userAddress}
+  <div class="container-grid">
+    {#each Object.entries($store.tokens) as token}
+      <div class="box">
+        <div class="icon">
+          <img src={`images/${token[0]}.png`} alt={token[0]} />
+        </div>
         <div class="info">
-          {#if $store.tokensBalances[token[0]]}
+          {#if $store.tokensExchangeRates[token[0]]}
             <div>
-              Balance: {+$store.tokensBalances[token[0]].toFixed(3) / 1}
+              1 XTZ = {$store.tokensExchangeRates[token[0]].tezToToken}
+              {token[0]}
             </div>
-            {#if $store.tokensExchangeRates[token[0]]}
-              <div>
-                {balancesInUsd[token[0]]
-                  ? balancesInUsd[token[0]].toFixed(2) / 1
-                  : ""} USD
-              </div>
-            {:else}
-              <div>N/A</div>
-            {/if}
+            <div>
+              1 {token[0]} = {$store.tokensExchangeRates[token[0]].tokenToTez}
+              XTZ
+            </div>
           {:else}
-            <div>No balance</div>
+            <div>No data</div>
           {/if}
         </div>
-      {:else}
-        <div class="info" />
-      {/if}
-    </div>
-  {/each}
+        {#if $store.userAddress}
+          <div class="info">
+            {#if $store.tokensBalances[token[0]]}
+              <div>
+                Balance: {+$store.tokensBalances[token[0]].toFixed(5) / 1}
+              </div>
+              {#if $store.tokensExchangeRates[token[0]]}
+                <div>
+                  {balancesInUsd[token[0]]
+                    ? balancesInUsd[token[0]].toFixed(2) / 1
+                    : ""} USD
+                </div>
+              {:else}
+                <div>N/A</div>
+              {/if}
+            {:else}
+              <div>No balance</div>
+            {/if}
+          </div>
+        {/if}
+      </div>
+    {/each}
+  </div>
 </div>
 <br />
 <br />

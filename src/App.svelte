@@ -91,7 +91,7 @@
   }
 
   main {
-    width: 60%;
+    width: 70%;
     margin: 0 auto;
     min-height: 100%;
     margin-bottom: -100px;

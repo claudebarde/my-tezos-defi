@@ -42,6 +42,6 @@
       href="https://github.com/claudebarde/my-tezos-defi"
       target="_blank"
       rel="noopener noreferrer nofollow">Github</a
-    > - v1.4.0
+    > - v1.5.0
   </div>
 </footer>

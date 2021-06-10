@@ -123,6 +123,7 @@
     balances.forEach(param => {
       newBalances[param[0]] = param[1];
     });
+    console.log("balances:", newBalances);
     store.updateTokensBalances(newBalances);
   };
 
