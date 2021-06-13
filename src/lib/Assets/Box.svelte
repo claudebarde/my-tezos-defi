@@ -32,8 +32,9 @@
   const calculateTrend = () => {
     trendModalOpen = true;
     // gets canvas
-    const tokenData = $historicDataStore.tokens[token[0]];
+    let tokenData = $historicDataStore.tokens[token[0]].slice(0);
     tokenData.sort((a, b) => a.timestamp - b.timestamp);
+    //tokenData = tokenData.slice(-60);
     const data = tokenData.map(el => +el.rate.tokenToTez);
     //const labels = tokenData.map(el => new Date(el.timestamp).toISOString());
     const labels = tokenData.map(el =>
@@ -233,7 +234,7 @@
   {/if}
 </div>
 {#if trendModalOpen}
-  <Modal on:close={() => (trendModalOpen = false)}>
+  <Modal type="graph" on:close={() => (trendModalOpen = false)}>
     <div slot="modal-title" class="modal-title">
       {token[0]} -> XTZ Price Trend
     </div>

@@ -32,7 +32,7 @@
 </style>
 
 <div class="container">
-  <div class="title">Last operations</div>
+  <div class="title">Last operations on Tezos</div>
   <div class="container-last-operations">
     {#if $store.lastOperations.length > 0}
       <div class="row">
