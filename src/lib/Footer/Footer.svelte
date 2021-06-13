@@ -20,6 +20,13 @@
 <footer>
   <div>The accuracy of the exchange rates or balances is not guaranteed!</div>
   <div>
+    The displayed last operations don't account for all the operations and may
+    give a false impression about the volume of transactions for certain tokens.
+  </div>
+  <div>
+    Trends are calculated since the moment you loaded your current session.
+  </div>
+  <div>
     Created by <a
       href="https://tzkt.io/tz1Me1MGhK7taay748h4gPnX2cXvbgL6xsYL/operations/"
       target="_blank"
@@ -42,6 +49,6 @@
       href="https://github.com/claudebarde/my-tezos-defi"
       target="_blank"
       rel="noopener noreferrer nofollow">Github</a
-    > - v1.5.0
+    > - v2.0.0
   </div>
 </footer>

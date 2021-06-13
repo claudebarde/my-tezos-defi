@@ -37,11 +37,14 @@
     "validate": "svelte-check"
   },
   "dependencies": {
+    "@microsoft/signalr": "^5.0.7",
     "@quipuswap/sdk": "^2.0.0",
     "@taquito/beacon-wallet": "^8.0.6-beta.0",
     "@taquito/taquito": "^8.0.6-beta.0",
     "@taquito/utils": "^8.1.1",
+    "chart.js": "^3.3.2",
     "file-loader": "^6.2.0",
+    "moment": "^2.29.1",
     "worker-loader": "^3.0.8"
   }
 }

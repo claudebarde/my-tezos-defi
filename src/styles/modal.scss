@@ -1,0 +1,62 @@
+@import "./settings.scss";
+
+.modal-wrapper {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  z-index: 100;
+
+  .modal-background {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0.8;
+    z-index: 101;
+    background-color: darken($bg-color, 30);
+  }
+
+  .modal {
+    min-height: 35%;
+    max-height: 60%;
+    overflow: auto;
+    width: 45%;
+    border: solid 4px $border-color;
+    border-radius: 10px;
+    z-index: 110;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: $container-bg-color;
+
+    .modal-title {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      canvas {
+        background-color: white;
+        height: 300px;
+      }
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+  }
+}

@@ -12,7 +12,19 @@ export enum AvailableToken {
   TZBTC = "tzBTC",
   USDTZ = "USDtz",
   ETHTZ = "ETHtz",
-  CRUNCH = "CRUNCH"
+  CRUNCH = "CRUNCH",
+  WRAP = "WRAP",
+  WDAI = "wDAI"
+}
+export enum AvailableInvestments {
+  "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
+  "PLENTY-hDAO" = "PLENTY-hDAO",
+  "PLENTY-PLENTY" = "PLENTY-PLENTY",
+  "PLENTY-ETHtz" = "PLENTY-ETHtz",
+  "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
+  "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
+  "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
+  "QUIPUSWAP-ETHtz" = "QUIPUSWAP-ETHtz"
 }
 
 export interface TokenContract {
@@ -26,6 +38,23 @@ export interface TokenContract {
   ledgerKey: "address" | ["address", number] | [string, "address"];
   type: "fa1.2" | "fa2";
   storage: any;
+}
+
+export type IconSet = (AvailableToken | "XTZ" | "QUIPU")[];
+
+export interface Operation {
+  entryId: number;
+  id: string;
+  hash: string;
+  level: number;
+  entrypoint: string;
+  sender: { address: string; alias: string };
+  target: { address: string; alias: string };
+  amount: number;
+  value: number;
+  icons: IconSet;
+  raw: any;
+  tokenIds: number[] | null;
 }
 
 export interface State {
@@ -46,5 +75,17 @@ export interface State {
       | { tokenToTez: number; tezToToken: number }
       | undefined;
   };
+  investments: {
+    [p in AvailableInvestments]: {
+      address: { mainnet: TezosContractAddress; testnet: TezosContractAddress };
+      balance: number | undefined;
+      decimals: number;
+      info: any;
+      icons: IconSet;
+      alias?: string;
+    };
+  };
   xtzFiatExchangeRate: number | undefined;
+  lastOperations: Operation[];
+  firstLoading: boolean;
 }

@@ -1,5 +1,5 @@
 import type { State } from "./types";
-import { TezosToolkit } from "@taquito/taquito";
+import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
 import {
   findDex,
   estimateTezInToken,
@@ -32,10 +32,21 @@ const getTokensExchangeRates = async () => {
       const [tokenSymbol, tokenInfo] = localToken;
       let token;
       if (tokenInfo.type === "fa2") {
-        token = {
-          contract: tokenInfo.address[localNetwork],
-          id: 0
-        };
+        if (
+          Array.isArray(tokenInfo.ledgerKey) &&
+          tokenInfo.ledgerKey[0] === "address" &&
+          !isNaN(+tokenInfo.ledgerKey[1])
+        ) {
+          token = {
+            contract: tokenInfo.address[localNetwork],
+            id: tokenInfo.ledgerKey[1]
+          };
+        } else {
+          token = {
+            contract: tokenInfo.address[localNetwork],
+            id: 0
+          };
+        }
       } else {
         token = { contract: tokenInfo.address[localNetwork] };
       }
@@ -44,9 +55,6 @@ const getTokensExchangeRates = async () => {
         const dex = await findDex(Tezos, factories, token);
         if (dex) {
           const tokenValue = 1 * 10 ** tokenInfo.decimals;
-          //const dexStorage = await dex.contract.storage();
-          //const inTezValue = estimateTezInToken(dexStorage, tokenValue);
-          //const inTokenValue = estimateTokenInTez(dexStorage, 1_000_000);
 
           const estimatedTokenToTezSwap = await estimateSwap(
             Tezos,
@@ -66,21 +74,6 @@ const getTokensExchangeRates = async () => {
               inputValue: 1_000_000
             }
           );
-          /*console.log(
-            tokenSymbol,
-            "tez",
-            estimatedTokenToTezSwap.toNumber(),
-            estimatedTezToTokenSwap.toNumber()
-          );*/
-
-          /*console.info(
-            `1 ${tokenSymbol} = ${inTezValue.toNumber() / 10 ** 6} XTZ`
-          );
-          console.info(
-            `1 XTZ = ${
-              inTokenValue.toNumber() / 10 ** tokenInfo.decimals
-            } ${tokenSymbol}`
-          );*/
 
           return [
             tokenSymbol,
@@ -98,22 +91,6 @@ const getTokensExchangeRates = async () => {
         console.error(err);
         return undefined;
       }
-      /*const dexContract = await Tezos.wallet.at(token.dexContractAddress);
-      const dexStorage: any = await dexContract.storage();
-
-      const tezValue = 1;
-      const tokenValue = 1;
-      const tezToToken =
-        estimateTezToToken(dexStorage, tezValue * 10 ** 6).toNumber() /
-        10 ** token.decimals;
-      const tokenToTez = (tezValue * tokenValue) / tezToToken;
-
-      return [
-        tokenSymbol,
-        +parseFloat(tezToToken.toString()).toFixed(7),
-        +parseFloat(tokenToTez.toString()).toFixed(7)
-      ];
-    })*/
     })
   );
 
@@ -151,6 +128,7 @@ const init = async (param: {
   localTokens = tokens;
   localNetwork = network;
   Tezos = new TezosToolkit(rpcUrl);
+  Tezos.setPackerProvider(new MichelCodecPacker());
 
   // sets up fetching tokens exchange rates
   await getTokensExchangeRates();

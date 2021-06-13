@@ -1,7 +1,9 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
   import store from "./store";
-  import type { TokenContract } from "./types";
+  import Assets from "./lib/Assets/Assets.svelte";
+  import Investments from "./lib/Investments/Investments.svelte";
+  import LastOperations from "./lib/LastOperations/LastOperations.svelte";
 
   let totalAmounts = { XTZ: undefined, FIAT: undefined };
   let balancesInUsd = {
@@ -44,7 +46,7 @@
       if ($store.tokensBalances && $store.xtzFiatExchangeRate) {
         Object.entries($store.tokensBalances).forEach(
           ([tokenSymbol, balance]) => {
-            if (balance) {
+            if (balance && $store.tokensExchangeRates[tokenSymbol]) {
               balancesInUsd[tokenSymbol] =
                 balance *
                 $store.tokensExchangeRates[tokenSymbol].tokenToTez *
@@ -67,74 +69,6 @@
     justify-content: space-around;
     align-items: center;
     padding: 10px;
-  }
-
-  .container {
-    border: solid 4px #4b5563;
-    border-radius: 20px;
-    width: 80%;
-    margin: 0 auto;
-    background-color: #1e3a8a;
-    position: relative;
-
-    .title {
-      $title-height: 15px;
-
-      height: $title-height;
-      font-size: $title-height;
-      background-color: #4b5563;
-      position: absolute;
-      left: $title-height;
-      top: calc(calc(#{$title-height} * -1) - 5px);
-      padding: 5px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 5px;
-    }
-
-    .container-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: flex-start;
-
-      .box {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 10px;
-        margin: 10px;
-
-        .icon {
-          padding: 10px;
-          img {
-            width: 50px;
-            height: 50px;
-          }
-        }
-
-        .info {
-          display: flex;
-          flex-direction: column;
-          text-align: center;
-        }
-      }
-    }
-  }
-
-  @media only screen and (max-width: $mobile-break-point) {
-    .container {
-      .row {
-        display: flex;
-        flex-direction: column;
-
-        .info {
-          margin: 10px 0px;
-        }
-      }
-    }
   }
 </style>
 
@@ -166,61 +100,17 @@
   </div>
   <br />
 {/if}
-<div class="container">
-  <div class="title">Assets</div>
-  <div class="container-grid">
-    {#each Object.entries($store.tokens) as token}
-      <div class="box">
-        <div class="icon">
-          <img src={`images/${token[0]}.png`} alt={token[0]} />
-        </div>
-        <div class="info">
-          {#if $store.tokensExchangeRates[token[0]]}
-            <div>
-              1 XTZ = {$store.tokensExchangeRates[token[0]].tezToToken}
-              {token[0]}
-            </div>
-            <div>
-              1 {token[0]} = {$store.tokensExchangeRates[token[0]].tokenToTez}
-              XTZ
-            </div>
-          {:else}
-            <div>No data</div>
-          {/if}
-        </div>
-        {#if $store.userAddress}
-          <div class="info">
-            {#if $store.tokensBalances[token[0]]}
-              <div>
-                Balance: {+$store.tokensBalances[token[0]].toFixed(5) / 1}
-              </div>
-              {#if $store.tokensExchangeRates[token[0]]}
-                <div>
-                  {balancesInUsd[token[0]]
-                    ? balancesInUsd[token[0]].toFixed(2) / 1
-                    : ""} USD
-                </div>
-              {:else}
-                <div>N/A</div>
-              {/if}
-            {:else}
-              <div>No balance</div>
-            {/if}
-          </div>
-        {/if}
-      </div>
-    {/each}
-  </div>
-</div>
+{#if $store.userAddress && Object.values($store.tokensBalances).some(el => el)}
+  <Assets {balancesInUsd} assetsType="owned" />
+  <br />
+  <br />
+{/if}
+<Assets {balancesInUsd} assetsType="general" />
 <br />
 <br />
-<div class="container">
-  <div class="title">Investments</div>
-  <div class="row">Coming soon</div>
-</div>
-<br />
-<br />
-<div class="container">
-  <div class="title">Live traffic</div>
-  <div class="row">Coming soon</div>
-</div>
+{#if $store.userAddress}
+  <Investments />
+  <br />
+  <br />
+{/if}
+<LastOperations />

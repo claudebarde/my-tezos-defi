@@ -1,18 +1,86 @@
 @import url("https://fonts.googleapis.com/css2?family=Signika:wght@400;700&display=swap");
 @import "./settings.scss";
+@import "./modal.scss";
 
 html,
 body {
   height: 100vh;
-  background-color: #1e40af;
+  background-color: $bg-color;
   color: #f9fafb;
   font-family: "Signika", sans-serif;
   font-size: 1.1rem;
+  position: relative;
+}
+
+.container {
+  border: solid 4px $border-color;
+  border-radius: 20px;
+  margin: 0 auto;
+  background-color: $container-bg-color;
+  position: relative;
+  padding: 10px;
+
+  $title-height: 15px;
+
+  .title,
+  .expand {
+    height: $title-height;
+    font-size: $title-height;
+    background-color: $border-color;
+    position: absolute;
+    top: calc(calc(#{$title-height} * -1) - 5px);
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+  }
+
+  .title {
+    left: $title-height;
+  }
+
+  .expand {
+    right: $title-height;
+
+    button {
+      appearance: none;
+      border: none;
+      background-color: transparent;
+      color: inherit;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+  }
+}
+
+button {
+  &.default {
+    appearance: none;
+    border: solid 2px white;
+    border-radius: 10px;
+    background-color: transparent;
+    color: white;
+    padding: 5px 10px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
 }
 
 @media only screen and (max-width: $mobile-break-point) {
   html,
   body {
     font-size: 1rem;
+  }
+
+  .container {
+    .row {
+      display: flex;
+      flex-direction: column;
+
+      .info {
+        margin: 10px 0px;
+      }
+    }
   }
 }

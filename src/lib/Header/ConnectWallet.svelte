@@ -9,6 +9,8 @@
   import { char2Bytes, bytes2Char } from "@taquito/utils";
   import type { TezosAccountAddress } from "../../types";
   import store from "../../store";
+  import InvestmentsWorker from "worker-loader!../../investments.worker";
+  import { handleInvestmentsWorker } from "../../workersHandlers";
 
   const walletOptions = {
     name: "My Tezos DeFi",
@@ -29,6 +31,7 @@
   };
   const tezosDomainContract = "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS";
   let username = "";
+  let investmentsWorker;
 
   const connect = async () => {
     try {
@@ -43,6 +46,15 @@
       store.updateUserAddress(userAddress as any);
       store.updateWallet(wallet);
       $store.Tezos.setWalletProvider(wallet);
+
+      // listens to investments worker
+      investmentsWorker = new InvestmentsWorker();
+      investmentsWorker.onmessage = handleInvestmentsWorker;
+      investmentsWorker.postMessage({
+        type: "init",
+        payload: { rpcUrl: $store.settings[$store.network].rpcUrl, userAddress }
+      });
+
       username = await fetchTezosDomain(userAddress);
       await searchUserTokens(userAddress as TezosAccountAddress);
     } catch (err) {
@@ -123,7 +135,6 @@
     balances.forEach(param => {
       newBalances[param[0]] = param[1];
     });
-    console.log("balances:", newBalances);
     store.updateTokensBalances(newBalances);
   };
 
@@ -146,6 +157,15 @@
       const userAddress = await wallet.getPKH();
       store.updateUserAddress(userAddress as TezosAccountAddress);
       store.updateWallet(wallet);
+
+      // listens to investments worker
+      investmentsWorker = new InvestmentsWorker();
+      investmentsWorker.onmessage = handleInvestmentsWorker;
+      investmentsWorker.postMessage({
+        type: "init",
+        payload: { rpcUrl: $store.settings[$store.network].rpcUrl, userAddress }
+      });
+
       username = await fetchTezosDomain(userAddress);
       await searchUserTokens(userAddress as TezosAccountAddress);
     }
