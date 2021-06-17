@@ -10,6 +10,23 @@
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
 
+  const calcTotalShareValueInTez = (
+    tokensOwned: number,
+    shareValueInTez: number,
+    tokenToTezExchangeRate: number,
+    tokenDecimals: number
+  ): number => {
+    const tezValue = shareValueInTez / 10 ** 6;
+    const tokenValue =
+      shareValueInTez /
+      10 ** 6 /
+      (tokenToTezExchangeRate / 10 ** tokenDecimals) /
+      10 ** tokenDecimals;
+    const tokenToTezValue = tokenValue * tokenToTezExchangeRate;
+
+    return (tokensOwned / 10 ** tokenDecimals) * (tezValue + tokenToTezValue);
+  };
+
   afterUpdate(async () => {
     // finds if user has Kolibri ovens
     if ($store.userAddress && !kolibriOvensChecked) {
@@ -49,7 +66,7 @@
   .container-investments {
     .row {
       display: grid;
-      grid-template-columns: 10% 25% 25% 25%;
+      grid-template-columns: 10% 25% 20% 20% 20%;
       padding: 3px 0px;
 
       &.break-line {
@@ -118,6 +135,8 @@
         <div />
         <div>Contract</div>
         <div>Balance</div>
+        <div>Value in XTZ</div>
+        <div>Value in USD</div>
       </div>
       {#each Object.entries($store.investments) as [contractName, data]}
         {#if data.balance > 0}
@@ -129,6 +148,43 @@
             </div>
             <div>{data.alias}</div>
             <div>{data.balance / 10 ** data.decimals}</div>
+            <div>
+              {#if ["Plenty hDAO staking", "Plenty staking", "Plenty USDtz staking"].includes(data.alias) && $store.tokensExchangeRates[data.token]}
+                {+(
+                  (data.balance / 10 ** data.decimals) *
+                  $store.tokensExchangeRates[data.token].tokenToTez
+                ).toFixed(5) / 1}
+              {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
+                {+calcTotalShareValueInTez(
+                  data.balance,
+                  data.shareValueInTez,
+                  $store.tokensExchangeRates.PLENTY.tokenToTez,
+                  $store.tokens.PLENTY.decimals
+                ).toFixed(5) / 1}
+              {:else}
+                --
+              {/if}
+            </div>
+            <div>
+              {#if ["Plenty hDAO staking", "Plenty staking", "Plenty USDtz staking"].includes(data.alias) && $store.tokensExchangeRates[data.token]}
+                {+(
+                  (data.balance / 10 ** data.decimals) *
+                  $store.tokensExchangeRates[data.token].tokenToTez *
+                  $store.xtzFiatExchangeRate
+                ).toFixed(5) / 1}
+              {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
+                {+(
+                  calcTotalShareValueInTez(
+                    data.balance,
+                    data.shareValueInTez,
+                    $store.tokensExchangeRates.PLENTY.tokenToTez,
+                    $store.tokens.PLENTY.decimals
+                  ) * $store.xtzFiatExchangeRate
+                ).toFixed(5) / 1}
+              {:else}
+                --
+              {/if}
+            </div>
           </div>
         {/if}
       {/each}

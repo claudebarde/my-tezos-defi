@@ -157,6 +157,7 @@
       const userAddress = await wallet.getPKH();
       store.updateUserAddress(userAddress as TezosAccountAddress);
       store.updateWallet(wallet);
+      $store.Tezos.setWalletProvider(wallet);
 
       // listens to investments worker
       investmentsWorker = new InvestmentsWorker();
@@ -169,7 +170,6 @@
       username = await fetchTezosDomain(userAddress);
       await searchUserTokens(userAddress as TezosAccountAddress);
     }
-    $store.Tezos.setWalletProvider(wallet);
   });
 </script>
 

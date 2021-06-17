@@ -21,7 +21,7 @@ const settings: State["settings"] = {
     PLENTY: ""
   },
   mainnet: {
-    rpcUrl: "https://mainnet-tezos.giganode.io" //"https://api.tez.ie/rpc/mainnet"
+    rpcUrl: "https://api.tez.ie/rpc/mainnet" //"https://mainnet-tezos.giganode.io"
   }
 };
 
@@ -42,7 +42,8 @@ const initialState: State = {
       ledgerPath: "balances",
       ledgerKey: "address",
       type: "fa1.2",
-      storage: undefined
+      storage: undefined,
+      color: "#3FBD93"
     },
     hDAO: {
       address: {
@@ -54,7 +55,8 @@ const initialState: State = {
       ledgerPath: "ledger",
       ledgerKey: ["address", 0],
       type: "fa2",
-      storage: undefined
+      storage: undefined,
+      color: "#020304"
     },
     PLENTY: {
       address: {
@@ -66,7 +68,8 @@ const initialState: State = {
       ledgerPath: "balances",
       ledgerKey: "address",
       type: "fa1.2",
-      storage: undefined
+      storage: undefined,
+      color: "#5D0FAE"
     },
     wXTZ: {
       address: {
@@ -78,7 +81,8 @@ const initialState: State = {
       ledgerPath: "token/ledger",
       ledgerKey: "address",
       type: "fa1.2",
-      storage: undefined
+      storage: undefined,
+      color: "#00BAE7"
     },
     STKR: {
       address: {
@@ -90,7 +94,8 @@ const initialState: State = {
       ledgerPath: "token/ledger",
       ledgerKey: "address",
       type: "fa1.2",
-      storage: undefined
+      storage: undefined,
+      color: "#46C3E4"
     },
     tzBTC: {
       address: {
@@ -102,7 +107,8 @@ const initialState: State = {
       ledgerPath: "0",
       ledgerKey: ["ledger", "address"],
       type: "fa1.2",
-      storage: undefined
+      storage: undefined,
+      color: "#2B71E3"
     },
     USDtz: {
       address: {
@@ -114,7 +120,8 @@ const initialState: State = {
       ledgerPath: "ledger",
       ledgerKey: "address",
       type: "fa1.2",
-      storage: undefined
+      storage: undefined,
+      color: "#159DA2"
     },
     ETHtz: {
       address: {
@@ -126,7 +133,8 @@ const initialState: State = {
       ledgerPath: "ledger",
       ledgerKey: "address",
       type: "fa1.2",
-      storage: undefined
+      storage: undefined,
+      color: "#4E2CB6"
     },
     CRUNCH: {
       address: {
@@ -138,7 +146,8 @@ const initialState: State = {
       ledgerPath: "assets/ledger",
       ledgerKey: "address",
       type: "fa2",
-      storage: undefined
+      storage: undefined,
+      color: "#FEDD00"
     },
     WRAP: {
       address: {
@@ -150,7 +159,8 @@ const initialState: State = {
       ledgerPath: "assets/ledger",
       ledgerKey: "address",
       type: "fa2",
-      storage: undefined
+      storage: undefined,
+      color: "#FFCA00"
     },
     wDAI: {
       address: {
@@ -162,7 +172,21 @@ const initialState: State = {
       ledgerPath: "assets/ledger",
       ledgerKey: ["address", 5],
       type: "fa2",
-      storage: undefined
+      storage: undefined,
+      color: "#F6CE13"
+    },
+    sDAO: {
+      address: {
+        mainnet: "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1PrRTVNgxkRgyqqNQvwTiVhd55dqyxXJ6n",
+      decimals: 0,
+      ledgerPath: "assets/ledger",
+      ledgerKey: ["address", 1],
+      type: "fa2",
+      storage: undefined,
+      color: "#000000"
     }
   },
   tokensBalances: {
@@ -176,7 +200,8 @@ const initialState: State = {
     ETHtz: undefined,
     CRUNCH: undefined,
     WRAP: undefined,
-    wDAI: undefined
+    wDAI: undefined,
+    sDAO: undefined
   },
   tokensExchangeRates: {
     kUSD: undefined,
@@ -189,7 +214,8 @@ const initialState: State = {
     ETHtz: undefined,
     CRUNCH: undefined,
     WRAP: undefined,
-    wDAI: undefined
+    wDAI: undefined,
+    sDAO: undefined
   },
   investments: {
     "QUIPUSWAP-PLENTY": {
@@ -201,7 +227,8 @@ const initialState: State = {
       decimals: 0,
       info: [],
       alias: "QuipuSwap PLENTY",
-      icons: ["QUIPU", AvailableToken.PLENTY]
+      icons: ["QUIPU", AvailableToken.PLENTY],
+      token: undefined
     },
     "QUIPUSWAP-KUSD": {
       address: {
@@ -212,7 +239,8 @@ const initialState: State = {
       decimals: 0,
       info: [],
       alias: "QuipuSwap kUSD",
-      icons: ["QUIPU", AvailableToken.KUSD]
+      icons: ["QUIPU", AvailableToken.KUSD],
+      token: undefined
     },
     "QUIPUSWAP-USDtz": {
       address: {
@@ -223,7 +251,8 @@ const initialState: State = {
       decimals: 0,
       info: [],
       alias: "QuipuSwap USDtz",
-      icons: ["QUIPU", AvailableToken.USDTZ]
+      icons: ["QUIPU", AvailableToken.USDTZ],
+      token: undefined
     },
     "QUIPUSWAP-ETHtz": {
       address: {
@@ -234,7 +263,8 @@ const initialState: State = {
       decimals: 0,
       info: [],
       alias: "QuipuSwap ETHtz",
-      icons: ["QUIPU", AvailableToken.ETHTZ]
+      icons: ["QUIPU", AvailableToken.ETHTZ],
+      token: undefined
     },
     "PLENTY-XTZ-LP": {
       address: {
@@ -245,7 +275,8 @@ const initialState: State = {
       decimals: 18,
       info: [],
       alias: "PLENTY-XTZ LP farm",
-      icons: [AvailableToken.PLENTY, "XTZ"]
+      icons: [AvailableToken.PLENTY, "XTZ"],
+      token: undefined
     },
     "PLENTY-hDAO": {
       address: {
@@ -256,7 +287,8 @@ const initialState: State = {
       decimals: 18,
       info: [],
       alias: "Plenty hDAO staking",
-      icons: [AvailableToken.PLENTY, AvailableToken.HDAO]
+      icons: [AvailableToken.PLENTY, AvailableToken.HDAO],
+      token: AvailableToken.HDAO
     },
     "PLENTY-PLENTY": {
       address: {
@@ -267,7 +299,8 @@ const initialState: State = {
       decimals: 18,
       info: [],
       alias: "Plenty staking",
-      icons: [AvailableToken.PLENTY, AvailableToken.PLENTY]
+      icons: [AvailableToken.PLENTY, AvailableToken.PLENTY],
+      token: AvailableToken.PLENTY
     },
     "PLENTY-ETHtz": {
       address: {
@@ -278,7 +311,20 @@ const initialState: State = {
       decimals: 18,
       info: [],
       alias: "Plenty ETHtz staking",
-      icons: [AvailableToken.PLENTY, AvailableToken.ETHTZ]
+      icons: [AvailableToken.PLENTY, AvailableToken.ETHTZ],
+      token: AvailableToken.ETHTZ
+    },
+    "PLENTY-USDtz": {
+      address: {
+        mainnet: "KT1MBqc3GHpApBXaBZyvY63LF6eoFyTWtySn",
+        testnet: "KT1z"
+      },
+      balance: undefined,
+      decimals: 18,
+      info: [],
+      alias: "Plenty USDtz staking",
+      icons: [AvailableToken.PLENTY, AvailableToken.USDTZ],
+      token: AvailableToken.USDTZ
     }
   },
   xtzFiatExchangeRate: undefined,

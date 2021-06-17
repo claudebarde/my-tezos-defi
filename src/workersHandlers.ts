@@ -18,7 +18,8 @@ export const handleInvestmentsWorker = (msg: MessageEvent) => {
         newInvestments[inv.name] = {
           ...newInvestments[inv.name],
           balance: inv.balance,
-          info: inv.info
+          info: inv.info,
+          shareValueInTez: inv.shareValueInTez ? inv.shareValueInTez : undefined
         };
       }
     });

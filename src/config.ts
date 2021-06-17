@@ -23,5 +23,15 @@ export default {
     20: { name: "wWETH", decimals: 18 }
   },
   kolibriOvenOwnersUrl:
-    "https://kolibri-data.s3.amazonaws.com/mainnet/oven-key-data.json"
+    "https://kolibri-data.s3.amazonaws.com/mainnet/oven-key-data.json",
+  quipuswapFactories: {
+    fa1_2Factory: [
+      "KT1FWHLMk5tHbwuSsp31S4Jum4dTVmkXpfJw",
+      "KT1Lw8hCoaBrHeTeMXbqHPG4sS4K1xn7yKcD"
+    ],
+    fa2Factory: [
+      "KT1PvEyN1xCFCgorN92QCfYjw3axS6jawCiJ",
+      "KT1SwH9P1Tx8a58Mm6qBExQFTcy2rwZyZiXS"
+    ]
+  }
 };

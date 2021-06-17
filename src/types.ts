@@ -14,7 +14,8 @@ export enum AvailableToken {
   ETHTZ = "ETHtz",
   CRUNCH = "CRUNCH",
   WRAP = "WRAP",
-  WDAI = "wDAI"
+  WDAI = "wDAI",
+  SDAO = "sDAO"
 }
 export enum AvailableInvestments {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
@@ -24,7 +25,8 @@ export enum AvailableInvestments {
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
-  "QUIPUSWAP-ETHtz" = "QUIPUSWAP-ETHtz"
+  "QUIPUSWAP-ETHtz" = "QUIPUSWAP-ETHtz",
+  "PLENTY-USDtz" = "PLENTY-USDtz"
 }
 
 export interface TokenContract {
@@ -38,6 +40,7 @@ export interface TokenContract {
   ledgerKey: "address" | ["address", number] | [string, "address"];
   type: "fa1.2" | "fa2";
   storage: any;
+  color: string;
 }
 
 export type IconSet = (AvailableToken | "XTZ" | "QUIPU")[];
@@ -82,10 +85,21 @@ export interface State {
       decimals: number;
       info: any;
       icons: IconSet;
+      token: undefined | AvailableToken;
       alias?: string;
+      shareValueInTez?: number;
     };
   };
   xtzFiatExchangeRate: number | undefined;
   lastOperations: Operation[];
   firstLoading: boolean;
+}
+
+export interface HistoricalDataState {
+  tokens: {
+    [p in AvailableToken]: {
+      timestamp: number;
+      rate: { tokenToTez: number; tezToToken: number };
+    }[];
+  };
 }

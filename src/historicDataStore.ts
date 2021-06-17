@@ -1,14 +1,7 @@
 import { writable } from "svelte/store";
-import type { AvailableToken } from "./types";
+import type { AvailableToken, HistoricalDataState } from "./types";
 
-const initialState: {
-  tokens: {
-    [p in AvailableToken]: {
-      timestamp: number;
-      rate: { tokenToTez: number; tezToToken: number };
-    }[];
-  };
-} = {
+const initialState: HistoricalDataState = {
   tokens: {
     kUSD: [],
     hDAO: [],
@@ -20,7 +13,8 @@ const initialState: {
     ETHtz: [],
     CRUNCH: [],
     WRAP: [],
-    wDAI: []
+    wDAI: [],
+    sDAO: []
   }
 };
 

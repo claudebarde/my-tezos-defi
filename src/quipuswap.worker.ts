@@ -1,11 +1,7 @@
 import type { State } from "./types";
 import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
-import {
-  findDex,
-  estimateTezInToken,
-  estimateTokenInTez,
-  estimateSwap
-} from "@quipuswap/sdk";
+import { findDex, estimateSwap } from "@quipuswap/sdk";
+import config from "./config";
 
 const ctx: Worker = self as any;
 let localNetwork;
@@ -16,16 +12,7 @@ let localTokens: State["tokens"];
 let xtzFiatExchangeRate = 0;
 
 const getTokensExchangeRates = async () => {
-  const factories = {
-    fa1_2Factory: [
-      "KT1FWHLMk5tHbwuSsp31S4Jum4dTVmkXpfJw",
-      "KT1Lw8hCoaBrHeTeMXbqHPG4sS4K1xn7yKcD"
-    ],
-    fa2Factory: [
-      "KT1PvEyN1xCFCgorN92QCfYjw3axS6jawCiJ",
-      "KT1SwH9P1Tx8a58Mm6qBExQFTcy2rwZyZiXS"
-    ]
-  };
+  const factories = config.quipuswapFactories;
 
   const exchangeRates = await Promise.all(
     Object.entries(localTokens).map(async localToken => {
@@ -77,18 +64,21 @@ const getTokensExchangeRates = async () => {
 
           return [
             tokenSymbol,
-            (
+            +(
               estimatedTezToTokenSwap.toNumber() /
               10 ** tokenInfo.decimals
-            ).toFixed(5),
-            (estimatedTokenToTezSwap.toNumber() / 10 ** 6).toFixed(5)
+            ).toFixed(5) / 1,
+            +(estimatedTokenToTezSwap.toNumber() / 10 ** 6).toFixed(5) / 1
           ];
         } else {
           console.error(tokenSymbol, "no dex");
           return undefined;
         }
       } catch (err) {
-        console.error(err);
+        console.error(
+          `Error fetching the exchange rate for ${tokenSymbol}:`,
+          err
+        );
         return undefined;
       }
     })

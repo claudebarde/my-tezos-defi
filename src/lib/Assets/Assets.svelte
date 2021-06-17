@@ -1,12 +1,52 @@
 <script lang="ts">
-  import { afterUpdate } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import store from "../../store";
   import Box from "./Box.svelte";
+  import StickyHeader from "./StickyHeader.svelte";
 
   export let balancesInUsd: any, assetsType: "owned" | "general";
 
   let expandGeneralAssets = true;
   let loading = true;
+  let ticking = false;
+  let showStickyHeader = false;
+
+  const updateStickyHeaderDisplay = lastKnownScrollPosition => {
+    const container = document.getElementById("container-owned-tokens");
+    if (container) {
+      const containerPos = container.getBoundingClientRect();
+      /*console.log(
+        lastKnownScrollPosition,
+        containerPos.top,
+        container.clientHeight
+      );*/
+      if (
+        Math.abs(containerPos.top) > container.clientHeight &&
+        lastKnownScrollPosition > containerPos.top
+      ) {
+        showStickyHeader = true;
+      } else {
+        showStickyHeader = false;
+      }
+    }
+  };
+
+  onMount(() => {
+    if (assetsType === "owned") {
+      document.addEventListener("scroll", function (e) {
+        const lastKnownScrollPosition = window.scrollY;
+
+        if (!ticking) {
+          window.requestAnimationFrame(function () {
+            updateStickyHeaderDisplay(lastKnownScrollPosition);
+            ticking = false;
+          });
+
+          ticking = true;
+        }
+      });
+    }
+  });
 
   afterUpdate(() => {
     if (loading && Object.values($store.tokensBalances).some(el => el)) {
@@ -26,7 +66,12 @@
   }
 </style>
 
-<div class="container">
+<div
+  class="container"
+  id={assetsType === "owned"
+    ? "container-owned-tokens"
+    : "container-general-tokens"}
+>
   <div class="title">
     {#if assetsType === "owned"}
       Your assets
@@ -63,3 +108,6 @@
     </div>
   {/if}
 </div>
+{#if assetsType === "owned" && !$store.firstLoading && showStickyHeader}
+  <StickyHeader {balancesInUsd} />
+{/if}

@@ -6,6 +6,7 @@
   import store from "../../store";
   import historicDataStore from "../../historicDataStore";
   import Modal from "../Modal/Modal.svelte";
+  import { calculateTrend } from "../../utils";
 
   export let assetsType: "owned" | "general",
     token: [AvailableToken | string, TokenContract],
@@ -29,7 +30,7 @@
     ]
   };*/
 
-  const calculateTrend = () => {
+  const displayTrendGraph = () => {
     trendModalOpen = true;
     // gets canvas
     let tokenData = $historicDataStore.tokens[token[0]].slice(0);
@@ -73,47 +74,12 @@
       $historicDataStore.tokens[token[0]].length > 2 &&
       $historicDataStore.tokens[token[0]].length !== nrOfTrends
     ) {
-      // calculates new trend
-      const tokenData = $historicDataStore.tokens[token[0]];
-      tokenData.sort((a, b) => a.timestamp - b.timestamp);
-      const upsAndDowns = tokenData.map((el, index) => {
-        if (index === 0) {
-          // first element of the array, nothing to do with it
-          return null;
-        } else {
-          const previousEl = tokenData[index - 1];
-          if (+el.rate.tokenToTez === +previousEl.rate.tokenToTez) {
-            return "same";
-          } else if (+el.rate.tokenToTez > +previousEl.rate.tokenToTez) {
-            // price went up
-            return "up";
-          } else {
-            return "down";
-          }
-        }
-      });
-      const counts = upsAndDowns.reduce(
-        (prev, cur) => {
-          prev[cur] = (prev[cur] || 0) + 1;
-          return prev;
-        },
-        { up: 0, down: 0, same: 0 }
+      const newTrend = calculateTrend(
+        $historicDataStore,
+        token[0] as AvailableToken
       );
-      if (counts.up === counts.down) {
-        trend = "same";
-      } else if (counts.up > counts.down) {
-        trend = "up";
-      } else {
-        trend = "down";
-      }
-      nrOfTrends = $historicDataStore.tokens[token[0]].length;
-      /*console.log(
-        token[0],
-        $historicDataStore.tokens[token[0]],
-        upsAndDowns,
-        counts,
-        trend
-      );*/
+      trend = newTrend.trend;
+      nrOfTrends = newTrend.nrOfTrends;
     }
   });
 </script>
@@ -219,7 +185,7 @@
     {/if}
     {#if trend}
       <div class="trend">
-        <button class="trend-button" on:click={calculateTrend}>
+        <button class="trend-button" on:click={displayTrendGraph}>
           Trend:
           {#if trend === "same"}
             <span class="material-icons same"> trending_flat </span>

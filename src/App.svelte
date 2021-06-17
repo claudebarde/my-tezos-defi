@@ -11,12 +11,10 @@
   import type { Operation, IconSet } from "./types";
   import { AvailableToken } from "./types";
   import config from "./config";
+  import { shortenHash } from "./utils";
 
   let appReady = false;
   let quipuWorker, liveTrafficWorker;
-
-  const shortenHash = (hash: string): string =>
-    hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
 
   const handleQuipuWorker = (msg: MessageEvent) => {
     if (msg.data.type === "exchange-rates") {
@@ -156,6 +154,9 @@
           case "KT19asUVzBNidHgTHp8MP31YSphooMb3piWR":
             icons = [AvailableToken.PLENTY, AvailableToken.ETHTZ];
             break;
+          case "KT1MBqc3GHpApBXaBZyvY63LF6eoFyTWtySn":
+            icons = [AvailableToken.PLENTY, AvailableToken.USDTZ];
+            break;
           case "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6":
             icons = ["QUIPU", AvailableToken.KUSD];
             break;
@@ -178,6 +179,9 @@
             icons = tokenIds
               ? tokenIds.map(tokenId => config.wrapTokenIds[tokenId].name)
               : [AvailableToken.WRAP];
+            break;
+          case "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA":
+            icons = [AvailableToken.SDAO];
             break;
           default:
             icons = op.target.alias ? [op.target.alias.trim()] : ["user"];

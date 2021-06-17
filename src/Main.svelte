@@ -4,6 +4,7 @@
   import Assets from "./lib/Assets/Assets.svelte";
   import Investments from "./lib/Investments/Investments.svelte";
   import LastOperations from "./lib/LastOperations/LastOperations.svelte";
+  import Charts from "./lib/Charts/Charts.svelte";
 
   let totalAmounts = { XTZ: undefined, FIAT: undefined };
   let balancesInUsd = {
@@ -114,3 +115,6 @@
   <br />
 {/if}
 <LastOperations />
+<br />
+<br />
+<Charts />

@@ -1,8 +1,5 @@
 <script lang="ts">
   import store from "../../store";
-
-  const shortenHash = (hash: string): string =>
-    hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
 </script>
 
 <style lang="scss">
