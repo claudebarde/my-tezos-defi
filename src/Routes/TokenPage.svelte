@@ -157,5 +157,8 @@
   </div>
   <br />
   <br />
-  <LastOperations filterOps={{ opType: "token", token: tokenSymbol }} />
+  <LastOperations
+    lastOps={$store.lastOperations}
+    filterOps={{ opType: "token", token: tokenSymbol }}
+  />
 {/if}

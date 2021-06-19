@@ -116,9 +116,11 @@
       {/if}
     </div>
     <div class="options">
-      <a href="#/profile">
-        <span class="material-icons"> account_circle </span>
-      </a>
+      {#if $store.userAddress}
+        <a href="#/profile">
+          <span class="material-icons"> account_circle </span>
+        </a>
+      {/if}
     </div>
   </div>
   <br />
@@ -136,7 +138,10 @@
   <br />
   <br />
 {/if}
-<LastOperations filterOps={{ opType: "general" }} />
+<LastOperations
+  lastOps={$store.lastOperations}
+  filterOps={{ opType: "general" }}
+/>
 <br />
 <br />
 <Charts />

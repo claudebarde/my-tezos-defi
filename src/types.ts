@@ -43,13 +43,15 @@ export interface TokenContract {
   color: string;
 }
 
-export type IconSet = (AvailableToken | "XTZ" | "QUIPU")[];
+export type IconValue = AvailableToken | "XTZ" | "QUIPU" | "user";
+export type IconSet = IconValue[];
 
 export interface Operation {
   entryId: number;
   id: string;
   hash: string;
   level: number;
+  timestamp: string;
   entrypoint: string;
   sender: { address: string; alias: string };
   target: { address: string; alias: string };

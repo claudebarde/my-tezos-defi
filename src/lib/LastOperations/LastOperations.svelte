@@ -1,21 +1,21 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
+  import moment from "moment";
   import store from "../../store";
-  import type { AvailableToken } from "../../types";
+  import type { AvailableToken, Operation } from "../../types";
 
   export let filterOps: {
-    opType: "general" | "token";
-    token?: AvailableToken;
-  };
+      opType: "general" | "token" | "user";
+      token?: AvailableToken;
+    },
+    lastOps: Operation[];
 
   let lastOpsFiltered = [];
 
   afterUpdate(() => {
-    if (
-      JSON.stringify($store.lastOperations) !== JSON.stringify(lastOpsFiltered)
-    ) {
-      lastOpsFiltered = $store.lastOperations.filter(op => {
-        if (filterOps.opType === "general") {
+    if (JSON.stringify(lastOps) !== JSON.stringify(lastOpsFiltered)) {
+      lastOpsFiltered = lastOps.filter(op => {
+        if (filterOps.opType === "general" || filterOps.opType === "user") {
           return true;
         } else if (filterOps.opType === "token") {
           return (
@@ -55,7 +55,13 @@
 </style>
 
 <div class="container">
-  <div class="title">Last operations on Tezos</div>
+  <div class="title">
+    {#if filterOps.opType === "user"}
+      Your last operations
+    {:else}
+      Last operations on Tezos
+    {/if}
+  </div>
   <div class="container-last-operations">
     {#if $store.lastOperations.length > 0}
       <div class="row">
@@ -69,8 +75,11 @@
     {#each lastOpsFiltered as op, index (op.entryId)}
       {#if index === 0 || op.level !== lastOpsFiltered[index - 1].level}
         <div class="row">
-          <div style="grid-column:1 / span 2;margin:10px 0px;">
+          <div style="grid-column:1 / span 3;margin:10px 0px;">
             Block level: {op.level}
+            <span style="font-size:0.8rem"
+              >({moment(op.timestamp).fromNow()})</span
+            >
           </div>
         </div>
       {/if}
