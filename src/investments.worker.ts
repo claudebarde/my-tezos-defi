@@ -26,6 +26,7 @@ const loadInvestments = async (param: {
         details.address[localStore.network]
       );
       const storage: any = await contract.storage();
+      // PLENTY FARMS/POOLS
       if (
         [
           "PLENTY-XTZ-LP",
@@ -74,6 +75,7 @@ const loadInvestments = async (param: {
           "QUIPUSWAP-ETHtz"
         ].includes(name)
       ) {
+        // QUIPUSWAP POOLS
         const userData = await storage.storage.ledger.get(userAddress);
         if (userData) {
           return {
@@ -82,6 +84,65 @@ const loadInvestments = async (param: {
             info: undefined
           };
         }
+      } else if (name === "CRUNCHY-FARMS") {
+        const nrOfFarms = storage.nextFarmId.toNumber();
+
+        /*const balances = await storage.ledger.getMultipleValues(
+          Array.from(Array(nrOfFarms).keys()).map(farmId => ({
+            0: farmId,
+            1: userAddress
+          }))
+        );*/
+        /*const balance = await storage.ledger.get({
+          nat: "0",
+          address: userAddress
+        });*/
+
+        const request = `https://api.tzkt.io/v1/bigmaps/4874/keys?active=true&key.in=[${Array.from(
+          Array(nrOfFarms).keys()
+        )
+          .map(farmId =>
+            JSON.stringify({
+              nat: farmId.toString(),
+              address: userAddress
+            })
+          )
+          .join(",")}]`;
+
+        const valuesResponse = await fetch(request);
+        if (valuesResponse) {
+          const values = await valuesResponse.json();
+          if (values.length === 0) {
+            return undefined;
+          } else {
+            const dex = await findDex(Tezos, config.quipuswapFactories, {
+              contract: localStore.tokens.CRUNCH.address[localStore.network],
+              id: 0
+            });
+            const dexStorage = await dex.contract.storage();
+            const tezInShares = await estimateTezInShares(
+              dexStorage,
+              100_000_000
+            );
+            console.log("crunch tez in shares:", tezInShares.toNumber());
+
+            return {
+              name,
+              balance: 0,
+              info: [
+                ...values.map(val => ({
+                  farmId: val.key.nat,
+                  amount: val.value.amount
+                }))
+              ],
+              shareValueInTez: tezInShares.toNumber()
+            };
+          }
+        } else {
+          return undefined;
+        }
+
+        // https://api.tzkt.io/v1/bigmaps/4874/keys/{"nat":"0","address":"tz1Me1MGhK7taay748h4gPnX2cXvbgL6xsYL"}
       }
     })
   );

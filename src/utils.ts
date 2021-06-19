@@ -12,6 +12,10 @@ import type {
 import { AvailableToken } from "./types";
 import { char2Bytes } from "@taquito/utils";
 import config from "./config";
+import { get } from "svelte/store";
+import store from "./store";
+
+const localStore = get(store);
 
 // outputs "down" while visually looking like "up"
 const testUpsAndDownsData = [
@@ -266,6 +270,9 @@ export const getOpIcons = (
     case "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA":
       icons = [AvailableToken.SDAO];
       break;
+    case "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3":
+      icons = ["crDAO"];
+      break;
     default:
       icons = target.alias ? [target.alias.trim() as IconValue] : ["user"];
       break;
@@ -330,6 +337,20 @@ export const createNewOpEntry = (
   const tokenIds = getTokenIds(op.param);
   const icons = getOpIcons(op.param, op.target);
 
+  let alias = shortenHash(op.target.address);
+  if (op.target.alias) {
+    // if alias is provided by BCD
+    alias = op.target.alias;
+  } else {
+    // check if alias is available in app
+    const invInfo = Object.values(localStore.investments).find(
+      inv => inv.address[localStore.network] === op.target.address
+    );
+    if (invInfo) {
+      alias = invInfo.alias;
+    }
+  }
+
   return {
     entryId: Math.round(Date.now() * Math.random()),
     id: op.id,
@@ -344,9 +365,7 @@ export const createNewOpEntry = (
       address: op.sender.address
     },
     target: {
-      alias: op.target.alias
-        ? op.target.alias.trim()
-        : shortenHash(op.target.address),
+      alias: alias,
       address: op.target.address
     },
     amount: +op.amount,

@@ -203,6 +203,72 @@
               {/if}
             </div>
           </div>
+        {:else if contractName === "CRUNCHY-FARMS"}
+          <!-- CRUNCHY FARMS have a zero balance but data in the info array -->
+          {#each data.info as farm}
+            <div class="row">
+              <div class="icon">
+                {#if farm.farmId == 0}
+                  <img src="images/XTZ.png" alt="token-icon" />
+                  <img src="images/CRUNCH.png" alt="token-icon" />
+                {:else if farm.farmId == 1}
+                  <img src="images/XTZ.png" alt="token-icon" />
+                  <img src="images/kUSD.png" alt="token-icon" />
+                {:else if farm.farmId == 2}
+                  <img src="images/XTZ.png" alt="token-icon" />
+                  <img src="images/wWBTC.png" alt="token-icon" />
+                {:else}
+                  <img src="images/crDAO.png" alt="token-icon" />
+                {/if}
+              </div>
+              <div>
+                <a
+                  href={`https://better-call.dev/mainnet/${
+                    data.address[$store.network]
+                  }/operations`}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                >
+                  {#if farm.farmId == 0}
+                    Crunchy Farm XTZ/CRUNCH
+                  {:else if farm.farmId == 1}
+                    Crunchy Farm XTZ/kUSD
+                  {:else if farm.farmId == 2}
+                    Crunchy Farm XTZ/wWBTC
+                  {:else}
+                    {data.alias}
+                  {/if}
+                </a>
+              </div>
+              <div>{farm.amount / 10 ** data.decimals}</div>
+              <div>
+                {#if $store.tokensExchangeRates.CRUNCH}
+                  {+calcTotalShareValueInTez(
+                    farm.amount,
+                    data.shareValueInTez,
+                    $store.tokensExchangeRates.CRUNCH.tokenToTez,
+                    $store.tokens.CRUNCH.decimals
+                  ).toFixed(5) / 1}
+                {:else}
+                  N/A
+                {/if}
+              </div>
+              <div>
+                {#if $store.tokensExchangeRates.CRUNCH}
+                  {+(
+                    calcTotalShareValueInTez(
+                      farm.amount,
+                      data.shareValueInTez,
+                      $store.tokensExchangeRates.CRUNCH.tokenToTez,
+                      $store.tokens.CRUNCH.decimals
+                    ) * $store.xtzFiatExchangeRate
+                  ).toFixed(5) / 1}
+                {:else}
+                  N/A
+                {/if}
+              </div>
+            </div>
+          {/each}
         {/if}
       {/each}
     {/if}

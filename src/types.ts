@@ -27,7 +27,8 @@ export enum AvailableInvestments {
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
   "QUIPUSWAP-ETHtz" = "QUIPUSWAP-ETHtz",
-  "QUIPUSWAP-CRUNCH" = "QUIPUSWAP-CRUNCH"
+  "QUIPUSWAP-CRUNCH" = "QUIPUSWAP-CRUNCH",
+  "CRUNCHY-FARMS" = "CRUNCHY-FARMS"
 }
 
 export interface TokenContract {
@@ -44,7 +45,7 @@ export interface TokenContract {
   color: string;
 }
 
-export type IconValue = AvailableToken | "XTZ" | "QUIPU" | "user";
+export type IconValue = AvailableToken | "XTZ" | "QUIPU" | "crDAO" | "user";
 export type IconSet = IconValue[];
 
 export interface Operation {

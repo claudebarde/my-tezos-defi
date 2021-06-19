@@ -337,6 +337,18 @@ const initialState: State = {
       alias: "Plenty USDtz staking",
       icons: [AvailableToken.PLENTY, AvailableToken.USDTZ],
       token: AvailableToken.USDTZ
+    },
+    "CRUNCHY-FARMS": {
+      address: {
+        mainnet: "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3",
+        testnet: "KT1z"
+      },
+      balance: undefined,
+      decimals: 6,
+      info: [],
+      alias: "Crunchy.Network Farms V1",
+      icons: ["crDAO"],
+      token: AvailableToken.CRUNCH
     }
   },
   xtzFiatExchangeRate: undefined,

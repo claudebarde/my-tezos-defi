@@ -86,7 +86,7 @@
 {#if $store.userAddress}
   <div class="stats">
     <div>
-      Total:
+      Tokens + XTZ:
       {#if totalAmounts.XTZ}
         {totalAmounts.XTZ.toFixed(2)} XTZ
       {:else}

@@ -2,19 +2,51 @@
   import { onMount } from "svelte";
   import store from "../store";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
-  import type { AvailableToken } from "../types";
+  import type { AvailableToken, Operation } from "../types";
+  import { createNewOpEntry } from "../utils";
 
   export let params;
 
   let unsupportedToken = false;
   let tokenSymbol: AvailableToken;
+  const contractCallResponseLimit = 500;
+  const days = 1;
+  const hours = 24;
+  let lastTxs: Operation[] = [];
 
-  onMount(() => {
+  onMount(async () => {
     const { tokenSymbol: pTokenSymbol } = params;
 
     if (Object.keys($store.tokens).includes(pTokenSymbol)) {
       unsupportedToken = false;
       tokenSymbol = pTokenSymbol;
+      // loads the contract transaction in the last 24 hours
+      let currentLevel = 0;
+      if ($store.lastOperations.length === 0) {
+        const headResponse = await fetch("https://api.mainnet.tzkt.io/v1/head");
+        if (headResponse) {
+          const head = await headResponse.json();
+          currentLevel = head.level;
+        }
+      } else {
+        currentLevel = $store.lastOperations[0].level;
+      }
+
+      if (currentLevel) {
+        const lastTxsResponse = await fetch(
+          `https://api.mainnet.tzkt.io/v1/operations/transactions?target=${
+            $store.tokens[tokenSymbol].address[$store.network]
+          }&level.ge=${
+            currentLevel - 60 * hours * days
+          }&sort.desc=id&limit=${contractCallResponseLimit}`
+        );
+        if (lastTxsResponse) {
+          const unprocessedTxs = await lastTxsResponse.json();
+          lastTxs = [
+            ...unprocessedTxs.map(tx => createNewOpEntry(tx, $store.tokens))
+          ];
+        }
+      }
     } else {
       unsupportedToken = true;
     }
@@ -153,6 +185,26 @@
           <div>N/A</div>
         {/if}
       {/if}
+    </div>
+  </div>
+  <br />
+  <br />
+  <div class="container">
+    <div class="title">Statistics</div>
+    <div class="container-body">
+      <div>
+        {#if days > 1}
+          Contract calls in the last {days} days: {lastTxs.length ===
+          contractCallResponseLimit
+            ? `More than ${contractCallResponseLimit}`
+            : lastTxs.length}
+        {:else}
+          Contract calls in the last {hours} hours: {lastTxs.length ===
+          contractCallResponseLimit
+            ? `More than ${contractCallResponseLimit}`
+            : lastTxs.length}
+        {/if}
+      </div>
     </div>
   </div>
   <br />

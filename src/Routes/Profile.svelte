@@ -21,34 +21,38 @@
       console.log("no user connected");
     } else {
       let unprocessedTxs = [];
-      const currentLevel = $store.lastOperations[0].level;
-      const senderLastTxsResponse = await fetch(
-        `https://api.mainnet.tzkt.io/v1/operations/transactions?sender=${
-          $store.userAddress
-        }&target.in=${addresses.join(",")}&level.ge=${
-          currentLevel - 60 * 24 * 3
-        }&sort.desc=id`
-      );
-      if (senderLastTxsResponse) {
-        const senderLastTxs = await senderLastTxsResponse.json();
-        unprocessedTxs = [...senderLastTxs];
-      }
-      const targetLastTxsResponse = await fetch(
-        `https://api.mainnet.tzkt.io/v1/operations/transactions?target=${
-          $store.userAddress
-        }&sender.in=${addresses.join(",")}&level.ge=${
-          currentLevel - 60 * 24 * 3
-        }&sort.desc=id`
-      );
-      if (targetLastTxsResponse) {
-        const targetLastTxs = await targetLastTxsResponse.json();
-        unprocessedTxs = [...unprocessedTxs, ...targetLastTxs];
-      }
-      unprocessedTxs.sort((a, b) => b.id - a.id);
+      const headResponse = await fetch("https://api.mainnet.tzkt.io/v1/head");
+      if (headResponse) {
+        const head = await headResponse.json();
+        const currentLevel = head.level;
+        const senderLastTxsResponse = await fetch(
+          `https://api.mainnet.tzkt.io/v1/operations/transactions?sender=${
+            $store.userAddress
+          }&target.in=${addresses.join(",")}&level.ge=${
+            currentLevel - 60 * 24 * 3
+          }&sort.desc=id`
+        );
+        if (senderLastTxsResponse) {
+          const senderLastTxs = await senderLastTxsResponse.json();
+          unprocessedTxs = [...senderLastTxs];
+        }
+        const targetLastTxsResponse = await fetch(
+          `https://api.mainnet.tzkt.io/v1/operations/transactions?target=${
+            $store.userAddress
+          }&sender.in=${addresses.join(",")}&level.ge=${
+            currentLevel - 60 * 24 * 3
+          }&sort.desc=id`
+        );
+        if (targetLastTxsResponse) {
+          const targetLastTxs = await targetLastTxsResponse.json();
+          unprocessedTxs = [...unprocessedTxs, ...targetLastTxs];
+        }
+        unprocessedTxs.sort((a, b) => b.id - a.id);
 
-      lastTransactions = [
-        ...unprocessedTxs.map(tx => createNewOpEntry(tx, $store.tokens))
-      ];
+        lastTransactions = [
+          ...unprocessedTxs.map(tx => createNewOpEntry(tx, $store.tokens))
+        ];
+      }
     }
   });
 </script>
