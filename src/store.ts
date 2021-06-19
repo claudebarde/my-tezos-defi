@@ -266,6 +266,18 @@ const initialState: State = {
       icons: ["QUIPU", AvailableToken.ETHTZ],
       token: undefined
     },
+    "QUIPUSWAP-CRUNCH": {
+      address: {
+        mainnet: "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4",
+        testnet: "KT1z"
+      },
+      balance: undefined,
+      decimals: 0,
+      info: [],
+      alias: "QuipuSwap CRUNCH",
+      icons: ["QUIPU", AvailableToken.CRUNCH],
+      token: undefined
+    },
     "PLENTY-XTZ-LP": {
       address: {
         mainnet: "KT1JQAZqShNMakSNXc2cgTzdAWZFemGcU6n1",

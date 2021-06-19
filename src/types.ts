@@ -22,11 +22,12 @@ export enum AvailableInvestments {
   "PLENTY-hDAO" = "PLENTY-hDAO",
   "PLENTY-PLENTY" = "PLENTY-PLENTY",
   "PLENTY-ETHtz" = "PLENTY-ETHtz",
+  "PLENTY-USDtz" = "PLENTY-USDtz",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
   "QUIPUSWAP-ETHtz" = "QUIPUSWAP-ETHtz",
-  "PLENTY-USDtz" = "PLENTY-USDtz"
+  "QUIPUSWAP-CRUNCH" = "QUIPUSWAP-CRUNCH"
 }
 
 export interface TokenContract {

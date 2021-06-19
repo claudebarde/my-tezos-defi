@@ -252,6 +252,9 @@ export const getOpIcons = (
     case "KT1Evsp2yA19Whm24khvFPcwimK6UaAJu8Zo":
       icons = ["QUIPU", AvailableToken.ETHTZ];
       break;
+    case "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4":
+      icons = ["QUIPU", AvailableToken.CRUNCH];
+      break;
     case "KT1LRboPna9yQY9BrjtQYDS1DVxhKESK4VVd":
       icons = [AvailableToken.WRAP];
       break;
