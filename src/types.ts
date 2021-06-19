@@ -75,7 +75,12 @@ export interface State {
   tokensBalances: { [p in AvailableToken]: number | undefined };
   tokensExchangeRates: {
     [p in AvailableToken]:
-      | { tokenToTez: number; tezToToken: number }
+      | {
+          tokenToTez: number;
+          tezToToken: number;
+          realPriceInTez: number;
+          realPriceInToken: number;
+        }
       | undefined;
   };
   investments: {
@@ -93,6 +98,7 @@ export interface State {
   xtzFiatExchangeRate: number | undefined;
   lastOperations: Operation[];
   firstLoading: boolean;
+  tezBalance: number;
 }
 
 export interface HistoricalDataState {

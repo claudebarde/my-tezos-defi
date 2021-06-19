@@ -3,8 +3,12 @@
   import store from "../../store";
   import config from "../../config";
 
-  let kolibriOvens: { address: string; locked: number; borrowed: number }[] =
-    [];
+  let kolibriOvens: {
+    address: string;
+    locked: number;
+    borrowed: number;
+    isLiquidated: boolean;
+  }[] = [];
   let kolibriOvensChecked = false;
 
   const shortenHash = (hash: string): string =>
@@ -46,7 +50,8 @@
                 return {
                   address: d.ovenAddress,
                   locked: balance.toNumber(),
-                  borrowed: storage.borrowedTokens.toNumber()
+                  borrowed: storage.borrowedTokens.toNumber(),
+                  isLiquidated: storage.isLiquidated
                 };
               })
           );
@@ -104,7 +109,7 @@
         <div style="grid-column:1 / span 2">No investment found</div>
       </div>
     {:else}
-      {#if kolibriOvens.length > 0}
+      {#if kolibriOvens.length > 0 && kolibriOvens.filter(oven => !oven.isLiquidated).length > 0}
         <div class="row">
           <div />
           <div>Kolibri oven</div>
@@ -112,22 +117,24 @@
           <div>Borrowed</div>
         </div>
         {#each kolibriOvens as oven}
-          <div class="row">
-            <div class="icon">
-              <img src="images/kUSD.png" alt="token-icon" />
+          {#if !oven.isLiquidated}
+            <div class="row">
+              <div class="icon">
+                <img src="images/kUSD.png" alt="token-icon" />
+              </div>
+              <div>
+                <a
+                  href={`https://better-call.dev/mainnet/${oven.address}/operations`}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                >
+                  {shortenHash(oven.address)}
+                </a>
+              </div>
+              <div>{+oven.locked / 10 ** 6} ꜩ</div>
+              <div>{+oven.borrowed / 10 ** 18} kUSD</div>
             </div>
-            <div>
-              <a
-                href={`https://better-call.dev/mainnet/${oven.address}/operations`}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-              >
-                {shortenHash(oven.address)}
-              </a>
-            </div>
-            <div>{+oven.locked / 10 ** 6} ꜩ</div>
-            <div>{+oven.borrowed / 10 ** 18} kUSD</div>
-          </div>
+          {/if}
         {/each}
         <div class="row break-line" />
       {/if}
@@ -146,7 +153,17 @@
                 <img src={`images/${icon}.png`} alt="token-icon" />
               {/each}
             </div>
-            <div>{data.alias}</div>
+            <div>
+              <a
+                href={`https://better-call.dev/mainnet/${
+                  data.address[$store.network]
+                }/operations`}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                {data.alias}
+              </a>
+            </div>
             <div>{data.balance / 10 ** data.decimals}</div>
             <div>
               {#if ["Plenty hDAO staking", "Plenty staking", "Plenty USDtz staking"].includes(data.alias) && $store.tokensExchangeRates[data.token]}

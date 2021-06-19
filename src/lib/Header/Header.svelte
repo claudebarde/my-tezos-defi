@@ -16,6 +16,11 @@
     .left {
       font-size: 2rem;
       font-weight: bold;
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
     }
 
     .right {
@@ -34,7 +39,9 @@
 </style>
 
 <header>
-  <div class="left">My Tezos DeFi</div>
+  <div class="left">
+    <a href="#/"> My Tezos DeFi </a>
+  </div>
   <div class="right">
     <ConnectWallet />
   </div>

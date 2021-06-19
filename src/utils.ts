@@ -1,4 +1,12 @@
-import type { HistoricalDataState, AvailableToken } from "./types";
+import type { TezosToolkit } from "@taquito/taquito";
+import type {
+  HistoricalDataState,
+  AvailableToken,
+  TokenContract,
+  TezosAccountAddress,
+  State
+} from "./types";
+import { char2Bytes } from "@taquito/utils";
 
 // outputs "down" while visually looking like "up"
 const testUpsAndDownsData = [
@@ -86,3 +94,77 @@ export const calculateTrend = (
 
 export const shortenHash = (hash: string): string =>
   hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
+
+export const searchUserTokens = async ({
+  Tezos,
+  network,
+  userAddress,
+  tokens,
+  tokensBalances
+}: {
+  Tezos: TezosToolkit;
+  network: State["network"];
+  userAddress: TezosAccountAddress;
+  tokens: State["tokens"] | { [p: string]: TokenContract };
+  tokensBalances: State["tokensBalances"];
+}) => {
+  // search for user address in tokens ledgers
+  const balances = await Promise.all(
+    Object.entries(tokens).map(async (tokenInfo, i) => {
+      const [tokenSymbol, token] = tokenInfo;
+      const contract = await Tezos.wallet.at(token.address[network]);
+      const storage = await contract.storage();
+      // finds ledger in storage
+      const ledgerPath = token.ledgerPath.split("/");
+      const ledger =
+        ledgerPath.length === 1
+          ? storage[ledgerPath[0]]
+          : [storage, ...ledgerPath].reduce(
+              (storage: any, sub: any) => storage[sub]
+            );
+      //return [Object.keys($store.tokens)[i], ledger];
+      let balance;
+      if (
+        token.ledgerKey === "address" &&
+        (token.type == "fa1.2" || token.type == "fa2")
+      ) {
+        const user = await ledger.get(userAddress);
+        if (user) {
+          if (user.hasOwnProperty("balance")) {
+            balance = user.balance.toNumber() / 10 ** token.decimals;
+          } else {
+            balance = user.toNumber() / 10 ** token.decimals;
+          }
+        } else {
+          balance = undefined;
+        }
+      } else if (
+        Array.isArray(token.ledgerKey) &&
+        token.ledgerKey[0] === "address"
+      ) {
+        balance = await ledger.get({ 0: userAddress, 1: token.ledgerKey[1] });
+        if (balance) {
+          balance = balance.toNumber() / 10 ** token.decimals;
+        }
+      } else if (
+        Array.isArray(token.ledgerKey) &&
+        token.ledgerKey[1] === "address"
+      ) {
+        balance = await ledger.get(
+          char2Bytes(`{ Pair "ledger" "${userAddress}" }`)
+        );
+      } else {
+        balance = undefined;
+      }
+
+      return [tokenSymbol, balance];
+    })
+  );
+  // updates token balances
+  const newBalances = { ...tokensBalances };
+  balances.forEach(param => {
+    newBalances[param[0]] = param[1];
+  });
+
+  return newBalances;
+};

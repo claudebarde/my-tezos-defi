@@ -11,6 +11,7 @@
   import store from "../../store";
   import InvestmentsWorker from "worker-loader!../../investments.worker";
   import { handleInvestmentsWorker } from "../../workersHandlers";
+  import { searchUserTokens } from "../../utils";
 
   const walletOptions = {
     name: "My Tezos DeFi",
@@ -56,7 +57,14 @@
       });
 
       username = await fetchTezosDomain(userAddress);
-      await searchUserTokens(userAddress as TezosAccountAddress);
+      const newBalances = await searchUserTokens({
+        Tezos: $store.Tezos,
+        network: $store.network,
+        userAddress: $store.userAddress,
+        tokens: $store.tokens,
+        tokensBalances: $store.tokensBalances
+      });
+      store.updateTokensBalances(newBalances);
     } catch (err) {
       console.error(err);
     }
@@ -73,69 +81,6 @@
       token => (zeroBalances[token] = undefined)
     );
     store.updateTokensBalances(zeroBalances);
-  };
-
-  const searchUserTokens = async (userAddress: TezosAccountAddress) => {
-    // search for user address in tokens ledgers
-    const balances = await Promise.all(
-      Object.entries($store.tokens).map(async (tokenInfo, i) => {
-        const [tokenSymbol, token] = tokenInfo;
-        const contract = await $store.Tezos.wallet.at(
-          token.address[$store.network]
-        );
-        const storage = await contract.storage();
-        // finds ledger in storage
-        const ledgerPath = token.ledgerPath.split("/");
-        const ledger =
-          ledgerPath.length === 1
-            ? storage[ledgerPath[0]]
-            : [storage, ...ledgerPath].reduce(
-                (storage: any, sub: any) => storage[sub]
-              );
-        //return [Object.keys($store.tokens)[i], ledger];
-        let balance;
-        if (
-          token.ledgerKey === "address" &&
-          (token.type == "fa1.2" || token.type == "fa2")
-        ) {
-          const user = await ledger.get(userAddress);
-          if (user) {
-            if (user.hasOwnProperty("balance")) {
-              balance = user.balance.toNumber() / 10 ** token.decimals;
-            } else {
-              balance = user.toNumber() / 10 ** token.decimals;
-            }
-          } else {
-            balance = undefined;
-          }
-        } else if (
-          Array.isArray(token.ledgerKey) &&
-          token.ledgerKey[0] === "address"
-        ) {
-          balance = await ledger.get({ 0: userAddress, 1: token.ledgerKey[1] });
-          if (balance) {
-            balance = balance.toNumber() / 10 ** token.decimals;
-          }
-        } else if (
-          Array.isArray(token.ledgerKey) &&
-          token.ledgerKey[1] === "address"
-        ) {
-          balance = await ledger.get(
-            char2Bytes(`{ Pair "ledger" "${userAddress}" }`)
-          );
-        } else {
-          balance = undefined;
-        }
-
-        return [tokenSymbol, balance];
-      })
-    );
-    // updates token balances
-    const newBalances = { ...$store.tokensBalances };
-    balances.forEach(param => {
-      newBalances[param[0]] = param[1];
-    });
-    store.updateTokensBalances(newBalances);
   };
 
   const fetchTezosDomain = async (address: string): Promise<string> => {
@@ -168,7 +113,14 @@
       });
 
       username = await fetchTezosDomain(userAddress);
-      await searchUserTokens(userAddress as TezosAccountAddress);
+      const newBalances = await searchUserTokens({
+        Tezos: $store.Tezos,
+        network: $store.network,
+        userAddress: $store.userAddress,
+        tokens: $store.tokens,
+        tokensBalances: $store.tokensBalances
+      });
+      store.updateTokensBalances(newBalances);
     }
   });
 </script>

@@ -45,6 +45,7 @@
     "chart.js": "^3.3.2",
     "file-loader": "^6.2.0",
     "moment": "^2.29.1",
+    "svelte-spa-router": "^3.2.0",
     "worker-loader": "^3.0.8"
   }
 }

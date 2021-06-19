@@ -46,14 +46,17 @@
 
           let barColor = "#3B82F6";
           if (
-            target.toLowerCase().includes("plenty") &&
-            target.toLowerCase() !== "quipuswap plenty"
+            $store.tokens.hasOwnProperty(target) &&
+            $store.tokens[target].hasOwnProperty("color")
           ) {
+            barColor = $store.tokens[target].color;
+          } else if (target.toLowerCase() === "quipuswap plenty") {
             barColor = $store.tokens["PLENTY"].color;
-          } else if (target.toLowerCase() === "wrapped tokens contract") {
+          } else if (
+            target.toLowerCase() === "wrapped tokens contract" ||
+            target.toLowerCase() === "wrap governance token"
+          ) {
             barColor = $store.tokens["WRAP"].color;
-          } else if (target.toLowerCase() === "hdao") {
-            barColor = $store.tokens["hDAO"].color;
           } else if (target.toLowerCase().split(" ")[0] === "quipuswap") {
             barColor = "#575FE6";
           }
@@ -96,6 +99,8 @@
 </script>
 
 <style lang="scss">
+  @import "../../styles/settings.scss";
+
   .container-chart {
     padding: 10px;
 
@@ -103,6 +108,12 @@
       background-color: white;
       width: 80% !important;
       margin: 0 auto;
+    }
+  }
+
+  @media only screen and (max-width: $mobile-break-point) {
+    canvas {
+      width: 100% !important;
     }
   }
 </style>

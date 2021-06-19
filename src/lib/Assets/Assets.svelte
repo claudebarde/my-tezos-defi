@@ -98,6 +98,11 @@
     </span>
   {:else}
     <div class="container-grid">
+      {#if assetsType === "owned" && $store.userAddress}
+        <Box {assetsType} token="tez" {balancesInUsd} />
+      {:else if assetsType === "general"}
+        <Box {assetsType} token="tez" {balancesInUsd} />
+      {/if}
       {#each Object.entries($store.tokens) as token}
         {#if assetsType === "owned" && $store.tokensBalances[token[0]]}
           <Box {assetsType} {token} {balancesInUsd} />

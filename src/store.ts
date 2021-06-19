@@ -276,7 +276,7 @@ const initialState: State = {
       info: [],
       alias: "PLENTY-XTZ LP farm",
       icons: [AvailableToken.PLENTY, "XTZ"],
-      token: undefined
+      token: AvailableToken.PLENTY
     },
     "PLENTY-hDAO": {
       address: {
@@ -329,7 +329,8 @@ const initialState: State = {
   },
   xtzFiatExchangeRate: undefined,
   lastOperations: [],
-  firstLoading: true
+  firstLoading: true,
+  tezBalance: 0
 };
 
 const store = writable(initialState);
@@ -342,6 +343,9 @@ const state = {
     store.update(store => ({ ...store, wallet })),
   updateUserAddress: (address: TezosAccountAddress) => {
     store.update(store => ({ ...store, userAddress: address }));
+  },
+  updateTezBalance: (balance: number) => {
+    store.update(store => ({ ...store, tezBalance: balance }));
   },
   updateTokens: (tokens: [string, TokenContract][]) => {
     store.update(store => {

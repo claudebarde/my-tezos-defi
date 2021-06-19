@@ -1,17 +1,19 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
+  import Router from "svelte-spa-router";
+  import routes from "./Routes/routes";
   import store from "./store";
   import historicDataStore from "./historicDataStore";
-  import Main from "./Main.svelte";
+  import Main from "./Routes/Main.svelte";
   import Header from "./lib/Header/Header.svelte";
   import Footer from "./lib/Footer/Footer.svelte";
   import QuipuWorker from "worker-loader!./quipuswap.worker";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
-  import type { Operation, IconSet } from "./types";
+  import type { Operation, IconSet, TokenContract } from "./types";
   import { AvailableToken } from "./types";
   import config from "./config";
-  import { shortenHash } from "./utils";
+  import { shortenHash, searchUserTokens } from "./utils";
 
   let appReady = false;
   let quipuWorker, liveTrafficWorker;
@@ -24,12 +26,14 @@
       exchangeRates.forEach(rate => {
         if (rate) {
           const data = {
-            tezToToken: rate[1],
-            tokenToTez: rate[2]
+            tezToToken: rate.tezToToken,
+            tokenToTez: rate.tokenToTez,
+            realPriceInTez: rate.realPriceInTez,
+            realPriceInToken: rate.realPriceInToken
           };
-          updatedTokensExchangeRates[rate[0]] = data;
+          updatedTokensExchangeRates[rate.tokenSymbol] = data;
           // updates historic data
-          historicDataStore.updateToken(rate[0], data);
+          historicDataStore.updateToken(rate.tokenSymbol, data);
         }
       });
       store.updateTokensExchangeRates(updatedTokensExchangeRates);
@@ -119,7 +123,7 @@
     }
   };
 
-  const handleLiveTrafficWorker = (msg: MessageEvent) => {
+  const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic") {
       /*const addresses = [
         ...Object.values($store.tokens).map(
@@ -130,6 +134,7 @@
         )
       ];*/
       const ops: Operation[] = [];
+      const balanceUpdateRequests: AvailableToken[] = [];
       msg.data.msg.forEach(op => {
         //console.log("Operation:", op);
         // finds token ids
@@ -188,7 +193,7 @@
             break;
         }
 
-        ops.push({
+        const newOp: Operation = {
           entryId: Math.round(Date.now() * Math.random()),
           id: op.id,
           hash: op.hash,
@@ -218,9 +223,83 @@
           icons,
           raw: op,
           tokenIds
-        });
+        };
+
+        ops.push(newOp);
+
+        if (
+          op.sender.address === $store.userAddress ||
+          op.target.address === $store.userAddress
+        ) {
+          console.log("User operation:", op);
+          if (
+            op.sender.address === $store.userAddress &&
+            Object.keys($store.investments)
+              .filter(inv => inv.split("-")[0].toLowerCase() === "plenty")
+              .map(inv => $store.investments[inv].address[$store.network])
+              .includes(op.target.address)
+          ) {
+            if (op.parameter.entrypoint === "GetReward") {
+              // user got his reward from a PLENTY farm/pool
+              if (!balanceUpdateRequests.includes(AvailableToken.PLENTY)) {
+                balanceUpdateRequests.push(AvailableToken.PLENTY);
+              }
+            } else if (
+              op.parameter.entrypoint === "stake" ||
+              op.parameter.entrypoint === "unstake"
+            ) {
+              // user staked or unstaked his tokens
+              const investment = Object.values($store.investments).find(
+                inv => inv.address[$store.network] === op.target.address
+              );
+              if (!balanceUpdateRequests.includes(investment.token)) {
+                balanceUpdateRequests.push(investment.token);
+              }
+            }
+          } else if (
+            op.sender.address === $store.userAddress &&
+            Object.keys($store.tokens).includes(op.target.alias) &&
+            op.parameter.entrypoint === "transfer"
+          ) {
+            // user interacts with token contract
+            if (!balanceUpdateRequests.includes(op.target.alias)) {
+              balanceUpdateRequests.push(op.target.alias);
+            }
+          } else if (
+            op.sender.address === $store.userAddress &&
+            Object.keys($store.investments)
+              .filter(inv => inv.split("-")[0].toLowerCase() === "quipuswap")
+              .map(inv => $store.investments[inv].address[$store.network])
+              .includes(op.target.address)
+          ) {
+            // user interacts with Quipuswap pool
+            console.log("Quipuswap interaction:", op);
+          }
+        }
       });
       store.updateLastOperations(ops);
+
+      if (balanceUpdateRequests.length > 0) {
+        const tokensToUpdate: { [p: string]: TokenContract } = {};
+        balanceUpdateRequests.forEach(token => {
+          if (!tokensToUpdate.hasOwnProperty(token)) {
+            tokensToUpdate[token] = $store.tokens[token];
+          }
+        });
+        const newBalances = await searchUserTokens({
+          Tezos: $store.Tezos,
+          network: $store.network,
+          userAddress: $store.userAddress,
+          tokens: tokensToUpdate,
+          tokensBalances: $store.tokensBalances
+        });
+        console.log("new balances:", newBalances, tokensToUpdate);
+        store.updateTokensBalances(newBalances);
+        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+        if (balance) {
+          store.updateTezBalance(balance.toNumber());
+        }
+      }
     }
   };
 
@@ -244,25 +323,6 @@
     // inits live traffic worker
     liveTrafficWorker = new LiveTrafficWorker();
     liveTrafficWorker.onmessage = handleLiveTrafficWorker;
-
-    // loads token storages
-    /*const tokens = $store.tokens;
-    const tokenContracts: TokenContract[] = Object.values(tokens);
-    const storages = await Promise.all(
-      tokenContracts.map(tk =>
-        Tezos.wallet
-          .at(tk.address[$store.network])
-          .then(contract => contract.storage())
-          .catch(_ => undefined)
-      )
-    );
-    store.updateTokens(
-      storages.map((storage, i) => {
-        if (storage) {
-          return [Object.keys(tokens)[i], { ...tokenContracts[i], storage }];
-        }
-      })
-    );*/
 
     appReady = true;
   });
@@ -313,7 +373,7 @@
 </div>
 <main>
   {#if appReady}
-    <Main />
+    <Router {routes} />
   {:else}
     <div>Loading...</div>
   {/if}

@@ -1,5 +1,31 @@
 <script lang="ts">
+  import { afterUpdate } from "svelte";
   import store from "../../store";
+  import type { AvailableToken } from "../../types";
+
+  export let filterOps: {
+    opType: "general" | "token";
+    token?: AvailableToken;
+  };
+
+  let lastOpsFiltered = [];
+
+  afterUpdate(() => {
+    if (
+      JSON.stringify($store.lastOperations) !== JSON.stringify(lastOpsFiltered)
+    ) {
+      lastOpsFiltered = $store.lastOperations.filter(op => {
+        if (filterOps.opType === "general") {
+          return true;
+        } else if (filterOps.opType === "token") {
+          return (
+            op.target.address ===
+            $store.tokens[filterOps.token].address[$store.network]
+          );
+        }
+      });
+    }
+  });
 </script>
 
 <style lang="scss">
@@ -40,8 +66,8 @@
         <div>Value in tokens</div>
       </div>
     {/if}
-    {#each $store.lastOperations as op, index (op.entryId)}
-      {#if index === 0 || op.level !== $store.lastOperations[index - 1].level}
+    {#each lastOpsFiltered as op, index (op.entryId)}
+      {#if index === 0 || op.level !== lastOpsFiltered[index - 1].level}
         <div class="row">
           <div style="grid-column:1 / span 2;margin:10px 0px;">
             Block level: {op.level}

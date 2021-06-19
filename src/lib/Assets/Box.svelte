@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { afterUpdate } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import Chart from "chart.js/auto";
   import moment from "moment";
   import type { AvailableToken, TokenContract } from "../../types";
@@ -9,7 +9,7 @@
   import { calculateTrend } from "../../utils";
 
   export let assetsType: "owned" | "general",
-    token: [AvailableToken | string, TokenContract],
+    token: [AvailableToken | string, TokenContract] | "tez",
     balancesInUsd;
 
   let nrOfTrends = 0;
@@ -69,17 +69,26 @@
     }, 100);
   };
 
-  afterUpdate(() => {
-    if (
-      $historicDataStore.tokens[token[0]].length > 2 &&
-      $historicDataStore.tokens[token[0]].length !== nrOfTrends
-    ) {
-      const newTrend = calculateTrend(
-        $historicDataStore,
-        token[0] as AvailableToken
-      );
-      trend = newTrend.trend;
-      nrOfTrends = newTrend.nrOfTrends;
+  afterUpdate(async () => {
+    if (token !== "tez") {
+      if (
+        $historicDataStore.tokens[token[0]].length > 2 &&
+        $historicDataStore.tokens[token[0]].length !== nrOfTrends
+      ) {
+        const newTrend = calculateTrend(
+          $historicDataStore,
+          token[0] as AvailableToken
+        );
+        trend = newTrend.trend;
+        nrOfTrends = newTrend.nrOfTrends;
+      }
+    } else {
+      if ($store.userAddress && $store.tezBalance === 0) {
+        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+        if (balance) {
+          store.updateTezBalance(balance.toNumber());
+        }
+      }
     }
   });
 </script>
@@ -96,9 +105,13 @@
 
     .icon {
       padding: 10px;
-      img {
-        width: 50px;
-        height: 50px;
+      a {
+        text-decoration: none;
+
+        img {
+          width: 50px;
+          height: 50px;
+        }
       }
     }
 
@@ -148,13 +161,30 @@
 
 <div class="box">
   <div class="icon">
-    <img src={`images/${token[0]}.png`} alt={token[0]} />
+    <a href={`/#/token/${token === "tez" ? "XTZ" : token[0]}`}>
+      <img
+        src={`images/${token === "tez" ? "XTZ" : token[0]}.png`}
+        alt={token[0]}
+      />
+    </a>
   </div>
   {#if $store.firstLoading}
     <div class="info">Loading...</div>
   {:else}
     <div class="info">
-      {#if $store.tokensExchangeRates[token[0]]}
+      <!-- if XTZ-->
+      {#if token === "tez" && $store.xtzFiatExchangeRate}
+        <div>
+          1 XTZ = {$store.xtzFiatExchangeRate} USD
+        </div>
+        <div>
+          1 USD = {+($store.xtzFiatExchangeRate / 100).toFixed(5) / 1} XTZ
+        </div>
+      {:else if token === "tez" && !$store.xtzFiatExchangeRate}
+        <div>No data</div>
+      {/if}
+      <!-- if other token-->
+      {#if token !== "tez" && $store.tokensExchangeRates[token[0]]}
         <div>
           1 XTZ = {$store.tokensExchangeRates[token[0]].tezToToken}
           {token[0]}
@@ -163,11 +193,11 @@
           1 {token[0]} = {$store.tokensExchangeRates[token[0]].tokenToTez}
           XTZ
         </div>
-      {:else}
+      {:else if token !== "tez" && !$store.tokensExchangeRates[token[0]]}
         <div>No data</div>
       {/if}
     </div>
-    {#if assetsType === "owned"}
+    {#if assetsType === "owned" && token !== "tez"}
       <div class="info">
         <div>
           Balance: {+$store.tokensBalances[token[0]].toFixed(5) / 1}
@@ -177,6 +207,22 @@
             {balancesInUsd[token[0]]
               ? balancesInUsd[token[0]].toFixed(2) / 1
               : ""} USD
+          </div>
+        {:else}
+          <div>N/A</div>
+        {/if}
+      </div>
+    {:else if assetsType === "owned" && token === "tez"}
+      <div class="info">
+        <div>
+          Balance: {+($store.tezBalance / 10 ** 6).toFixed(5) / 1}
+        </div>
+        {#if $store.xtzFiatExchangeRate}
+          <div>
+            {+(
+              ($store.tezBalance / 10 ** 6) *
+              $store.xtzFiatExchangeRate
+            ).toFixed(5) / 1} USD
           </div>
         {:else}
           <div>N/A</div>

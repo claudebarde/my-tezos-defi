@@ -1,6 +1,11 @@
 import type { State } from "./types";
 import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
-import { findDex, estimateSwap } from "@quipuswap/sdk";
+import {
+  findDex,
+  estimateSwap,
+  estimateTezInToken,
+  estimateTokenInTez
+} from "@quipuswap/sdk";
 import config from "./config";
 
 const ctx: Worker = self as any;
@@ -43,6 +48,7 @@ const getTokensExchangeRates = async () => {
         if (dex) {
           const tokenValue = 1 * 10 ** tokenInfo.decimals;
 
+          // calculates estimated swap price from QuipuSwap
           const estimatedTokenToTezSwap = await estimateSwap(
             Tezos,
             factories,
@@ -62,14 +68,33 @@ const getTokensExchangeRates = async () => {
             }
           );
 
-          return [
+          // calculates real price
+          const inTezValue = estimateTezInToken(
+            await dex.contract.storage(),
+            tokenValue
+          );
+          const inTokenValue = estimateTokenInTez(
+            await dex.contract.storage(),
+            1_000_000
+          );
+          /*console.log(
             tokenSymbol,
-            +(
-              estimatedTezToTokenSwap.toNumber() /
-              10 ** tokenInfo.decimals
-            ).toFixed(5) / 1,
-            +(estimatedTokenToTezSwap.toNumber() / 10 ** 6).toFixed(5) / 1
-          ];
+            inTokenValue.toNumber(),
+            inTokenValue.toNumber() / 10 ** tokenInfo.decimals
+          );*/
+
+          return {
+            tokenSymbol,
+            tezToToken:
+              +(
+                estimatedTezToTokenSwap.toNumber() /
+                10 ** tokenInfo.decimals
+              ).toFixed(5) / 1,
+            tokenToTez:
+              +(estimatedTokenToTezSwap.toNumber() / 10 ** 6).toFixed(5) / 1,
+            realPriceInTez: inTezValue.toNumber() / 10 ** 6,
+            realPriceInToken: inTokenValue.toNumber() / 10 ** tokenInfo.decimals
+          };
         } else {
           console.error(tokenSymbol, "no dex");
           return undefined;
