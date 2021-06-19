@@ -33,6 +33,12 @@
     .row {
       display: grid;
       grid-template-columns: 10% 20% 25% 25% 20%;
+      padding: 5px 10px;
+      align-items: center;
+
+      &.error {
+        background-color: #f87171;
+      }
 
       a {
         color: inherit;
@@ -44,6 +50,9 @@
       }
 
       .icon {
+        object {
+          vertical-align: middle;
+        }
         object,
         img {
           width: 25px;
@@ -83,7 +92,10 @@
           </div>
         </div>
       {/if}
-      <div class="row">
+      <div
+        class="row"
+        class:error={op.status === "failed" || op.status === "backtracked"}
+      >
         <div class="icon" on:click={() => console.log(op.raw, op.tokenIds)}>
           <a
             href={`https://better-call.dev/mainnet/opg/${op.hash}/contents`}

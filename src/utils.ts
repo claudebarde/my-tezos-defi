@@ -281,9 +281,70 @@ export const getOpIcons = (
   return icons;
 };
 
-export const calculateValue = (param, tokenName, tokenIds, tokens) => {
+export const calculateValue = (op: any): number => {
+  //console.log(op);
+  const sender = op.sender;
+  const target = op.target;
+  const entrypoint = op.parameter ? op.parameter.entrypoint : null;
+
+  const tokenAddresses = Object.values(localStore.tokens).map(
+    tk => tk.address[localStore.network]
+  );
+  const investmentAddresses = Object.values(localStore.investments).map(
+    tk => tk.address[localStore.network]
+  );
+
+  if (tokenAddresses.includes(target.address)) {
+    // THIS IS ONE OF THE AVAILABLE TOKENS
+    const token = Object.values(localStore.tokens).find(
+      tk => tk.address[localStore.network] === target.address
+    );
+    if (entrypoint === "transfer") {
+      // FA1.2 TOKEN TRANFER
+      if (Array.isArray(op.parameter.value)) {
+        return (
+          +(
+            +[
+              0,
+              0,
+              ...op.parameter.value
+                .map(transfer => transfer.txs)
+                .flat(1)
+                .map(tx => +tx.amount)
+            ].reduce((a, b) => a + b) /
+            10 ** token.decimals
+          ).toFixed(5) / 1
+        );
+      } else if (op.parameter.value.hasOwnProperty("value")) {
+        return (
+          +(+op.parameter.value.value / 10 ** token.decimals).toFixed(5) / 1
+        );
+      } else {
+        return 0;
+      }
+    } else {
+      return 0;
+    }
+  } else if (investmentAddresses.includes(target.address)) {
+    const contract = Object.values(localStore.investments).find(
+      inv => inv.address[localStore.network] === target.address
+    );
+
+    if (entrypoint === "stake" && contract.decimals) {
+      if (target.address === "KT1JQAZqShNMakSNXc2cgTzdAWZFemGcU6n1") {
+        return +(+op.parameter.value / 10 ** 6).toFixed(5) / 1;
+      } else {
+        return +(+op.parameter.value / 10 ** contract.decimals).toFixed(5) / 1;
+      }
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+
   //console.log(tokenSymbol, param);
-  let tokenSymbol: AvailableToken;
+  /*let tokenSymbol: AvailableToken;
   switch (tokenName) {
     case "WRAP Governance Token":
       tokenSymbol = AvailableToken.WRAP;
@@ -309,25 +370,27 @@ export const calculateValue = (param, tokenName, tokenIds, tokens) => {
     decimals = config.wrapTokenIds[tokenIds[0]].decimals;
   }
 
-  if (Array.isArray(param)) {
-    return (
-      +(
-        +[
-          0,
-          0,
-          ...param
-            .map(transfer => transfer.txs)
-            .flat(1)
-            .map(tx => +tx.amount)
-        ].reduce((a, b) => a + b) /
-        10 ** decimals
-      ).toFixed(5) / 1
-    );
-  } else if (param.hasOwnProperty("value")) {
-    return +(+param.value / 10 ** decimals).toFixed(5) / 1;
-  } else {
-    return 0;
-  }
+  if (op.parameter && op.parameter.entrypoint === "transfer") {
+    if (Array.isArray(op.param)) {
+      return (
+        +(
+          +[
+            0,
+            0,
+            ...op.param
+              .map(transfer => transfer.txs)
+              .flat(1)
+              .map(tx => +tx.amount)
+          ].reduce((a, b) => a + b) /
+          10 ** decimals
+        ).toFixed(5) / 1
+      );
+    } else if (op.param.hasOwnProperty("value")) {
+      return +(+op.param.value / 10 ** decimals).toFixed(5) / 1;
+    } else {
+      return 0;
+    }
+  }*/
 };
 
 export const createNewOpEntry = (
@@ -369,17 +432,10 @@ export const createNewOpEntry = (
       address: op.target.address
     },
     amount: +op.amount,
-    value:
-      op.parameter && op.parameter.entrypoint === "transfer"
-        ? calculateValue(
-            op.parameter.value,
-            op.target.alias.trim(),
-            getTokenIds(op.param),
-            tokens
-          )
-        : 0,
+    value: calculateValue(op),
     icons,
     raw: op,
-    tokenIds
+    tokenIds,
+    status: op.status
   };
 };

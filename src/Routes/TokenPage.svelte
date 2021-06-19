@@ -11,8 +11,8 @@
   let tokenSymbol: AvailableToken;
   const contractCallResponseLimit = 500;
   const days = 1;
-  const hours = 24;
-  let lastTxs: Operation[] = [];
+  const hours = 2;
+  let lastOps: Operation[] = [];
 
   onMount(async () => {
     const { tokenSymbol: pTokenSymbol } = params;
@@ -42,7 +42,7 @@
         );
         if (lastTxsResponse) {
           const unprocessedTxs = await lastTxsResponse.json();
-          lastTxs = [
+          lastOps = [
             ...unprocessedTxs.map(tx => createNewOpEntry(tx, $store.tokens))
           ];
         }
@@ -194,15 +194,15 @@
     <div class="container-body">
       <div>
         {#if days > 1}
-          Contract calls in the last {days} days: {lastTxs.length ===
+          Contract calls in the last {days} days: {lastOps.length ===
           contractCallResponseLimit
-            ? `More than ${contractCallResponseLimit}`
-            : lastTxs.length}
+            ? `Over ${contractCallResponseLimit}`
+            : lastOps.length}
         {:else}
-          Contract calls in the last {hours} hours: {lastTxs.length ===
+          Contract calls in the last {hours} hours: {lastOps.length ===
           contractCallResponseLimit
-            ? `More than ${contractCallResponseLimit}`
-            : lastTxs.length}
+            ? `Over ${contractCallResponseLimit}`
+            : lastOps.length}
         {/if}
       </div>
     </div>
@@ -210,7 +210,7 @@
   <br />
   <br />
   <LastOperations
-    lastOps={$store.lastOperations}
+    {lastOps}
     filterOps={{ opType: "token", token: tokenSymbol }}
   />
 {/if}

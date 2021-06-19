@@ -10,18 +10,9 @@
   import Footer from "./lib/Footer/Footer.svelte";
   import QuipuWorker from "worker-loader!./quipuswap.worker";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
-  import type { Operation, IconSet, TokenContract } from "./types";
+  import type { Operation, TokenContract } from "./types";
   import { AvailableToken } from "./types";
-  import config from "./config";
-  import {
-    shortenHash,
-    searchUserTokens,
-    calculateValue,
-    findTokenId,
-    createNewOpEntry,
-    getTokenIds,
-    getOpIcons
-  } from "./utils";
+  import { searchUserTokens, createNewOpEntry } from "./utils";
 
   let appReady = false;
   let quipuWorker, liveTrafficWorker;

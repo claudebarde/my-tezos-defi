@@ -250,7 +250,7 @@
                     $store.tokens.CRUNCH.decimals
                   ).toFixed(5) / 1}
                 {:else}
-                  N/A
+                  --
                 {/if}
               </div>
               <div>
@@ -264,7 +264,7 @@
                     ) * $store.xtzFiatExchangeRate
                   ).toFixed(5) / 1}
                 {:else}
-                  N/A
+                  --
                 {/if}
               </div>
             </div>

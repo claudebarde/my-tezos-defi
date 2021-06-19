@@ -124,7 +124,6 @@ const loadInvestments = async (param: {
               dexStorage,
               100_000_000
             );
-            console.log("crunch tez in shares:", tezInShares.toNumber());
 
             return {
               name,

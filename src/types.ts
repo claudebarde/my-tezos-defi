@@ -62,6 +62,7 @@ export interface Operation {
   icons: IconSet;
   raw: any;
   tokenIds: number[] | null;
+  status: "applied" | "failed" | "backtracked" | "skipped";
 }
 
 export interface State {
