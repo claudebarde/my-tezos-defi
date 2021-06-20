@@ -55,7 +55,7 @@
       <span class="material-icons same"> trending_flat </span>
     {:else if trend === "up"}
       <span class="material-icons up"> trending_up </span>
-    {:else}
+    {:else if trend === "down"}
       <span class="material-icons down"> trending_down </span>
     {/if}
   </div>

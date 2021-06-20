@@ -178,6 +178,23 @@ export const searchUserTokens = async ({
   return newBalances;
 };
 
+export const calcTotalShareValueInTez = (
+  tokensOwned: number,
+  shareValueInTez: number,
+  tokenToTezExchangeRate: number,
+  tokenDecimals: number
+): number => {
+  const tezValue = shareValueInTez / 10 ** 6;
+  const tokenValue =
+    shareValueInTez /
+    10 ** 6 /
+    (tokenToTezExchangeRate / 10 ** tokenDecimals) /
+    10 ** tokenDecimals;
+  const tokenToTezValue = tokenValue * tokenToTezExchangeRate;
+
+  return (tokensOwned / 10 ** tokenDecimals) * (tezValue + tokenToTezValue);
+};
+
 export const findTokenId = (
   param: any,
   entrypoint: "transfer" | "update_operators"
@@ -336,9 +353,37 @@ export const calculateValue = (op: any): number => {
       } else {
         return +(+op.parameter.value / 10 ** contract.decimals).toFixed(5) / 1;
       }
+    } else if (
+      entrypoint === "tokenToTezPayment" &&
+      target.alias.split(" ")[0].toLowerCase() === "quipuswap"
+    ) {
+      const tokenSymbol = target.alias.split(" ")[1];
+      if (Object.keys(AvailableToken).includes(tokenSymbol)) {
+        return (
+          +(
+            +op.parameter.value.amount /
+            10 ** localStore.tokens[tokenSymbol].decimals
+          ).toFixed(5) / 1
+        );
+      }
+    } else if (
+      entrypoint === "deposit" &&
+      target.address ===
+        localStore.investments["CRUNCHY-FARMS"].address[localStore.network]
+    ) {
+      // CRUNCH DEPOSIT
+      return (
+        +(
+          +op.parameter.value.nat_1 /
+          10 ** localStore.tokens.CRUNCH.decimals
+        ).toFixed(5) / 1
+      );
     } else {
       return 0;
     }
+  } else if (entrypoint === null && target.address.slice(0, 2) === "tz") {
+    // IMPLICIT ACCOUNT
+    return +(+op.amount / 10 ** 6).toFixed(5) / 1;
   } else {
     return 0;
   }

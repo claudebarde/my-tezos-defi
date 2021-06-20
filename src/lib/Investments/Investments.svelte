@@ -2,6 +2,7 @@
   import { afterUpdate } from "svelte";
   import store from "../../store";
   import config from "../../config";
+  import { calcTotalShareValueInTez } from "../../utils";
 
   let kolibriOvens: {
     address: string;
@@ -13,23 +14,6 @@
 
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
-
-  const calcTotalShareValueInTez = (
-    tokensOwned: number,
-    shareValueInTez: number,
-    tokenToTezExchangeRate: number,
-    tokenDecimals: number
-  ): number => {
-    const tezValue = shareValueInTez / 10 ** 6;
-    const tokenValue =
-      shareValueInTez /
-      10 ** 6 /
-      (tokenToTezExchangeRate / 10 ** tokenDecimals) /
-      10 ** tokenDecimals;
-    const tokenToTezValue = tokenValue * tokenToTezExchangeRate;
-
-    return (tokensOwned / 10 ** tokenDecimals) * (tezValue + tokenToTezValue);
-  };
 
   afterUpdate(async () => {
     // finds if user has Kolibri ovens
@@ -72,7 +56,7 @@
     .row {
       display: grid;
       grid-template-columns: 10% 25% 20% 20% 20%;
-      padding: 3px 0px;
+      padding: 5px 10px;
 
       &.break-line {
         border-bottom: solid 2px $border-color;

@@ -93,7 +93,10 @@
     </div>
   {/if}
   {#if assetsType === "general" && !expandGeneralAssets}
-    <span on:click={() => (expandGeneralAssets = true)} style="cursor:pointer">
+    <span
+      on:click={() => (expandGeneralAssets = true)}
+      style="cursor:pointer;padding: 5px 10px;"
+    >
       Expand
     </span>
   {:else}

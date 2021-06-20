@@ -29,6 +29,8 @@
 </script>
 
 <style lang="scss">
+  @import "../../styles/settings.scss";
+
   .container-last-operations {
     .row {
       display: grid;
@@ -61,6 +63,27 @@
       }
     }
   }
+
+  @media only screen and (max-width: $mobile-break-point) {
+    .container-last-operations {
+      .row {
+        grid-template-columns: 20% 40% 40%;
+
+        & > div:nth-child(2) {
+          text-align: center;
+        }
+        & > div:nth-child(3) {
+          display: none;
+        }
+        & > div:nth-child(4) {
+          display: none;
+        }
+        & > div:nth-child(5) {
+          text-align: center;
+        }
+      }
+    }
+  }
 </style>
 
 <div class="container">
@@ -84,7 +107,7 @@
     {#each lastOpsFiltered as op, index (op.entryId)}
       {#if index === 0 || op.level !== lastOpsFiltered[index - 1].level}
         <div class="row">
-          <div style="grid-column:1 / span 3;margin:10px 0px;">
+          <div style="grid-column:1 / span 4;margin:10px 0px;">
             Block level: {op.level}
             <span style="font-size:0.8rem"
               >({moment(op.timestamp).fromNow()})</span

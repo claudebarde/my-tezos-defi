@@ -143,11 +143,22 @@
       border: solid 4px #5b21b6;
     }
   }
+
+  a {
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 </style>
 
 {#if $store.userAddress}
   <div>
-    {username}
+    <a href="#/profile">
+      {username}
+    </a>
   </div>
   <button on:click={disconnect}>Disconnect</button>
 {:else}

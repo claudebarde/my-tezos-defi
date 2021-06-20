@@ -54,6 +54,8 @@
 </script>
 
 <style lang="scss">
+  @import "../styles/settings.scss";
+
   .material-icons {
     vertical-align: bottom;
   }
@@ -87,6 +89,15 @@
       align-items: flex-start;
       gap: 40px;
       text-align: center;
+    }
+  }
+
+  @media only screen and (max-width: $mobile-break-point) {
+    .container-body {
+      .prices {
+        flex-direction: column;
+        gap: 10px;
+      }
     }
   }
 </style>
