@@ -5,7 +5,7 @@ const localStore = get(store);
 
 export const handleInvestmentsWorker = (msg: MessageEvent) => {
   if (msg.data.type === "investments") {
-    console.log("Investments:", msg.data);
+    //console.log("Investments:", msg.data);
 
     const newInvestments = { ...localStore.investments };
     // resets balances to zero

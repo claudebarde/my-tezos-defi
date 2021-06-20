@@ -29,6 +29,21 @@ async function init() {
       })
     )
   );
+  // returns the operations of the last 5 blocks
+  const headResponse = await fetch("https://api.mainnet.tzkt.io/v1/head");
+  if (headResponse) {
+    const head = await headResponse.json();
+    const currentLevel = head.level;
+    const lastTxsResponse = await fetch(
+      `https://api.mainnet.tzkt.io/v1/operations/transactions?level.ge=${
+        currentLevel - 5
+      }&target.in=${addresses.join(",")}`
+    );
+    if (lastTxsResponse) {
+      const lastTxs = await lastTxsResponse.json();
+      ctx.postMessage({ type: "live-traffic", msg: lastTxs });
+    }
+  }
 }
 
 // auto-reconnect

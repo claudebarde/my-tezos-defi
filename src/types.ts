@@ -22,11 +22,13 @@ export enum AvailableInvestments {
   "PLENTY-hDAO" = "PLENTY-hDAO",
   "PLENTY-PLENTY" = "PLENTY-PLENTY",
   "PLENTY-ETHtz" = "PLENTY-ETHtz",
+  "PLENTY-USDtz" = "PLENTY-USDtz",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
   "QUIPUSWAP-ETHtz" = "QUIPUSWAP-ETHtz",
-  "PLENTY-USDtz" = "PLENTY-USDtz"
+  "QUIPUSWAP-CRUNCH" = "QUIPUSWAP-CRUNCH",
+  "CRUNCHY-FARMS" = "CRUNCHY-FARMS"
 }
 
 export interface TokenContract {
@@ -43,13 +45,15 @@ export interface TokenContract {
   color: string;
 }
 
-export type IconSet = (AvailableToken | "XTZ" | "QUIPU")[];
+export type IconValue = AvailableToken | "XTZ" | "QUIPU" | "crDAO" | "user";
+export type IconSet = IconValue[];
 
 export interface Operation {
   entryId: number;
   id: string;
   hash: string;
   level: number;
+  timestamp: string;
   entrypoint: string;
   sender: { address: string; alias: string };
   target: { address: string; alias: string };
@@ -58,6 +62,7 @@ export interface Operation {
   icons: IconSet;
   raw: any;
   tokenIds: number[] | null;
+  status: "applied" | "failed" | "backtracked" | "skipped";
 }
 
 export interface State {
@@ -75,7 +80,12 @@ export interface State {
   tokensBalances: { [p in AvailableToken]: number | undefined };
   tokensExchangeRates: {
     [p in AvailableToken]:
-      | { tokenToTez: number; tezToToken: number }
+      | {
+          tokenToTez: number;
+          tezToToken: number;
+          realPriceInTez: number;
+          realPriceInToken: number;
+        }
       | undefined;
   };
   investments: {
@@ -93,6 +103,7 @@ export interface State {
   xtzFiatExchangeRate: number | undefined;
   lastOperations: Operation[];
   firstLoading: boolean;
+  tezBalance: number;
 }
 
 export interface HistoricalDataState {

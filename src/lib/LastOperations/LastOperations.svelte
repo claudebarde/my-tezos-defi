@@ -1,12 +1,46 @@
 <script lang="ts">
+  import { afterUpdate } from "svelte";
+  import moment from "moment";
   import store from "../../store";
+  import type { AvailableToken, Operation } from "../../types";
+
+  export let filterOps: {
+      opType: "general" | "token" | "user";
+      token?: AvailableToken;
+    },
+    lastOps: Operation[];
+
+  let lastOpsFiltered = [];
+
+  afterUpdate(() => {
+    if (JSON.stringify(lastOps) !== JSON.stringify(lastOpsFiltered)) {
+      lastOpsFiltered = lastOps.filter(op => {
+        if (filterOps.opType === "general" || filterOps.opType === "user") {
+          return true;
+        } else if (filterOps.opType === "token") {
+          return (
+            op.target.address ===
+            $store.tokens[filterOps.token].address[$store.network]
+          );
+        }
+      });
+    }
+  });
 </script>
 
 <style lang="scss">
+  @import "../../styles/settings.scss";
+
   .container-last-operations {
     .row {
       display: grid;
       grid-template-columns: 10% 20% 25% 25% 20%;
+      padding: 5px 10px;
+      align-items: center;
+
+      &.error {
+        background-color: #f87171;
+      }
 
       a {
         color: inherit;
@@ -18,6 +52,9 @@
       }
 
       .icon {
+        object {
+          vertical-align: middle;
+        }
         object,
         img {
           width: 25px;
@@ -26,10 +63,37 @@
       }
     }
   }
+
+  @media only screen and (max-width: $mobile-break-point) {
+    .container-last-operations {
+      .row {
+        grid-template-columns: 20% 40% 40%;
+
+        & > div:nth-child(2) {
+          text-align: center;
+        }
+        & > div:nth-child(3) {
+          display: none;
+        }
+        & > div:nth-child(4) {
+          display: none;
+        }
+        & > div:nth-child(5) {
+          text-align: center;
+        }
+      }
+    }
+  }
 </style>
 
 <div class="container">
-  <div class="title">Last operations on Tezos</div>
+  <div class="title">
+    {#if filterOps.opType === "user"}
+      Your last operations
+    {:else}
+      Last operations on Tezos
+    {/if}
+  </div>
   <div class="container-last-operations">
     {#if $store.lastOperations.length > 0}
       <div class="row">
@@ -40,15 +104,21 @@
         <div>Value in tokens</div>
       </div>
     {/if}
-    {#each $store.lastOperations as op, index (op.entryId)}
-      {#if index === 0 || op.level !== $store.lastOperations[index - 1].level}
+    {#each lastOpsFiltered as op, index (op.entryId)}
+      {#if index === 0 || op.level !== lastOpsFiltered[index - 1].level}
         <div class="row">
-          <div style="grid-column:1 / span 2;margin:10px 0px;">
+          <div style="grid-column:1 / span 4;margin:10px 0px;">
             Block level: {op.level}
+            <span style="font-size:0.8rem"
+              >({moment(op.timestamp).fromNow()})</span
+            >
           </div>
         </div>
       {/if}
-      <div class="row">
+      <div
+        class="row"
+        class:error={op.status === "failed" || op.status === "backtracked"}
+      >
         <div class="icon" on:click={() => console.log(op.raw, op.tokenIds)}>
           <a
             href={`https://better-call.dev/mainnet/opg/${op.hash}/contents`}

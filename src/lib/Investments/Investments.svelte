@@ -2,30 +2,18 @@
   import { afterUpdate } from "svelte";
   import store from "../../store";
   import config from "../../config";
+  import { calcTotalShareValueInTez } from "../../utils";
 
-  let kolibriOvens: { address: string; locked: number; borrowed: number }[] =
-    [];
+  let kolibriOvens: {
+    address: string;
+    locked: number;
+    borrowed: number;
+    isLiquidated: boolean;
+  }[] = [];
   let kolibriOvensChecked = false;
 
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
-
-  const calcTotalShareValueInTez = (
-    tokensOwned: number,
-    shareValueInTez: number,
-    tokenToTezExchangeRate: number,
-    tokenDecimals: number
-  ): number => {
-    const tezValue = shareValueInTez / 10 ** 6;
-    const tokenValue =
-      shareValueInTez /
-      10 ** 6 /
-      (tokenToTezExchangeRate / 10 ** tokenDecimals) /
-      10 ** tokenDecimals;
-    const tokenToTezValue = tokenValue * tokenToTezExchangeRate;
-
-    return (tokensOwned / 10 ** tokenDecimals) * (tezValue + tokenToTezValue);
-  };
 
   afterUpdate(async () => {
     // finds if user has Kolibri ovens
@@ -46,7 +34,8 @@
                 return {
                   address: d.ovenAddress,
                   locked: balance.toNumber(),
-                  borrowed: storage.borrowedTokens.toNumber()
+                  borrowed: storage.borrowedTokens.toNumber(),
+                  isLiquidated: storage.isLiquidated
                 };
               })
           );
@@ -67,7 +56,7 @@
     .row {
       display: grid;
       grid-template-columns: 10% 25% 20% 20% 20%;
-      padding: 3px 0px;
+      padding: 5px 10px;
 
       &.break-line {
         border-bottom: solid 2px $border-color;
@@ -104,7 +93,7 @@
         <div style="grid-column:1 / span 2">No investment found</div>
       </div>
     {:else}
-      {#if kolibriOvens.length > 0}
+      {#if kolibriOvens.length > 0 && kolibriOvens.filter(oven => !oven.isLiquidated).length > 0}
         <div class="row">
           <div />
           <div>Kolibri oven</div>
@@ -112,22 +101,24 @@
           <div>Borrowed</div>
         </div>
         {#each kolibriOvens as oven}
-          <div class="row">
-            <div class="icon">
-              <img src="images/kUSD.png" alt="token-icon" />
+          {#if !oven.isLiquidated}
+            <div class="row">
+              <div class="icon">
+                <img src="images/kUSD.png" alt="token-icon" />
+              </div>
+              <div>
+                <a
+                  href={`https://better-call.dev/mainnet/${oven.address}/operations`}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                >
+                  {shortenHash(oven.address)}
+                </a>
+              </div>
+              <div>{+oven.locked / 10 ** 6} ꜩ</div>
+              <div>{+oven.borrowed / 10 ** 18} kUSD</div>
             </div>
-            <div>
-              <a
-                href={`https://better-call.dev/mainnet/${oven.address}/operations`}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-              >
-                {shortenHash(oven.address)}
-              </a>
-            </div>
-            <div>{+oven.locked / 10 ** 6} ꜩ</div>
-            <div>{+oven.borrowed / 10 ** 18} kUSD</div>
-          </div>
+          {/if}
         {/each}
         <div class="row break-line" />
       {/if}
@@ -146,7 +137,17 @@
                 <img src={`images/${icon}.png`} alt="token-icon" />
               {/each}
             </div>
-            <div>{data.alias}</div>
+            <div>
+              <a
+                href={`https://better-call.dev/mainnet/${
+                  data.address[$store.network]
+                }/operations`}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                {data.alias}
+              </a>
+            </div>
             <div>{data.balance / 10 ** data.decimals}</div>
             <div>
               {#if ["Plenty hDAO staking", "Plenty staking", "Plenty USDtz staking"].includes(data.alias) && $store.tokensExchangeRates[data.token]}
@@ -186,6 +187,72 @@
               {/if}
             </div>
           </div>
+        {:else if contractName === "CRUNCHY-FARMS"}
+          <!-- CRUNCHY FARMS have a zero balance but data in the info array -->
+          {#each data.info as farm}
+            <div class="row">
+              <div class="icon">
+                {#if farm.farmId == 0}
+                  <img src="images/XTZ.png" alt="token-icon" />
+                  <img src="images/CRUNCH.png" alt="token-icon" />
+                {:else if farm.farmId == 1}
+                  <img src="images/XTZ.png" alt="token-icon" />
+                  <img src="images/kUSD.png" alt="token-icon" />
+                {:else if farm.farmId == 2}
+                  <img src="images/XTZ.png" alt="token-icon" />
+                  <img src="images/wWBTC.png" alt="token-icon" />
+                {:else}
+                  <img src="images/crDAO.png" alt="token-icon" />
+                {/if}
+              </div>
+              <div>
+                <a
+                  href={`https://better-call.dev/mainnet/${
+                    data.address[$store.network]
+                  }/operations`}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                >
+                  {#if farm.farmId == 0}
+                    Crunchy Farm XTZ/CRUNCH
+                  {:else if farm.farmId == 1}
+                    Crunchy Farm XTZ/kUSD
+                  {:else if farm.farmId == 2}
+                    Crunchy Farm XTZ/wWBTC
+                  {:else}
+                    {data.alias}
+                  {/if}
+                </a>
+              </div>
+              <div>{farm.amount / 10 ** data.decimals}</div>
+              <div>
+                {#if $store.tokensExchangeRates.CRUNCH}
+                  {+calcTotalShareValueInTez(
+                    farm.amount,
+                    data.shareValueInTez,
+                    $store.tokensExchangeRates.CRUNCH.tokenToTez,
+                    $store.tokens.CRUNCH.decimals
+                  ).toFixed(5) / 1}
+                {:else}
+                  --
+                {/if}
+              </div>
+              <div>
+                {#if $store.tokensExchangeRates.CRUNCH}
+                  {+(
+                    calcTotalShareValueInTez(
+                      farm.amount,
+                      data.shareValueInTez,
+                      $store.tokensExchangeRates.CRUNCH.tokenToTez,
+                      $store.tokens.CRUNCH.decimals
+                    ) * $store.xtzFiatExchangeRate
+                  ).toFixed(5) / 1}
+                {:else}
+                  --
+                {/if}
+              </div>
+            </div>
+          {/each}
         {/if}
       {/each}
     {/if}

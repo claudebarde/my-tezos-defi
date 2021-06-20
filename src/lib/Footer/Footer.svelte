@@ -37,12 +37,22 @@
       href="https://tezostaquito.io/"
       target="_blank"
       rel="noopener noreferrer nofollow">Taquito</a
-    >
-    and
+    >,
     <a
       href="https://quipuswap.com/"
       target="_blank"
       rel="noopener noreferrer nofollow">QuipuSwap</a
+    >,
+    <a
+      href="https://tzkt.io/"
+      target="_blank"
+      rel="noopener noreferrer nofollow">TzKT.io</a
+    >
+    and
+    <a
+      href="https://www.coingecko.com/en/api"
+      target="_blank"
+      rel="noopener noreferrer nofollow">CoinGecko</a
     >
     -
     <a

@@ -21,7 +21,7 @@ const settings: State["settings"] = {
     PLENTY: ""
   },
   mainnet: {
-    rpcUrl: "https://api.tez.ie/rpc/mainnet" //"https://mainnet-tezos.giganode.io"
+    rpcUrl: "https://mainnet-tezos.giganode.io" // "https://api.tez.ie/rpc/mainnet"
   }
 };
 
@@ -266,6 +266,18 @@ const initialState: State = {
       icons: ["QUIPU", AvailableToken.ETHTZ],
       token: undefined
     },
+    "QUIPUSWAP-CRUNCH": {
+      address: {
+        mainnet: "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4",
+        testnet: "KT1z"
+      },
+      balance: undefined,
+      decimals: 0,
+      info: [],
+      alias: "QuipuSwap CRUNCH",
+      icons: ["QUIPU", AvailableToken.CRUNCH],
+      token: undefined
+    },
     "PLENTY-XTZ-LP": {
       address: {
         mainnet: "KT1JQAZqShNMakSNXc2cgTzdAWZFemGcU6n1",
@@ -276,7 +288,7 @@ const initialState: State = {
       info: [],
       alias: "PLENTY-XTZ LP farm",
       icons: [AvailableToken.PLENTY, "XTZ"],
-      token: undefined
+      token: AvailableToken.PLENTY
     },
     "PLENTY-hDAO": {
       address: {
@@ -325,11 +337,24 @@ const initialState: State = {
       alias: "Plenty USDtz staking",
       icons: [AvailableToken.PLENTY, AvailableToken.USDTZ],
       token: AvailableToken.USDTZ
+    },
+    "CRUNCHY-FARMS": {
+      address: {
+        mainnet: "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3",
+        testnet: "KT1z"
+      },
+      balance: undefined,
+      decimals: 6,
+      info: [],
+      alias: "Crunchy.Network Farms V1",
+      icons: ["crDAO"],
+      token: AvailableToken.CRUNCH
     }
   },
   xtzFiatExchangeRate: undefined,
   lastOperations: [],
-  firstLoading: true
+  firstLoading: true,
+  tezBalance: 0
 };
 
 const store = writable(initialState);
@@ -342,6 +367,9 @@ const state = {
     store.update(store => ({ ...store, wallet })),
   updateUserAddress: (address: TezosAccountAddress) => {
     store.update(store => ({ ...store, userAddress: address }));
+  },
+  updateTezBalance: (balance: number) => {
+    store.update(store => ({ ...store, tezBalance: balance }));
   },
   updateTokens: (tokens: [string, TokenContract][]) => {
     store.update(store => {

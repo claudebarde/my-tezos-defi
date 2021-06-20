@@ -28,6 +28,12 @@
     align-items: center;
     font-size: 0.7rem;
   }
+
+  @media only screen and (max-width: $mobile-break-point) {
+    .sticky-header {
+      display: none;
+    }
+  }
 </style>
 
 {#if Object.values($store.tokensBalances).filter(balance => !!balance).length > 0}
