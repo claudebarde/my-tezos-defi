@@ -178,7 +178,7 @@
           1 XTZ = {$store.xtzFiatExchangeRate} USD
         </div>
         <div>
-          1 USD = {+($store.xtzFiatExchangeRate / 100).toFixed(5) / 1} XTZ
+          1 USD = {+($store.xtzFiatExchangeRate / 10).toFixed(5) / 1} XTZ
         </div>
       {:else if token === "tez" && !$store.xtzFiatExchangeRate}
         <div>No data</div>
