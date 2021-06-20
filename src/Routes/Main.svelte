@@ -168,7 +168,7 @@
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
-        {totalAmounts.TOKENS.toFixed(2)} USD
+        {totalAmounts.TOKENS.toFixed(2) * $store.xtzFiatExchangeRate} USD
       {:else}
         N/A
       {/if}

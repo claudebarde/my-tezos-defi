@@ -1,6 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Signika:wght@400;700&display=swap");
 @import "./settings.scss";
 @import "./modal.scss";
+@import "./buttons.scss";
 
 html,
 body {
@@ -51,19 +52,6 @@ body {
       cursor: pointer;
       margin-top: 4px;
     }
-  }
-}
-
-button {
-  &.default {
-    appearance: none;
-    border: solid 2px white;
-    border-radius: 10px;
-    background-color: transparent;
-    color: white;
-    padding: 5px 10px;
-    font-size: 1rem;
-    cursor: pointer;
   }
 }
 
