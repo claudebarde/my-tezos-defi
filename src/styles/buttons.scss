@@ -1,0 +1,21 @@
+@import "./settings.scss";
+
+.button {
+  appearance: none;
+  border-radius: 10px;
+  padding: 5px 10px;
+  font-size: 1rem;
+  cursor: pointer;
+
+  &.default {
+    border: solid 2px white;
+    background-color: transparent;
+    color: white;
+  }
+
+  &.kusd {
+    border: solid 2px $kolibri-color;
+    background-color: white;
+    color: $kolibri-color;
+  }
+}
