@@ -164,11 +164,11 @@
     <div>
       Tokens value:
       {#if totalAmounts.XTZ}
-        {totalAmounts.TOKENS.toFixed(2)} XTZ
+        {totalAmounts.TOKENS.toFixed(2) / 1} XTZ
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
-        {totalAmounts.TOKENS.toFixed(2) * $store.xtzFiatExchangeRate} USD
+        {+(totalAmounts.TOKENS * $store.xtzFiatExchangeRate).toFixed(2) / 1} USD
       {:else}
         N/A
       {/if}

@@ -7,7 +7,8 @@ import type {
   State,
   Operation,
   IconValue,
-  IconSet
+  IconSet,
+  KolibriOvenData
 } from "./types";
 import { AvailableToken } from "./types";
 import { char2Bytes } from "@taquito/utils";
@@ -291,7 +292,10 @@ export const getOpIcons = (
       icons = ["crDAO"];
       break;
     default:
-      icons = target.alias ? [target.alias.trim() as IconValue] : ["user"];
+      icons =
+        target.alias && Object.keys(localStore.tokens).includes(target.alias)
+          ? [target.alias.trim() as IconValue]
+          : ["user"];
       break;
   }
 
@@ -483,4 +487,36 @@ export const createNewOpEntry = (
     tokenIds,
     status: op.status
   };
+};
+
+export const getKolibriOvens = async (
+  userAddress: TezosAccountAddress,
+  Tezos: TezosToolkit
+): Promise<KolibriOvenData[] | null> => {
+  try {
+    const response = await fetch(config.kolibriOvenOwnersUrl);
+    if (response) {
+      const data = await response.json();
+      const { ovenData } = data;
+      return await Promise.all(
+        ovenData
+          .filter(d => d.ovenOwner === userAddress)
+          .map(async d => {
+            const contract = await Tezos.wallet.at(d.ovenAddress);
+            const storage: any = await contract.storage();
+            const balance = await Tezos.tz.getBalance(d.ovenAddress);
+
+            return {
+              address: d.ovenAddress,
+              locked: balance.toNumber(),
+              borrowed: storage.borrowedTokens.toNumber(),
+              isLiquidated: storage.isLiquidated
+            };
+          })
+      );
+    }
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
 };

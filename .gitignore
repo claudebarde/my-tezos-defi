@@ -1,4 +1,6 @@
 node_modules
 package-lock.json
 public/build
+public/quipuswap.worker.worker.js
+public/quipuswap.worker.worker.js.LICENSE.txt
 test.txt

@@ -114,3 +114,10 @@ export interface HistoricalDataState {
     }[];
   };
 }
+
+export interface KolibriOvenData {
+  address: string;
+  locked: number;
+  borrowed: number;
+  isLiquidated: boolean;
+}
