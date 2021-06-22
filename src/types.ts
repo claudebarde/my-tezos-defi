@@ -100,10 +100,13 @@ export interface State {
       shareValueInTez?: number;
     };
   };
-  xtzFiatExchangeRate: number | undefined;
   lastOperations: Operation[];
   firstLoading: boolean;
-  tezBalance: number;
+  xtzData: {
+    exchangeRate: number | undefined;
+    balance: number;
+    historic: { timestamp: number; rate: number }[];
+  };
 }
 
 export interface HistoricalDataState {

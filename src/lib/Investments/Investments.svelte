@@ -144,7 +144,7 @@
                 {+(
                   (data.balance / 10 ** data.decimals) *
                   $store.tokensExchangeRates[data.token].tokenToTez *
-                  $store.xtzFiatExchangeRate
+                  $store.xtzData.exchangeRate
                 ).toFixed(5) / 1}
               {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
                 {+(
@@ -153,7 +153,7 @@
                     data.shareValueInTez,
                     $store.tokensExchangeRates.PLENTY.tokenToTez,
                     $store.tokens.PLENTY.decimals
-                  ) * $store.xtzFiatExchangeRate
+                  ) * $store.xtzData.exchangeRate
                 ).toFixed(5) / 1}
               {:else}
                 --
@@ -218,7 +218,7 @@
                       data.shareValueInTez,
                       $store.tokensExchangeRates.CRUNCH.tokenToTez,
                       $store.tokens.CRUNCH.decimals
-                    ) * $store.xtzFiatExchangeRate
+                    ) * $store.xtzData.exchangeRate
                   ).toFixed(5) / 1}
                 {:else}
                   --

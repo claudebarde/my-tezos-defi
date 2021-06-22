@@ -115,15 +115,24 @@ const getTokensExchangeRates = async () => {
 const fetchXtzFiatExchangeRate = async () => {
   try {
     const response = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=tezos&vs_currencies=usd`
+      //`https://api.coingecko.com/api/v3/simple/price?ids=tezos&vs_currencies=usd`
+      `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=usd&days=2`
     );
     if (response) {
       const data = await response.json();
-      xtzFiatExchangeRate = +data.tezos.usd;
+      //xtzFiatExchangeRate = +data.tezos.usd;
+      const prices = data.prices;
+      xtzFiatExchangeRate = prices[prices.length - 1][1];
 
       ctx.postMessage({
         type: "xtz-fiat-exchange-rate",
-        payload: xtzFiatExchangeRate
+        payload: {
+          xtzFiatExchangeRate,
+          historicExchangeRates: prices.map(price => ({
+            timestamp: price[0],
+            rate: price[1]
+          }))
+        }
       });
     } else {
       throw "No response from CoinGecko API";

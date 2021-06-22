@@ -351,10 +351,13 @@ const initialState: State = {
       token: AvailableToken.CRUNCH
     }
   },
-  xtzFiatExchangeRate: undefined,
   lastOperations: [],
   firstLoading: true,
-  tezBalance: 0
+  xtzData: {
+    exchangeRate: undefined,
+    balance: 0,
+    historic: []
+  }
 };
 
 const store = writable(initialState);
@@ -369,7 +372,10 @@ const state = {
     store.update(store => ({ ...store, userAddress: address }));
   },
   updateTezBalance: (balance: number) => {
-    store.update(store => ({ ...store, tezBalance: balance }));
+    store.update(store => ({
+      ...store,
+      xtzData: { ...store.xtzData, balance }
+    }));
   },
   updateTokens: (tokens: [string, TokenContract][]) => {
     store.update(store => {
@@ -398,7 +404,18 @@ const state = {
     }));
   },
   updateXtzFiatExchangeRate: (newRate: number | undefined) => {
-    store.update(store => ({ ...store, xtzFiatExchangeRate: newRate }));
+    store.update(store => ({
+      ...store,
+      xtzData: { ...store.xtzData, exchangeRate: newRate }
+    }));
+  },
+  updateXtzDataHistoric: (
+    newHistoric: { timestamp: number; rate: number }[]
+  ) => {
+    store.update(store => ({
+      ...store,
+      xtzData: { ...store.xtzData, historic: newHistoric }
+    }));
   },
   updateLastOperations: (ops: Operation[]) => {
     store.update(store => {

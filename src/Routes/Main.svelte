@@ -42,28 +42,28 @@
 
       totalAmounts = {
         TOKENS: valueInXTZ,
-        XTZ: valueInXTZ + $store.tezBalance / 10 ** 6,
+        XTZ: valueInXTZ + $store.xtzData.balance / 10 ** 6,
         FIAT:
-          (valueInXTZ + $store.tezBalance / 10 ** 6) *
-          $store.xtzFiatExchangeRate
+          (valueInXTZ + $store.xtzData.balance / 10 ** 6) *
+          $store.xtzData.exchangeRate
       };
 
       // calculates balances in USD
-      if ($store.tokensBalances && $store.xtzFiatExchangeRate) {
+      if ($store.tokensBalances && $store.xtzData.exchangeRate) {
         Object.entries($store.tokensBalances).forEach(
           ([tokenSymbol, balance]) => {
             if (balance && $store.tokensExchangeRates[tokenSymbol]) {
               balancesInUsd[tokenSymbol] =
                 balance *
                 $store.tokensExchangeRates[tokenSymbol].tokenToTez *
-                $store.xtzFiatExchangeRate;
+                $store.xtzData.exchangeRate;
             }
           }
         );
       }
 
       // calculates total investments
-      if ($store.xtzFiatExchangeRate) {
+      if ($store.xtzData.exchangeRate) {
         let tempTotalInvestments = 0;
         Object.entries($store.investments).forEach(([contractName, data]) => {
           if (
@@ -100,7 +100,7 @@
         });
         totalInvestments = {
           XTZ: tempTotalInvestments,
-          FIAT: tempTotalInvestments * $store.xtzFiatExchangeRate
+          FIAT: tempTotalInvestments * $store.xtzData.exchangeRate
         };
       }
 
@@ -168,7 +168,7 @@
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
-        {+(totalAmounts.TOKENS * $store.xtzFiatExchangeRate).toFixed(2) / 1} USD
+        {+(totalAmounts.TOKENS * $store.xtzData.exchangeRate).toFixed(2) / 1} USD
       {:else}
         N/A
       {/if}

@@ -201,7 +201,7 @@
             Total in USD: {+(
               +$store.tokensBalances[tokenSymbol] *
               $store.tokensExchangeRates[tokenSymbol].tokenToTez *
-              $store.xtzFiatExchangeRate
+              $store.xtzData.exchangeRate
             ).toFixed(2) / 1} USD
           </div>
         {:else}

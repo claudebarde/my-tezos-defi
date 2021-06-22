@@ -15,7 +15,7 @@
       $historicDataStore.tokens[tokenSymbol].length !== nrOfTrends
     ) {
       const newTrend = calculateTrend(
-        $historicDataStore,
+        $historicDataStore.tokens[tokenSymbol],
         tokenSymbol as AvailableToken
       );
       trend = newTrend.trend;
