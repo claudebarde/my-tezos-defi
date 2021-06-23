@@ -27,17 +27,20 @@
       };
       // process data
       let tempOpsCount = {};
-      $store.lastOperations.forEach(op => {
-        if (!op.target.alias) {
-          op.target.alias = shortenHash(op.target.address);
-        }
+      const currentLevel = $store.lastOperations[0].level;
+      $store.lastOperations
+        .filter(op => op.level > currentLevel - 5)
+        .forEach(op => {
+          if (!op.target.alias) {
+            op.target.alias = shortenHash(op.target.address);
+          }
 
-        if (!tempOpsCount.hasOwnProperty(op.target.alias)) {
-          tempOpsCount[op.target.alias] = 1;
-        } else {
-          tempOpsCount[op.target.alias] += 1;
-        }
-      });
+          if (!tempOpsCount.hasOwnProperty(op.target.alias)) {
+            tempOpsCount[op.target.alias] = 1;
+          } else {
+            tempOpsCount[op.target.alias] += 1;
+          }
+        });
       const threshold = 5;
       Object.entries(tempOpsCount).forEach(([target, opsCount]) => {
         if (opsCount >= threshold) {

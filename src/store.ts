@@ -187,6 +187,45 @@ const initialState: State = {
       type: "fa2",
       storage: undefined,
       color: "#000000"
+    },
+    crDAO: {
+      address: {
+        mainnet: "KT1XPFjZqCULSnqfKaaYy8hJjeY63UNSGwXg",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1FHiJmJUgZMPtv5F8M4ZEa6cb1D9Lf758T",
+      decimals: 8,
+      ledgerPath: "assets/ledger",
+      ledgerKey: "address",
+      type: "fa2",
+      storage: undefined,
+      color: "#8CFFFA"
+    },
+    FLAME: {
+      address: {
+        mainnet: "KT1Wa8yqRBpFCusJWgcQyjhRz7hUQAmFxW7j",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1Q93ftAUzvfMGPwC78nX8eouL1VzmHPd4d",
+      decimals: 6,
+      ledgerPath: "ledger",
+      ledgerKey: "address",
+      type: "fa2",
+      storage: undefined,
+      color: "#FF9F00"
+    },
+    KALAM: {
+      address: {
+        mainnet: "KT1A5P4ejnLix13jtadsfV9GCnXLMNnab8UT",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1J3wTYb4xk5BsSBkg6ML55bX1xq7desS34",
+      decimals: 10,
+      ledgerPath: "ledger",
+      ledgerKey: "address",
+      type: "fa2",
+      storage: undefined,
+      color: "#00B7AC"
     }
   },
   tokensBalances: {
@@ -201,7 +240,10 @@ const initialState: State = {
     CRUNCH: undefined,
     WRAP: undefined,
     wDAI: undefined,
-    sDAO: undefined
+    sDAO: undefined,
+    crDAO: undefined,
+    FLAME: undefined,
+    KALAM: undefined
   },
   tokensExchangeRates: {
     kUSD: undefined,
@@ -215,7 +257,10 @@ const initialState: State = {
     CRUNCH: undefined,
     WRAP: undefined,
     wDAI: undefined,
-    sDAO: undefined
+    sDAO: undefined,
+    crDAO: undefined,
+    FLAME: undefined,
+    KALAM: undefined
   },
   investments: {
     "QUIPUSWAP-PLENTY": {
@@ -351,10 +396,13 @@ const initialState: State = {
       token: AvailableToken.CRUNCH
     }
   },
-  xtzFiatExchangeRate: undefined,
   lastOperations: [],
   firstLoading: true,
-  tezBalance: 0
+  xtzData: {
+    exchangeRate: undefined,
+    balance: 0,
+    historic: []
+  }
 };
 
 const store = writable(initialState);
@@ -369,7 +417,10 @@ const state = {
     store.update(store => ({ ...store, userAddress: address }));
   },
   updateTezBalance: (balance: number) => {
-    store.update(store => ({ ...store, tezBalance: balance }));
+    store.update(store => ({
+      ...store,
+      xtzData: { ...store.xtzData, balance }
+    }));
   },
   updateTokens: (tokens: [string, TokenContract][]) => {
     store.update(store => {
@@ -398,10 +449,25 @@ const state = {
     }));
   },
   updateXtzFiatExchangeRate: (newRate: number | undefined) => {
-    store.update(store => ({ ...store, xtzFiatExchangeRate: newRate }));
+    store.update(store => ({
+      ...store,
+      xtzData: { ...store.xtzData, exchangeRate: newRate }
+    }));
+  },
+  updateXtzDataHistoric: (
+    newHistoric: { timestamp: number; rate: number }[]
+  ) => {
+    store.update(store => ({
+      ...store,
+      xtzData: { ...store.xtzData, historic: newHistoric }
+    }));
   },
   updateLastOperations: (ops: Operation[]) => {
-    store.update(store => {
+    store.update(store => ({
+      ...store,
+      lastOperations: [...ops.reverse(), ...store.lastOperations]
+    }));
+    /*store.update(store => {
       const currentLevel = ops[0].level;
       // removes operations from more than 4 levels behind
       const previousLastOps = [
@@ -412,7 +478,7 @@ const state = {
         ...store,
         lastOperations: [...ops.reverse(), ...previousLastOps]
       };
-    });
+    });*/
   },
   updateFirstLoading: (state: boolean) => {
     store.update(store => ({ ...store, firstLoading: state }));

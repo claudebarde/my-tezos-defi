@@ -39,7 +39,9 @@
 
       if ($store.firstLoading) store.updateFirstLoading(false);
     } else if (msg.data.type === "xtz-fiat-exchange-rate") {
-      store.updateXtzFiatExchangeRate(msg.data.payload);
+      const { xtzFiatExchangeRate, historicExchangeRates } = msg.data.payload;
+      store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
+      store.updateXtzDataHistoric(historicExchangeRates);
     }
   };
 

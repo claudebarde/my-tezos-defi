@@ -33,10 +33,15 @@
   const displayTrendGraph = () => {
     trendModalOpen = true;
     // gets canvas
-    let tokenData = $historicDataStore.tokens[token[0]].slice(0);
+    let tokenData =
+      token === "tez"
+        ? $store.xtzData.historic
+        : $historicDataStore.tokens[token[0]].slice(0);
     tokenData.sort((a, b) => a.timestamp - b.timestamp);
     //tokenData = tokenData.slice(-60);
-    const data = tokenData.map(el => +el.rate.tokenToTez);
+    const data = tokenData.map(el =>
+      token === "tez" ? +el.rate : +el.rate.tokenToTez
+    );
     //const labels = tokenData.map(el => new Date(el.timestamp).toISOString());
     const labels = tokenData.map(el =>
       moment(el.timestamp).format("MMM Do YYYY, HH:mm:ss")
@@ -58,7 +63,7 @@
           datasets: [
             {
               data,
-              label: token[0],
+              label: token === "tez" ? "XTZ" : token[0],
               borderColor: "#3e95cd",
               fill: false
             }
@@ -76,14 +81,23 @@
         $historicDataStore.tokens[token[0]].length !== nrOfTrends
       ) {
         const newTrend = calculateTrend(
-          $historicDataStore,
+          $historicDataStore.tokens[token[0]],
           token[0] as AvailableToken
         );
         trend = newTrend.trend;
         nrOfTrends = newTrend.nrOfTrends;
       }
     } else {
-      if ($store.userAddress && $store.tezBalance === 0) {
+      // calculate tez trend
+      if (
+        $store.xtzData.historic.length > 0 &&
+        Date.now() - 60_000 > $store.xtzData.historic[0].timestamp
+      ) {
+        const newTrend = calculateTrend($store.xtzData.historic, "XTZ");
+        trend = newTrend.trend;
+        nrOfTrends = newTrend.nrOfTrends;
+      }
+      if ($store.userAddress && $store.xtzData.balance === 0) {
         const balance = await $store.Tezos.tz.getBalance($store.userAddress);
         if (balance) {
           store.updateTezBalance(balance.toNumber());
@@ -173,14 +187,14 @@
   {:else}
     <div class="info">
       <!-- if XTZ-->
-      {#if token === "tez" && $store.xtzFiatExchangeRate}
+      {#if token === "tez" && $store.xtzData.exchangeRate}
         <div>
-          1 XTZ = {$store.xtzFiatExchangeRate} USD
+          1 XTZ = {+$store.xtzData.exchangeRate.toFixed(5) / 1} USD
         </div>
         <div>
-          1 USD = {+($store.xtzFiatExchangeRate / 10).toFixed(5) / 1} XTZ
+          1 USD = {+($store.xtzData.exchangeRate / 10).toFixed(5) / 1} XTZ
         </div>
-      {:else if token === "tez" && !$store.xtzFiatExchangeRate}
+      {:else if token === "tez" && !$store.xtzData.exchangeRate}
         <div>No data</div>
       {/if}
       <!-- if other token-->
@@ -215,13 +229,13 @@
     {:else if assetsType === "owned" && token === "tez"}
       <div class="info">
         <div>
-          Balance: {+($store.tezBalance / 10 ** 6).toFixed(5) / 1}
+          Balance: {+($store.xtzData.balance / 10 ** 6).toFixed(5) / 1}
         </div>
-        {#if $store.xtzFiatExchangeRate}
+        {#if $store.xtzData.exchangeRate}
           <div>
             {+(
-              ($store.tezBalance / 10 ** 6) *
-              $store.xtzFiatExchangeRate
+              ($store.xtzData.balance / 10 ** 6) *
+              $store.xtzData.exchangeRate
             ).toFixed(5) / 1} USD
           </div>
         {:else}
@@ -248,7 +262,11 @@
 {#if trendModalOpen}
   <Modal type="graph" on:close={() => (trendModalOpen = false)}>
     <div slot="modal-title" class="modal-title">
-      {token[0]} -> XTZ Price Trend
+      {#if token === "tez"}
+        XTZ Price Trend
+      {:else}
+        {token[0]} -> XTZ Price Trend
+      {/if}
     </div>
     <div slot="modal-body" class="modal-body">
       <canvas id="trendChart" width="400" height="300" />

@@ -7,7 +7,8 @@ import type {
   State,
   Operation,
   IconValue,
-  IconSet
+  IconSet,
+  KolibriOvenData
 } from "./types";
 import { AvailableToken } from "./types";
 import { char2Bytes } from "@taquito/utils";
@@ -35,31 +36,36 @@ const testUpsAndDownsData = [
 ];
 
 export const calculateTrend = (
-  historicalData: HistoricalDataState,
-  tokenSymbol: AvailableToken
+  tokenData:
+    | HistoricalDataState["tokens"][AvailableToken]
+    | State["xtzData"]["historic"],
+  tokenSymbol: AvailableToken | "XTZ"
 ) => {
   let trend: "same" | "up" | "down", nrOfTrends: number;
   // calculates new trend
-  const tokenData = historicalData.tokens[tokenSymbol];
+  //const tokenData = historicalData.tokens[tokenSymbol];
   tokenData.sort((a, b) => a.timestamp - b.timestamp);
   const upsAndDowns = tokenData.map((el, index) => {
     if (index === 0) {
       // first element of the array, nothing to do with it
       return { direction: "same", diff: 0 };
     } else {
-      const previousEl = tokenData[index - 1];
-      if (+el.rate.tokenToTez === +previousEl.rate.tokenToTez) {
+      const previousEl: any = tokenData[index - 1];
+      const rate = tokenSymbol === "XTZ" ? +el.rate : +el.rate.tokenToTez;
+      const previousRate =
+        tokenSymbol === "XTZ" ? +previousEl.rate : +previousEl.rate.tokenToTez;
+      if (rate === previousRate) {
         return { direction: "same", diff: 0 };
-      } else if (+el.rate.tokenToTez > +previousEl.rate.tokenToTez) {
+      } else if (rate > previousRate) {
         // price went up
         return {
           direction: "up",
-          diff: +el.rate.tokenToTez - +previousEl.rate.tokenToTez
+          diff: rate - previousRate
         };
       } else {
         return {
           direction: "down",
-          diff: +previousEl.rate.tokenToTez - +el.rate.tokenToTez
+          diff: previousRate - rate
         };
       }
     }
@@ -89,7 +95,7 @@ export const calculateTrend = (
   } else {
     trend = "down";
   }
-  nrOfTrends = historicalData.tokens[tokenSymbol].length;
+  nrOfTrends = tokenData.length;
   /*console.log(
           token[0],
           historicalData.tokens[token[0]],
@@ -291,7 +297,10 @@ export const getOpIcons = (
       icons = ["crDAO"];
       break;
     default:
-      icons = target.alias ? [target.alias.trim() as IconValue] : ["user"];
+      icons =
+        target.alias && Object.keys(localStore.tokens).includes(target.alias)
+          ? [target.alias.trim() as IconValue]
+          : ["user"];
       break;
   }
 
@@ -483,4 +492,36 @@ export const createNewOpEntry = (
     tokenIds,
     status: op.status
   };
+};
+
+export const getKolibriOvens = async (
+  userAddress: TezosAccountAddress,
+  Tezos: TezosToolkit
+): Promise<KolibriOvenData[] | null> => {
+  try {
+    const response = await fetch(config.kolibriOvenOwnersUrl);
+    if (response) {
+      const data = await response.json();
+      const { ovenData } = data;
+      return await Promise.all(
+        ovenData
+          .filter(d => d.ovenOwner === userAddress)
+          .map(async d => {
+            const contract = await Tezos.wallet.at(d.ovenAddress);
+            const storage: any = await contract.storage();
+            const balance = await Tezos.tz.getBalance(d.ovenAddress);
+
+            return {
+              address: d.ovenAddress,
+              locked: balance.toNumber(),
+              borrowed: storage.borrowedTokens.toNumber(),
+              isLiquidated: storage.isLiquidated
+            };
+          })
+      );
+    }
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
 };

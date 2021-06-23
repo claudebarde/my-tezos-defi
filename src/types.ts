@@ -15,7 +15,10 @@ export enum AvailableToken {
   CRUNCH = "CRUNCH",
   WRAP = "WRAP",
   WDAI = "wDAI",
-  SDAO = "sDAO"
+  SDAO = "sDAO",
+  CRDAO = "crDAO",
+  FLAME = "FLAME",
+  KALAM = "KALAM"
 }
 export enum AvailableInvestments {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
@@ -100,10 +103,13 @@ export interface State {
       shareValueInTez?: number;
     };
   };
-  xtzFiatExchangeRate: number | undefined;
   lastOperations: Operation[];
   firstLoading: boolean;
-  tezBalance: number;
+  xtzData: {
+    exchangeRate: number | undefined;
+    balance: number;
+    historic: { timestamp: number; rate: number }[];
+  };
 }
 
 export interface HistoricalDataState {
@@ -113,4 +119,11 @@ export interface HistoricalDataState {
       rate: { tokenToTez: number; tezToToken: number };
     }[];
   };
+}
+
+export interface KolibriOvenData {
+  address: string;
+  locked: number;
+  borrowed: number;
+  isLiquidated: boolean;
 }

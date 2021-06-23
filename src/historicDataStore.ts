@@ -14,7 +14,10 @@ const initialState: HistoricalDataState = {
     CRUNCH: [],
     WRAP: [],
     wDAI: [],
-    sDAO: []
+    sDAO: [],
+    crDAO: [],
+    FLAME: [],
+    KALAM: []
   }
 };
 

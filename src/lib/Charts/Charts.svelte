@@ -1,5 +1,6 @@
 <script lang="ts">
   import LastOpsTargets from "./LastOpsTargets.svelte";
+  import TransfersValues from "./TransfersValues.svelte";
   import store from "../../store";
 </script>
 
@@ -17,6 +18,7 @@
   <div class="container-body">
     {#if $store.lastOperations.length > 0}
       <LastOpsTargets />
+      <TransfersValues />
     {:else}
       Waiting for data to display...
     {/if}

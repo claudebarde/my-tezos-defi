@@ -1,15 +1,10 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
   import store from "../../store";
-  import config from "../../config";
-  import { calcTotalShareValueInTez } from "../../utils";
+  import { calcTotalShareValueInTez, getKolibriOvens } from "../../utils";
+  import type { KolibriOvenData } from "../../types";
 
-  let kolibriOvens: {
-    address: string;
-    locked: number;
-    borrowed: number;
-    isLiquidated: boolean;
-  }[] = [];
+  let kolibriOvens: KolibriOvenData[] = [];
   let kolibriOvensChecked = false;
 
   const shortenHash = (hash: string): string =>
@@ -18,32 +13,10 @@
   afterUpdate(async () => {
     // finds if user has Kolibri ovens
     if ($store.userAddress && !kolibriOvensChecked) {
-      try {
-        const response = await fetch(config.kolibriOvenOwnersUrl);
-        if (response) {
-          const data = await response.json();
-          const { ovenData } = data;
-          kolibriOvens = await Promise.all(
-            ovenData
-              .filter(d => d.ovenOwner === $store.userAddress)
-              .map(async d => {
-                const contract = await $store.Tezos.wallet.at(d.ovenAddress);
-                const storage: any = await contract.storage();
-                const balance = await $store.Tezos.tz.getBalance(d.ovenAddress);
-
-                return {
-                  address: d.ovenAddress,
-                  locked: balance.toNumber(),
-                  borrowed: storage.borrowedTokens.toNumber(),
-                  isLiquidated: storage.isLiquidated
-                };
-              })
-          );
-        }
-
+      const ovens = await getKolibriOvens($store.userAddress, $store.Tezos);
+      if (ovens) {
+        kolibriOvens = [...ovens];
         kolibriOvensChecked = true;
-      } catch (error) {
-        console.log(error);
       }
     }
   });
@@ -171,7 +144,7 @@
                 {+(
                   (data.balance / 10 ** data.decimals) *
                   $store.tokensExchangeRates[data.token].tokenToTez *
-                  $store.xtzFiatExchangeRate
+                  $store.xtzData.exchangeRate
                 ).toFixed(5) / 1}
               {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
                 {+(
@@ -180,7 +153,7 @@
                     data.shareValueInTez,
                     $store.tokensExchangeRates.PLENTY.tokenToTez,
                     $store.tokens.PLENTY.decimals
-                  ) * $store.xtzFiatExchangeRate
+                  ) * $store.xtzData.exchangeRate
                 ).toFixed(5) / 1}
               {:else}
                 --
@@ -245,7 +218,7 @@
                       data.shareValueInTez,
                       $store.tokensExchangeRates.CRUNCH.tokenToTez,
                       $store.tokens.CRUNCH.decimals
-                    ) * $store.xtzFiatExchangeRate
+                    ) * $store.xtzData.exchangeRate
                   ).toFixed(5) / 1}
                 {:else}
                   --

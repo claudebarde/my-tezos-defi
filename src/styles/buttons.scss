@@ -14,8 +14,14 @@
   }
 
   &.kusd {
-    border: solid 2px $kolibri-color;
+    border: solid 3px $kolibri-color;
     background-color: white;
     color: $kolibri-color;
+    transition: 0.4s;
+
+    &:hover {
+      background-color: $kolibri-color;
+      color: white;
+    }
   }
 }

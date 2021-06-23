@@ -14,16 +14,19 @@
 
   afterUpdate(() => {
     if (JSON.stringify(lastOps) !== JSON.stringify(lastOpsFiltered)) {
-      lastOpsFiltered = lastOps.filter(op => {
-        if (filterOps.opType === "general" || filterOps.opType === "user") {
-          return true;
-        } else if (filterOps.opType === "token") {
-          return (
-            op.target.address ===
-            $store.tokens[filterOps.token].address[$store.network]
-          );
-        }
-      });
+      const currentLevel = $store.lastOperations[0].level;
+      lastOpsFiltered = lastOps
+        .filter(op => op.level > currentLevel - 5)
+        .filter(op => {
+          if (filterOps.opType === "general" || filterOps.opType === "user") {
+            return true;
+          } else if (filterOps.opType === "token") {
+            return (
+              op.target.address ===
+              $store.tokens[filterOps.token].address[$store.network]
+            );
+          }
+        });
     }
   });
 </script>
