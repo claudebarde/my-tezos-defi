@@ -1,21 +1,25 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
+  import { bytes2Char } from "@taquito/utils";
   import store from "../store";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
   import type { Operation, KolibriOvenData } from "../types";
   import { AvailableToken } from "../types";
-  import { createNewOpEntry, getKolibriOvens, shortenHash } from "../utils";
+  import { createNewOpEntry, getKolibriOvens } from "../utils";
   import KolibriOven from "../lib/Tools/KolibriOven.svelte";
 
   export let params;
 
   let unsupportedToken = false;
   let tokenSymbol: AvailableToken;
+  let loading = true;
   const contractCallResponseLimit = 500;
   const days = 1;
   const hours = 2;
   let lastOps: Operation[] = [];
   let kolibriOvens: KolibriOvenData[] = [];
+  let storage = undefined;
+  let metadata = undefined;
 
   onMount(async () => {
     const { tokenSymbol: pTokenSymbol } = params;
@@ -62,6 +66,43 @@
       unsupportedToken = true;
     }
   });
+
+  afterUpdate(async () => {
+    if (!$store.tokensExchangeRates[tokenSymbol]) {
+      loading = true;
+    } else if ($store.tokensExchangeRates[tokenSymbol] && loading) {
+      loading = false;
+    }
+
+    if (!unsupportedToken && $store.Tezos && storage === undefined) {
+      // loads contract storage
+      const contract = await $store.Tezos.wallet.at(
+        $store.tokens[tokenSymbol].address[$store.network]
+      );
+      storage = await contract.storage();
+      if (storage.hasOwnProperty("metadata")) {
+        // checks if contract has metadata
+        let mtdt = await storage.metadata.get("");
+        mtdt = bytes2Char(mtdt);
+        if (mtdt.slice(0, 7) === "ipfs://") {
+          // metadata is stored in the IPFS
+          const metadataResponse = await fetch(
+            `https://cloudflare-ipfs.com/ipfs/${mtdt.slice(7)}`
+          );
+          if (metadataResponse) {
+            metadata = await metadataResponse.json();
+            console.log(metadata);
+          }
+        } else if (mtdt.slice(0, 13) === "tezos-storage") {
+          // metadata is stored locally
+          const metadataKey = mtdt.slice(14);
+          const metadataBytes = await storage.metadata.get(metadataKey);
+          metadata = JSON.parse(bytes2Char(metadataBytes));
+          console.log(metadata);
+        }
+      }
+    }
+  });
 </script>
 
 <style lang="scss">
@@ -86,6 +127,10 @@
     justify-content: center;
     align-items: center;
     width: 100%;
+
+    & > div {
+      padding: 8px;
+    }
 
     .icon {
       img {
@@ -132,7 +177,11 @@
         <img src={`images/${tokenSymbol}.png`} alt={tokenSymbol} />
       </div>
       <div>
-        {tokenSymbol} Token
+        {#if metadata && metadata.hasOwnProperty("name")}
+          {metadata.name}
+        {:else}
+          {tokenSymbol} Token
+        {/if}
       </div>
       <br />
       <div>
@@ -180,6 +229,8 @@
             </div>
           </div>
         </div>
+      {:else if !$store.tokensExchangeRates[tokenSymbol] && loading}
+        <div>Loading...</div>
       {:else}
         <div>No data</div>
       {/if}
@@ -213,7 +264,7 @@
   <br />
   <br />
   <div class="container">
-    <div class="title">Statistics</div>
+    <div class="title">Details</div>
     <div class="container-body">
       <div>
         {#if days > 1}
@@ -228,11 +279,64 @@
             : lastOps.length}
         {/if}
       </div>
+      <div>
+        Contract type:
+        {#if $store.tokens[tokenSymbol].type === "fa1.2"}
+          FA1.2 <span style="font-size:0.6rem">
+            <a
+              href="https://gitlab.com/tzip/tzip/-/blob/master/proposals/tzip-7/tzip-7.md"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+            >
+              (more info)
+            </a>
+          </span>
+        {:else if $store.tokens[tokenSymbol].type === "fa2"}
+          FA2 <span style="font-size:0.6rem">
+            <a
+              href="https://gitlab.com/tzip/tzip/-/blob/master/proposals/tzip-12/tzip-12.md"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+            >
+              (more info)
+            </a>
+          </span>
+        {/if}
+      </div>
+      <!-- STORAGE INFO -->
+      {#if storage && storage.hasOwnProperty("total_supply")}
+        <div>
+          Total supply: {(
+            storage.total_supply.toNumber() /
+            10 ** $store.tokens[tokenSymbol].decimals
+          ).toLocaleString(undefined, { minimumFractionDigits: 5 })} tokens
+        </div>
+      {:else if storage && storage.hasOwnProperty("totalSupply")}
+        <div>
+          Total supply: {(
+            storage.totalSupply.toNumber() /
+            10 ** $store.tokens[tokenSymbol].decimals
+          ).toLocaleString(undefined, { minimumFractionDigits: 5 })} tokens
+        </div>
+      {/if}
+      <!-- METADATA INFO -->
+      {#if metadata && metadata.hasOwnProperty("homepage")}
+        <div>
+          Website: <a
+            href={metadata.homepage}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+          >
+            {metadata.homepage}
+            <span class="material-icons"> open_in_new </span>
+          </a>
+        </div>
+      {/if}
     </div>
   </div>
   <br />
   <br />
-  {#if tokenSymbol === "kUSD" && kolibriOvens.length > 0}
+  {#if false && tokenSymbol === "kUSD" && kolibriOvens.length > 0 && kolibriOvens.filter(oven => !oven.isLiquidated).length > 0}
     <div class="container">
       <div class="title">Your ovens</div>
       <div class="container-body">

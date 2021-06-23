@@ -187,6 +187,45 @@ const initialState: State = {
       type: "fa2",
       storage: undefined,
       color: "#000000"
+    },
+    crDAO: {
+      address: {
+        mainnet: "KT1XPFjZqCULSnqfKaaYy8hJjeY63UNSGwXg",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1FHiJmJUgZMPtv5F8M4ZEa6cb1D9Lf758T",
+      decimals: 8,
+      ledgerPath: "assets/ledger",
+      ledgerKey: "address",
+      type: "fa2",
+      storage: undefined,
+      color: "#8CFFFA"
+    },
+    FLAME: {
+      address: {
+        mainnet: "KT1Wa8yqRBpFCusJWgcQyjhRz7hUQAmFxW7j",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1Q93ftAUzvfMGPwC78nX8eouL1VzmHPd4d",
+      decimals: 6,
+      ledgerPath: "ledger",
+      ledgerKey: "address",
+      type: "fa2",
+      storage: undefined,
+      color: "#FF9F00"
+    },
+    KALAM: {
+      address: {
+        mainnet: "KT1A5P4ejnLix13jtadsfV9GCnXLMNnab8UT",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1J3wTYb4xk5BsSBkg6ML55bX1xq7desS34",
+      decimals: 10,
+      ledgerPath: "ledger",
+      ledgerKey: "address",
+      type: "fa2",
+      storage: undefined,
+      color: "#00B7AC"
     }
   },
   tokensBalances: {
@@ -201,7 +240,10 @@ const initialState: State = {
     CRUNCH: undefined,
     WRAP: undefined,
     wDAI: undefined,
-    sDAO: undefined
+    sDAO: undefined,
+    crDAO: undefined,
+    FLAME: undefined,
+    KALAM: undefined
   },
   tokensExchangeRates: {
     kUSD: undefined,
@@ -215,7 +257,10 @@ const initialState: State = {
     CRUNCH: undefined,
     WRAP: undefined,
     wDAI: undefined,
-    sDAO: undefined
+    sDAO: undefined,
+    crDAO: undefined,
+    FLAME: undefined,
+    KALAM: undefined
   },
   investments: {
     "QUIPUSWAP-PLENTY": {

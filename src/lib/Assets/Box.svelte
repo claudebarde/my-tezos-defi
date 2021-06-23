@@ -89,7 +89,10 @@
       }
     } else {
       // calculate tez trend
-      if (Date.now() - 60_000 > $store.xtzData.historic[0].timestamp) {
+      if (
+        $store.xtzData.historic.length > 0 &&
+        Date.now() - 60_000 > $store.xtzData.historic[0].timestamp
+      ) {
         const newTrend = calculateTrend($store.xtzData.historic, "XTZ");
         trend = newTrend.trend;
         nrOfTrends = newTrend.nrOfTrends;

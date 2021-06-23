@@ -15,7 +15,10 @@ export enum AvailableToken {
   CRUNCH = "CRUNCH",
   WRAP = "WRAP",
   WDAI = "wDAI",
-  SDAO = "sDAO"
+  SDAO = "sDAO",
+  CRDAO = "crDAO",
+  FLAME = "FLAME",
+  KALAM = "KALAM"
 }
 export enum AvailableInvestments {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
