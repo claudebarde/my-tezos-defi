@@ -115,7 +115,7 @@
             plugins: {
               title: {
                 display: true,
-                text: `Total value transferred per block (incomplete - WIP)`
+                text: `Total value transferred per block (only FA1.2 - WIP)`
               },
               legend: { display: false }
             },
