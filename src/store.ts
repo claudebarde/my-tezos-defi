@@ -463,7 +463,11 @@ const state = {
     }));
   },
   updateLastOperations: (ops: Operation[]) => {
-    store.update(store => {
+    store.update(store => ({
+      ...store,
+      lastOperations: [...ops.reverse(), ...store.lastOperations]
+    }));
+    /*store.update(store => {
       const currentLevel = ops[0].level;
       // removes operations from more than 4 levels behind
       const previousLastOps = [
@@ -474,7 +478,7 @@ const state = {
         ...store,
         lastOperations: [...ops.reverse(), ...previousLastOps]
       };
-    });
+    });*/
   },
   updateFirstLoading: (state: boolean) => {
     store.update(store => ({ ...store, firstLoading: state }));

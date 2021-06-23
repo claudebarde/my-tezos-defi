@@ -91,14 +91,12 @@
           );
           if (metadataResponse) {
             metadata = await metadataResponse.json();
-            console.log(metadata);
           }
         } else if (mtdt.slice(0, 13) === "tezos-storage") {
           // metadata is stored locally
           const metadataKey = mtdt.slice(14);
           const metadataBytes = await storage.metadata.get(metadataKey);
           metadata = JSON.parse(bytes2Char(metadataBytes));
-          console.log(metadata);
         }
       }
     }
