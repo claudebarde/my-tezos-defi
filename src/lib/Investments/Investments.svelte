@@ -28,7 +28,7 @@
   .container-investments {
     .row {
       display: grid;
-      grid-template-columns: 10% 25% 20% 20% 20%;
+      grid-template-columns: 10% 25% 20% 18% 18% 9%;
       padding: 5px 10px;
 
       &.break-line {
@@ -122,31 +122,35 @@
               </a>
             </div>
             <div>{data.balance / 10 ** data.decimals}</div>
-            <div>
-              {#if ["Plenty hDAO staking", "Plenty staking", "Plenty USDtz staking"].includes(data.alias) && $store.tokensExchangeRates[data.token]}
+            {#if ["Plenty hDAO staking", "Plenty staking", "Plenty USDtz staking"].includes(data.alias) && $store.tokensExchangeRates[data.token]}
+              <div>
                 {+(
                   (data.balance / 10 ** data.decimals) *
                   $store.tokensExchangeRates[data.token].tokenToTez
                 ).toFixed(5) / 1}
-              {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
+              </div>
+              <div>
+                {+(
+                  (data.balance / 10 ** data.decimals) *
+                  $store.tokensExchangeRates[data.token].tokenToTez *
+                  $store.xtzData.exchangeRate
+                ).toFixed(5) / 1}
+              </div>
+              <div>
+                <!--
+                  <button class="button investments">Manage</button>
+                -->
+              </div>
+            {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
+              <div>
                 {+calcTotalShareValueInTez(
                   data.balance,
                   data.shareValueInTez,
                   $store.tokensExchangeRates.PLENTY.tokenToTez,
                   $store.tokens.PLENTY.decimals
                 ).toFixed(5) / 1}
-              {:else}
-                --
-              {/if}
-            </div>
-            <div>
-              {#if ["Plenty hDAO staking", "Plenty staking", "Plenty USDtz staking"].includes(data.alias) && $store.tokensExchangeRates[data.token]}
-                {+(
-                  (data.balance / 10 ** data.decimals) *
-                  $store.tokensExchangeRates[data.token].tokenToTez *
-                  $store.xtzData.exchangeRate
-                ).toFixed(5) / 1}
-              {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
+              </div>
+              <div>
                 {+(
                   calcTotalShareValueInTez(
                     data.balance,
@@ -155,10 +159,11 @@
                     $store.tokens.PLENTY.decimals
                   ) * $store.xtzData.exchangeRate
                 ).toFixed(5) / 1}
-              {:else}
-                --
-              {/if}
-            </div>
+              </div>
+            {:else}
+              <div>--</div>
+              <div>--</div>
+            {/if}
           </div>
         {:else if contractName === "CRUNCHY-FARMS"}
           <!-- CRUNCHY FARMS have a zero balance but data in the info array -->

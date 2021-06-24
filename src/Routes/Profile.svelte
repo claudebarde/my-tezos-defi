@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { afterUpdate } from "svelte";
   import store from "../store";
   import type { Operation } from "../types";
   import { createNewOpEntry } from "../utils";
@@ -7,19 +7,17 @@
 
   let lastTransactions: Operation[] = [];
 
-  onMount(async () => {
-    const addresses = [
-      ...Object.values($store.tokens).map(
-        token => token.address[$store.network]
-      ),
-      ...Object.values($store.investments).map(
-        entry => entry.address[$store.network]
-      )
-    ];
+  afterUpdate(async () => {
+    if (lastTransactions.length === 0 && $store.userAddress) {
+      const addresses = [
+        ...Object.values($store.tokens).map(
+          token => token.address[$store.network]
+        ),
+        ...Object.values($store.investments).map(
+          entry => entry.address[$store.network]
+        )
+      ];
 
-    if (!$store.userAddress) {
-      console.log("no user connected");
-    } else {
       let unprocessedTxs = [];
       const headResponse = await fetch("https://api.mainnet.tzkt.io/v1/head");
       if (headResponse) {

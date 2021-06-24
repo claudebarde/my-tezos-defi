@@ -13,10 +13,23 @@
   let lastOpsFiltered = [];
 
   afterUpdate(() => {
-    if (JSON.stringify(lastOps) !== JSON.stringify(lastOpsFiltered)) {
-      const currentLevel = $store.lastOperations[0].level;
+    if (
+      lastOps.length > 0 &&
+      JSON.stringify(lastOps) !== JSON.stringify(lastOpsFiltered)
+    ) {
+      const currentLevel = lastOps[0].level;
       lastOpsFiltered = lastOps
-        .filter(op => op.level > currentLevel - 5)
+        .filter(op => {
+          // selects a certain number of transactions to display
+          if (filterOps.opType === "user") {
+            return true;
+          } else if (
+            filterOps.opType === "general" ||
+            filterOps.opType === "token"
+          ) {
+            return op.level > currentLevel - 5;
+          }
+        })
         .filter(op => {
           if (filterOps.opType === "general" || filterOps.opType === "user") {
             return true;

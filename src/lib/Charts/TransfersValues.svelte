@@ -120,7 +120,7 @@
               legend: { display: false }
             },
             scales: {
-              x: { title: { display: true, text: "Block number" } },
+              x: { title: { display: true, text: "Level" } },
               y: { title: { display: true, text: "Value in XTZ" } }
             }
           }
