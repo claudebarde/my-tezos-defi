@@ -137,7 +137,9 @@
                 ).toFixed(5) / 1}
               </div>
               <div>
-                <button class="button investments">Manage</button>
+                <!--
+                  <button class="button investments">Manage</button>
+                -->
               </div>
             {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
               <div>
