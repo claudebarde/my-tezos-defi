@@ -1,5 +1,6 @@
 import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
 import { findDex, estimateTezInShares } from "@quipuswap/sdk";
+import type { Token } from "@quipuswap/sdk";
 import { get } from "svelte/store";
 import store from "./store";
 import type { TezosAccountAddress } from "./types";
@@ -85,7 +86,7 @@ const loadInvestments = async (param: {
           };
         }
       } else if (name === "CRUNCHY-FARMS") {
-        const nrOfFarms = storage.nextFarmId.toNumber();
+        const nrOfFarms = 3; //storage.nextFarmId.toNumber();
 
         /*const balances = await storage.ledger.getMultipleValues(
           Array.from(Array(nrOfFarms).keys()).map(farmId => ({
@@ -115,26 +116,63 @@ const loadInvestments = async (param: {
           if (values.length === 0) {
             return undefined;
           } else {
-            const dex = await findDex(Tezos, config.quipuswapFactories, {
-              contract: localStore.tokens.CRUNCH.address[localStore.network],
-              id: 0
-            });
-            const dexStorage = await dex.contract.storage();
-            const tezInShares = await estimateTezInShares(
-              dexStorage,
-              100_000_000
+            const shareValuesInTez: any = await Promise.all(
+              values.map(async val => {
+                const farmId = +val.key.nat;
+
+                let token: Token;
+                let one_token: number;
+                switch (farmId) {
+                  case 0:
+                    // CRUNCH
+                    token = {
+                      contract:
+                        localStore.tokens.CRUNCH.address[localStore.network],
+                      id: 0
+                    };
+                    one_token = 10 ** localStore.tokens.CRUNCH.decimals;
+                    break;
+                  case 1:
+                    // kUSD
+                    token = {
+                      contract:
+                        localStore.tokens.kUSD.address[localStore.network],
+                      id: 0
+                    };
+                    one_token = 10 ** localStore.tokens.kUSD.decimals;
+                    break;
+                  case 2:
+                    // wWBTV
+                    token = {
+                      contract:
+                        localStore.tokens.wWBTC.address[localStore.network],
+                      id: 19
+                    };
+                    one_token = 10 ** localStore.tokens.wWBTC.decimals;
+                    break;
+                }
+                if (token) {
+                  const dex = await findDex(
+                    Tezos,
+                    config.quipuswapFactories,
+                    token
+                  );
+                  const dexStorage = await dex.contract.storage();
+                  return estimateTezInShares(dexStorage, one_token);
+                }
+              })
             );
 
             return {
               name,
               balance: 0,
               info: [
-                ...values.map(val => ({
+                ...values.map((val, i) => ({
                   farmId: val.key.nat,
-                  amount: val.value.amount
+                  amount: val.value.amount,
+                  shareValueInTez: shareValuesInTez[i].toNumber()
                 }))
-              ],
-              shareValueInTez: tezInShares.toNumber()
+              ]
             };
           }
         } else {

@@ -175,6 +175,19 @@ const initialState: State = {
       storage: undefined,
       color: "#F6CE13"
     },
+    wWBTC: {
+      address: {
+        mainnet: "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
+      decimals: 8,
+      ledgerPath: "assets/ledger",
+      ledgerKey: ["address", 19],
+      type: "fa2",
+      storage: undefined,
+      color: "#F6CE13"
+    },
     sDAO: {
       address: {
         mainnet: "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA",
@@ -240,6 +253,7 @@ const initialState: State = {
     CRUNCH: undefined,
     WRAP: undefined,
     wDAI: undefined,
+    wWBTC: undefined,
     sDAO: undefined,
     crDAO: undefined,
     FLAME: undefined,
@@ -257,6 +271,7 @@ const initialState: State = {
     CRUNCH: undefined,
     WRAP: undefined,
     wDAI: undefined,
+    wWBTC: undefined,
     sDAO: undefined,
     crDAO: undefined,
     FLAME: undefined,
@@ -414,7 +429,10 @@ const state = {
   updateWallet: (wallet: BeaconWallet) =>
     store.update(store => ({ ...store, wallet })),
   updateUserAddress: (address: TezosAccountAddress) => {
-    store.update(store => ({ ...store, userAddress: address }));
+    store.update(store => ({
+      ...store,
+      userAddress: address
+    }));
   },
   updateTezBalance: (balance: number) => {
     store.update(store => ({

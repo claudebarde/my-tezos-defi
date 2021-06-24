@@ -214,7 +214,8 @@
     {#if assetsType === "owned" && token !== "tez"}
       <div class="info">
         <div>
-          Balance: {+$store.tokensBalances[token[0]].toFixed(5) / 1}
+          Balance: {+$store.tokensBalances[token[0]].toFixed(5) / 1 ||
+            "> 0.00001"}
         </div>
         {#if $store.tokensExchangeRates[token[0]]}
           <div>

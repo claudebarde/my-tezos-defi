@@ -28,8 +28,9 @@
   .container-investments {
     .row {
       display: grid;
-      grid-template-columns: 10% 25% 20% 18% 18% 9%;
+      grid-template-columns: 10% 25% 20% 17% 17% 11%;
       padding: 5px 10px;
+      align-items: center;
 
       &.break-line {
         border-bottom: solid 2px $border-color;
@@ -61,7 +62,7 @@
       <div class="row">
         <div style="grid-column:1 / span 2">Waiting for update...</div>
       </div>
-    {:else if Object.values($store.investments).every(inv => inv.balance === 0)}
+    {:else if Object.values($store.investments).every(inv => inv.balance === 0) && $store.investments["CRUNCHY-FARMS"].info.length === 0}
       <div class="row">
         <div style="grid-column:1 / span 2">No investment found</div>
       </div>
@@ -168,68 +169,102 @@
         {:else if contractName === "CRUNCHY-FARMS"}
           <!-- CRUNCHY FARMS have a zero balance but data in the info array -->
           {#each data.info as farm}
-            <div class="row">
-              <div class="icon">
-                {#if farm.farmId == 0}
-                  <img src="images/XTZ.png" alt="token-icon" />
-                  <img src="images/CRUNCH.png" alt="token-icon" />
-                {:else if farm.farmId == 1}
-                  <img src="images/XTZ.png" alt="token-icon" />
-                  <img src="images/kUSD.png" alt="token-icon" />
-                {:else if farm.farmId == 2}
-                  <img src="images/XTZ.png" alt="token-icon" />
-                  <img src="images/wWBTC.png" alt="token-icon" />
-                {:else}
-                  <img src="images/crDAO.png" alt="token-icon" />
-                {/if}
-              </div>
-              <div>
-                <a
-                  href={`https://better-call.dev/mainnet/${
-                    data.address[$store.network]
-                  }/operations`}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                >
+            {#if farm.farmId < 3}
+              <div class="row">
+                <div class="icon">
                   {#if farm.farmId == 0}
-                    Crunchy Farm XTZ/CRUNCH
+                    <img src="images/XTZ.png" alt="token-icon" />
+                    <img src="images/CRUNCH.png" alt="token-icon" />
                   {:else if farm.farmId == 1}
-                    Crunchy Farm XTZ/kUSD
+                    <img src="images/XTZ.png" alt="token-icon" />
+                    <img src="images/kUSD.png" alt="token-icon" />
                   {:else if farm.farmId == 2}
-                    Crunchy Farm XTZ/wWBTC
+                    <img src="images/XTZ.png" alt="token-icon" />
+                    <img src="images/wWBTC.png" alt="token-icon" />
                   {:else}
-                    {data.alias}
+                    <img src="images/crDAO.png" alt="token-icon" />
                   {/if}
-                </a>
-              </div>
-              <div>{farm.amount / 10 ** data.decimals}</div>
-              <div>
-                {#if $store.tokensExchangeRates.CRUNCH}
-                  {+calcTotalShareValueInTez(
-                    farm.amount,
-                    data.shareValueInTez,
-                    $store.tokensExchangeRates.CRUNCH.tokenToTez,
-                    $store.tokens.CRUNCH.decimals
-                  ).toFixed(5) / 1}
-                {:else}
-                  --
-                {/if}
-              </div>
-              <div>
-                {#if $store.tokensExchangeRates.CRUNCH}
-                  {+(
-                    calcTotalShareValueInTez(
+                </div>
+                <div>
+                  <a
+                    href={`https://better-call.dev/mainnet/${
+                      data.address[$store.network]
+                    }/operations`}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                  >
+                    {#if farm.farmId == 0}
+                      Crunchy Farm XTZ/CRUNCH
+                    {:else if farm.farmId == 1}
+                      Crunchy Farm XTZ/kUSD
+                    {:else if farm.farmId == 2}
+                      Crunchy Farm XTZ/wWBTC
+                    {:else}
+                      {data.alias}
+                    {/if}
+                  </a>
+                </div>
+                <div>{farm.amount / 10 ** data.decimals}</div>
+                <div>
+                  {#if farm.farmId == 0 && $store.tokensExchangeRates.CRUNCH}
+                    {+calcTotalShareValueInTez(
                       farm.amount,
-                      data.shareValueInTez,
+                      farm.shareValueInTez,
                       $store.tokensExchangeRates.CRUNCH.tokenToTez,
                       $store.tokens.CRUNCH.decimals
-                    ) * $store.xtzData.exchangeRate
-                  ).toFixed(5) / 1}
-                {:else}
-                  --
-                {/if}
+                    ).toFixed(5) / 1}
+                  {:else if farm.farmId == 1 && $store.tokensExchangeRates.kUSD}
+                    {+calcTotalShareValueInTez(
+                      farm.amount,
+                      farm.shareValueInTez,
+                      $store.tokensExchangeRates.KUSD.tokenToTez,
+                      $store.tokens.KUSD.decimals
+                    ).toFixed(5) / 1}
+                  {:else if farm.farmId == 2 && $store.tokensExchangeRates.wWBTC}
+                    {+calcTotalShareValueInTez(
+                      farm.amount,
+                      farm.shareValueInTez,
+                      $store.tokensExchangeRates.wWBTC.tokenToTez,
+                      $store.tokens.wWBTC.decimals
+                    ).toFixed(5) / 1}
+                  {:else}
+                    --
+                  {/if}
+                </div>
+                <div>
+                  {#if farm.farmId == 0 && $store.tokensExchangeRates.CRUNCH}
+                    {+(
+                      calcTotalShareValueInTez(
+                        farm.amount,
+                        farm.shareValueInTez,
+                        $store.tokensExchangeRates.CRUNCH.tokenToTez,
+                        $store.tokens.CRUNCH.decimals
+                      ) * $store.xtzData.exchangeRate
+                    ).toFixed(5) / 1}
+                  {:else if farm.farmId == 1 && $store.tokensExchangeRates.kUSD}
+                    {+(
+                      calcTotalShareValueInTez(
+                        farm.amount,
+                        farm.shareValueInTez,
+                        $store.tokensExchangeRates.KUSD.tokenToTez,
+                        $store.tokens.KUSD.decimals
+                      ) * $store.xtzData.exchangeRate
+                    ).toFixed(5) / 1}
+                  {:else if farm.farmId == 2 && $store.tokensExchangeRates.wWBTC}
+                    {+(
+                      calcTotalShareValueInTez(
+                        farm.amount,
+                        farm.shareValueInTez,
+                        $store.tokensExchangeRates.wWBTC.tokenToTez,
+                        $store.tokens.wWBTC.decimals
+                      ) * $store.xtzData.exchangeRate
+                    ).toFixed(5) / 1}
+                  {:else}
+                    --
+                  {/if}
+                </div>
               </div>
-            </div>
+            {/if}
           {/each}
         {/if}
       {/each}
