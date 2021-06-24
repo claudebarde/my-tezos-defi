@@ -53,7 +53,10 @@
       investmentsWorker.onmessage = handleInvestmentsWorker;
       investmentsWorker.postMessage({
         type: "init",
-        payload: { rpcUrl: $store.settings[$store.network].rpcUrl, userAddress }
+        payload: {
+          rpcUrl: $store.settings[$store.network].rpcUrl,
+          userAddress: $store.userAddress
+        }
       });
 
       username = await fetchTezosDomain(userAddress);
@@ -109,7 +112,10 @@
       investmentsWorker.onmessage = handleInvestmentsWorker;
       investmentsWorker.postMessage({
         type: "init",
-        payload: { rpcUrl: $store.settings[$store.network].rpcUrl, userAddress }
+        payload: {
+          rpcUrl: $store.settings[$store.network].rpcUrl,
+          userAddress: $store.userAddress
+        }
       });
 
       username = await fetchTezosDomain(userAddress);
