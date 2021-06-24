@@ -273,8 +273,9 @@
       <canvas id="trendChart" width="400" height="300" />
     </div>
     <div slot="modal-footer" class="modal-footer">
+      <div />
       <button
-        class="default"
+        class="button default"
         on:click={() => {
           trendModalOpen = false;
         }}

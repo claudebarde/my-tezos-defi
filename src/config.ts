@@ -33,5 +33,12 @@ export default {
       "KT1PvEyN1xCFCgorN92QCfYjw3axS6jawCiJ",
       "KT1SwH9P1Tx8a58Mm6qBExQFTcy2rwZyZiXS"
     ]
-  }
+  },
+  plentyWithdrawalFeeSchema:
+    // number of levels since staking: percentage
+    [
+      [12288, 10],
+      [8192, 12.5],
+      [4096, 25]
+    ]
 };

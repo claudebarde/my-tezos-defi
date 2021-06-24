@@ -2,13 +2,100 @@
   import { afterUpdate } from "svelte";
   import store from "../../store";
   import { calcTotalShareValueInTez, getKolibriOvens } from "../../utils";
-  import type { KolibriOvenData } from "../../types";
+  import type { KolibriOvenData, AvailableToken } from "../../types";
+  import Modal from "../Modal/Modal.svelte";
+  import config from "../../config";
 
   let kolibriOvens: KolibriOvenData[] = [];
   let kolibriOvensChecked = false;
+  let manageModal: {
+    open: boolean;
+    title: string;
+    token?: AvailableToken;
+    body: string[];
+    stakes?: {
+      id: number;
+      amount: number;
+      level: number;
+      withdrawalFee: number;
+    }[];
+    unstake?: number[];
+  } = {
+    open: false,
+    title: "",
+    body: []
+  };
 
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
+
+  const openManageModal = async (contractAddress: string, alias: string) => {
+    manageModal = {
+      open: true,
+      title: alias,
+      body: []
+    };
+    // PLENTY FARMS/POOLS
+    if (alias.split(" ")[0].toLowerCase() === "plenty") {
+      manageModal.body = ["Loading..."];
+      const inv = Object.values($store.investments).find(
+        details => details.address[$store.network] === contractAddress
+      );
+      const token = $store.tokens[inv.token];
+
+      const contract = await $store.Tezos.wallet.at(contractAddress);
+      const storage: any = await contract.storage();
+      // looks for user's info
+      const userInfo = await storage.balances.get($store.userAddress);
+      if (userInfo) {
+        // displays balances
+        manageModal.body = [
+          `Your balance: ${userInfo.balance.toNumber() / 10 ** inv.decimals} ${
+            inv.token
+          }`
+        ];
+        // displays different stakes
+        if (userInfo.InvestMap.size > 0) {
+          manageModal.stakes = [];
+          manageModal.unstake = [];
+          manageModal.token = inv.token;
+
+          const investMapEntries = userInfo.InvestMap.entries();
+          for (let stake of investMapEntries) {
+            // calculates withdrawal fee
+            const amount = stake[1].amount.toNumber();
+            let withdrawalFee = 0;
+            const currentLevel = $store.lastOperations[0].level;
+            const stakeLevel = stake[1].level.toNumber();
+            const levelsSinceStaking = currentLevel - stakeLevel;
+            for (let i = 0; i < config.plentyWithdrawalFeeSchema.length; i++) {
+              const [levelThreshold, percentage] =
+                config.plentyWithdrawalFeeSchema[i];
+              if (levelsSinceStaking < levelThreshold) {
+                withdrawalFee = (amount * percentage) / 100;
+              } else if (withdrawalFee === 0) {
+                withdrawalFee = (amount * 4) / 100;
+              }
+            }
+            // saves stake to be didsplayed
+            manageModal.stakes = [
+              ...manageModal.stakes,
+              {
+                id: stake[0],
+                amount: amount / 10 ** token.decimals,
+                level: stakeLevel,
+                withdrawalFee: withdrawalFee / 10 ** token.decimals
+              }
+            ];
+          }
+        }
+      } else {
+        manageModal.body = ["Unable to find balances in contract"];
+      }
+    } else {
+      manageModal.body = ["Unable to use this contract"];
+    }
+  };
 
   afterUpdate(async () => {
     // finds if user has Kolibri ovens
@@ -51,6 +138,31 @@
           height: 25px;
         }
       }
+    }
+  }
+
+  .stake-row {
+    display: grid;
+    grid-template-columns: 15% 20% 45% 20%;
+    align-items: center;
+    width: 100%;
+    padding: 5px;
+
+    .unstake-box {
+      .material-icons {
+        vertical-align: bottom;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .fee-disclaimer {
+    font-size: 0.7rem;
+
+    .material-icons {
+      vertical-align: bottom;
+      cursor: pointer;
+      font-size: 0.7rem;
     }
   }
 </style>
@@ -138,9 +250,13 @@
                 ).toFixed(5) / 1}
               </div>
               <div>
-                <!--
-                  <button class="button investments">Manage</button>
-                -->
+                <button
+                  class="button investments"
+                  on:click={() =>
+                    openManageModal(data.address[$store.network], data.alias)}
+                >
+                  Manage
+                </button>
               </div>
             {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
               <div>
@@ -271,3 +387,87 @@
     {/if}
   </div>
 </div>
+{#if manageModal.open}
+  <Modal type="manage" on:close={() => (manageModal.open = false)}>
+    <div slot="modal-title" class="modal-title">
+      {manageModal.title}
+    </div>
+    <div slot="modal-body" class="modal-body">
+      {#each manageModal.body as item}
+        <div>{item}</div>
+      {/each}
+      <br />
+      {#if Array.isArray(manageModal.stakes)}
+        {#each manageModal.stakes as stake, index}
+          <div class="stake-row">
+            <div>Stake {index + 1}</div>
+            <div>{stake.amount} {manageModal.token || "--"}</div>
+            <div>
+              Withdrawal fee: {stake.withdrawalFee}
+              {manageModal.token || "--"}
+            </div>
+            <div class="unstake-box">
+              Unstake
+              {#if manageModal.unstake.includes(stake.id)}
+                <span
+                  class="material-icons"
+                  on:click={() => {
+                    manageModal.unstake = [
+                      ...manageModal.unstake.filter(id => id !== stake.id)
+                    ];
+                  }}
+                >
+                  check_box
+                </span>
+              {:else}
+                <span
+                  class="material-icons"
+                  on:click={() => {
+                    manageModal.unstake = [stake.id, ...manageModal.unstake];
+                  }}
+                >
+                  check_box_outline_blank
+                </span>
+              {/if}
+            </div>
+          </div>
+        {:else}
+          <div>No stake in this contract</div>
+        {/each}
+      {/if}
+    </div>
+    <div slot="modal-footer" class="modal-footer">
+      {#if Array.isArray(manageModal.unstake) && manageModal.unstake.length > 0}
+        <div class="fee-disclaimer">
+          You can help My Tezos Defi by adding a little fee on top of the
+          transaction: <br />
+          3% <span class="material-icons"> check_box </span>
+          1% <span class="material-icons"> check_box_outline_blank </span>
+          No fee <span class="material-icons"> check_box_outline_blank </span>
+        </div>
+      {:else}
+        <div />
+      {/if}
+      <div class="buttons">
+        <button
+          class="button default"
+          on:click={() => {
+            manageModal.open = false;
+          }}
+        >
+          Close
+        </button>
+        {#if Array.isArray(manageModal.unstake) && manageModal.unstake.length > 0}
+          <button
+            class="button default"
+            on:click={() => {
+              manageModal.open = false;
+            }}
+          >
+            Unstake
+          </button>
+        {/if}
+      </div>
+    </div>
+  </Modal>
+{/if}
