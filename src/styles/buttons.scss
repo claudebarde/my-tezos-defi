@@ -14,6 +14,22 @@
     margin: 0px 5px;
   }
 
+  &.mini {
+    border: none;
+    color: white;
+    background-color: #3b82f6;
+
+    .material-icons {
+      font-size: 1rem;
+      vertical-align: middle !important;
+      transition: 0.5s;
+    }
+
+    &:hover span.material-icons.hover {
+      transform: rotate(330deg) translate(5px, -1px);
+    }
+  }
+
   &.investments {
     border: solid 2px $bg-color;
     background-color: $bg-color;
@@ -30,5 +46,25 @@
       background-color: $kolibri-color;
       color: white;
     }
+  }
+
+  &.loading {
+    .material-icons {
+      animation: loading-rotate 2s ease-out infinite;
+    }
+  }
+}
+
+@keyframes loading-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(360deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
   }
 }

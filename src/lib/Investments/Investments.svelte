@@ -4,14 +4,17 @@
   import { calcTotalShareValueInTez, getKolibriOvens } from "../../utils";
   import type { KolibriOvenData, AvailableToken } from "../../types";
   import Modal from "../Modal/Modal.svelte";
+  import PoolManagement from "../Modal/PoolManagement.svelte";
   import config from "../../config";
 
   let kolibriOvens: KolibriOvenData[] = [];
   let kolibriOvensChecked = false;
-  let manageModal: {
+  let manageModalInput: {
     open: boolean;
+    loading: boolean;
     title: string;
     token?: AvailableToken;
+    balance: number;
     body: string[];
     stakes?: {
       id: number;
@@ -22,22 +25,28 @@
     unstake?: number[];
   } = {
     open: false,
+    loading: false,
     title: "",
+    balance: 0,
     body: []
   };
 
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
 
-  const openManageModal = async (contractAddress: string, alias: string) => {
-    manageModal = {
+  const openmanageModalInput = async (
+    contractAddress: string,
+    alias: string
+  ) => {
+    manageModalInput = {
       open: true,
+      loading: true,
       title: alias,
+      balance: 0,
       body: []
     };
     // PLENTY FARMS/POOLS
     if (alias.split(" ")[0].toLowerCase() === "plenty") {
-      manageModal.body = ["Loading..."];
       const inv = Object.values($store.investments).find(
         details => details.address[$store.network] === contractAddress
       );
@@ -49,16 +58,14 @@
       const userInfo = await storage.balances.get($store.userAddress);
       if (userInfo) {
         // displays balances
-        manageModal.body = [
-          `Your balance: ${userInfo.balance.toNumber() / 10 ** inv.decimals} ${
-            inv.token
-          }`
-        ];
+        manageModalInput.balance =
+          userInfo.balance.toNumber() / 10 ** inv.decimals;
+
         // displays different stakes
         if (userInfo.InvestMap.size > 0) {
-          manageModal.stakes = [];
-          manageModal.unstake = [];
-          manageModal.token = inv.token;
+          manageModalInput.stakes = [];
+          manageModalInput.unstake = [];
+          manageModalInput.token = inv.token;
 
           const investMapEntries = userInfo.InvestMap.entries();
           for (let stake of investMapEntries) {
@@ -77,9 +84,9 @@
                 withdrawalFee = (amount * 4) / 100;
               }
             }
-            // saves stake to be didsplayed
-            manageModal.stakes = [
-              ...manageModal.stakes,
+            // saves stake to be displayed
+            manageModalInput.stakes = [
+              ...manageModalInput.stakes,
               {
                 id: stake[0],
                 amount: amount / 10 ** token.decimals,
@@ -88,12 +95,35 @@
               }
             ];
           }
+          // calculates APR and APY
+          const tokenPriceInUsd =
+            $store.tokensExchangeRates.PLENTY.realPriceInTez *
+            $store.xtzData.exchangeRate;
+          const stakeTokenPriceInUsd =
+            $store.tokensExchangeRates[inv.token].realPriceInTez *
+            $store.xtzData.exchangeRate;
+          const apr =
+            ((storage.rewardRate.toNumber() * 525600 * tokenPriceInUsd) /
+              (storage.totalSupply.toNumber() * stakeTokenPriceInUsd)) *
+            100;
+          manageModalInput.body = [
+            ...manageModalInput.body,
+            `APR: ${apr.toFixed(2)} %`
+          ];
+          const apy = ((1 + apr / 100 / 365) ** 365 - 1) * 100;
+          manageModalInput.body = [
+            ...manageModalInput.body,
+            `APY: ${apy.toFixed(2)} %`
+          ];
+          manageModalInput.loading = false;
         }
       } else {
-        manageModal.body = ["Unable to find balances in contract"];
+        manageModalInput.body = ["Unable to find balances in contract"];
+        manageModalInput.loading = false;
       }
     } else {
-      manageModal.body = ["Unable to use this contract"];
+      manageModalInput.body = ["Unable to use this contract"];
+      manageModalInput.loading = false;
     }
   };
 
@@ -138,31 +168,6 @@
           height: 25px;
         }
       }
-    }
-  }
-
-  .stake-row {
-    display: grid;
-    grid-template-columns: 15% 20% 45% 20%;
-    align-items: center;
-    width: 100%;
-    padding: 5px;
-
-    .unstake-box {
-      .material-icons {
-        vertical-align: bottom;
-        cursor: pointer;
-      }
-    }
-  }
-
-  .fee-disclaimer {
-    font-size: 0.7rem;
-
-    .material-icons {
-      vertical-align: bottom;
-      cursor: pointer;
-      font-size: 0.7rem;
     }
   }
 </style>
@@ -250,13 +255,16 @@
                 ).toFixed(5) / 1}
               </div>
               <div>
-                <button
+                <!--<button
                   class="button investments"
                   on:click={() =>
-                    openManageModal(data.address[$store.network], data.alias)}
+                    openmanageModalInput(
+                      data.address[$store.network],
+                      data.alias
+                    )}
                 >
                   Manage
-                </button>
+                </button>-->
               </div>
             {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
               <div>
@@ -387,57 +395,16 @@
     {/if}
   </div>
 </div>
-{#if manageModal.open}
-  <Modal type="manage" on:close={() => (manageModal.open = false)}>
+{#if manageModalInput.open}
+  <Modal type="manage" on:close={() => (manageModalInput.open = false)}>
     <div slot="modal-title" class="modal-title">
-      {manageModal.title}
+      {manageModalInput.title}
     </div>
     <div slot="modal-body" class="modal-body">
-      {#each manageModal.body as item}
-        <div>{item}</div>
-      {/each}
-      <br />
-      {#if Array.isArray(manageModal.stakes)}
-        {#each manageModal.stakes as stake, index}
-          <div class="stake-row">
-            <div>Stake {index + 1}</div>
-            <div>{stake.amount} {manageModal.token || "--"}</div>
-            <div>
-              Withdrawal fee: {stake.withdrawalFee}
-              {manageModal.token || "--"}
-            </div>
-            <div class="unstake-box">
-              Unstake
-              {#if manageModal.unstake.includes(stake.id)}
-                <span
-                  class="material-icons"
-                  on:click={() => {
-                    manageModal.unstake = [
-                      ...manageModal.unstake.filter(id => id !== stake.id)
-                    ];
-                  }}
-                >
-                  check_box
-                </span>
-              {:else}
-                <span
-                  class="material-icons"
-                  on:click={() => {
-                    manageModal.unstake = [stake.id, ...manageModal.unstake];
-                  }}
-                >
-                  check_box_outline_blank
-                </span>
-              {/if}
-            </div>
-          </div>
-        {:else}
-          <div>No stake in this contract</div>
-        {/each}
-      {/if}
+      <PoolManagement {manageModalInput} />
     </div>
     <div slot="modal-footer" class="modal-footer">
-      {#if Array.isArray(manageModal.unstake) && manageModal.unstake.length > 0}
+      {#if Array.isArray(manageModalInput.unstake) && manageModalInput.unstake.length > 0}
         <div class="fee-disclaimer">
           You can help My Tezos Defi by adding a little fee on top of the
           transaction: <br />
@@ -452,16 +419,16 @@
         <button
           class="button default"
           on:click={() => {
-            manageModal.open = false;
+            manageModalInput.open = false;
           }}
         >
           Close
         </button>
-        {#if Array.isArray(manageModal.unstake) && manageModal.unstake.length > 0}
+        {#if Array.isArray(manageModalInput.unstake) && manageModalInput.unstake.length > 0}
           <button
             class="button default"
             on:click={() => {
-              manageModal.open = false;
+              manageModalInput.open = false;
             }}
           >
             Unstake

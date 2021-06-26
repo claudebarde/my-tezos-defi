@@ -47,6 +47,7 @@ export interface TokenContract {
   type: "fa1.2" | "fa2";
   storage: any;
   color: string;
+  tokenId?: number; // only for fa2 contracts
 }
 
 export type IconValue = AvailableToken | "XTZ" | "QUIPU" | "crDAO" | "user";
@@ -111,6 +112,8 @@ export interface State {
     balance: number;
     historic: { timestamp: number; rate: number }[];
   };
+  serviceFee: null | number;
+  admin: TezosAccountAddress;
 }
 
 export interface HistoricalDataState {

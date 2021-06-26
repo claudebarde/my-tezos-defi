@@ -7,6 +7,7 @@
   import { AvailableToken } from "../types";
   import { createNewOpEntry, getKolibriOvens } from "../utils";
   import KolibriOven from "../lib/Tools/KolibriOven.svelte";
+  import SendToken from "../lib/Tools/SendToken.svelte";
 
   export let params;
 
@@ -257,6 +258,7 @@
           <div>N/A</div>
         {/if}
       {/if}
+      <SendToken {tokenSymbol} />
     </div>
   </div>
   <br />
