@@ -56,7 +56,6 @@
         )
       ];*/
       const ops: Operation[] = [];
-      const balanceUpdateRequests: AvailableToken[] = [];
       msg.data.msg.forEach(op => {
         //console.log("Operation:", op);
         const newOp: Operation = createNewOpEntry(op, $store.tokens);
@@ -64,11 +63,69 @@
         ops.push(newOp);
 
         if (
+          Object.values($store.tokens)
+            .map(tk => tk.address[$store.network])
+            .includes(op.target.address) &&
+          op?.parameter?.entrypoint === "transfer"
+        ) {
+          // a transaction was sent to a token contract
+          //console.log("Transfer operation:", op);
+
+          let updatedTokensBalances = { ...$store.tokensBalances };
+          let token = Object.entries($store.tokens).find(
+            tk => tk[1].address[$store.network] === op.target.address
+          );
+          if (!token) return;
+
+          const paramValue = op.parameter.value;
+          let userBalance = updatedTokensBalances[token[0]];
+          if (Array.isArray(paramValue)) {
+            // FA2
+            paramValue.forEach(op => {
+              if (op.from_ === $store.userAddress) {
+                console.log("FA2 operation from user account:", op);
+                // token transfer from the user
+                op.txs.forEach(
+                  tx => (userBalance -= +tx.amount / 10 ** token[1].decimals)
+                );
+              } else {
+                // token transfer to the user
+                op.txs.forEach(tx => {
+                  if (tx.to_ === $store.userAddress) {
+                    console.log("FA2 operation to user account:", op);
+                    userBalance += +tx.amount / 10 ** token[1].decimals;
+                  }
+                });
+              }
+            });
+          } else if (
+            paramValue.hasOwnProperty("to") &&
+            paramValue.hasOwnProperty("from") &&
+            paramValue.hasOwnProperty("value")
+          ) {
+            // FA1.2
+            if (paramValue.from === $store.userAddress) {
+              console.log("FA1.2 operation from user account:", op);
+              // token transfer from the user
+              userBalance -= +paramValue.value / 10 ** token[1].decimals;
+            } else if (paramValue.to === $store.userAddress) {
+              console.log("FA1.2 operation to user account:", op);
+              // token transfer to the user
+              userBalance += +paramValue.value / 10 ** token[1].decimals;
+            }
+          }
+          // updates balance
+          updatedTokensBalances[token[0]] = userBalance;
+          // updates balances
+          store.updateTokensBalances(updatedTokensBalances);
+        } else if (
           op.sender.address === $store.userAddress ||
           op.target.address === $store.userAddress
         ) {
-          console.log("User operation:", op);
-          if (
+          //console.log("User operation:", op);
+          // Plenty GetReward
+          // Plenty stake/unstake
+          /*if (
             op.sender.address === $store.userAddress &&
             Object.keys($store.investments)
               .filter(inv => inv.split("-")[0].toLowerCase() === "plenty")
@@ -110,31 +167,14 @@
           ) {
             // user interacts with Quipuswap pool
             console.log("Quipuswap interaction:", op);
-          }
+          }*/
         }
       });
       store.updateLastOperations(ops);
 
-      if (balanceUpdateRequests.length > 0) {
-        const tokensToUpdate: { [p: string]: TokenContract } = {};
-        balanceUpdateRequests.forEach(token => {
-          if (!tokensToUpdate.hasOwnProperty(token)) {
-            tokensToUpdate[token] = $store.tokens[token];
-          }
-        });
-        const newBalances = await searchUserTokens({
-          Tezos: $store.Tezos,
-          network: $store.network,
-          userAddress: $store.userAddress,
-          tokens: tokensToUpdate,
-          tokensBalances: $store.tokensBalances
-        });
-        console.log("new balances:", newBalances, tokensToUpdate);
-        store.updateTokensBalances(newBalances);
-        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-        if (balance) {
-          store.updateTezBalance(balance.toNumber());
-        }
+      const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+      if (balance) {
+        store.updateTezBalance(balance.toNumber());
       }
     }
   };

@@ -3,6 +3,7 @@
   import store from "../../store";
   import Modal from "../Modal/Modal.svelte";
   import FeeDisclaimer from "../Modal/FeeDisclaimer.svelte";
+  import { fetchAddressFromTezosDomain } from "../../utils";
 
   export let tokenSymbol;
 
@@ -10,6 +11,7 @@
   let amount = "";
   let invalidAmount = false;
   let recipient = "";
+  let addressFromTezosDomain = "";
   let invalidRecipient = false;
   let sending = false;
 
@@ -29,7 +31,7 @@
     if ($store.tokens[tokenSymbol].type === "fa1.2") {
       contractCall = contract.methods.transfer(
         $store.userAddress,
-        recipient,
+        addressFromTezosDomain ? addressFromTezosDomain : recipient,
         +amount * 10 ** $store.tokens[tokenSymbol].decimals
       );
     } else if ($store.tokens[tokenSymbol].type === "fa2") {
@@ -38,7 +40,7 @@
           from_: $store.userAddress,
           txs: [
             {
-              to_: recipient,
+              to_: addressFromTezosDomain ? addressFromTezosDomain : recipient,
               token_id: $store.tokens[tokenSymbol].tokenId,
               amount: +amount * 10 ** $store.tokens[tokenSymbol].decimals
             }
@@ -103,7 +105,9 @@
       class="amount"
       class:error={invalidAmount}
       disabled={sending}
-      placeholder={`Max: ${+$store.tokensBalances[tokenSymbol].toFixed(2) / 1}`}
+      placeholder={`Max: ${
+        Math.floor($store.tokensBalances[tokenSymbol] * 1000) / 1000
+      }`}
       on:input={() => (invalidAmount = false)}
       bind:value={amount}
     />
@@ -123,7 +127,7 @@
     {:else}
       <button
         class="button mini"
-        on:click={() => {
+        on:click={async () => {
           let isAmountValid = false;
           let isRecipientValid = false;
           // validates amount
@@ -140,7 +144,16 @@
           if (validateAddress(recipient) === 3) {
             isRecipientValid = true;
           } else {
-            invalidRecipient = true;
+            // checks if Tezos domain
+            const tezosDomainUser = await fetchAddressFromTezosDomain(
+              recipient
+            );
+            if (tezosDomainUser) {
+              addressFromTezosDomain = tezosDomainUser;
+              isRecipientValid = true;
+            } else {
+              invalidRecipient = true;
+            }
           }
 
           openSendConfirmation = isAmountValid && isRecipientValid;
