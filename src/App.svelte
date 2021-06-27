@@ -70,7 +70,6 @@
         ) {
           // a transaction was sent to a token contract
           //console.log("Transfer operation:", op);
-
           let updatedTokensBalances = { ...$store.tokensBalances };
           let token = Object.entries($store.tokens).find(
             tk => tk[1].address[$store.network] === op.target.address

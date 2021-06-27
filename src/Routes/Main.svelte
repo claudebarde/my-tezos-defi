@@ -5,6 +5,8 @@
   import Investments from "../lib/Investments/Investments.svelte";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
   import Charts from "../lib/Charts/Charts.svelte";
+  import Settings from "../lib/Tools/Settings.svelte";
+  import Calculator from "../lib/Tools/Calculator.svelte";
   import { calcTotalShareValueInTez } from "../utils";
 
   let totalAmounts = { XTZ: undefined, TOKENS: undefined, FIAT: undefined };
@@ -158,6 +160,8 @@
           <span class="material-icons"> account_circle </span>
         </a>
       {/if}
+      <Calculator />
+      <Settings />
     </div>
   </div>
   <div class="stats">
