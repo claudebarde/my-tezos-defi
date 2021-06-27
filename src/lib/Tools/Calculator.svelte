@@ -3,7 +3,7 @@
   import store from "../../store";
   import CalculatorBox from "./CalculatorBox.svelte";
 
-  let openCalculator = true;
+  let openCalculator = false;
   let xtzVal = 0;
   let conversions = {};
 
