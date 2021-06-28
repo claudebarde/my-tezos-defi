@@ -16,18 +16,29 @@
   }
 </style>
 
-<span
+<!--<span
   class="material-icons"
   style="cursor:pointer"
   on:click={() => (openSettings = true)}
 >
   settings
-</span>
+</span>-->
 {#if openSettings}
   <Modal type="manage" on:close={() => (openSettings = false)}>
     <div slot="modal-title" class="modal-title">Settings</div>
     <div slot="modal-body" class="modal-body">
       <div class="settings">
+        <div>Change currency</div>
+        <div>
+          <input type="text" list="currencies" />
+          <button class="button mini">Change</button>
+          <datalist id="currencies">
+            <option value="USD">US dollar</option>
+            <option value="EUR">Euro</option>
+            <option value="CAD">Canadian dollar</option>
+            <option value="GBP">British pound</option>
+          </datalist>
+        </div>
         <div>Allow Push Notifications</div>
         <div>
           <div>

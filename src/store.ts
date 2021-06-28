@@ -428,7 +428,7 @@ const initialState: State = {
     historic: []
   },
   serviceFee: 3,
-  admin: "tz1SjrNeUE4zyPGSZpogDZd5tvryixNDsD2v"
+  admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At"
 };
 
 const store = writable(initialState);

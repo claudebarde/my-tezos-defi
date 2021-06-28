@@ -93,13 +93,14 @@
             data.info.forEach(farm => {
               tempTotalInvestments += calcTotalShareValueInTez(
                 farm.amount,
-                data.shareValueInTez,
+                farm.shareValueInTez,
                 $store.tokensExchangeRates.CRUNCH.tokenToTez,
                 $store.tokens.CRUNCH.decimals
               );
             });
           }
         });
+        console.log(tempTotalInvestments);
         totalInvestments = {
           XTZ: tempTotalInvestments,
           FIAT: tempTotalInvestments * $store.xtzData.exchangeRate

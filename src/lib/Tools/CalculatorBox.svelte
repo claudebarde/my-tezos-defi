@@ -41,10 +41,13 @@
   }
 </style>
 
-{#if $store.tokensExchangeRates[tokenSymbol] || tokenSymbol === "XTZ"}
+{#if $store.tokensExchangeRates[tokenSymbol] || tokenSymbol === "XTZ" || tokenSymbol === "FIAT"}
   <div class="calculator-token">
     <div>
-      <img src={`images/${tokenSymbol}.png`} alt={tokenSymbol} />
+      <img
+        src={`images/${tokenSymbol === "FIAT" ? "USD" : tokenSymbol}.png`}
+        alt={tokenSymbol}
+      />
     </div>
     <div>
       <input
@@ -55,7 +58,7 @@
           dispatch("update", { val: e.target.value, token: tokenSymbol })}
       />
       <div class="exchange-rates">
-        {#if tokenSymbol === "XTZ" && $store.xtzData.exchangeRate}
+        {#if (tokenSymbol === "XTZ" || tokenSymbol === "FIAT") && $store.xtzData.exchangeRate}
           <div>
             1 USD = {+($store.xtzData.exchangeRate / 10).toFixed(5) / 1} XTZ
           </div>
