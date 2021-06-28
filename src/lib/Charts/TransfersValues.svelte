@@ -1,6 +1,7 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
   import Chart from "chart.js/auto";
+  import { validateAddress } from "@taquito/utils";
   import store from "../../store";
   import type { AvailableToken } from "../../types";
 
@@ -26,11 +27,7 @@
         .filter(op => op.level > currentLevel - 10)
         .reverse()
         .forEach(op => {
-          if (
-            op.raw.parameter &&
-            op.raw.parameter.entrypoint &&
-            op.raw.parameter.entrypoint === "transfer"
-          ) {
+          if (op.raw?.parameter?.entrypoint === "transfer") {
             const { value } = op.raw.parameter;
             const findToken = Object.entries($store.tokens).find(
               ([_, info]) =>
@@ -43,19 +40,22 @@
               let valueInToken = 0;
               let valueInXtz = 0;
               if (Array.isArray(value)) {
-                /*
-                    console.log(value)
-                    value.forEach(req => {
-                        req.txs.forEach(tx => {
-                            valueInToken += +tx.amount;
-                        })
-                    })*/
+                // FA2
+                value.forEach(op => {
+                  op.txs.forEach(tx => {
+                    valueInToken = +tx.amount / 10 ** tokenDecimals;
+                    valueInXtz =
+                      valueInToken *
+                      $store.tokensExchangeRates[tokenSymbol].tokenToTez;
+                  });
+                });
               } else if (
                 value.to &&
                 value.from &&
                 value.value &&
                 $store.tokensExchangeRates[tokenSymbol]
               ) {
+                // FA1.2
                 valueInToken = +value.value / 10 ** tokenDecimals;
                 valueInXtz =
                   valueInToken *
@@ -70,6 +70,21 @@
                   data.labels.push(op.level);
                   data.datasets[0].data.push(valueInXtz);
                 }
+              }
+            }
+          } else if (
+            !op.raw.hasOwnProperty("parameter") &&
+            (validateAddress(op.target.address) ||
+              validateAddress(op.sender.address)) &&
+            !isNaN(+op.amount)
+          ) {
+            if (+op.amount > 0) {
+              if (data.labels.includes(op.level)) {
+                const index = data.labels.indexOf(op.level);
+                data.datasets[0].data[index] += +op.amount / 10 ** 6;
+              } else {
+                data.labels.push(op.level);
+                data.datasets[0].data.push(+op.amount / 10 ** 6);
               }
             }
           }
@@ -115,7 +130,7 @@
             plugins: {
               title: {
                 display: true,
-                text: `Total value transferred per block (only FA1.2 - WIP)`
+                text: `Total value transferred per block`
               },
               legend: { display: false }
             },

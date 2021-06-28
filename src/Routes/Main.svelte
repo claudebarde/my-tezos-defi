@@ -100,7 +100,6 @@
             });
           }
         });
-        console.log(tempTotalInvestments);
         totalInvestments = {
           XTZ: tempTotalInvestments,
           FIAT: tempTotalInvestments * $store.xtzData.exchangeRate
