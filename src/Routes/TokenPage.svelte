@@ -12,7 +12,7 @@
   export let params;
 
   let unsupportedToken = false;
-  let tokenSymbol: AvailableToken;
+  let tokenSymbol: AvailableToken | "XTZ";
   let loading = true;
   const contractCallResponseLimit = 500;
   const days = 1;
@@ -24,10 +24,10 @@
 
   onMount(async () => {
     const { tokenSymbol: pTokenSymbol } = params;
+    tokenSymbol = pTokenSymbol;
 
     if (Object.keys($store.tokens).includes(pTokenSymbol)) {
       unsupportedToken = false;
-      tokenSymbol = pTokenSymbol;
       // loads the contract transaction in the last 24 hours
       let currentLevel = 0;
       if ($store.lastOperations.length === 0) {
@@ -160,15 +160,17 @@
 
 <br />
 <br />
-{#if unsupportedToken}
+<div>
+  <a href="/#/">
+    <span class="material-icons"> arrow_back </span> Back
+  </a>
+</div>
+<br /><br />
+{#if unsupportedToken && tokenSymbol !== "XTZ"}
   <div>Unsupported or unknown token</div>
+{:else if unsupportedToken && tokenSymbol === "XTZ"}
+  <div>Coming soon!</div>
 {:else if !unsupportedToken && tokenSymbol}
-  <div>
-    <a href="/#/">
-      <span class="material-icons"> arrow_back </span> Back
-    </a>
-  </div>
-  <br /><br />
   <div class="container">
     <div class="title">General</div>
     <div class="container-body">
@@ -248,11 +250,12 @@
             ).toFixed(2) / 1} XTZ
           </div>
           <div>
-            Total in USD: {+(
+            Total in {$store.xtzData.toFiat}: {+(
               +$store.tokensBalances[tokenSymbol] *
               $store.tokensExchangeRates[tokenSymbol].tokenToTez *
               $store.xtzData.exchangeRate
-            ).toFixed(2) / 1} USD
+            ).toFixed(2) / 1}
+            {$store.xtzData.toFiat}
           </div>
         {:else}
           <div>N/A</div>

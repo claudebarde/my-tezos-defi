@@ -1,9 +1,11 @@
 <script lang="ts">
   import Modal from "../Modal/Modal.svelte";
   import store from "../../store";
+  import type { AvailableFiat } from "../../types";
 
   let openSettings = false;
-  let newRpcNode = $store.settings[$store.network].rpcUrl;
+  let newRpcNode = "";
+  let newFiat: AvailableFiat;
 </script>
 
 <style lang="scss">
@@ -16,13 +18,15 @@
   }
 </style>
 
-<!--<span
-  class="material-icons"
-  style="cursor:pointer"
-  on:click={() => (openSettings = true)}
->
-  settings
-</span>-->
+<!--
+  <span
+    class="material-icons"
+    style="cursor:pointer"
+    on:click={() => (openSettings = true)}
+  >
+    settings
+  </span>
+-->
 {#if openSettings}
   <Modal type="manage" on:close={() => (openSettings = false)}>
     <div slot="modal-title" class="modal-title">Settings</div>
@@ -30,8 +34,22 @@
       <div class="settings">
         <div>Change currency</div>
         <div>
-          <input type="text" list="currencies" />
-          <button class="button mini">Change</button>
+          <input
+            type="text"
+            list="currencies"
+            bind:value={newFiat}
+            placeholder={$store.xtzData.toFiat}
+          />
+          <button
+            class="button mini"
+            on:click={() => {
+              if (newFiat !== $store.xtzData.toFiat) {
+                store.updateToFiat(newFiat);
+              }
+            }}
+          >
+            Change
+          </button>
           <datalist id="currencies">
             <option value="USD">US dollar</option>
             <option value="EUR">Euro</option>
@@ -52,7 +70,7 @@
         </div>
         <div>Change RPC node</div>
         <div>
-          <input type="text" list="rpc-nodes" bind:value={newRpcNode} />
+          <input type="text" list="rpc-nodes" placeholder={newRpcNode} />
           <button class="button mini">Change</button>
           <datalist id="rpc-nodes">
             <option value={$store.settings[$store.network].rpcUrl}>

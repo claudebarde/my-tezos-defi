@@ -149,17 +149,15 @@
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
-        {totalAmounts.FIAT.toFixed(2)} USD
+        {totalAmounts.FIAT.toFixed(2)} {$store.xtzData.toFiat}
       {:else}
         N/A
       {/if}
     </div>
     <div class="options">
-      {#if $store.userAddress}
-        <a href="#/profile">
-          <span class="material-icons"> account_circle </span>
-        </a>
-      {/if}
+      <a href="#/profile">
+        <span class="material-icons"> account_circle </span>
+      </a>
       <Calculator />
       <Settings />
     </div>
@@ -172,7 +170,8 @@
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
-        {+(totalAmounts.TOKENS * $store.xtzData.exchangeRate).toFixed(2) / 1} USD
+        {+(totalAmounts.TOKENS * $store.xtzData.exchangeRate).toFixed(2) / 1}
+        {$store.xtzData.toFiat}
       {:else}
         N/A
       {/if}
@@ -187,10 +186,20 @@
       {#if totalInvestments.XTZ && totalInvestments.FIAT}
         Investments: {+totalInvestments.XTZ.toFixed(2) / 1} XTZ - {+totalInvestments.FIAT.toFixed(
           2
-        ) / 1} USD
+        ) / 1}
+        {$store.xtzData.toFiat}
       {/if}
     </div>
     <div />
+  </div>
+  <br />
+{:else}
+  <div class="stats">
+    <div />
+    <div class="options">
+      <Calculator />
+      <Settings />
+    </div>
   </div>
   <br />
 {/if}

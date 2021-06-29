@@ -45,7 +45,9 @@
   <div class="calculator-token">
     <div>
       <img
-        src={`images/${tokenSymbol === "FIAT" ? "USD" : tokenSymbol}.png`}
+        src={`images/${
+          tokenSymbol === "FIAT" ? $store.xtzData.toFiat : tokenSymbol
+        }.png`}
         alt={tokenSymbol}
       />
     </div>
@@ -60,10 +62,13 @@
       <div class="exchange-rates">
         {#if (tokenSymbol === "XTZ" || tokenSymbol === "FIAT") && $store.xtzData.exchangeRate}
           <div>
-            1 USD = {+($store.xtzData.exchangeRate / 10).toFixed(5) / 1} XTZ
+            1 {$store.xtzData.toFiat} = {+(
+              $store.xtzData.exchangeRate / 10
+            ).toFixed(5) / 1} XTZ
           </div>
           <div>
-            1 XTZ = {+$store.xtzData.exchangeRate.toFixed(5) / 1} USD
+            1 XTZ = {+$store.xtzData.exchangeRate.toFixed(5) / 1}
+            {$store.xtzData.toFiat}
           </div>
         {:else if tokenSymbol !== "XTZ"}
           <div>

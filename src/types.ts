@@ -21,6 +21,12 @@ export enum AvailableToken {
   FLAME = "FLAME",
   KALAM = "KALAM"
 }
+export enum AvailableFiat {
+  USD = "USD",
+  EUR = "EUR",
+  CAD = "CAD",
+  GBP = "GBP"
+}
 export enum AvailableInvestments {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
   "PLENTY-hDAO" = "PLENTY-hDAO",
@@ -109,6 +115,7 @@ export interface State {
   firstLoading: boolean;
   xtzData: {
     exchangeRate: number | undefined;
+    toFiat: AvailableFiat;
     balance: number;
     historic: { timestamp: number; rate: number }[];
   };

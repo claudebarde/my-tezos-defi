@@ -5,7 +5,7 @@
 
   let openCalculator = false;
   let leftPos = 10;
-  let topPos = 100;
+  let topPos = 10;
   let dragging = false;
   let xtzVal = 0;
   let fiatVal = 0;
@@ -30,19 +30,27 @@
   const update = update => {
     const { val, token } = update.detail;
     // if val is not a number
-    if (isNaN(+val)) {
+    if (!val || isNaN(+val)) {
       Object.keys(conversions).forEach(tk => (conversions[tk] = 0));
+      xtzVal = 0;
+      fiatVal = 0;
+      return;
     }
     // updates XTZ price
-    if (token !== "XTZ") {
+    if (token !== "XTZ" && token !== "FIAT") {
       xtzVal =
         +($store.tokensExchangeRates[token].realPriceInTez * val).toFixed(5) /
         1;
-    } else {
+      // updates fiat price
+      fiatVal = +(xtzVal * $store.xtzData.exchangeRate).toFixed(5) / 1;
+    } else if (token === "XTZ") {
       xtzVal = val;
+      // updates fiat price
+      fiatVal = +(xtzVal * $store.xtzData.exchangeRate).toFixed(5) / 1;
+    } else if (token === "FIAT") {
+      fiatVal = val;
+      xtzVal = +($store.xtzData.exchangeRate / 10 / fiatVal).toFixed(5) / 1;
     }
-    // updates fiat price
-    fiatVal = +(xtzVal * $store.xtzData.exchangeRate).toFixed(5) / 1;
     // updates tokens prices
     Object.keys(conversions).forEach(tk => {
       if (tk === token) {
@@ -54,6 +62,31 @@
           ) / 1;
       }
     });
+  };
+
+  const handleDoubleClick = e => {
+    if (openCalculator) {
+      const value = e.target.textContent;
+      const target = e.target.getAttribute("data-target");
+      // checks if target is a token
+      let [token, _] = Object.entries($store.tokens).find(
+        tk => tk[1].address[$store.network] === target
+      ) || [undefined, undefined];
+      if (!token) {
+        // checks if target is an investment
+        let inv = Object.values($store.investments).find(
+          tk => tk.address[$store.network] === target
+        );
+        if (inv && inv.token) {
+          token = inv.token;
+        } else {
+          return;
+        }
+      }
+      if (!isNaN(+value) && +value > 0 && token) {
+        update({ detail: { val: +value, token: token } });
+      }
+    }
   };
 
   onMount(() => {
@@ -112,19 +145,31 @@
     .calculator-container {
       height: calc(100% - 20px);
       width: 350px;
+      top: 10px;
+      left: 10px;
     }
   }
 </style>
 
-<svelte:window on:mouseup={stopDragging} on:mousemove={drag} />
+<svelte:window
+  on:mouseup={stopDragging}
+  on:mousemove={drag}
+  on:dblclick={handleDoubleClick}
+/>
 
-<span
-  class="material-icons"
-  style="cursor:pointer"
-  on:click={() => (openCalculator = true)}
->
-  calculate
-</span>
+{#if !Object.values($store.tokensExchangeRates).every(val => val === undefined)}
+  <span
+    class="material-icons"
+    style="cursor:pointer"
+    on:click={() => {
+      openCalculator = true;
+      xtzVal = 0;
+      fiatVal = 0;
+    }}
+  >
+    calculate
+  </span>
+{/if}
 {#if openCalculator}
   <div
     class="calculator-container"

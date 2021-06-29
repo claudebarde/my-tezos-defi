@@ -7,7 +7,7 @@ import type {
   TokenContract,
   Operation
 } from "./types";
-import { AvailableToken } from "./types";
+import { AvailableToken, AvailableFiat } from "./types";
 
 const settings: State["settings"] = {
   testnet: {
@@ -357,7 +357,7 @@ const initialState: State = {
       info: [],
       alias: "PLENTY-XTZ LP farm",
       icons: [AvailableToken.PLENTY, "XTZ"],
-      token: AvailableToken.PLENTY
+      token: undefined
     },
     "PLENTY-hDAO": {
       address: {
@@ -424,6 +424,7 @@ const initialState: State = {
   firstLoading: true,
   xtzData: {
     exchangeRate: undefined,
+    toFiat: AvailableFiat.USD,
     balance: 0,
     historic: []
   },
@@ -449,6 +450,12 @@ const state = {
     store.update(store => ({
       ...store,
       xtzData: { ...store.xtzData, balance }
+    }));
+  },
+  updateToFiat: (fiat: AvailableFiat) => {
+    store.update(store => ({
+      ...store,
+      xtzData: { ...store.xtzData, toFiat: fiat }
     }));
   },
   updateTokens: (tokens: [string, TokenContract][]) => {
@@ -496,18 +503,6 @@ const state = {
       ...store,
       lastOperations: [...ops.reverse(), ...store.lastOperations]
     }));
-    /*store.update(store => {
-      const currentLevel = ops[0].level;
-      // removes operations from more than 4 levels behind
-      const previousLastOps = [
-        ...store.lastOperations.filter(op => op.level >= currentLevel - 4)
-      ];
-
-      return {
-        ...store,
-        lastOperations: [...ops.reverse(), ...previousLastOps]
-      };
-    });*/
   },
   updateFirstLoading: (state: boolean) => {
     store.update(store => ({ ...store, firstLoading: state }));

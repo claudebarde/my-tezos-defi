@@ -218,7 +218,7 @@
         <div>Contract</div>
         <div>Balance</div>
         <div>Value in XTZ</div>
-        <div>Value in USD</div>
+        <div>Value in {$store.xtzData.toFiat}</div>
       </div>
       {#each Object.entries($store.investments) as [contractName, data]}
         {#if data.balance > 0}
@@ -242,17 +242,21 @@
             <div>{data.balance / 10 ** data.decimals}</div>
             {#if ["Plenty hDAO staking", "Plenty staking", "Plenty USDtz staking"].includes(data.alias) && $store.tokensExchangeRates[data.token]}
               <div>
-                {+(
-                  (data.balance / 10 ** data.decimals) *
-                  $store.tokensExchangeRates[data.token].tokenToTez
-                ).toFixed(5) / 1}
+                <span>
+                  {+(
+                    (data.balance / 10 ** data.decimals) *
+                    $store.tokensExchangeRates[data.token].tokenToTez
+                  ).toFixed(5) / 1}
+                </span>
               </div>
               <div>
-                {+(
-                  (data.balance / 10 ** data.decimals) *
-                  $store.tokensExchangeRates[data.token].tokenToTez *
-                  $store.xtzData.exchangeRate
-                ).toFixed(5) / 1}
+                <span>
+                  {+(
+                    (data.balance / 10 ** data.decimals) *
+                    $store.tokensExchangeRates[data.token].tokenToTez *
+                    $store.xtzData.exchangeRate
+                  ).toFixed(5) / 1}
+                </span>
               </div>
               <div>
                 <!--<button
@@ -268,22 +272,26 @@
               </div>
             {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
               <div>
-                {+calcTotalShareValueInTez(
-                  data.balance,
-                  data.shareValueInTez,
-                  $store.tokensExchangeRates.PLENTY.tokenToTez,
-                  $store.tokens.PLENTY.decimals
-                ).toFixed(5) / 1}
-              </div>
-              <div>
-                {+(
-                  calcTotalShareValueInTez(
+                <span>
+                  {+calcTotalShareValueInTez(
                     data.balance,
                     data.shareValueInTez,
                     $store.tokensExchangeRates.PLENTY.tokenToTez,
                     $store.tokens.PLENTY.decimals
-                  ) * $store.xtzData.exchangeRate
-                ).toFixed(5) / 1}
+                  ).toFixed(5) / 1}
+                </span>
+              </div>
+              <div>
+                <span>
+                  {+(
+                    calcTotalShareValueInTez(
+                      data.balance,
+                      data.shareValueInTez,
+                      $store.tokensExchangeRates.PLENTY.tokenToTez,
+                      $store.tokens.PLENTY.decimals
+                    ) * $store.xtzData.exchangeRate
+                  ).toFixed(5) / 1}
+                </span>
               </div>
             {:else}
               <div>--</div>

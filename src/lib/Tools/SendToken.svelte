@@ -108,7 +108,9 @@
       placeholder={`Max: ${
         Math.floor($store.tokensBalances[tokenSymbol] * 1000) / 1000
       }`}
-      on:input={() => (invalidAmount = false)}
+      on:input={() => {
+        invalidAmount = false;
+      }}
       bind:value={amount}
     />
     {tokenSymbol} to

@@ -6,10 +6,14 @@
   import type { AvailableToken } from "../../types";
 
   let chart;
-  let showCanvas = true;
+  let showCanvas = false;
 
   afterUpdate(() => {
-    if ($store.lastOperations.length > 1) {
+    if (
+      $store.lastOperations.length > 1 &&
+      Object.values($store.tokensExchangeRates).every(val => val)
+    ) {
+      showCanvas = true;
       let data = {
         labels: [],
         datasets: [
@@ -141,6 +145,8 @@
           }
         });
       }
+    } else {
+      showCanvas = false;
     }
   });
 </script>
