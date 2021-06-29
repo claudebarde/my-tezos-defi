@@ -7,7 +7,7 @@ import type {
   TokenContract,
   Operation
 } from "./types";
-import { AvailableToken } from "./types";
+import { AvailableToken, AvailableFiat } from "./types";
 
 const settings: State["settings"] = {
   testnet: {
@@ -56,7 +56,8 @@ const initialState: State = {
       ledgerKey: ["address", 0],
       type: "fa2",
       storage: undefined,
-      color: "#020304"
+      color: "#020304",
+      tokenId: 0
     },
     PLENTY: {
       address: {
@@ -147,7 +148,8 @@ const initialState: State = {
       ledgerKey: "address",
       type: "fa2",
       storage: undefined,
-      color: "#FEDD00"
+      color: "#FEDD00",
+      tokenId: 0
     },
     WRAP: {
       address: {
@@ -160,7 +162,8 @@ const initialState: State = {
       ledgerKey: "address",
       type: "fa2",
       storage: undefined,
-      color: "#FFCA00"
+      color: "#FFCA00",
+      tokenId: 0
     },
     wDAI: {
       address: {
@@ -173,7 +176,8 @@ const initialState: State = {
       ledgerKey: ["address", 5],
       type: "fa2",
       storage: undefined,
-      color: "#F6CE13"
+      color: "#F6CE13",
+      tokenId: 5
     },
     wWBTC: {
       address: {
@@ -186,7 +190,8 @@ const initialState: State = {
       ledgerKey: ["address", 19],
       type: "fa2",
       storage: undefined,
-      color: "#F6CE13"
+      color: "#F6CE13",
+      tokenId: 19
     },
     sDAO: {
       address: {
@@ -199,7 +204,8 @@ const initialState: State = {
       ledgerKey: ["address", 1],
       type: "fa2",
       storage: undefined,
-      color: "#000000"
+      color: "#000000",
+      tokenId: 1
     },
     crDAO: {
       address: {
@@ -212,7 +218,8 @@ const initialState: State = {
       ledgerKey: "address",
       type: "fa2",
       storage: undefined,
-      color: "#8CFFFA"
+      color: "#8CFFFA",
+      tokenId: 0
     },
     FLAME: {
       address: {
@@ -225,7 +232,8 @@ const initialState: State = {
       ledgerKey: "address",
       type: "fa2",
       storage: undefined,
-      color: "#FF9F00"
+      color: "#FF9F00",
+      tokenId: 0
     },
     KALAM: {
       address: {
@@ -238,7 +246,8 @@ const initialState: State = {
       ledgerKey: "address",
       type: "fa2",
       storage: undefined,
-      color: "#00B7AC"
+      color: "#00B7AC",
+      tokenId: 0
     }
   },
   tokensBalances: {
@@ -348,7 +357,7 @@ const initialState: State = {
       info: [],
       alias: "PLENTY-XTZ LP farm",
       icons: [AvailableToken.PLENTY, "XTZ"],
-      token: AvailableToken.PLENTY
+      token: undefined
     },
     "PLENTY-hDAO": {
       address: {
@@ -415,9 +424,12 @@ const initialState: State = {
   firstLoading: true,
   xtzData: {
     exchangeRate: undefined,
+    toFiat: AvailableFiat.USD,
     balance: 0,
     historic: []
-  }
+  },
+  serviceFee: 3,
+  admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At"
 };
 
 const store = writable(initialState);
@@ -438,6 +450,12 @@ const state = {
     store.update(store => ({
       ...store,
       xtzData: { ...store.xtzData, balance }
+    }));
+  },
+  updateToFiat: (fiat: AvailableFiat) => {
+    store.update(store => ({
+      ...store,
+      xtzData: { ...store.xtzData, toFiat: fiat }
     }));
   },
   updateTokens: (tokens: [string, TokenContract][]) => {
@@ -485,25 +503,15 @@ const state = {
       ...store,
       lastOperations: [...ops.reverse(), ...store.lastOperations]
     }));
-    /*store.update(store => {
-      const currentLevel = ops[0].level;
-      // removes operations from more than 4 levels behind
-      const previousLastOps = [
-        ...store.lastOperations.filter(op => op.level >= currentLevel - 4)
-      ];
-
-      return {
-        ...store,
-        lastOperations: [...ops.reverse(), ...previousLastOps]
-      };
-    });*/
   },
   updateFirstLoading: (state: boolean) => {
     store.update(store => ({ ...store, firstLoading: state }));
   },
   updateInvestments: (newInvestments: State["investments"]) => {
     store.update(store => ({ ...store, investments: newInvestments }));
-  }
+  },
+  updateServiceFee: (newFee: State["serviceFee"]) =>
+    store.update(store => ({ ...store, serviceFee: newFee }))
 };
 
 export default state;

@@ -5,6 +5,8 @@
   import Investments from "../lib/Investments/Investments.svelte";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
   import Charts from "../lib/Charts/Charts.svelte";
+  import Settings from "../lib/Tools/Settings.svelte";
+  import Calculator from "../lib/Tools/Calculator.svelte";
   import { calcTotalShareValueInTez } from "../utils";
 
   let totalAmounts = { XTZ: undefined, TOKENS: undefined, FIAT: undefined };
@@ -91,7 +93,7 @@
             data.info.forEach(farm => {
               tempTotalInvestments += calcTotalShareValueInTez(
                 farm.amount,
-                data.shareValueInTez,
+                farm.shareValueInTez,
                 $store.tokensExchangeRates.CRUNCH.tokenToTez,
                 $store.tokens.CRUNCH.decimals
               );
@@ -147,17 +149,17 @@
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
-        {totalAmounts.FIAT.toFixed(2)} USD
+        {totalAmounts.FIAT.toFixed(2)} {$store.xtzData.toFiat}
       {:else}
         N/A
       {/if}
     </div>
     <div class="options">
-      {#if $store.userAddress}
-        <a href="#/profile">
-          <span class="material-icons"> account_circle </span>
-        </a>
-      {/if}
+      <a href="#/profile">
+        <span class="material-icons"> account_circle </span>
+      </a>
+      <Calculator />
+      <Settings />
     </div>
   </div>
   <div class="stats">
@@ -168,7 +170,8 @@
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
-        {+(totalAmounts.TOKENS * $store.xtzData.exchangeRate).toFixed(2) / 1} USD
+        {+(totalAmounts.TOKENS * $store.xtzData.exchangeRate).toFixed(2) / 1}
+        {$store.xtzData.toFiat}
       {:else}
         N/A
       {/if}
@@ -183,10 +186,20 @@
       {#if totalInvestments.XTZ && totalInvestments.FIAT}
         Investments: {+totalInvestments.XTZ.toFixed(2) / 1} XTZ - {+totalInvestments.FIAT.toFixed(
           2
-        ) / 1} USD
+        ) / 1}
+        {$store.xtzData.toFiat}
       {/if}
     </div>
     <div />
+  </div>
+  <br />
+{:else}
+  <div class="stats">
+    <div />
+    <div class="options">
+      <Calculator />
+      <Settings />
+    </div>
   </div>
   <br />
 {/if}

@@ -21,6 +21,12 @@ export enum AvailableToken {
   FLAME = "FLAME",
   KALAM = "KALAM"
 }
+export enum AvailableFiat {
+  USD = "USD",
+  EUR = "EUR",
+  CAD = "CAD",
+  GBP = "GBP"
+}
 export enum AvailableInvestments {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
   "PLENTY-hDAO" = "PLENTY-hDAO",
@@ -47,6 +53,7 @@ export interface TokenContract {
   type: "fa1.2" | "fa2";
   storage: any;
   color: string;
+  tokenId?: number; // only for fa2 contracts
 }
 
 export type IconValue = AvailableToken | "XTZ" | "QUIPU" | "crDAO" | "user";
@@ -108,9 +115,12 @@ export interface State {
   firstLoading: boolean;
   xtzData: {
     exchangeRate: number | undefined;
+    toFiat: AvailableFiat;
     balance: number;
     historic: { timestamp: number; rate: number }[];
   };
+  serviceFee: null | number;
+  admin: TezosAccountAddress;
 }
 
 export interface HistoricalDataState {

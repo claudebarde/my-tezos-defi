@@ -189,10 +189,13 @@
       <!-- if XTZ-->
       {#if token === "tez" && $store.xtzData.exchangeRate}
         <div>
-          1 XTZ = {+$store.xtzData.exchangeRate.toFixed(5) / 1} USD
+          1 XTZ = {+$store.xtzData.exchangeRate.toFixed(5) / 1}
+          {$store.xtzData.toFiat}
         </div>
         <div>
-          1 USD = {+($store.xtzData.exchangeRate / 10).toFixed(5) / 1} XTZ
+          1 {$store.xtzData.toFiat} = {+(
+            $store.xtzData.exchangeRate / 10
+          ).toFixed(5) / 1} XTZ
         </div>
       {:else if token === "tez" && !$store.xtzData.exchangeRate}
         <div>No data</div>
@@ -221,7 +224,8 @@
           <div>
             {balancesInUsd[token[0]]
               ? balancesInUsd[token[0]].toFixed(2) / 1
-              : ""} USD
+              : ""}
+            {$store.xtzData.toFiat}
           </div>
         {:else}
           <div>N/A</div>
@@ -237,7 +241,8 @@
             {+(
               ($store.xtzData.balance / 10 ** 6) *
               $store.xtzData.exchangeRate
-            ).toFixed(5) / 1} USD
+            ).toFixed(5) / 1}
+            {$store.xtzData.toFiat}
           </div>
         {:else}
           <div>N/A</div>
@@ -273,8 +278,9 @@
       <canvas id="trendChart" width="400" height="300" />
     </div>
     <div slot="modal-footer" class="modal-footer">
+      <div />
       <button
-        class="default"
+        class="button default"
         on:click={() => {
           trendModalOpen = false;
         }}

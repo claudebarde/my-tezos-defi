@@ -16,8 +16,6 @@ import config from "./config";
 import { get } from "svelte/store";
 import store from "./store";
 
-const localStore = get(store);
-
 // outputs "down" while visually looking like "up"
 const testUpsAndDownsData = [
   { direction: "same", diff: 0 },
@@ -246,6 +244,8 @@ export const getOpIcons = (
     alias: IconValue;
   }
 ) => {
+  const localStore = get(store);
+
   const tokenIds = getTokenIds(param);
   let icons: IconSet = [];
   switch (target.address) {
@@ -308,6 +308,7 @@ export const getOpIcons = (
 };
 
 export const calculateValue = (op: any): number => {
+  const localStore = get(store);
   //console.log(op);
   const sender = op.sender;
   const target = op.target;
@@ -451,6 +452,8 @@ export const createNewOpEntry = (
   op: any,
   tokens: State["tokens"]
 ): Operation => {
+  const localStore = get(store);
+
   const tokenIds = getTokenIds(op.param);
   const icons = getOpIcons(op.param, op.target);
 
@@ -522,6 +525,23 @@ export const getKolibriOvens = async (
     }
   } catch (error) {
     console.log(error);
+    return null;
+  }
+};
+
+export const fetchAddressFromTezosDomain = async (
+  domain: string
+): Promise<TezosContractAddress | null> => {
+  const localStore = get(store);
+
+  const contract = await localStore.Tezos.wallet.at(
+    "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS"
+  );
+  const storage: any = await contract.storage();
+  const user = await storage.store.records.get(char2Bytes(domain));
+  if (user) {
+    return user.address;
+  } else {
     return null;
   }
 };

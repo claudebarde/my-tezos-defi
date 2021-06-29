@@ -171,7 +171,9 @@
             {op.sender.alias}
           </a>
         </div>
-        <div>{op.value}</div>
+        <div>
+          <span data-target={op.target.address}>{op.value}</span>
+        </div>
       </div>
     {:else}
       <div>Waiting for new operations...</div>

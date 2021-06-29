@@ -55,6 +55,25 @@ body {
   }
 }
 
+input[type="text"] {
+  margin: 0px 8px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  color: $container-bg-color;
+  background-color: white;
+  font-size: 1rem;
+
+  &.amount {
+    width: 120px;
+  }
+
+  &.error {
+    background-color: #fecaca;
+  }
+}
+
 @media only screen and (max-width: $mobile-break-point) {
   html,
   body {
