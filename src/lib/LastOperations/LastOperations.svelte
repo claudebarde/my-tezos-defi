@@ -6,7 +6,7 @@
 
   export let filterOps: {
       opType: "general" | "token" | "user";
-      token?: AvailableToken;
+      token?: AvailableToken | "XTZ";
     },
     lastOps: Operation[];
 
@@ -48,6 +48,8 @@
   @import "../../styles/settings.scss";
 
   .container-last-operations {
+    padding: 10px 0px;
+
     .row {
       display: grid;
       grid-template-columns: 10% 20% 25% 25% 20%;

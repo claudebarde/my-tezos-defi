@@ -19,9 +19,11 @@
     color: white;
     background-color: #3b82f6;
     margin: 0px 5px;
+    font-size: 0.9rem;
+    border: solid 2px transparent;
 
     .material-icons {
-      font-size: 1rem;
+      font-size: 0.9rem;
       vertical-align: middle !important;
       transition: 0.5s;
     }
@@ -53,6 +55,17 @@
     .material-icons {
       animation: loading-rotate 2s ease-out infinite;
     }
+  }
+
+  &.success {
+    color: white;
+    background-color: $success-green;
+    border-color: $success-green;
+  }
+  &.error {
+    color: white;
+    background-color: $error-red;
+    border-color: $error-red;
   }
 }
 

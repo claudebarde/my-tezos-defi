@@ -1,11 +1,19 @@
 <script lang="ts">
+  import { afterUpdate } from "svelte";
   import Modal from "../Modal/Modal.svelte";
   import store from "../../store";
   import type { AvailableFiat } from "../../types";
+  import workersStore from "../../workersStore";
 
   let openSettings = false;
   let newRpcNode = "";
   let newFiat: AvailableFiat;
+
+  afterUpdate(() => {
+    if (!openSettings) {
+      newFiat = undefined;
+    }
+  });
 </script>
 
 <style lang="scss">
@@ -15,18 +23,22 @@
     grid-template-rows: auto;
     align-items: center;
     gap: 30px 10px;
+
+    #currencies-datalist {
+      width: 100px;
+    }
   }
 </style>
 
 <!--
-  <span
-    class="material-icons"
-    style="cursor:pointer"
-    on:click={() => (openSettings = true)}
-  >
-    settings
-  </span>
 -->
+<span
+  class="material-icons"
+  style="cursor:pointer"
+  on:click={() => (openSettings = true)}
+>
+  settings
+</span>
 {#if openSettings}
   <Modal type="manage" on:close={() => (openSettings = false)}>
     <div slot="modal-title" class="modal-title">Settings</div>
@@ -37,6 +49,7 @@
           <input
             type="text"
             list="currencies"
+            id="currencies-datalist"
             bind:value={newFiat}
             placeholder={$store.xtzData.toFiat}
           />
@@ -45,6 +58,11 @@
             on:click={() => {
               if (newFiat !== $store.xtzData.toFiat) {
                 store.updateToFiat(newFiat);
+                $workersStore.quipuWorker.postMessage({
+                  type: "change-fiat",
+                  payload: newFiat
+                });
+                openSettings = false;
               }
             }}
           >

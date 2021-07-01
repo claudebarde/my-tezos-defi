@@ -34,7 +34,8 @@ const loadInvestments = async (param: {
           "PLENTY-hDAO",
           "PLENTY-PLENTY",
           "PLENTY-ETHtz",
-          "PLENTY-USDtz"
+          "PLENTY-USDtz",
+          "PLENTY-KALAM"
         ].includes(name)
       ) {
         const userData = await storage.balances.get(userAddress);

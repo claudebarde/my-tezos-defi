@@ -545,3 +545,43 @@ export const fetchAddressFromTezosDomain = async (
     return null;
   }
 };
+
+export const getPlentyReward = async (
+  userAddress: string,
+  stakingContractAddress: string,
+  currentLevel: number,
+  decimals: number
+) => {
+  const localStore = get(store);
+
+  try {
+    const contract = await localStore.Tezos.wallet.at(stakingContractAddress);
+    const storage: any = await contract.storage();
+    if (storage.totalSupply.toNumber() == 0) {
+      throw "No One Staked";
+    }
+    // Calculate Reward Per Token
+    let rewardPerToken = Math.min(
+      currentLevel,
+      storage.periodFinish.toNumber()
+    );
+    rewardPerToken = rewardPerToken - storage.lastUpdateTime.toNumber();
+    rewardPerToken *= storage.rewardRate.toNumber() * Math.pow(10, decimals);
+    rewardPerToken =
+      rewardPerToken / storage.totalSupply.toNumber() +
+      storage.rewardPerTokenStored.toNumber();
+    // Fetch User's Big Map Detais;   ​
+    const userDetails = await storage.balances.get(userAddress);
+    // Calculating Rewards   ​
+    let totalRewards =
+      userDetails.balance.toNumber() *
+      (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
+    totalRewards =
+      totalRewards / Math.pow(10, decimals) + userDetails.rewards.toNumber();
+    totalRewards = totalRewards / Math.pow(10, decimals); // Reducing to Token Decimals
+
+    return { status: true, totalRewards };
+  } catch (error) {
+    return { status: false, error };
+  }
+};

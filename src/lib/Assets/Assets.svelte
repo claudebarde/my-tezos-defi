@@ -93,12 +93,12 @@
     </div>
   {/if}
   {#if assetsType === "general" && !expandGeneralAssets}
-    <span
+    <div
       on:click={() => (expandGeneralAssets = true)}
-      style="cursor:pointer;padding: 5px 10px;"
+      style="cursor:pointer;padding: 10px;"
     >
       Expand
-    </span>
+    </div>
   {:else}
     <div class="container-grid">
       {#if assetsType === "owned" && $store.userAddress}

@@ -288,6 +288,7 @@ const initialState: State = {
   },
   investments: {
     "QUIPUSWAP-PLENTY": {
+      platform: "quipuswap",
       address: {
         mainnet: "KT1X1LgNkQShpF9nRLYw3Dgdy4qp38MX617z",
         testnet: "KT1z"
@@ -300,6 +301,7 @@ const initialState: State = {
       token: undefined
     },
     "QUIPUSWAP-KUSD": {
+      platform: "quipuswap",
       address: {
         mainnet: "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6",
         testnet: "KT1z"
@@ -312,6 +314,7 @@ const initialState: State = {
       token: undefined
     },
     "QUIPUSWAP-USDtz": {
+      platform: "quipuswap",
       address: {
         mainnet: "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb",
         testnet: "KT1z"
@@ -324,6 +327,7 @@ const initialState: State = {
       token: undefined
     },
     "QUIPUSWAP-ETHtz": {
+      platform: "quipuswap",
       address: {
         mainnet: "KT1Evsp2yA19Whm24khvFPcwimK6UaAJu8Zo",
         testnet: "KT1z"
@@ -336,6 +340,7 @@ const initialState: State = {
       token: undefined
     },
     "QUIPUSWAP-CRUNCH": {
+      platform: "quipuswap",
       address: {
         mainnet: "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4",
         testnet: "KT1z"
@@ -348,6 +353,7 @@ const initialState: State = {
       token: undefined
     },
     "PLENTY-XTZ-LP": {
+      platform: "plenty",
       address: {
         mainnet: "KT1JQAZqShNMakSNXc2cgTzdAWZFemGcU6n1",
         testnet: "KT1z"
@@ -360,6 +366,7 @@ const initialState: State = {
       token: undefined
     },
     "PLENTY-hDAO": {
+      platform: "plenty",
       address: {
         mainnet: "KT1Ga15wxGR5oWK1vBG2GXbjYM6WqPgpfRSP",
         testnet: "KT1z"
@@ -372,6 +379,7 @@ const initialState: State = {
       token: AvailableToken.HDAO
     },
     "PLENTY-PLENTY": {
+      platform: "plenty",
       address: {
         mainnet: "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE",
         testnet: "KT1z"
@@ -384,6 +392,7 @@ const initialState: State = {
       token: AvailableToken.PLENTY
     },
     "PLENTY-ETHtz": {
+      platform: "plenty",
       address: {
         mainnet: "KT19asUVzBNidHgTHp8MP31YSphooMb3piWR",
         testnet: "KT1z"
@@ -396,6 +405,7 @@ const initialState: State = {
       token: AvailableToken.ETHTZ
     },
     "PLENTY-USDtz": {
+      platform: "plenty",
       address: {
         mainnet: "KT1MBqc3GHpApBXaBZyvY63LF6eoFyTWtySn",
         testnet: "KT1z"
@@ -407,7 +417,21 @@ const initialState: State = {
       icons: [AvailableToken.PLENTY, AvailableToken.USDTZ],
       token: AvailableToken.USDTZ
     },
+    "PLENTY-KALAM": {
+      platform: "plenty",
+      address: {
+        mainnet: "KT1WfLprabHVTnNhWFigmopAduUpxG5HKvNf",
+        testnet: "KT1z"
+      },
+      balance: undefined,
+      decimals: 10,
+      info: [],
+      alias: "Plenty Kalam staking",
+      icons: [AvailableToken.PLENTY, AvailableToken.KALAM],
+      token: AvailableToken.PLENTY
+    },
     "CRUNCHY-FARMS": {
+      platform: "crunchy",
       address: {
         mainnet: "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3",
         testnet: "KT1z"

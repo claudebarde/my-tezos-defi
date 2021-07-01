@@ -33,6 +33,7 @@ export enum AvailableInvestments {
   "PLENTY-PLENTY" = "PLENTY-PLENTY",
   "PLENTY-ETHtz" = "PLENTY-ETHtz",
   "PLENTY-USDtz" = "PLENTY-USDtz",
+  "PLENTY-KALAM" = "PLENTY-KALAM",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
@@ -101,6 +102,7 @@ export interface State {
   };
   investments: {
     [p in AvailableInvestments]: {
+      platform: "plenty" | "quipuswap" | "crunchy";
       address: { mainnet: TezosContractAddress; testnet: TezosContractAddress };
       balance: number | undefined;
       decimals: number;
