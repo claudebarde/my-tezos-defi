@@ -134,18 +134,24 @@
     </div>
   {/if}
   {#if assetsType === "general" && !expandGeneralAssets}
-    <div class="ticker-container">
-      <div class="ticker-wrap">
-        <div class="ticker-move">
-          {#each Object.entries($store.tokensExchangeRates).filter(entry => $store.tokensBalances[entry[0]] === undefined) as entry (entry[0])}
-            <div class="ticker-item">
-              <img src={`images/${entry[0]}.png`} alt="token" />&nbsp;&nbsp;
-              {entry[0]}: {entry[1].tokenToTez} ꜩ
-            </div>
-          {/each}
+    {#if Object.values($store.tokensExchangeRates).every(val => !val)}
+      <div style="padding: 15px">Loading...</div>
+    {:else}
+      <div class="ticker-container">
+        <div class="ticker-wrap">
+          <div class="ticker-move">
+            {#each Object.entries($store.tokensExchangeRates).filter(entry => $store.tokensBalances[entry[0]] === undefined) as entry (entry[0])}
+              {#if entry[1]}
+                <div class="ticker-item">
+                  <img src={`images/${entry[0]}.png`} alt="token" />&nbsp;&nbsp;
+                  {entry[0]}: {entry[1].tokenToTez} ꜩ
+                </div>
+              {/if}
+            {/each}
+          </div>
         </div>
       </div>
-    </div>
+    {/if}
   {:else}
     <div class="container-grid">
       {#if assetsType === "owned" && $store.userAddress}
