@@ -64,6 +64,47 @@
     justify-content: center;
     align-items: flex-start;
   }
+
+  .ticker-container {
+    width: 100%;
+    overflow: hidden;
+
+    .ticker-wrap {
+      width: 100%;
+      padding: 15px;
+      padding-left: 100%;
+      background-color: transparent;
+    }
+
+    .ticker-move {
+      display: inline-block;
+      white-space: nowrap;
+      padding-right: 100%;
+      animation: ticker 30s linear infinite;
+
+      &:hover {
+        animation-play-state: paused;
+      }
+
+      .ticker-item {
+        display: inline-block;
+        padding: 0 40px;
+        font-size: 1rem;
+
+        img {
+          width: 25px;
+          height: 25px;
+          vertical-align: middle;
+        }
+      }
+    }
+  }
+
+  @keyframes ticker {
+    100% {
+      transform: translate3d(-100%, 0, 0);
+    }
+  }
 </style>
 
 <div
@@ -93,11 +134,17 @@
     </div>
   {/if}
   {#if assetsType === "general" && !expandGeneralAssets}
-    <div
-      on:click={() => (expandGeneralAssets = true)}
-      style="cursor:pointer;padding: 10px;"
-    >
-      Expand
+    <div class="ticker-container">
+      <div class="ticker-wrap">
+        <div class="ticker-move">
+          {#each Object.entries($store.tokensExchangeRates).filter(entry => $store.tokensBalances[entry[0]] === undefined) as entry (entry[0])}
+            <div class="ticker-item">
+              <img src={`images/${entry[0]}.png`} alt="token" />&nbsp;&nbsp;
+              {entry[0]}: {entry[1].tokenToTez} ꜩ
+            </div>
+          {/each}
+        </div>
+      </div>
     </div>
   {:else}
     <div class="container-grid">
