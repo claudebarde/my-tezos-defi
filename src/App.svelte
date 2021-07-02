@@ -47,14 +47,6 @@
 
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic") {
-      /*const addresses = [
-        ...Object.values($store.tokens).map(
-          token => token.address[$store.network]
-        ),
-        ...Object.values($store.investments).map(
-          entry => entry.address[$store.network]
-        )
-      ];*/
       const ops: Operation[] = [];
       msg.data.msg.forEach(op => {
         //console.log("Operation:", op);
@@ -168,6 +160,20 @@
             console.log("Quipuswap interaction:", op);
           }*/
         }
+      });
+      store.updateLastOperations(ops);
+
+      const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+      if (balance) {
+        store.updateTezBalance(balance.toNumber());
+      }
+    } else if (msg.data.type === "init-last-ops") {
+      // loads transactions from the last 5 blocks
+      const ops: Operation[] = [];
+      msg.data.msg.forEach(op => {
+        const newOp: Operation = createNewOpEntry(op, $store.tokens);
+
+        ops.push(newOp);
       });
       store.updateLastOperations(ops);
 

@@ -7,8 +7,17 @@
   font-size: 1rem;
   cursor: pointer;
 
-  &.default {
+  &.main {
     border: solid 2px white;
+    background-color: transparent;
+    color: white;
+    margin: 0px 5px;
+  }
+
+  &.secondary {
+    border: none;
+    border-bottom: solid 2px white;
+    border-radius: 0px;
     background-color: transparent;
     color: white;
     margin: 0px 5px;
@@ -54,6 +63,7 @@
   &.loading {
     .material-icons {
       animation: loading-rotate 2s ease-out infinite;
+      vertical-align: middle;
     }
   }
 

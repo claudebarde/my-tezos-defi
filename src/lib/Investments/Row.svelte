@@ -2,7 +2,7 @@
   import { afterUpdate } from "svelte";
   import store from "../../store";
   import { calcTotalShareValueInTez, getPlentyReward } from "../../utils";
-  import PoolManagement from "../Modal/PoolManagement.svelte";
+  import ManagePlenty from "../Modal/ManagePlenty.svelte";
 
   export let data, platform;
 
@@ -121,7 +121,7 @@
       {/if}
     </div>
     <div>
-      <PoolManagement
+      <ManagePlenty
         contractAddress={data.address[$store.network]}
         alias={data.alias}
       />

@@ -36,9 +36,12 @@ export default {
   },
   plentyWithdrawalFeeSchema:
     // number of levels since staking: percentage
-    [
-      [12288, 10],
-      [8192, 12.5],
-      [4096, 25]
-    ]
+    {
+      general: [
+        [12288, 10],
+        [8192, 12.5],
+        [4096, 25]
+      ],
+      zeroPerCent: 12288
+    }
 };

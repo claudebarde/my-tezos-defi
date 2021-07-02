@@ -21,7 +21,7 @@ const settings: State["settings"] = {
     PLENTY: ""
   },
   mainnet: {
-    rpcUrl: "https://mainnet-tezos.giganode.io" // "https://api.tez.ie/rpc/mainnet"
+    rpcUrl: "https://mainnet-tezos.giganode.io" //"https://api.tez.ie/rpc/mainnet"
   }
 };
 
@@ -363,7 +363,7 @@ const initialState: State = {
       info: [],
       alias: "PLENTY-XTZ LP farm",
       icons: [AvailableToken.PLENTY, "XTZ"],
-      token: undefined
+      token: AvailableToken.PLENTY
     },
     "PLENTY-hDAO": {
       platform: "plenty",

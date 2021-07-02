@@ -38,6 +38,7 @@
 
         &:not(:first-child) {
           border-top: solid 4px $border-color;
+          margin: 5px 0px;
         }
         &:first-child {
           padding: 10px;
@@ -114,6 +115,13 @@
         .filter(inv => inv[1].balance) as [contractName, data]}
         <Row {data} platform={data.platform} />
       {/each}
+      <div class="row header">
+        <div />
+        <div>Contract</div>
+        <div>Stake</div>
+        <div>Stake in XTZ</div>
+        <div>Reward</div>
+      </div>
       {#each Object.entries($store.investments).filter(inv => inv[1].platform === "crunchy") as [contractName, data]}
         <Row {data} platform={data.platform} />
       {/each}

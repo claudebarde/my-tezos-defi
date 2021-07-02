@@ -1,4 +1,9 @@
-import type { TezosToolkit } from "@taquito/taquito";
+import type {
+  TezosToolkit,
+  ContractMethod,
+  Wallet,
+  WalletOperationBatch
+} from "@taquito/taquito";
 import type {
   HistoricalDataState,
   TokenContract,
@@ -583,5 +588,33 @@ export const getPlentyReward = async (
     return { status: true, totalRewards };
   } catch (error) {
     return { status: false, error };
+  }
+};
+
+export const prepareOperation = (p: {
+  contractCalls: ContractMethod<Wallet>[];
+  amount: number;
+  tokenSymbol: AvailableToken;
+}): WalletOperationBatch => {
+  const localStore = get(store);
+  const { contractCalls, amount, tokenSymbol } = p;
+  // calculates fee
+  const amountToSendInXtz =
+    +amount * +localStore.tokensExchangeRates[tokenSymbol].realPriceInTez;
+  let fee = 0;
+  if (localStore.serviceFee !== null) {
+    fee = (amountToSendInXtz * localStore.serviceFee) / 100;
+  }
+  // prepares batch operation
+  let batch = localStore.Tezos.wallet.batch();
+  contractCalls.forEach(call => batch.withContractCall(call));
+  if (localStore.serviceFee === null) {
+    return batch;
+  } else {
+    return batch.withTransfer({
+      to: localStore.admin,
+      amount: Math.ceil(fee * 10 ** 6),
+      mutez: true
+    });
   }
 };

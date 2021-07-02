@@ -4,6 +4,7 @@
   import store from "../../store";
   import type { AvailableFiat } from "../../types";
   import workersStore from "../../workersStore";
+  import FeeDisclaimer from "../Modal/FeeDisclaimer.svelte";
 
   let openSettings = false;
   let newRpcNode = "";
@@ -75,11 +76,13 @@
             <option value="GBP">British pound</option>
           </datalist>
         </div>
+        <div>Allow contribution</div>
+        <FeeDisclaimer />
         <div>Allow Push Notifications</div>
         <div>
           <div>
-            Push noticatifications will only be sent when the app is open and
-            when you receive/send a transaction
+            Push notifications will only be sent when the app is open and when
+            you receive/send a transaction
           </div>
           <div>
             <button class="button mini" style="float:right">Disable</button>
@@ -106,7 +109,7 @@
       <div />
       <div class="buttons">
         <button
-          class="button default"
+          class="button secondary"
           on:click={() => {
             openSettings = false;
           }}

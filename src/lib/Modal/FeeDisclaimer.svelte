@@ -4,18 +4,16 @@
 
 <style lang="scss">
   .fee-disclaimer {
-    font-size: 0.7rem;
-
     .material-icons {
       vertical-align: bottom;
       cursor: pointer;
-      font-size: 0.7rem;
+      font-size: 1rem;
     }
   }
 </style>
 
 <div class="fee-disclaimer">
-  You can help My Tezos Defi by adding <br /> a little contribution to the
+  You can help My Tezos Defi by adding a little contribution to every
   transaction: <br />
   3%
   <span class="material-icons" on:click={() => store.updateServiceFee(3)}>

@@ -1,0 +1,415 @@
+<script lang="ts">
+  import Modal from "./Modal.svelte";
+  import store from "../../store";
+  import config from "../../config";
+  import { AvailableToken } from "../../types";
+  import { getPlentyReward, prepareOperation } from "../../utils";
+
+  export let contractAddress, alias;
+
+  let openModal = false;
+  let loading = false;
+  let balance = 0;
+  let body = [];
+  let token: AvailableToken;
+  let decimals = 18;
+  let stakes: {
+    id: number;
+    amount: number;
+    level: number;
+    withdrawalFee: number;
+  }[] = [];
+  let unstakeSelect: { id: number; amount: number }[] = [];
+  let rewards = "N/A";
+  let harvesting = false;
+  let harvestingSuccess = undefined;
+  let newStake = "";
+  let staking = false;
+  let stakingSuccess = undefined;
+  let unstaking = false;
+  let unstakingSuccess = undefined;
+
+  const harvest = async () => {
+    // harvest tokens from Plenty pool
+    harvesting = true;
+    try {
+      const contract = await $store.Tezos.wallet.at(contractAddress);
+      const batch = prepareOperation({
+        contractCalls: [contract.methods.GetReward([["unit"]])],
+        amount: +rewards,
+        tokenSymbol: AvailableToken.PLENTY
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      const receipt = await op.receipt();
+      console.log({ receipt });
+      if (!receipt) {
+        harvestingSuccess = false;
+        throw `Operation failed: ${receipt}`;
+      } else {
+        harvestingSuccess = true;
+        rewards = "0";
+        setTimeout(() => {
+          harvestingSuccess = undefined;
+        }, 2000);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      harvesting = false;
+    }
+  };
+
+  const stake = async () => {
+    // checks if stake is valid
+    if (newStake && !isNaN(+newStake)) {
+      try {
+        staking = true;
+        // sends transaction
+        const contract = await $store.Tezos.wallet.at(contractAddress);
+        const batch = prepareOperation({
+          contractCalls: [contract.methods.stake(+newStake * 10 ** decimals)],
+          amount: +newStake,
+          tokenSymbol: token
+        });
+        const op = await batch.send();
+        await op.confirmation();
+        const receipt = await op.receipt();
+        console.log({ receipt });
+        if (!receipt) {
+          stakingSuccess = false;
+          throw `Operation failed: ${receipt}`;
+        } else {
+          stakingSuccess = true;
+          newStake = "";
+          setTimeout(() => {
+            stakingSuccess = undefined;
+          }, 2000);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        staking = false;
+      }
+    }
+  };
+
+  const unstake = async () => {
+    // checks if stake is valid
+    if (unstakeSelect.length > 0) {
+      try {
+        unstaking = true;
+        const totalAmountToUnstake = [
+          0,
+          ...unstakeSelect.map(stk => +stk.amount)
+        ].reduce((a, b) => a + b);
+        // sends transaction
+        const contract = await $store.Tezos.wallet.at(contractAddress);
+        const batch = prepareOperation({
+          contractCalls: unstakeSelect.map(stk =>
+            contract.methods.unstake(+stk.amount * 10 ** decimals, stk.id)
+          ),
+          amount: totalAmountToUnstake,
+          tokenSymbol: token
+        });
+        const op = await batch.send();
+        await op.confirmation();
+        const receipt = await op.receipt();
+        console.log({ receipt });
+        if (!receipt) {
+          unstakingSuccess = false;
+          throw `Operation failed: ${receipt}`;
+        } else {
+          unstakingSuccess = true;
+          unstakeSelect = [];
+          // updates store
+          const [name, inv] = Object.entries($store.investments).find(
+            inv => inv[1].address === contractAddress
+          );
+          const newInv = {
+            ...inv,
+            balance: inv.balance - totalAmountToUnstake * 10 ** decimals
+          };
+          store.updateInvestments({ ...$store.investments, [name]: newInv });
+          setTimeout(() => {
+            unstakingSuccess = undefined;
+          }, 2000);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        unstaking = false;
+      }
+    }
+  };
+
+  const openmanageModalInput = async (contractAddress: string) => {
+    loading = true;
+    body = [];
+    rewards = "N/A";
+
+    const inv = Object.values($store.investments).find(
+      details => details.address[$store.network] === contractAddress
+    );
+    if (inv.token) {
+      decimals = $store.tokens[inv.token].decimals;
+    }
+
+    const contract = await $store.Tezos.wallet.at(contractAddress);
+    const storage: any = await contract.storage();
+    // looks for user's info
+    const userInfo = await storage.balances.get($store.userAddress);
+    if (userInfo) {
+      // displays balances
+      balance = userInfo.balance.toNumber() / 10 ** inv.decimals;
+
+      // displays different stakes
+      if (userInfo.InvestMap.size > 0) {
+        stakes = [];
+        unstakeSelect = [];
+        token = inv.token;
+
+        const investMapEntries = userInfo.InvestMap.entries();
+        for (let stake of investMapEntries) {
+          // calculates withdrawal fee
+          const amount = stake[1].amount.toNumber();
+          let withdrawalFee = 0;
+          const currentLevel = $store.lastOperations[0].level;
+          const stakeLevel = stake[1].level.toNumber();
+          const levelsSinceStaking = currentLevel - stakeLevel;
+          if (["PLENTY-XTZ LP farm", "Plenty Kalam staking"].includes(alias)) {
+            // zero percent fee after 9 days
+            if (
+              stakeLevel + config.plentyWithdrawalFeeSchema.zeroPerCent >
+              currentLevel
+            ) {
+              withdrawalFee = (amount * 4) / 100;
+            } else {
+              withdrawalFee = 0;
+            }
+          } else {
+            for (
+              let i = 0;
+              i < config.plentyWithdrawalFeeSchema.general.length;
+              i++
+            ) {
+              const [levelThreshold, percentage] =
+                config.plentyWithdrawalFeeSchema.general[i];
+              if (levelsSinceStaking < levelThreshold) {
+                withdrawalFee = (amount * percentage) / 100;
+              } else if (withdrawalFee === 0) {
+                withdrawalFee = (amount * 4) / 100;
+              }
+            }
+          }
+          // saves stake to be displayed
+          stakes = [
+            ...stakes,
+            {
+              id: stake[0],
+              amount: amount / 10 ** decimals,
+              level: stakeLevel,
+              withdrawalFee: withdrawalFee / 10 ** decimals
+            }
+          ];
+        }
+        // calculates APR and APY
+        const tokenPriceInUsd =
+          $store.tokensExchangeRates.PLENTY.realPriceInTez *
+          $store.xtzData.exchangeRate;
+        const stakeTokenPriceInUsd =
+          $store.tokensExchangeRates[inv.token].realPriceInTez *
+          $store.xtzData.exchangeRate;
+        const apr =
+          ((storage.rewardRate.toNumber() * 525600 * tokenPriceInUsd) /
+            (storage.totalSupply.toNumber() * stakeTokenPriceInUsd)) *
+          100;
+        body = [...body, `APR: ${apr.toFixed(2)} %`];
+        const apy = ((1 + apr / 100 / 365) ** 365 - 1) * 100;
+        body = [...body, `APY: ${apy.toFixed(2)} %`];
+        // calculates the rewards
+        const getRewards = await getPlentyReward(
+          $store.userAddress,
+          contractAddress,
+          $store.lastOperations[0].level,
+          inv.decimals
+        );
+        if (getRewards.status) {
+          rewards = getRewards.totalRewards.toFixed(5);
+        } else {
+          rewards = "N/A";
+        }
+
+        loading = false;
+      }
+    } else {
+      body = ["Unable to find balances in contract"];
+      loading = false;
+    }
+  };
+</script>
+
+<style lang="scss">
+  .pool-details {
+    width: 80%;
+    display: flex;
+    justify-content: space-around;
+
+    div {
+      margin: 4px;
+    }
+  }
+
+  .stake-row {
+    display: grid;
+    grid-template-columns: 15% 20% 45% 20%;
+    align-items: center;
+    width: 100%;
+    padding: 5px;
+
+    .unstake-box {
+      .material-icons {
+        vertical-align: bottom;
+        cursor: pointer;
+      }
+    }
+  }
+</style>
+
+<button
+  class="button investments"
+  on:click={async () => {
+    openModal = true;
+    await openmanageModalInput(contractAddress);
+  }}
+>
+  Manage
+</button>
+{#if openModal}
+  <Modal type="manage" on:close={() => (openModal = false)}>
+    <div slot="modal-title" class="modal-title">
+      {alias}
+    </div>
+    <div slot="modal-body" class="modal-body">
+      {#if loading}
+        <div>Loading...</div>
+      {:else}
+        {#if balance && token}
+          <div>Total staked: {balance} {token}</div>
+          <div>Available rewards: {rewards} PLENTY</div>
+          <br />
+        {/if}
+        <div class="pool-details">
+          {#each body as item}
+            <div>{item}</div>
+          {/each}
+        </div>
+        <br />
+        <div>
+          <input
+            type="text"
+            bind:value={newStake}
+            placeholder={`Max: ${
+              Math.floor($store.tokensBalances.PLENTY * 1000) / 1000
+            }`}
+          />
+          <button class="button mini" on:click={stake}> Stake more </button>
+        </div>
+        <br />
+        {#if Array.isArray(stakes) && unstakeSelect.length > 0}
+          {#each stakes as stake, index (stake.id)}
+            <div class="stake-row">
+              <div>Stake {index + 1}</div>
+              <div>{stake.amount} {token || "--"}</div>
+              <div>
+                Withdrawal fee: {+stake.withdrawalFee.toFixed(5) / 1}
+                {token || "--"}
+              </div>
+              <div class="unstake-box">
+                Unstake
+                {#if unstakeSelect.find(stk => stk.id === stake.id)}
+                  <span
+                    class="material-icons"
+                    on:click={() => {
+                      unstakeSelect = [
+                        ...unstakeSelect.filter(stk => stk.id !== stake.id)
+                      ];
+                    }}
+                  >
+                    check_box
+                  </span>
+                {:else}
+                  <span
+                    class="material-icons"
+                    on:click={() => {
+                      unstakeSelect = [
+                        { id: stake.id, amount: stake.amount },
+                        ...unstakeSelect
+                      ];
+                    }}
+                  >
+                    check_box_outline_blank
+                  </span>
+                {/if}
+              </div>
+            </div>
+          {:else}
+            <div>No stake in this contract</div>
+          {/each}
+        {:else}
+          <div>No stake in this contract</div>
+        {/if}
+      {/if}
+    </div>
+    <div slot="modal-footer" class="modal-footer">
+      <div />
+      <div class="buttons">
+        <button
+          class="button secondary"
+          on:click={() => {
+            openModal = false;
+          }}
+        >
+          Close
+        </button>
+        {#if Array.isArray(unstakeSelect) && unstakeSelect.length > 0}
+          <!-- Harvest button -->
+          {#if unstaking}
+            <button class="button main loading">
+              Unstaking <span class="material-icons"> sync </span>
+            </button>
+          {:else}
+            <!-- Harvest button states -->
+            {#if unstakingSuccess === true}
+              <button class="button main success"> Unstaked! </button>
+            {:else if unstakingSuccess === false}
+              <button class="button main error" on:click={unstake}>
+                Retry
+              </button>
+            {:else}
+              <button class="button main" on:click={unstake}> Unstake </button>
+            {/if}
+          {/if}
+        {:else if rewards && rewards !== "N/A"}
+          <!-- Harvest button -->
+          {#if harvesting}
+            <button class="button main loading">
+              Harvesting <span class="material-icons"> sync </span>
+            </button>
+          {:else}
+            <!-- Harvest button states -->
+            {#if harvestingSuccess === true}
+              <button class="button main success"> Harvested! </button>
+            {:else if harvestingSuccess === false}
+              <button class="button main error" on:click={harvest}>
+                Retry
+              </button>
+            {:else}
+              <button class="button main" on:click={harvest}> Harvest </button>
+            {/if}
+          {/if}
+        {/if}
+      </div>
+    </div>
+  </Modal>
+{/if}
