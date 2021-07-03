@@ -7,7 +7,7 @@ import type {
   TokenContract,
   Operation
 } from "./types";
-import { AvailableToken, AvailableFiat } from "./types";
+import { AvailableToken, AvailableFiat, AvailableInvestments } from "./types";
 
 const settings: State["settings"] = {
   testnet: {
@@ -21,7 +21,7 @@ const settings: State["settings"] = {
     PLENTY: ""
   },
   mainnet: {
-    rpcUrl: "https://mainnet-tezos.giganode.io" //"https://api.tez.ie/rpc/mainnet"
+    rpcUrl: "https://api.tez.ie/rpc/mainnet" //"https://mainnet-tezos.giganode.io"
   }
 };
 
@@ -288,6 +288,7 @@ const initialState: State = {
   },
   investments: {
     "QUIPUSWAP-PLENTY": {
+      id: AvailableInvestments["QUIPUSWAP-PLENTY"],
       platform: "quipuswap",
       address: {
         mainnet: "KT1X1LgNkQShpF9nRLYw3Dgdy4qp38MX617z",
@@ -301,6 +302,7 @@ const initialState: State = {
       token: undefined
     },
     "QUIPUSWAP-KUSD": {
+      id: AvailableInvestments["QUIPUSWAP-KUSD"],
       platform: "quipuswap",
       address: {
         mainnet: "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6",
@@ -314,6 +316,7 @@ const initialState: State = {
       token: undefined
     },
     "QUIPUSWAP-USDtz": {
+      id: AvailableInvestments["QUIPUSWAP-USDtz"],
       platform: "quipuswap",
       address: {
         mainnet: "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb",
@@ -327,6 +330,7 @@ const initialState: State = {
       token: undefined
     },
     "QUIPUSWAP-ETHtz": {
+      id: AvailableInvestments["QUIPUSWAP-ETHtz"],
       platform: "quipuswap",
       address: {
         mainnet: "KT1Evsp2yA19Whm24khvFPcwimK6UaAJu8Zo",
@@ -340,6 +344,7 @@ const initialState: State = {
       token: undefined
     },
     "QUIPUSWAP-CRUNCH": {
+      id: AvailableInvestments["QUIPUSWAP-CRUNCH"],
       platform: "quipuswap",
       address: {
         mainnet: "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4",
@@ -353,6 +358,7 @@ const initialState: State = {
       token: undefined
     },
     "PLENTY-XTZ-LP": {
+      id: AvailableInvestments["PLENTY-XTZ-LP"],
       platform: "plenty",
       address: {
         mainnet: "KT1JQAZqShNMakSNXc2cgTzdAWZFemGcU6n1",
@@ -366,6 +372,7 @@ const initialState: State = {
       token: AvailableToken.PLENTY
     },
     "PLENTY-hDAO": {
+      id: AvailableInvestments["PLENTY-hDAO"],
       platform: "plenty",
       address: {
         mainnet: "KT1Ga15wxGR5oWK1vBG2GXbjYM6WqPgpfRSP",
@@ -379,6 +386,7 @@ const initialState: State = {
       token: AvailableToken.HDAO
     },
     "PLENTY-PLENTY": {
+      id: AvailableInvestments["PLENTY-PLENTY"],
       platform: "plenty",
       address: {
         mainnet: "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE",
@@ -392,6 +400,7 @@ const initialState: State = {
       token: AvailableToken.PLENTY
     },
     "PLENTY-ETHtz": {
+      id: AvailableInvestments["PLENTY-ETHtz"],
       platform: "plenty",
       address: {
         mainnet: "KT19asUVzBNidHgTHp8MP31YSphooMb3piWR",
@@ -405,6 +414,7 @@ const initialState: State = {
       token: AvailableToken.ETHTZ
     },
     "PLENTY-USDtz": {
+      id: AvailableInvestments["PLENTY-USDtz"],
       platform: "plenty",
       address: {
         mainnet: "KT1MBqc3GHpApBXaBZyvY63LF6eoFyTWtySn",
@@ -418,6 +428,7 @@ const initialState: State = {
       token: AvailableToken.USDTZ
     },
     "PLENTY-KALAM": {
+      id: AvailableInvestments["PLENTY-KALAM"],
       platform: "plenty",
       address: {
         mainnet: "KT1WfLprabHVTnNhWFigmopAduUpxG5HKvNf",
@@ -431,6 +442,7 @@ const initialState: State = {
       token: AvailableToken.PLENTY
     },
     "CRUNCHY-FARMS": {
+      id: AvailableInvestments["CRUNCHY-FARMS"],
       platform: "crunchy",
       address: {
         mainnet: "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3",
@@ -452,7 +464,7 @@ const initialState: State = {
     balance: 0,
     historic: []
   },
-  serviceFee: 3,
+  serviceFee: process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At"
 };
 

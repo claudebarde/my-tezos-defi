@@ -7,6 +7,8 @@
 
   let kolibriOvens: KolibriOvenData[] = [];
   let kolibriOvensChecked = false;
+  let plentyValueInXtz = true;
+  let showEmptyPlentyPools = false;
 
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
@@ -101,20 +103,52 @@
       {#each Object.entries($store.investments)
         .filter(inv => inv[1].platform === "quipuswap")
         .filter(inv => inv[1].balance) as [contractName, data]}
-        <Row {data} platform={data.platform} />
+        <Row {data} platform={data.platform} valueInXtz={true} />
       {/each}
       <div class="row header">
-        <div />
+        <div>
+          <span
+            class="material-icons"
+            style="vertical-align:middle;cursor:pointer"
+            on:click={() => (showEmptyPlentyPools = !showEmptyPlentyPools)}
+          >
+            {#if showEmptyPlentyPools}
+              visibility_off
+            {:else}
+              visibility
+            {/if}
+          </span>
+        </div>
         <div>Contract</div>
         <div>Stake</div>
-        <div>Stake in XTZ</div>
+        <div>Stake in {plentyValueInXtz ? "XTZ" : $store.xtzData.toFiat}</div>
         <div>Reward</div>
       </div>
       {#each Object.entries($store.investments)
         .filter(inv => inv[1].platform === "plenty")
-        .filter(inv => inv[1].balance) as [contractName, data]}
-        <Row {data} platform={data.platform} />
+        .filter( inv => (showEmptyPlentyPools ? inv : inv[1].balance) ) as [_, data] (data.alias)}
+        <Row {data} platform={data.platform} valueInXtz={plentyValueInXtz} />
       {/each}
+      <div class="row">
+        <div />
+        <div />
+        <div />
+        <div>
+          <button
+            class="button investments"
+            on:click={() => (plentyValueInXtz = !plentyValueInXtz)}
+          >
+            {#if plentyValueInXtz}
+              Show {$store.xtzData.toFiat}
+            {:else}
+              Show XTZ
+            {/if}
+          </button>
+        </div>
+        <div>
+          <button class="button investments">Harvest all</button>
+        </div>
+      </div>
       <div class="row header">
         <div />
         <div>Contract</div>
@@ -123,163 +157,8 @@
         <div>Reward</div>
       </div>
       {#each Object.entries($store.investments).filter(inv => inv[1].platform === "crunchy") as [contractName, data]}
-        <Row {data} platform={data.platform} />
+        <Row {data} platform={data.platform} valueInXtz={true} />
       {/each}
-
-      <!--<div class="row">
-        <div />
-        <div>Contract</div>
-        <div>Stake</div>
-        <div>Stake in XTZ</div>
-        <div>Reward</div>
-      </div>
-      {#each Object.entries($store.investments) as [contractName, data]}
-        {#if data.balance > 0}
-          <div class="row">
-            <div class="icon">
-              {#each data.icons as icon}
-                <img src={`images/${icon}.png`} alt="token-icon" />
-              {/each}
-            </div>
-            <div>
-              <a
-                href={`https://better-call.dev/mainnet/${
-                  data.address[$store.network]
-                }/operations`}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-              >
-                {data.alias}
-              </a>
-            </div>
-            <div>{data.balance / 10 ** data.decimals}</div>
-            {#if data.alias !== "PLENTY-XTZ LP farm" && $store.tokensExchangeRates[data.token]}
-              <div>
-                <span>
-                  {+(
-                    (data.balance / 10 ** data.decimals) *
-                    $store.tokensExchangeRates[data.token].tokenToTez
-                  ).toFixed(5) / 1}
-                </span>
-              </div>
-              {#if data.platform === "plenty"}
-                <div>
-                  {#if loadingPlentyRewards}
-                    Calculating...
-                  {:else if plentyRewards[contractName]}
-                    {plentyRewards[contractName].toFixed(5)}
-                  {:else}
-                    --
-                  {/if}
-                </div>
-              {:else}
-                <div>--</div>
-              {/if}
-              <div>
-                <PoolManagement
-                  contractAddress={data.address[$store.network]}
-                  alias={data.alias}
-                />
-              </div>
-            {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
-              <div>
-                <span>
-                  {+calcTotalShareValueInTez(
-                    data.balance,
-                    data.shareValueInTez,
-                    $store.tokensExchangeRates.PLENTY.tokenToTez,
-                    $store.tokens.PLENTY.decimals
-                  ).toFixed(5) / 1}
-                </span>
-              </div>
-              {#if data.platform === "plenty"}
-                <div>
-                  {#if loadingPlentyRewards}
-                    Calculating...
-                  {:else if plentyRewards[contractName]}
-                    {plentyRewards[contractName].toFixed(5)}
-                  {:else}
-                    --
-                  {/if}
-                </div>
-              {:else}
-                <div>--</div>
-              {/if}
-            {:else}
-              <div>--</div>
-              <div>--</div>
-            {/if}
-          </div>
-        {:else if contractName === "CRUNCHY-FARMS"}          
-          {#each data.info as farm}
-            {#if farm.farmId < 3}
-              <div class="row">
-                <div class="icon">
-                  {#if farm.farmId == 0}
-                    <img src="images/XTZ.png" alt="token-icon" />
-                    <img src="images/CRUNCH.png" alt="token-icon" />
-                  {:else if farm.farmId == 1}
-                    <img src="images/XTZ.png" alt="token-icon" />
-                    <img src="images/kUSD.png" alt="token-icon" />
-                  {:else if farm.farmId == 2}
-                    <img src="images/XTZ.png" alt="token-icon" />
-                    <img src="images/wWBTC.png" alt="token-icon" />
-                  {:else}
-                    <img src="images/crDAO.png" alt="token-icon" />
-                  {/if}
-                </div>
-                <div>
-                  <a
-                    href={`https://better-call.dev/mainnet/${
-                      data.address[$store.network]
-                    }/operations`}
-                    target="_blank"
-                    rel="noopener noreferrer nofollow"
-                  >
-                    {#if farm.farmId == 0}
-                      Crunchy Farm XTZ/CRUNCH
-                    {:else if farm.farmId == 1}
-                      Crunchy Farm XTZ/kUSD
-                    {:else if farm.farmId == 2}
-                      Crunchy Farm XTZ/wWBTC
-                    {:else}
-                      {data.alias}
-                    {/if}
-                  </a>
-                </div>
-                <div>{farm.amount / 10 ** data.decimals}</div>
-                <div>
-                  {#if farm.farmId == 0 && $store.tokensExchangeRates.CRUNCH}
-                    {+calcTotalShareValueInTez(
-                      farm.amount,
-                      farm.shareValueInTez,
-                      $store.tokensExchangeRates.CRUNCH.tokenToTez,
-                      $store.tokens.CRUNCH.decimals
-                    ).toFixed(5) / 1}
-                  {:else if farm.farmId == 1 && $store.tokensExchangeRates.kUSD}
-                    {+calcTotalShareValueInTez(
-                      farm.amount,
-                      farm.shareValueInTez,
-                      $store.tokensExchangeRates.KUSD.tokenToTez,
-                      $store.tokens.KUSD.decimals
-                    ).toFixed(5) / 1}
-                  {:else if farm.farmId == 2 && $store.tokensExchangeRates.wWBTC}
-                    {+calcTotalShareValueInTez(
-                      farm.amount,
-                      farm.shareValueInTez,
-                      $store.tokensExchangeRates.wWBTC.tokenToTez,
-                      $store.tokens.wWBTC.decimals
-                    ).toFixed(5) / 1}
-                  {:else}
-                    --
-                  {/if}
-                </div>
-                <div>--</div>
-              </div>
-            {/if}
-          {/each}
-        {/if}
-      {/each}-->
     {/if}
   </div>
 </div>

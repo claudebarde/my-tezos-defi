@@ -278,7 +278,7 @@
     <div slot="modal-footer" class="modal-footer">
       <div />
       <button
-        class="button default"
+        class="button main"
         on:click={() => {
           trendModalOpen = false;
         }}

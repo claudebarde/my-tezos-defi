@@ -1,3 +1,5 @@
+import { AvailableFiat } from "./types";
+
 export default {
   wrapTokenIds: {
     0: { name: "wAAVE", decimals: 18 },
@@ -43,5 +45,11 @@ export default {
         [4096, 25]
       ],
       zeroPerCent: 12288
-    }
+    },
+  validFiats: [
+    { code: AvailableFiat.USD, name: "US dollar" },
+    { code: AvailableFiat.EUR, name: "Euro" },
+    { code: AvailableFiat.EUR, name: "Canadian Dollar" },
+    { code: AvailableFiat.GBP, name: "British pound" }
+  ]
 };

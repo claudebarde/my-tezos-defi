@@ -4,7 +4,7 @@
   import { calcTotalShareValueInTez, getPlentyReward } from "../../utils";
   import ManagePlenty from "../Modal/ManagePlenty.svelte";
 
-  export let data, platform;
+  export let data, platform, valueInXtz;
 
   let lastLevel = 0;
   let loadingPlentyRewards = false;
@@ -92,23 +92,50 @@
     <!-- PLENTY -->
     {#if data.alias !== "PLENTY-XTZ LP farm" && $store.tokensExchangeRates[data.token]}
       <div>
-        <span>
-          {+(
-            (data.balance / 10 ** data.decimals) *
-            $store.tokensExchangeRates[data.token].tokenToTez
-          ).toFixed(5) / 1}
-        </span>
+        {#if valueInXtz}
+          <span>
+            {+(
+              (data.balance / 10 ** data.decimals) *
+              $store.tokensExchangeRates[data.token].tokenToTez
+            ).toFixed(5) / 1}
+          </span>
+        {:else}
+          <span>
+            {(
+              +(
+                ((data.balance / 10 ** data.decimals) *
+                  $store.tokensExchangeRates[data.token].tokenToTez) /
+                1
+              ) * $store.xtzData.exchangeRate
+            ).toFixed(5)}
+          </span>
+        {/if}
       </div>
     {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
       <div>
-        <span>
-          {+calcTotalShareValueInTez(
-            data.balance,
-            data.shareValueInTez,
-            $store.tokensExchangeRates.PLENTY.tokenToTez,
-            $store.tokens.PLENTY.decimals
-          ).toFixed(5) / 1}
-        </span>
+        {#if valueInXtz}
+          <span>
+            {+calcTotalShareValueInTez(
+              data.balance,
+              data.shareValueInTez,
+              $store.tokensExchangeRates.PLENTY.tokenToTez,
+              $store.tokens.PLENTY.decimals
+            ).toFixed(5) / 1}
+          </span>
+        {:else}
+          <span>
+            {(
+              +(
+                calcTotalShareValueInTez(
+                  data.balance,
+                  data.shareValueInTez,
+                  $store.tokensExchangeRates.PLENTY.tokenToTez,
+                  $store.tokens.PLENTY.decimals
+                ) / 1
+              ) * $store.xtzData.exchangeRate
+            ).toFixed(5)}
+          </span>
+        {/if}
       </div>
     {:else}
       <div>--</div>
@@ -124,6 +151,7 @@
       <ManagePlenty
         contractAddress={data.address[$store.network]}
         alias={data.alias}
+        id={data.id}
       />
     </div>
   {:else if platform === "crunchy"}

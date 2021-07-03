@@ -102,6 +102,7 @@ export interface State {
   };
   investments: {
     [p in AvailableInvestments]: {
+      id: AvailableInvestments;
       platform: "plenty" | "quipuswap" | "crunchy";
       address: { mainnet: TezosContractAddress; testnet: TezosContractAddress };
       balance: number | undefined;

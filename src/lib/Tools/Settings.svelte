@@ -2,9 +2,10 @@
   import { afterUpdate } from "svelte";
   import Modal from "../Modal/Modal.svelte";
   import store from "../../store";
-  import type { AvailableFiat } from "../../types";
+  import { AvailableFiat } from "../../types";
   import workersStore from "../../workersStore";
   import FeeDisclaimer from "../Modal/FeeDisclaimer.svelte";
+  import config from "../../config";
 
   let openSettings = false;
   let newRpcNode = "";
@@ -57,23 +58,27 @@
           <button
             class="button mini"
             on:click={() => {
-              if (newFiat !== $store.xtzData.toFiat) {
+              if (
+                newFiat !== $store.xtzData.toFiat &&
+                Object.keys(AvailableFiat).includes(newFiat)
+              ) {
                 store.updateToFiat(newFiat);
                 $workersStore.quipuWorker.postMessage({
                   type: "change-fiat",
                   payload: newFiat
                 });
                 openSettings = false;
+              } else {
+                newFiat = undefined;
               }
             }}
           >
             Change
           </button>
           <datalist id="currencies">
-            <option value="USD">US dollar</option>
-            <option value="EUR">Euro</option>
-            <option value="CAD">Canadian dollar</option>
-            <option value="GBP">British pound</option>
+            {#each config.validFiats as fiat}
+              <option value={fiat.code}>{fiat.name}</option>
+            {/each}
           </datalist>
         </div>
         <div>Allow contribution</div>
