@@ -148,11 +148,13 @@
       {/if}
     </div>
     <div>
-      <ManagePlenty
-        contractAddress={data.address[$store.network]}
-        alias={data.alias}
-        id={data.id}
-      />
+      <!--
+            <ManagePlenty
+              contractAddress={data.address[$store.network]}
+              alias={data.alias}
+              id={data.id}
+            />
+        -->
     </div>
   {:else if platform === "crunchy"}
     <!-- CRUNCHY FARMS have a zero balance but data in the info array -->
