@@ -2,7 +2,6 @@
   import { validateAddress } from "@taquito/utils";
   import store from "../../store";
   import Modal from "../Modal/Modal.svelte";
-  import FeeDisclaimer from "../Modal/FeeDisclaimer.svelte";
   import { fetchAddressFromTezosDomain } from "../../utils";
 
   export let tokenSymbol;
@@ -178,17 +177,17 @@
       <div>{recipient}</div>
     </div>
     <div slot="modal-footer" class="modal-footer">
-      <FeeDisclaimer />
+      <div />
       <div class="buttons">
         <button
-          class="button default"
+          class="button main"
           on:click={() => {
             openSendConfirmation = false;
           }}
         >
           Close
         </button>
-        <button class="button default" on:click={confirm}> Confirm </button>
+        <button class="button main" on:click={confirm}> Confirm </button>
       </div>
     </div>
   </Modal>

@@ -81,6 +81,7 @@
             {/each}
           </datalist>
         </div>
+        <!--
         <div>Allow contribution</div>
         <FeeDisclaimer />
         <div>Allow Push Notifications</div>
@@ -108,6 +109,7 @@
             <option value="https://teznode.letzbake.com/">LetzBake!</option>
           </datalist>
         </div>
+        -->
       </div>
     </div>
     <div slot="modal-footer" class="modal-footer">
