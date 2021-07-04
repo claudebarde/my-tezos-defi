@@ -7,8 +7,17 @@
   font-size: 1rem;
   cursor: pointer;
 
-  &.default {
+  &.main {
     border: solid 2px white;
+    background-color: transparent;
+    color: white;
+    margin: 0px 5px;
+  }
+
+  &.secondary {
+    border: none;
+    border-bottom: solid 2px white;
+    border-radius: 0px;
     background-color: transparent;
     color: white;
     margin: 0px 5px;
@@ -19,9 +28,11 @@
     color: white;
     background-color: #3b82f6;
     margin: 0px 5px;
+    font-size: 0.9rem;
+    border: solid 2px transparent;
 
     .material-icons {
-      font-size: 1rem;
+      font-size: 0.9rem;
       vertical-align: middle !important;
       transition: 0.5s;
     }
@@ -52,7 +63,19 @@
   &.loading {
     .material-icons {
       animation: loading-rotate 2s ease-out infinite;
+      vertical-align: middle;
     }
+  }
+
+  &.success {
+    color: white;
+    background-color: $success-green;
+    border-color: $success-green;
+  }
+  &.error {
+    color: white;
+    background-color: $error-red;
+    border-color: $error-red;
   }
 }
 

@@ -41,7 +41,7 @@ async function init() {
     );
     if (lastTxsResponse) {
       const lastTxs = await lastTxsResponse.json();
-      ctx.postMessage({ type: "live-traffic", msg: lastTxs });
+      ctx.postMessage({ type: "init-last-ops", msg: lastTxs });
     }
   }
 }

@@ -60,7 +60,9 @@
     .modal-footer {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       margin-top: 20px;
+      min-height: 50px;
     }
   }
 }

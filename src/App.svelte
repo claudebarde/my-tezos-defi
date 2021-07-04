@@ -10,9 +10,9 @@
   import Footer from "./lib/Footer/Footer.svelte";
   import QuipuWorker from "worker-loader!./quipuswap.worker";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
-  import type { Operation, TokenContract } from "./types";
-  import { AvailableToken } from "./types";
-  import { searchUserTokens, createNewOpEntry } from "./utils";
+  import type { Operation } from "./types";
+  import { createNewOpEntry } from "./utils";
+  import workersStore from "./workersStore";
 
   let appReady = false;
   let quipuWorker, liveTrafficWorker;
@@ -47,14 +47,6 @@
 
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic") {
-      /*const addresses = [
-        ...Object.values($store.tokens).map(
-          token => token.address[$store.network]
-        ),
-        ...Object.values($store.investments).map(
-          entry => entry.address[$store.network]
-        )
-      ];*/
       const ops: Operation[] = [];
       msg.data.msg.forEach(op => {
         //console.log("Operation:", op);
@@ -175,6 +167,20 @@
       if (balance) {
         store.updateTezBalance(balance.toNumber());
       }
+    } else if (msg.data.type === "init-last-ops") {
+      // loads transactions from the last 5 blocks
+      const ops: Operation[] = [];
+      msg.data.msg.forEach(op => {
+        const newOp: Operation = createNewOpEntry(op, $store.tokens);
+
+        ops.push(newOp);
+      });
+      store.updateLastOperations(ops);
+
+      const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+      if (balance) {
+        store.updateTezBalance(balance.toNumber());
+      }
     }
   };
 
@@ -190,10 +196,13 @@
       payload: {
         tokens: $store.tokens,
         rpcUrl: $store.settings[$store.network].rpcUrl,
-        network: $store.network
+        network: $store.network,
+        fiat: $store.xtzData.toFiat
       }
     });
     quipuWorker.onmessage = handleQuipuWorker;
+    // saves quipuWorker
+    workersStore.updateQuipuWorker(quipuWorker);
 
     // inits live traffic worker
     liveTrafficWorker = new LiveTrafficWorker();

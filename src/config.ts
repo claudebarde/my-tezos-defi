@@ -1,3 +1,5 @@
+import { AvailableFiat } from "./types";
+
 export default {
   wrapTokenIds: {
     0: { name: "wAAVE", decimals: 18 },
@@ -36,9 +38,20 @@ export default {
   },
   plentyWithdrawalFeeSchema:
     // number of levels since staking: percentage
-    [
-      [12288, 10],
-      [8192, 12.5],
-      [4096, 25]
-    ]
+    {
+      general: [
+        [12288, 10],
+        [8192, 12.5],
+        [4096, 25]
+      ],
+      zeroPerCent: 12288
+    },
+  validFiats: [
+    { code: AvailableFiat.USD, name: "US dollar" },
+    { code: AvailableFiat.EUR, name: "Euro" },
+    { code: AvailableFiat.CAD, name: "Canadian Dollar" },
+    { code: AvailableFiat.GBP, name: "British pound" },
+    { code: AvailableFiat.SGD, name: "Singapore dollar" },
+    { code: AvailableFiat.KRW, name: "South Korea won" }
+  ]
 };

@@ -1,4 +1,4 @@
-import type { State } from "./types";
+import type { State, AvailableFiat } from "./types";
 import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
 import {
   findDex,
@@ -14,6 +14,7 @@ let localNetwork;
 let getExchangeRatesInterval, xtzFiatExchangeRateInterval;
 let Tezos: TezosToolkit;
 let localTokens: State["tokens"];
+let localFiat: AvailableFiat;
 let xtzFiatExchangeRate = 0;
 
 const getTokensExchangeRates = async () => {
@@ -116,7 +117,7 @@ const fetchXtzFiatExchangeRate = async () => {
   try {
     const response = await fetch(
       //`https://api.coingecko.com/api/v3/simple/price?ids=tezos&vs_currencies=usd`
-      `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=usd&days=2`
+      `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${localFiat.toLowerCase()}&days=2`
     );
     if (response) {
       const data = await response.json();
@@ -147,17 +148,19 @@ const init = async (param: {
   tokens: State["tokens"];
   rpcUrl: string;
   network: State["network"];
+  fiat: AvailableFiat;
 }) => {
-  const { tokens, rpcUrl, network } = param;
+  const { tokens, rpcUrl, network, fiat } = param;
   localTokens = tokens;
   localNetwork = network;
+  localFiat = fiat;
   Tezos = new TezosToolkit(rpcUrl);
   Tezos.setPackerProvider(new MichelCodecPacker());
 
   // sets up fetching tokens exchange rates
   await getTokensExchangeRates();
   getExchangeRatesInterval = setInterval(getTokensExchangeRates, 60000);
-  // sets up fetching XTZ-USD exchange rate
+  // sets up fetching XTZ-FIAT exchange rate
   await fetchXtzFiatExchangeRate();
   xtzFiatExchangeRateInterval = setInterval(fetchXtzFiatExchangeRate, 60000);
 };
@@ -166,6 +169,14 @@ ctx.addEventListener("message", async e => {
   // removes current interval
   if (e.data.type === "init") {
     await init(e.data.payload);
+  } else if (e.data.type === "change-fiat") {
+    // clears current interval
+    clearInterval(xtzFiatExchangeRateInterval);
+    // saves new fiat
+    localFiat = e.data.payload;
+    // resets the interval
+    await fetchXtzFiatExchangeRate();
+    xtzFiatExchangeRateInterval = setInterval(fetchXtzFiatExchangeRate, 60000);
   } else if (e.data.type === "destroy") {
     clearInterval(getExchangeRatesInterval);
     clearInterval(xtzFiatExchangeRateInterval);

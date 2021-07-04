@@ -6,6 +6,7 @@
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
 
   let lastTransactions: Operation[] = [];
+  let daysInThePast = 7;
 
   afterUpdate(async () => {
     if (lastTransactions.length === 0 && $store.userAddress) {
@@ -23,6 +24,7 @@
       if (headResponse) {
         const head = await headResponse.json();
         const currentLevel = head.level;
+        // fetches transactions where user was the sender
         const senderLastTxsResponse = await fetch(
           `https://api.mainnet.tzkt.io/v1/operations/transactions?sender=${
             $store.userAddress
@@ -34,17 +36,45 @@
           const senderLastTxs = await senderLastTxsResponse.json();
           unprocessedTxs = [...senderLastTxs];
         }
+        // fetches transactions where user was the target
         const targetLastTxsResponse = await fetch(
           `https://api.mainnet.tzkt.io/v1/operations/transactions?target=${
             $store.userAddress
           }&sender.in=${addresses.join(",")}&level.ge=${
-            currentLevel - 60 * 24 * 3
+            currentLevel - 60 * 24 * daysInThePast
           }&sort.desc=id`
         );
         if (targetLastTxsResponse) {
           const targetLastTxs = await targetLastTxsResponse.json();
           unprocessedTxs = [...unprocessedTxs, ...targetLastTxs];
         }
+        // fetches transactions of fa1.2 tokens
+        const fa12TransactionsResponse = await fetch(
+          `https://api.mainnet.tzkt.io/v1/operations/transactions?target.in=${addresses.join(
+            ","
+          )}&entrypoint=transfer&parameter.in=[{"from":"${
+            $store.userAddress
+          }"},{"to":"${$store.userAddress}"}]&level.ge=${
+            currentLevel - 60 * 24 * daysInThePast
+          }&limit=200`
+        );
+        if (fa12TransactionsResponse) {
+          const fa12Transactions = await fa12TransactionsResponse.json();
+          unprocessedTxs = [...unprocessedTxs, ...fa12Transactions];
+        }
+        // fetches transactions of fa2 tokens
+        const fa2TransactionsResponse = await fetch(
+          `https://api.mainnet.tzkt.io/v1/operations/transactions?target.in=${addresses.join(
+            ","
+          )}&parameter.[0].txs.[0].to_=${$store.userAddress}&level.ge=${
+            currentLevel - 60 * 24 * daysInThePast
+          }&limit=200`
+        );
+        if (fa2TransactionsResponse) {
+          const fa2Transactions = await fa2TransactionsResponse.json();
+          unprocessedTxs = [...unprocessedTxs, ...fa2Transactions];
+        }
+
         unprocessedTxs.sort((a, b) => b.id - a.id);
 
         lastTransactions = [

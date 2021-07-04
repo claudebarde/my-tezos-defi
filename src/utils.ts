@@ -1,4 +1,9 @@
-import type { TezosToolkit } from "@taquito/taquito";
+import type {
+  TezosToolkit,
+  ContractMethod,
+  Wallet,
+  WalletOperationBatch
+} from "@taquito/taquito";
 import type {
   HistoricalDataState,
   TokenContract,
@@ -543,5 +548,73 @@ export const fetchAddressFromTezosDomain = async (
     return user.address;
   } else {
     return null;
+  }
+};
+
+export const getPlentyReward = async (
+  userAddress: string,
+  stakingContractAddress: string,
+  currentLevel: number,
+  decimals: number
+) => {
+  const localStore = get(store);
+
+  try {
+    const contract = await localStore.Tezos.wallet.at(stakingContractAddress);
+    const storage: any = await contract.storage();
+    if (storage.totalSupply.toNumber() == 0) {
+      throw "No One Staked";
+    }
+    // Calculate Reward Per Token
+    let rewardPerToken = Math.min(
+      currentLevel,
+      storage.periodFinish.toNumber()
+    );
+    rewardPerToken = rewardPerToken - storage.lastUpdateTime.toNumber();
+    rewardPerToken *= storage.rewardRate.toNumber() * Math.pow(10, decimals);
+    rewardPerToken =
+      rewardPerToken / storage.totalSupply.toNumber() +
+      storage.rewardPerTokenStored.toNumber();
+    // Fetch User's Big Map Detais;   ​
+    const userDetails = await storage.balances.get(userAddress);
+    // Calculating Rewards   ​
+    let totalRewards =
+      userDetails.balance.toNumber() *
+      (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
+    totalRewards =
+      totalRewards / Math.pow(10, decimals) + userDetails.rewards.toNumber();
+    totalRewards = totalRewards / Math.pow(10, decimals); // Reducing to Token Decimals
+
+    return { status: true, totalRewards };
+  } catch (error) {
+    return { status: false, error };
+  }
+};
+
+export const prepareOperation = (p: {
+  contractCalls: ContractMethod<Wallet>[];
+  amount: number;
+  tokenSymbol: AvailableToken;
+}): WalletOperationBatch => {
+  const localStore = get(store);
+  const { contractCalls, amount, tokenSymbol } = p;
+  // calculates fee
+  const amountToSendInXtz =
+    +amount * +localStore.tokensExchangeRates[tokenSymbol].realPriceInTez;
+  let fee = 0;
+  if (localStore.serviceFee !== null) {
+    fee = (amountToSendInXtz * localStore.serviceFee) / 100;
+  }
+  // prepares batch operation
+  let batch = localStore.Tezos.wallet.batch();
+  contractCalls.forEach(call => batch.withContractCall(call));
+  if (localStore.serviceFee === null) {
+    return batch;
+  } else {
+    return batch.withTransfer({
+      to: localStore.admin,
+      amount: Math.ceil(fee * 10 ** 6),
+      mutez: true
+    });
   }
 };

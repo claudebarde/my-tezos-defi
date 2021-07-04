@@ -39,22 +39,20 @@
         : $historicDataStore.tokens[token[0]].slice(0);
     tokenData.sort((a, b) => a.timestamp - b.timestamp);
     //tokenData = tokenData.slice(-60);
-    const data = tokenData.map(el =>
+    let data = tokenData.map(el =>
       token === "tez" ? +el.rate : +el.rate.tokenToTez
     );
     //const labels = tokenData.map(el => new Date(el.timestamp).toISOString());
-    const labels = tokenData.map(el =>
+    let labels = tokenData.map(el =>
       moment(el.timestamp).format("MMM Do YYYY, HH:mm:ss")
     );
     setTimeout(() => {
       const canvas = document.getElementById("trendChart") as HTMLCanvasElement;
       const ctx = canvas.getContext("2d");
-      // sets width
-      /*canvas.width =
-        $historicDataStore.tokens[token[0]].length < 20
-          ? 200
-          : $historicDataStore.tokens[token[0]].length * 20;
-      canvas.height = 200;*/
+      if (labels.length > 100 && token !== "tez") {
+        labels = labels.filter((_, i) => i % 5 === 0);
+        data = data.filter((_, i) => i % 5 === 0);
+      }
       // creates new chart
       new Chart(ctx, {
         type: "line",
@@ -280,7 +278,7 @@
     <div slot="modal-footer" class="modal-footer">
       <div />
       <button
-        class="button default"
+        class="button main"
         on:click={() => {
           trendModalOpen = false;
         }}
