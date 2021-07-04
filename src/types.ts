@@ -25,7 +25,9 @@ export enum AvailableFiat {
   USD = "USD",
   EUR = "EUR",
   CAD = "CAD",
-  GBP = "GBP"
+  GBP = "GBP",
+  SGD = "SGD",
+  KRW = "KRW"
 }
 export enum AvailableInvestments {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",

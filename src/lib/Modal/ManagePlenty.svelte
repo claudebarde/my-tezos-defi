@@ -33,6 +33,7 @@
     const investMapEntries = investMap.entries();
     let tempStakes = [];
     for (let stake of investMapEntries) {
+      console.log(stake, decimals);
       // calculates withdrawal fee
       const amount = stake[1].amount.toNumber();
       let withdrawalFee = 0;
@@ -69,7 +70,7 @@
         ...tempStakes,
         {
           id: stake[0],
-          amount: amount / 10 ** decimals,
+          amount: amount / 10 ** (id === "PLENTY-XTZ-LP" ? 6 : decimals),
           level: stakeLevel,
           withdrawalFee: withdrawalFee / 10 ** decimals
         }
@@ -265,9 +266,15 @@
       const tokenPriceInUsd =
         $store.tokensExchangeRates.PLENTY.realPriceInTez *
         $store.xtzData.exchangeRate;
-      const stakeTokenPriceInUsd =
-        $store.tokensExchangeRates[inv.token].realPriceInTez *
-        $store.xtzData.exchangeRate;
+      let stakeTokenPriceInUsd;
+      if (inv.id === "PLENTY-XTZ-LP") {
+        stakeTokenPriceInUsd =
+          (inv.shareValueInTez / 10 ** 6) * 2 * $store.xtzData.exchangeRate;
+      } else {
+        stakeTokenPriceInUsd =
+          $store.tokensExchangeRates[inv.token].realPriceInTez *
+          $store.xtzData.exchangeRate;
+      }
       const apr =
         ((storage.rewardRate.toNumber() * 525600 * tokenPriceInUsd) /
           (storage.totalSupply.toNumber() * stakeTokenPriceInUsd)) *

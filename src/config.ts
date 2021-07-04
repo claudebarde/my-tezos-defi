@@ -49,7 +49,9 @@ export default {
   validFiats: [
     { code: AvailableFiat.USD, name: "US dollar" },
     { code: AvailableFiat.EUR, name: "Euro" },
-    { code: AvailableFiat.EUR, name: "Canadian Dollar" },
-    { code: AvailableFiat.GBP, name: "British pound" }
+    { code: AvailableFiat.CAD, name: "Canadian Dollar" },
+    { code: AvailableFiat.GBP, name: "British pound" },
+    { code: AvailableFiat.SGD, name: "Singapore dollar" },
+    { code: AvailableFiat.KRW, name: "South Korea won" }
   ]
 };
