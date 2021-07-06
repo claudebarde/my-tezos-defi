@@ -185,7 +185,11 @@
       </span>
     </div>
     <div class="calculator-body">
-      <CalculatorBox tokenSymbol="FIAT" value={fiatVal} on:update={update} />
+      <CalculatorBox
+        tokenSymbol={$store.xtzData.toFiat}
+        value={fiatVal}
+        on:update={update}
+      />
       <CalculatorBox tokenSymbol="XTZ" value={xtzVal} on:update={update} />
       {#each Object.keys($store.tokens) as tokenSymbol}
         <CalculatorBox

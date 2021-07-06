@@ -507,18 +507,50 @@ const state = {
     });
   },
   updateTokensBalances: (newBalances: State["tokensBalances"]) => {
-    store.update(store => ({
-      ...store,
-      tokensBalances: newBalances
-    }));
+    store.update(store => {
+      return {
+        ...store,
+        tokensBalances: newBalances
+      };
+    });
   },
   updateTokensExchangeRates: (
     newExchangeRates: State["tokensExchangeRates"]
   ) => {
-    store.update(store => ({
-      ...store,
-      tokensExchangeRates: newExchangeRates
-    }));
+    store.update(store => {
+      if (
+        !Object.values(store.tokensBalances).every(entry => entry === undefined)
+      ) {
+        let newTokens: any = {};
+        const sortedBalances = Object.entries(store.tokensBalances).sort(
+          (a, b) => {
+            let balanceA = a[1];
+            let balanceB = b[1];
+            if (balanceA === undefined) {
+              balanceA = 0;
+            } else if (balanceB === undefined) {
+              balanceB = 0;
+            }
+
+            return (
+              balanceB * (newExchangeRates[b[0]].tokenToTez || 0) -
+              balanceA * (newExchangeRates[a[0]].tokenToTez || 0)
+            );
+          }
+        );
+        sortedBalances.forEach(tk => (newTokens[tk[0]] = store.tokens[tk[0]]));
+        return {
+          ...store,
+          tokens: newTokens,
+          tokensExchangeRates: newExchangeRates
+        };
+      }
+
+      return {
+        ...store,
+        tokensExchangeRates: newExchangeRates
+      };
+    });
   },
   updateXtzFiatExchangeRate: (newRate: number | undefined) => {
     store.update(store => ({

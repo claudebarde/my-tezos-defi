@@ -63,13 +63,12 @@
           unprocessedTxs = [...unprocessedTxs, ...fa12Transactions];
         }
         // fetches transactions of fa2 tokens
-        const fa2TransactionsResponse = await fetch(
-          `https://api.mainnet.tzkt.io/v1/operations/transactions?target.in=${addresses.join(
-            ","
-          )}&parameter.[0].txs.[0].to_=${$store.userAddress}&level.ge=${
-            currentLevel - 60 * 24 * daysInThePast
-          }&limit=200`
-        );
+        const url = `https://api.mainnet.tzkt.io/v1/operations/transactions?target.in=${addresses.join(
+          ","
+        )}&parameter.[*].txs.[*].to_=${$store.userAddress}&level.ge=${
+          currentLevel - 60 * 24 * daysInThePast
+        }&limit=200`;
+        const fa2TransactionsResponse = await fetch(url);
         if (fa2TransactionsResponse) {
           const fa2Transactions = await fa2TransactionsResponse.json();
           unprocessedTxs = [...unprocessedTxs, ...fa2Transactions];

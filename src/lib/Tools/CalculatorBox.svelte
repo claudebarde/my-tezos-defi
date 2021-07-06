@@ -1,10 +1,16 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import store from "../../store";
+  import config from "../../config";
 
   export let tokenSymbol, value;
 
   const dispatch = createEventDispatcher();
+  let validFiats = [];
+
+  onMount(() => {
+    validFiats = config.validFiats.map(fiat => fiat.code);
+  });
 </script>
 
 <style lang="scss">
@@ -20,6 +26,19 @@
     img {
       width: 40px;
       height: 40px;
+    }
+
+    span.fiat-symbol {
+      border: solid 2px black;
+      border-radius: 50%;
+      padding: 5px 15px;
+      font-size: 1.5rem;
+
+      &.CAD,
+      &.SGP {
+        padding: 12px 10px;
+        font-size: 1rem;
+      }
     }
 
     input {
@@ -41,15 +60,16 @@
   }
 </style>
 
-{#if $store.tokensExchangeRates[tokenSymbol] || tokenSymbol === "XTZ" || tokenSymbol === "FIAT"}
+{#if $store.tokensExchangeRates[tokenSymbol] || tokenSymbol === "XTZ" || validFiats.includes(tokenSymbol)}
   <div class="calculator-token">
     <div>
-      <img
-        src={`images/${
-          tokenSymbol === "FIAT" ? $store.xtzData.toFiat : tokenSymbol
-        }.png`}
-        alt={tokenSymbol}
-      />
+      {#if validFiats.includes(tokenSymbol)}
+        <span class={`fiat-symbol ${tokenSymbol}`}>
+          {config.validFiats.find(fiat => fiat.code === tokenSymbol).symbol}
+        </span>
+      {:else}
+        <img src={`images/${tokenSymbol}.png`} alt={tokenSymbol} />
+      {/if}
     </div>
     <div>
       <input
@@ -60,7 +80,9 @@
           dispatch("update", { val: e.target.value, token: tokenSymbol })}
       />
       <div class="exchange-rates">
-        {#if (tokenSymbol === "XTZ" || tokenSymbol === "FIAT") && $store.xtzData.exchangeRate}
+        {#if (tokenSymbol === "XTZ" || config.validFiats
+            .map(fiat => fiat.code)
+            .includes(tokenSymbol)) && $store.xtzData.exchangeRate}
           <div>
             1 {$store.xtzData.toFiat} = {+(
               $store.xtzData.exchangeRate / 10

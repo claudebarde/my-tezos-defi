@@ -147,8 +147,8 @@
         </div>
         <div>
           <!--
-            <button class="button investments">Harvest all</button>
           -->
+          <button class="button investments">Harvest all</button>
         </div>
       </div>
       <div class="row header">
