@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import CalculatorBox from "./CalculatorBox.svelte";
 
   let openCalculator = false;
@@ -186,7 +187,7 @@
     </div>
     <div class="calculator-body">
       <CalculatorBox
-        tokenSymbol={$store.xtzData.toFiat}
+        tokenSymbol={$localStorageStore.preferredFiat}
         value={fiatVal}
         on:update={update}
       />

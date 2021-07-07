@@ -159,7 +159,7 @@
   {:else if platform === "crunchy"}
     <!-- CRUNCHY FARMS have a zero balance but data in the info array -->
     {#each data.info as farm}
-      {#if farm.farmId < 3}
+      {#if farm.farmId < 3 && farm.amount > 0}
         <div class="icon">
           {#if farm.farmId == 0}
             <img src="images/XTZ.png" alt="token-icon" />

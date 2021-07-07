@@ -4,6 +4,7 @@
   import moment from "moment";
   import type { AvailableToken, TokenContract } from "../../types";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import historicDataStore from "../../historicDataStore";
   import Modal from "../Modal/Modal.svelte";
   import { calculateTrend } from "../../utils";
@@ -188,10 +189,10 @@
       {#if token === "tez" && $store.xtzData.exchangeRate}
         <div>
           1 XTZ = {+$store.xtzData.exchangeRate.toFixed(5) / 1}
-          {$store.xtzData.toFiat}
+          {$localStorageStore.preferredFiat}
         </div>
         <div>
-          1 {$store.xtzData.toFiat} = {+(
+          1 {$localStorageStore.preferredFiat} = {+(
             $store.xtzData.exchangeRate / 10
           ).toFixed(5) / 1} XTZ
         </div>
@@ -223,7 +224,7 @@
             {balancesInUsd[token[0]]
               ? balancesInUsd[token[0]].toFixed(2) / 1
               : ""}
-            {$store.xtzData.toFiat}
+            {$localStorageStore.preferredFiat}
           </div>
         {:else}
           <div>N/A</div>
@@ -240,7 +241,7 @@
               ($store.xtzData.balance / 10 ** 6) *
               $store.xtzData.exchangeRate
             ).toFixed(5) / 1}
-            {$store.xtzData.toFiat}
+            {$localStorageStore.preferredFiat}
           </div>
         {:else}
           <div>N/A</div>

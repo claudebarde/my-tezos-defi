@@ -120,7 +120,6 @@ export interface State {
   firstLoading: boolean;
   xtzData: {
     exchangeRate: number | undefined;
-    toFiat: AvailableFiat;
     balance: number;
     historic: { timestamp: number; rate: number }[];
   };
@@ -142,4 +141,9 @@ export interface KolibriOvenData {
   locked: number;
   borrowed: number;
   isLiquidated: boolean;
+}
+
+export interface LocalStorageState {
+  preferredFiat: AvailableFiat;
+  lastAccess: number;
 }

@@ -4,6 +4,7 @@
   import store from "../../store";
   import { AvailableFiat } from "../../types";
   import workersStore from "../../workersStore";
+  import localStorageStore from "../../localStorage";
   import FeeDisclaimer from "../Modal/FeeDisclaimer.svelte";
   import config from "../../config";
 
@@ -53,16 +54,17 @@
             list="currencies"
             id="currencies-datalist"
             bind:value={newFiat}
-            placeholder={$store.xtzData.toFiat}
+            placeholder={$localStorageStore.preferredFiat}
           />
           <button
             class="button mini"
             on:click={() => {
               if (
-                newFiat !== $store.xtzData.toFiat &&
+                newFiat !== $localStorageStore.preferredFiat &&
                 Object.keys(AvailableFiat).includes(newFiat)
               ) {
                 store.updateToFiat(newFiat);
+                localStorageStore.updatePreferredFiat(newFiat);
                 $workersStore.quipuWorker.postMessage({
                   type: "change-fiat",
                   payload: newFiat

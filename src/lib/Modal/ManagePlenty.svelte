@@ -21,6 +21,7 @@
   }[] = [];
   let unstakeSelect: { id: number; amount: number }[] = [];
   let rewards = "N/A";
+  let tokenForRewards: AvailableToken;
   let harvesting = false;
   let harvestingSuccess = undefined;
   let newStake = "";
@@ -33,7 +34,6 @@
     const investMapEntries = investMap.entries();
     let tempStakes = [];
     for (let stake of investMapEntries) {
-      console.log(stake, decimals);
       // calculates withdrawal fee
       const amount = stake[1].amount.toNumber();
       let withdrawalFee = 0;
@@ -228,6 +228,12 @@
     body = [];
     rewards = "N/A";
 
+    if (id === "PLENTY-KALAM") {
+      tokenForRewards = AvailableToken.KALAM;
+    } else {
+      tokenForRewards = AvailableToken.PLENTY;
+    }
+
     const inv = Object.values($store.investments).find(
       details => details.address[$store.network] === contractAddress
     );
@@ -264,7 +270,7 @@
       }
       // calculates APR and APY
       const tokenPriceInUsd =
-        $store.tokensExchangeRates.PLENTY.realPriceInTez *
+        $store.tokensExchangeRates[tokenForRewards].realPriceInTez *
         $store.xtzData.exchangeRate;
       let stakeTokenPriceInUsd;
       if (inv.id === "PLENTY-XTZ-LP") {
@@ -340,7 +346,10 @@
       {:else}
         {#if balance && token}
           <div>Total staked: {balance} {token}</div>
-          <div>Available rewards: {rewards} PLENTY</div>
+          <div>
+            Available rewards: {rewards}
+            {id === "PLENTY-KALAM" ? "KALAM" : "PLENTY"}
+          </div>
           <br />
         {/if}
         <div class="pool-details">
@@ -381,7 +390,16 @@
           {#each stakes as stake, index (stake.id)}
             <div class="stake-row">
               <div>Stake {index + 1}</div>
-              <div>{stake.amount} {token || "--"}</div>
+              <div>
+                {stake.amount}
+                {#if token === "PLENTY" && id === "PLENTY-XTZ-LP"}
+                  QLP
+                {:else if token}
+                  {token}
+                {:else}
+                  --
+                {/if}
+              </div>
               <div>
                 Withdrawal fee: {+stake.withdrawalFee.toFixed(5) / 1}
                 {token || "--"}

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
   import store from "../store";
+  import localStorageStore from "../localStorage";
   import Assets from "../lib/Assets/Assets.svelte";
   import Investments from "../lib/Investments/Investments.svelte";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
@@ -149,7 +150,7 @@
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
-        {totalAmounts.FIAT.toFixed(2)} {$store.xtzData.toFiat}
+        {totalAmounts.FIAT.toFixed(2)} {$localStorageStore.preferredFiat}
       {:else}
         N/A
       {/if}
@@ -171,7 +172,7 @@
         N/A
       {/if} - {#if totalAmounts.FIAT}
         {+(totalAmounts.TOKENS * $store.xtzData.exchangeRate).toFixed(2) / 1}
-        {$store.xtzData.toFiat}
+        {$localStorageStore.preferredFiat}
       {:else}
         N/A
       {/if}
@@ -187,7 +188,7 @@
         Investments: {+totalInvestments.XTZ.toFixed(2) / 1} XTZ - {+totalInvestments.FIAT.toFixed(
           2
         ) / 1}
-        {$store.xtzData.toFiat}
+        {$localStorageStore.preferredFiat}
       {/if}
     </div>
     <div />

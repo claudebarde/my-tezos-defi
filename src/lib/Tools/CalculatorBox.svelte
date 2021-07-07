@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from "svelte";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import config from "../../config";
 
   export let tokenSymbol, value;
@@ -84,13 +85,13 @@
             .map(fiat => fiat.code)
             .includes(tokenSymbol)) && $store.xtzData.exchangeRate}
           <div>
-            1 {$store.xtzData.toFiat} = {+(
+            1 {$localStorageStore.preferredFiat} = {+(
               $store.xtzData.exchangeRate / 10
             ).toFixed(5) / 1} XTZ
           </div>
           <div>
             1 XTZ = {+$store.xtzData.exchangeRate.toFixed(5) / 1}
-            {$store.xtzData.toFiat}
+            {$localStorageStore.preferredFiat}
           </div>
         {:else if tokenSymbol !== "XTZ"}
           <div>

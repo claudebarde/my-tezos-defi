@@ -2,6 +2,7 @@
   import { onMount, afterUpdate } from "svelte";
   import { bytes2Char } from "@taquito/utils";
   import store from "../store";
+  import localStorageStore from "../localStorage";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
   import type { Operation, KolibriOvenData } from "../types";
   import { AvailableToken } from "../types";
@@ -21,6 +22,7 @@
   let kolibriOvens: KolibriOvenData[] = [];
   let storage = undefined;
   let metadata = undefined;
+  let tvl = 0;
 
   onMount(async () => {
     const { tokenSymbol: pTokenSymbol } = params;
@@ -100,6 +102,14 @@
           metadata = JSON.parse(bytes2Char(metadataBytes));
         }
       }
+    }
+
+    if ($store.Tezos && tvl === 0) {
+      // fetches QuipuSwap TVL
+      const dexBalance = await $store.Tezos.tz.getBalance(
+        $store.tokens[tokenSymbol].dexContractAddress
+      );
+      tvl = dexBalance.toNumber() / 10 ** 6;
     }
   });
 </script>
@@ -196,6 +206,9 @@
           <span class="material-icons"> receipt_long </span> Token contract
         </a>
       </div>
+      {#if tvl > 0}
+        <div>TVL: {tvl.toLocaleString("en-US")} ꜩ</div>
+      {/if}
       <br />
       {#if $store.tokensExchangeRates[tokenSymbol]}
         <div class="prices">
@@ -250,12 +263,12 @@
             ).toFixed(2) / 1} XTZ
           </div>
           <div>
-            Total in {$store.xtzData.toFiat}: {+(
+            Total in {$localStorageStore.preferredFiat}: {+(
               +$store.tokensBalances[tokenSymbol] *
               $store.tokensExchangeRates[tokenSymbol].tokenToTez *
               $store.xtzData.exchangeRate
             ).toFixed(2) / 1}
-            {$store.xtzData.toFiat}
+            {$localStorageStore.preferredFiat}
           </div>
         {:else}
           <div>N/A</div>

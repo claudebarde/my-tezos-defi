@@ -7,7 +7,7 @@ import type {
   TokenContract,
   Operation
 } from "./types";
-import { AvailableToken, AvailableFiat, AvailableInvestments } from "./types";
+import { AvailableToken, AvailableInvestments } from "./types";
 
 const settings: State["settings"] = {
   testnet: {
@@ -460,7 +460,6 @@ const initialState: State = {
   firstLoading: true,
   xtzData: {
     exchangeRate: undefined,
-    toFiat: AvailableFiat.USD,
     balance: 0,
     historic: []
   },
@@ -486,12 +485,6 @@ const state = {
     store.update(store => ({
       ...store,
       xtzData: { ...store.xtzData, balance }
-    }));
-  },
-  updateToFiat: (fiat: AvailableFiat) => {
-    store.update(store => ({
-      ...store,
-      xtzData: { ...store.xtzData, toFiat: fiat }
     }));
   },
   updateTokens: (tokens: [string, TokenContract][]) => {
@@ -533,8 +526,12 @@ const state = {
             }
 
             return (
-              balanceB * (newExchangeRates[b[0]].tokenToTez || 0) -
-              balanceA * (newExchangeRates[a[0]].tokenToTez || 0)
+              balanceB *
+                (newExchangeRates[b[0]]
+                  ? newExchangeRates[b[0]].tokenToTez
+                  : 0) -
+              balanceA *
+                (newExchangeRates[a[0]] ? newExchangeRates[a[0]].tokenToTez : 0)
             );
           }
         );

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import { getKolibriOvens } from "../../utils";
   import type { KolibriOvenData } from "../../types";
   import Row from "./Row.svelte";
@@ -98,7 +99,7 @@
         <div>Contract</div>
         <div>Tokens</div>
         <div>Value in XTZ</div>
-        <div>Value in {$store.xtzData.toFiat}</div>
+        <div>Value in {$localStorageStore.preferredFiat}</div>
       </div>
       {#each Object.entries($store.investments)
         .filter(inv => inv[1].platform === "quipuswap")
@@ -121,7 +122,9 @@
         </div>
         <div>Contract</div>
         <div>Stake</div>
-        <div>Stake in {plentyValueInXtz ? "XTZ" : $store.xtzData.toFiat}</div>
+        <div>
+          Stake in {plentyValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
+        </div>
         <div>Reward</div>
       </div>
       {#each Object.entries($store.investments)
@@ -139,7 +142,7 @@
             on:click={() => (plentyValueInXtz = !plentyValueInXtz)}
           >
             {#if plentyValueInXtz}
-              Show {$store.xtzData.toFiat}
+              Show {$localStorageStore.preferredFiat}
             {:else}
               Show XTZ
             {/if}
@@ -151,16 +154,20 @@
           <button class="button investments">Harvest all</button>
         </div>
       </div>
-      <div class="row header">
-        <div />
-        <div>Contract</div>
-        <div>Stake</div>
-        <div>Stake in XTZ</div>
-        <div>Reward</div>
-      </div>
-      {#each Object.entries($store.investments).filter(inv => inv[1].platform === "crunchy") as [contractName, data]}
-        <Row {data} platform={data.platform} valueInXtz={true} />
-      {/each}
+      {#if Object.values($store.investments)
+        .filter(inv => inv.platform === "crunchy")
+        .some(data => data.info.some(farm => farm.amount > 0))}
+        <div class="row header">
+          <div />
+          <div>Contract</div>
+          <div>Stake</div>
+          <div>Stake in XTZ</div>
+          <div>Reward</div>
+        </div>
+        {#each Object.entries($store.investments).filter(inv => inv[1].platform === "crunchy") as [contractName, data]}
+          <Row {data} platform={data.platform} valueInXtz={true} />
+        {/each}
+      {/if}
     {/if}
   </div>
 </div>

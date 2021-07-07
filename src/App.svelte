@@ -13,6 +13,7 @@
   import type { Operation } from "./types";
   import { createNewOpEntry } from "./utils";
   import workersStore from "./workersStore";
+  import localStorageStore from "./localStorage";
 
   let appReady = false;
   let quipuWorker, liveTrafficWorker;
@@ -189,6 +190,8 @@
     Tezos.setPackerProvider(new MichelCodecPacker());
     store.updateTezos(Tezos);
 
+    const { preferredFiat } = $localStorageStore;
+
     // inits Quipuswap worker
     quipuWorker = new QuipuWorker();
     quipuWorker.postMessage({
@@ -197,7 +200,7 @@
         tokens: $store.tokens,
         rpcUrl: $store.settings[$store.network].rpcUrl,
         network: $store.network,
-        fiat: $store.xtzData.toFiat
+        fiat: preferredFiat
       }
     });
     quipuWorker.onmessage = handleQuipuWorker;
