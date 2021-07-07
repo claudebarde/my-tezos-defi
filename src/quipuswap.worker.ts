@@ -177,6 +177,8 @@ ctx.addEventListener("message", async e => {
     // resets the interval
     await fetchXtzFiatExchangeRate();
     xtzFiatExchangeRateInterval = setInterval(fetchXtzFiatExchangeRate, 60000);
+  } else if (e.data.type === "fetch-tokens-exchange-rates") {
+    await getTokensExchangeRates();
   } else if (e.data.type === "destroy") {
     clearInterval(getExchangeRatesInterval);
     clearInterval(xtzFiatExchangeRateInterval);

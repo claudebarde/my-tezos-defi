@@ -19,7 +19,9 @@ export enum AvailableToken {
   SDAO = "sDAO",
   CRDAO = "crDAO",
   FLAME = "FLAME",
-  KALAM = "KALAM"
+  KALAM = "KALAM",
+  wLINK = "wLINK",
+  wMATIC = "wMATIC"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -35,7 +37,8 @@ export enum AvailableInvestments {
   "PLENTY-PLENTY" = "PLENTY-PLENTY",
   "PLENTY-ETHtz" = "PLENTY-ETHtz",
   "PLENTY-USDtz" = "PLENTY-USDtz",
-  "PLENTY-KALAM" = "PLENTY-KALAM",
+  "PLENTY-wLINK" = "PLENTY-wLINK",
+  "PLENTY-wMATIC" = "PLENTY-wMATIC",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
@@ -79,6 +82,13 @@ export interface Operation {
   status: "applied" | "failed" | "backtracked" | "skipped";
 }
 
+export interface ExchangeRateData {
+  tokenToTez: number;
+  tezToToken: number;
+  realPriceInTez: number;
+  realPriceInToken: number;
+}
+
 export interface State {
   network: "testnet" | "mainnet";
   Tezos: TezosToolkit;
@@ -93,14 +103,7 @@ export interface State {
   tokens: { [p in AvailableToken]: TokenContract };
   tokensBalances: { [p in AvailableToken]: number | undefined };
   tokensExchangeRates: {
-    [p in AvailableToken]:
-      | {
-          tokenToTez: number;
-          tezToToken: number;
-          realPriceInTez: number;
-          realPriceInToken: number;
-        }
-      | undefined;
+    [p in AvailableToken]: ExchangeRateData | undefined;
   };
   investments: {
     [p in AvailableInvestments]: {
@@ -145,5 +148,13 @@ export interface KolibriOvenData {
 
 export interface LocalStorageState {
   preferredFiat: AvailableFiat;
-  lastAccess: number;
+  pushNotifications: boolean;
+  tokenExchangeRates: [
+    AvailableToken,
+    Omit<ExchangeRateData, "realPriceInTez" | "realPriceInToken">
+  ][];
+  xtzExchangeRate: number;
+  tokenBalances: [AvailableToken | "XTZ", number | null][];
+  lastUpdate: number;
+  version: string;
 }

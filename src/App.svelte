@@ -5,7 +5,6 @@
   import routes from "./Routes/routes";
   import store from "./store";
   import historicDataStore from "./historicDataStore";
-  import Main from "./Routes/Main.svelte";
   import Header from "./lib/Header/Header.svelte";
   import Footer from "./lib/Footer/Footer.svelte";
   import QuipuWorker from "worker-loader!./quipuswap.worker";
@@ -17,6 +16,7 @@
 
   let appReady = false;
   let quipuWorker, liveTrafficWorker;
+  let lastAppVisibility = 0;
 
   const handleQuipuWorker = (msg: MessageEvent) => {
     if (msg.data.type === "exchange-rates") {
@@ -37,12 +37,28 @@
         }
       });
       store.updateTokensExchangeRates(updatedTokensExchangeRates);
+      // updates local storage
+      const ratesToStore = Object.entries(updatedTokensExchangeRates)
+        .filter(
+          ([token, _]) =>
+            $store.tokensBalances[token] && $store.tokensBalances[token] > 0
+        )
+        .map(([token, data]) => [
+          token,
+          { tokenToTez: data.tokenToTez, tezToToken: data.tezToToken }
+        ]);
+      localStorageStore.updateTokenExchangeRates(ratesToStore);
 
       if ($store.firstLoading) store.updateFirstLoading(false);
     } else if (msg.data.type === "xtz-fiat-exchange-rate") {
       const { xtzFiatExchangeRate, historicExchangeRates } = msg.data.payload;
       store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
       store.updateXtzDataHistoric(historicExchangeRates);
+      // saves the exchange rate in the local store
+      localStorageStore.updateFiat(
+        $localStorageStore.preferredFiat,
+        xtzFiatExchangeRate
+      );
     }
   };
 
@@ -110,6 +126,10 @@
           updatedTokensBalances[token[0]] = userBalance;
           // updates balances
           store.updateTokensBalances(updatedTokensBalances);
+          // saves balances in local storage
+          localStorageStore.updateTokenBalances(
+            Object.entries(updatedTokensBalances)
+          );
         } else if (
           op.sender.address === $store.userAddress ||
           op.target.address === $store.userAddress
@@ -190,7 +210,28 @@
     Tezos.setPackerProvider(new MichelCodecPacker());
     store.updateTezos(Tezos);
 
-    const { preferredFiat } = $localStorageStore;
+    // loads exchange rates from local storage if recent enough
+    if (
+      $localStorageStore.lastUpdate &&
+      $localStorageStore.lastUpdate > Date.now() - 24 * 60 * 1000
+    ) {
+      const newRates = { ...$store.tokensExchangeRates };
+      $localStorageStore.tokenExchangeRates.forEach(([token, rates]) => {
+        newRates[token] = {
+          ...rates,
+          realPriceInTez: 0,
+          realPriceInToken: 0
+        };
+      });
+      const newBalances = { ...$store.tokensBalances };
+      $localStorageStore.tokenBalances.forEach(([token, balance]) => {
+        newBalances[token] = balance;
+      });
+      store.updateTokensExchangeRates(newRates);
+      store.updateXtzFiatExchangeRate($localStorageStore.xtzExchangeRate);
+      store.updateTokensBalances(newBalances);
+      if ($store.firstLoading) store.updateFirstLoading(false);
+    }
 
     // inits Quipuswap worker
     quipuWorker = new QuipuWorker();
@@ -200,7 +241,7 @@
         tokens: $store.tokens,
         rpcUrl: $store.settings[$store.network].rpcUrl,
         network: $store.network,
-        fiat: preferredFiat
+        fiat: $localStorageStore.preferredFiat
       }
     });
     quipuWorker.onmessage = handleQuipuWorker;
@@ -210,6 +251,25 @@
     // inits live traffic worker
     liveTrafficWorker = new LiveTrafficWorker();
     liveTrafficWorker.onmessage = handleLiveTrafficWorker;
+
+    // reloads some data when user comes back to the page
+    lastAppVisibility = Date.now();
+    document.addEventListener("visibilitychange", async () => {
+      if (
+        document.visibilityState === "visible" &&
+        Date.now() > lastAppVisibility + 3 * 60 * 1000
+      ) {
+        console.log("app visibility:", lastAppVisibility);
+        lastAppVisibility = Date.now();
+        // refreshes XTZ balance
+        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+        if (balance) {
+          store.updateTezBalance(balance.toNumber());
+        }
+        // refreshes tokens exchange rates
+        quipuWorker.postMessage({ type: "fetch-tokens-exchange-rates" });
+      }
+    });
 
     appReady = true;
   });

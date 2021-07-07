@@ -63,8 +63,7 @@
                 newFiat !== $localStorageStore.preferredFiat &&
                 Object.keys(AvailableFiat).includes(newFiat)
               ) {
-                store.updateToFiat(newFiat);
-                localStorageStore.updatePreferredFiat(newFiat);
+                localStorageStore.updateFiat(newFiat, 0);
                 $workersStore.quipuWorker.postMessage({
                   type: "change-fiat",
                   payload: newFiat
@@ -92,8 +91,11 @@
             you receive/send a transaction
           </div>
           <div>
-            <button class="button mini" style="float:right">Disable</button>
-            <button class="button mini" style="float:right">Allow</button>
+            {#if $localStorageStore.pushNotifications}
+              <button class="button mini" style="float:right">Disable</button>
+            {:else}
+              <button class="button mini" style="float:right">Allow</button>
+            {/if}
           </div>
         </div>
         <div>Change RPC node</div>

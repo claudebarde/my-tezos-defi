@@ -181,7 +181,7 @@
       />
     </a>
   </div>
-  {#if $store.firstLoading}
+  {#if $store.firstLoading || (token !== "tez" && $store.tokensExchangeRates[token[0]] === undefined)}
     <div class="info">Loading...</div>
   {:else}
     <div class="info">

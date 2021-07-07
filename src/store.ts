@@ -21,7 +21,7 @@ const settings: State["settings"] = {
     PLENTY: ""
   },
   mainnet: {
-    rpcUrl: "https://mainnet-tezos.giganode.io" //"https://api.tez.ie/rpc/mainnet"
+    rpcUrl: "https://api.tez.ie/rpc/mainnet" //"https://mainnet-tezos.giganode.io"
   }
 };
 
@@ -193,6 +193,34 @@ const initialState: State = {
       color: "#F6CE13",
       tokenId: 19
     },
+    wLINK: {
+      address: {
+        mainnet: "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1Lpysr4nzcFegC9ci9kjoqVidwoanEmJWt",
+      decimals: 18,
+      ledgerPath: "assets/ledger",
+      ledgerKey: ["address", 10],
+      type: "fa2",
+      storage: undefined,
+      color: "#F6CE13",
+      tokenId: 10
+    },
+    wMATIC: {
+      address: {
+        mainnet: "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+        testnet: "KT1z"
+      },
+      dexContractAddress: "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
+      decimals: 18,
+      ledgerPath: "assets/ledger",
+      ledgerKey: ["address", 11],
+      type: "fa2",
+      storage: undefined,
+      color: "#F6CE13",
+      tokenId: 11
+    },
     sDAO: {
       address: {
         mainnet: "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA",
@@ -263,6 +291,8 @@ const initialState: State = {
     WRAP: undefined,
     wDAI: undefined,
     wWBTC: undefined,
+    wLINK: undefined,
+    wMATIC: undefined,
     sDAO: undefined,
     crDAO: undefined,
     FLAME: undefined,
@@ -281,6 +311,8 @@ const initialState: State = {
     WRAP: undefined,
     wDAI: undefined,
     wWBTC: undefined,
+    wLINK: undefined,
+    wMATIC: undefined,
     sDAO: undefined,
     crDAO: undefined,
     FLAME: undefined,
@@ -427,7 +459,35 @@ const initialState: State = {
       icons: [AvailableToken.PLENTY, AvailableToken.USDTZ],
       token: AvailableToken.USDTZ
     },
-    "PLENTY-KALAM": {
+    "PLENTY-wLINK": {
+      id: AvailableInvestments["PLENTY-wLINK"],
+      platform: "plenty",
+      address: {
+        mainnet: "KT1KyxPitU1xNbTriondmAFtPEcFhjSLV1hz",
+        testnet: "KT1z"
+      },
+      balance: undefined,
+      decimals: 18,
+      info: [],
+      alias: "Plenty wLINK staking",
+      icons: [AvailableToken.PLENTY, AvailableToken.wLINK],
+      token: AvailableToken.PLENTY
+    },
+    "PLENTY-wMATIC": {
+      id: AvailableInvestments["PLENTY-wMATIC"],
+      platform: "plenty",
+      address: {
+        mainnet: "KT1XherecVvrE6X4PV5RTwdEKNzA294ZE9T9",
+        testnet: "KT1z"
+      },
+      balance: undefined,
+      decimals: 18,
+      info: [],
+      alias: "Plenty wMATIC staking",
+      icons: [AvailableToken.PLENTY, AvailableToken.wMATIC],
+      token: AvailableToken.PLENTY
+    },
+    /*"PLENTY-KALAM": {
       id: AvailableInvestments["PLENTY-KALAM"],
       platform: "plenty",
       address: {
@@ -440,7 +500,7 @@ const initialState: State = {
       alias: "Plenty Kalam staking",
       icons: [AvailableToken.PLENTY, AvailableToken.KALAM],
       token: AvailableToken.PLENTY
-    },
+    },*/
     "CRUNCHY-FARMS": {
       id: AvailableInvestments["CRUNCHY-FARMS"],
       platform: "crunchy",

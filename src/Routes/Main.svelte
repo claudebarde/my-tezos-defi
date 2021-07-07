@@ -69,6 +69,8 @@
       if ($store.xtzData.exchangeRate) {
         let tempTotalInvestments = 0;
         Object.entries($store.investments).forEach(([contractName, data]) => {
+          if ($store.tokensExchangeRates[data.token] === undefined) return;
+
           if (
             [
               "Plenty hDAO staking",

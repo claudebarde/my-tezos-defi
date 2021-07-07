@@ -9,6 +9,7 @@
   import { char2Bytes, bytes2Char } from "@taquito/utils";
   import type { TezosAccountAddress } from "../../types";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import InvestmentsWorker from "worker-loader!../../investments.worker";
   import { handleInvestmentsWorker } from "../../workersHandlers";
   import { searchUserTokens } from "../../utils";
@@ -68,6 +69,8 @@
         tokensBalances: $store.tokensBalances
       });
       store.updateTokensBalances(newBalances);
+      // saves balances in local storage
+      localStorageStore.updateTokenBalances(Object.entries(newBalances));
     } catch (err) {
       console.error(err);
     }
@@ -127,6 +130,8 @@
         tokensBalances: $store.tokensBalances
       });
       store.updateTokensBalances(newBalances);
+      // saves balances in local storage
+      localStorageStore.updateTokenBalances(Object.entries(newBalances));
     }
   });
 </script>

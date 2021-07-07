@@ -15,6 +15,8 @@ const initialState: HistoricalDataState = {
     WRAP: [],
     wDAI: [],
     wWBTC: [],
+    wLINK: [],
+    wMATIC: [],
     sDAO: [],
     crDAO: [],
     FLAME: [],
