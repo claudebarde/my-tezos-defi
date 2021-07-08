@@ -9,7 +9,7 @@
   import Footer from "./lib/Footer/Footer.svelte";
   import QuipuWorker from "worker-loader!./quipuswap.worker";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
-  import type { Operation } from "./types";
+  import type { Operation, State } from "./types";
   import { createNewOpEntry } from "./utils";
   import workersStore from "./workersStore";
   import localStorageStore from "./localStorage";
@@ -17,6 +17,7 @@
   let appReady = false;
   let quipuWorker, liveTrafficWorker;
   let lastAppVisibility = 0;
+  let perfStart, perfEnd;
 
   const handleQuipuWorker = (msg: MessageEvent) => {
     if (msg.data.type === "exchange-rates") {
@@ -50,6 +51,17 @@
       localStorageStore.updateTokenExchangeRates(ratesToStore);
 
       if ($store.firstLoading) store.updateFirstLoading(false);
+
+      if (perfStart) {
+        perfEnd = performance.now();
+        console.log(
+          `${exchangeRates.length} tokens loaded in ${Math.round(
+            (perfEnd - perfStart) / 1000
+          )} seconds`
+        );
+        perfStart = 0;
+        perfEnd = 0;
+      }
     } else if (msg.data.type === "xtz-fiat-exchange-rate") {
       const { xtzFiatExchangeRate, historicExchangeRates } = msg.data.payload;
       store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
@@ -206,30 +218,34 @@
   };
 
   onMount(async () => {
+    perfStart = performance.now();
+
     const Tezos = new TezosToolkit($store.settings[$store.network].rpcUrl);
     Tezos.setPackerProvider(new MichelCodecPacker());
     store.updateTezos(Tezos);
 
     // loads exchange rates from local storage if recent enough
+    let favoriteTokens: Partial<State["tokens"]> = {};
     if (
       $localStorageStore.lastUpdate &&
-      $localStorageStore.lastUpdate > Date.now() - 24 * 60 * 1000
+      $localStorageStore.lastUpdate > Date.now() - 6 * 60 * 1000
     ) {
       const newRates = { ...$store.tokensExchangeRates };
       $localStorageStore.tokenExchangeRates.forEach(([token, rates]) => {
         newRates[token] = {
           ...rates,
-          realPriceInTez: 0,
-          realPriceInToken: 0
+          realPriceInTez: rates.tezToToken,
+          realPriceInToken: rates.tokenToTez
         };
+        favoriteTokens[token] = $store.tokens[token];
       });
       const newBalances = { ...$store.tokensBalances };
       $localStorageStore.tokenBalances.forEach(([token, balance]) => {
         newBalances[token] = balance;
       });
+      store.updateTokensBalances(newBalances);
       store.updateTokensExchangeRates(newRates);
       store.updateXtzFiatExchangeRate($localStorageStore.xtzExchangeRate);
-      store.updateTokensBalances(newBalances);
       if ($store.firstLoading) store.updateFirstLoading(false);
     }
 
@@ -239,6 +255,8 @@
       type: "init",
       payload: {
         tokens: $store.tokens,
+        favoriteTokens:
+          Object.keys(favoriteTokens).length === 0 ? undefined : favoriteTokens,
         rpcUrl: $store.settings[$store.network].rpcUrl,
         network: $store.network,
         fiat: $localStorageStore.preferredFiat
@@ -268,6 +286,8 @@
         }
         // refreshes tokens exchange rates
         quipuWorker.postMessage({ type: "fetch-tokens-exchange-rates" });
+      } else if (document.visibilityState === "visible") {
+        lastAppVisibility = Date.now();
       }
     });
 

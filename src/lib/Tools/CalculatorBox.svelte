@@ -3,6 +3,7 @@
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import config from "../../config";
+  import { AvailableToken } from "../../types";
 
   export let tokenSymbol, value;
 
@@ -78,7 +79,14 @@
         value={value || ""}
         placeholder="0"
         on:input={e =>
-          dispatch("update", { val: e.target.value, token: tokenSymbol })}
+          dispatch("update", {
+            val: e.target.value,
+            token:
+              Object.keys(AvailableToken).includes(tokenSymbol) ||
+              tokenSymbol === "XTZ"
+                ? tokenSymbol
+                : "FIAT"
+          })}
       />
       <div class="exchange-rates">
         {#if (tokenSymbol === "XTZ" || config.validFiats

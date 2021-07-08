@@ -1,4 +1,3 @@
-import type { State, AvailableFiat } from "./types";
 import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
 import {
   findDex,
@@ -6,6 +5,7 @@ import {
   estimateTezInToken,
   estimateTokenInTez
 } from "@quipuswap/sdk";
+import type { State, AvailableFiat, AvailableToken } from "./types";
 import config from "./config";
 
 const ctx: Worker = self as any;
@@ -13,7 +13,7 @@ let localNetwork;
 
 let getExchangeRatesInterval, xtzFiatExchangeRateInterval;
 let Tezos: TezosToolkit;
-let localTokens: State["tokens"];
+let localTokens: State["tokens"] | Partial<State["tokens"]>;
 let localFiat: AvailableFiat;
 let xtzFiatExchangeRate = 0;
 
@@ -146,18 +146,25 @@ const fetchXtzFiatExchangeRate = async () => {
 
 const init = async (param: {
   tokens: State["tokens"];
+  favoriteTokens: Partial<State["tokens"]>;
   rpcUrl: string;
   network: State["network"];
   fiat: AvailableFiat;
 }) => {
-  const { tokens, rpcUrl, network, fiat } = param;
-  localTokens = tokens;
+  const { tokens, favoriteTokens, rpcUrl, network, fiat } = param;
+  if (favoriteTokens) {
+    localTokens = favoriteTokens;
+  } else {
+    localTokens = tokens;
+  }
   localNetwork = network;
   localFiat = fiat;
   Tezos = new TezosToolkit(rpcUrl);
   Tezos.setPackerProvider(new MichelCodecPacker());
 
   // sets up fetching tokens exchange rates
+  await getTokensExchangeRates();
+  localTokens = tokens;
   await getTokensExchangeRates();
   getExchangeRatesInterval = setInterval(getTokensExchangeRates, 60000);
   // sets up fetching XTZ-FIAT exchange rate

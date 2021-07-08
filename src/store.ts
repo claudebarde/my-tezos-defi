@@ -21,7 +21,7 @@ const settings: State["settings"] = {
     PLENTY: ""
   },
   mainnet: {
-    rpcUrl: "https://api.tez.ie/rpc/mainnet" //"https://mainnet-tezos.giganode.io"
+    rpcUrl: "https://mainnet-tezos.giganode.io" //"https://api.tez.ie/rpc/mainnet"
   }
 };
 
@@ -221,7 +221,7 @@ const initialState: State = {
       color: "#F6CE13",
       tokenId: 11
     },
-    sDAO: {
+    /*sDAO: {
       address: {
         mainnet: "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA",
         testnet: "KT1z"
@@ -234,7 +234,7 @@ const initialState: State = {
       storage: undefined,
       color: "#000000",
       tokenId: 1
-    },
+    },*/
     crDAO: {
       address: {
         mainnet: "KT1XPFjZqCULSnqfKaaYy8hJjeY63UNSGwXg",
@@ -293,7 +293,7 @@ const initialState: State = {
     wWBTC: undefined,
     wLINK: undefined,
     wMATIC: undefined,
-    sDAO: undefined,
+    //sDAO: undefined,
     crDAO: undefined,
     FLAME: undefined,
     KALAM: undefined
@@ -313,7 +313,7 @@ const initialState: State = {
     wWBTC: undefined,
     wLINK: undefined,
     wMATIC: undefined,
-    sDAO: undefined,
+    //sDAO: undefined,
     crDAO: undefined,
     FLAME: undefined,
     KALAM: undefined
@@ -327,7 +327,7 @@ const initialState: State = {
         testnet: "KT1z"
       },
       balance: undefined,
-      decimals: 0,
+      decimals: 6,
       info: [],
       alias: "QuipuSwap PLENTY",
       icons: ["QUIPU", AvailableToken.PLENTY],

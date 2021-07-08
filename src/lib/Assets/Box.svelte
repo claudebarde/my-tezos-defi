@@ -11,6 +11,7 @@
 
   export let assetsType: "owned" | "general",
     token: [AvailableToken | string, TokenContract] | "tez",
+    loadingAllExchangeRates: boolean,
     balancesInUsd;
 
   let nrOfTrends = 0;
@@ -117,6 +118,7 @@
     min-width: 180px;
 
     .icon {
+      position: relative;
       padding: 10px;
       a {
         text-decoration: none;
@@ -124,6 +126,27 @@
         img {
           width: 50px;
           height: 50px;
+          vertical-align: middle;
+        }
+      }
+
+      .loading-rates {
+        display: none;
+      }
+
+      &.loading {
+        padding: 4px;
+        .loading-rates {
+          display: block;
+          position: absolute;
+          top: -5px;
+          left: -5px;
+          width: 100%;
+          height: 100%;
+          border: solid 5px rgba(255, 255, 255, 0.3);
+          border-top-color: rgba(255, 255, 255, 0.6);
+          border-radius: 50%;
+          animation: spin 3s linear infinite;
         }
       }
     }
@@ -170,10 +193,20 @@
       }
     }
   }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 </style>
 
 <div class="box">
-  <div class="icon">
+  <div class="icon" class:loading={loadingAllExchangeRates}>
+    <div class="loading-rates" />
     <a href={`/#/token/${token === "tez" ? "XTZ" : token[0]}`}>
       <img
         src={`images/${token === "tez" ? "XTZ" : token[0]}.png`}

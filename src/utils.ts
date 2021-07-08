@@ -295,9 +295,9 @@ export const getOpIcons = (
         ? tokenIds.map(tokenId => config.wrapTokenIds[tokenId].name)
         : [AvailableToken.WRAP];
       break;
-    case "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA":
+    /*case "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA":
       icons = [AvailableToken.SDAO];
-      break;
+      break;*/
     case "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3":
       icons = ["crDAO"];
       break;
@@ -354,6 +354,15 @@ export const calculateValue = (op: any): number => {
       } else {
         return 0;
       }
+    } else if (entrypoint === "distribute") {
+      // WRAP PROTOCOL
+      let amount = 0;
+      op.parameter.value.forEach(val => {
+        if (val.to_ === localStore.userAddress) {
+          amount += +val.amount;
+        }
+      });
+      return amount / 10 ** token.decimals;
     } else {
       return 0;
     }

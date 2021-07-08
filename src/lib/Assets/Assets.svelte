@@ -8,6 +8,7 @@
 
   let expandGeneralAssets = true;
   let loading = true;
+  let loadingAllExchangeRates = true;
   let ticking = false;
   let showStickyHeader = false;
 
@@ -53,6 +54,14 @@
       // closes Other assets when user's balances are loaded
       expandGeneralAssets = false;
       loading = false;
+    }
+
+    if (
+      Object.values($store.tokensExchangeRates).every(el => el !== undefined)
+    ) {
+      // if some exchange rates are not set,
+      // it's probably because the ones that are set were pulled from the local storage
+      loadingAllExchangeRates = false;
     }
   });
 </script>
@@ -134,12 +143,14 @@
     </div>
   {/if}
   {#if assetsType === "general" && !expandGeneralAssets}
-    {#if Object.values($store.tokensExchangeRates).every(val => !val)}
-      <div style="padding: 15px">Loading...</div>
-    {:else}
-      <div class="ticker-container">
-        <div class="ticker-wrap">
-          <div class="ticker-move">
+    <div class="ticker-container">
+      <div class="ticker-wrap">
+        <div class="ticker-move">
+          {#if Object.values($store.tokensExchangeRates).some(val => !val)}
+            <div class="ticker-item">
+              Loading exchange rates, please wait...
+            </div>
+          {:else}
             {#each Object.entries($store.tokensExchangeRates).filter(entry => $store.tokensBalances[entry[0]] === undefined) as entry (entry[0])}
               {#if entry[1]}
                 <div class="ticker-item">
@@ -148,22 +159,25 @@
                 </div>
               {/if}
             {/each}
-          </div>
+          {/if}
         </div>
       </div>
-    {/if}
+    </div>
   {:else}
     <div class="container-grid">
       {#if assetsType === "owned" && $store.userAddress}
-        <Box {assetsType} token="tez" {balancesInUsd} />
-      {:else if assetsType === "general"}
-        <Box {assetsType} token="tez" {balancesInUsd} />
+        <Box
+          {assetsType}
+          token="tez"
+          {balancesInUsd}
+          {loadingAllExchangeRates}
+        />
       {/if}
       {#each Object.entries($store.tokens) as token}
         {#if assetsType === "owned" && $store.tokensBalances[token[0]]}
-          <Box {assetsType} {token} {balancesInUsd} />
+          <Box {assetsType} {token} {balancesInUsd} {loadingAllExchangeRates} />
         {:else if assetsType === "general" && !$store.tokensBalances[token[0]]}
-          <Box {assetsType} {token} {balancesInUsd} />
+          <Box {assetsType} {token} {balancesInUsd} {loadingAllExchangeRates} />
         {/if}
       {/each}
     </div>

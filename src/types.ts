@@ -16,7 +16,7 @@ export enum AvailableToken {
   WRAP = "WRAP",
   WDAI = "wDAI",
   WWBTC = "wWBTC",
-  SDAO = "sDAO",
+  //SDAO = "sDAO",
   CRDAO = "crDAO",
   FLAME = "FLAME",
   KALAM = "KALAM",

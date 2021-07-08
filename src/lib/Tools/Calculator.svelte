@@ -54,6 +54,7 @@
     }
     // updates tokens prices
     Object.keys(conversions).forEach(tk => {
+      console.log(tk, $store.tokensExchangeRates[tk]);
       if (tk === token) {
         conversions[tk] = val;
       } else {
@@ -158,7 +159,7 @@
   on:dblclick={handleDoubleClick}
 />
 
-{#if !Object.values($store.tokensExchangeRates).every(val => val === undefined)}
+{#if !Object.values($store.tokensExchangeRates).some(val => val === undefined)}
   <span
     class="material-icons"
     style="cursor:pointer"

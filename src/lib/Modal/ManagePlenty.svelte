@@ -10,6 +10,7 @@
   let openModal = false;
   let loading = false;
   let balance = 0;
+  let plentyXtzLpBalance = 0;
   let body = [];
   let token: AvailableToken;
   let decimals = 18;
@@ -227,12 +228,7 @@
     loading = true;
     body = [];
     rewards = "N/A";
-
-    if (id === "PLENTY-KALAM") {
-      tokenForRewards = AvailableToken.KALAM;
-    } else {
-      tokenForRewards = AvailableToken.PLENTY;
-    }
+    tokenForRewards = AvailableToken.PLENTY;
 
     const inv = Object.values($store.investments).find(
       details => details.address[$store.network] === contractAddress
@@ -288,6 +284,26 @@
       body = [...body, `APR: ${apr.toFixed(2)} %`];
       const apy = ((1 + apr / 100 / 365) ** 365 - 1) * 100;
       body = [...body, `APY: ${apy.toFixed(2)} %`];
+
+      // calculates balances of Plenty-XTZ LP tokens
+      if (id === "PLENTY-XTZ-LP") {
+        const qlpContract = await $store.Tezos.wallet.at(
+          $store.tokens.PLENTY.dexContractAddress
+        );
+        const qlpStorage: any = await qlpContract.storage();
+        const qlpBalance = await qlpStorage.storage.ledger.get(
+          $store.userAddress
+        );
+        if (
+          qlpBalance &&
+          qlpBalance.balance &&
+          qlpBalance.balance.toNumber() > 0
+        ) {
+          plentyXtzLpBalance = qlpBalance.balance.toNumber();
+        } else {
+          plentyXtzLpBalance = 0;
+        }
+      }
 
       loading = false;
     } else {
@@ -363,7 +379,11 @@
             type="text"
             bind:value={newStake}
             placeholder={token
-              ? `Max: ${Math.floor($store.tokensBalances[token] * 1000) / 1000}`
+              ? `Max: ${
+                  id === "PLENTY-XTZ-LP"
+                    ? plentyXtzLpBalance / 10 ** 6
+                    : Math.floor($store.tokensBalances[token] * 1000) / 1000
+                }`
               : "ERROR"}
           />
           {#if staking}

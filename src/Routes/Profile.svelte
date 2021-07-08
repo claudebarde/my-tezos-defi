@@ -73,6 +73,26 @@
           const fa2Transactions = await fa2TransactionsResponse.json();
           unprocessedTxs = [...unprocessedTxs, ...fa2Transactions];
         }
+        // fetches distribution from WRAP protocol
+        const wrapDistributeUrl = `https://api.mainnet.tzkt.io/v1/operations/transactions?target=KT1LRboPna9yQY9BrjtQYDS1DVxhKESK4VVd&parameter.[*].to_=tz1Me1MGhK7taay748h4gPnX2cXvbgL6xsYL&level.ge=${
+          currentLevel - 60 * 24 * daysInThePast
+        }&limit=200`;
+        const wrapDistributeResponse = await fetch(wrapDistributeUrl);
+        if (wrapDistributeResponse) {
+          const wrapDistribute = await wrapDistributeResponse.json();
+          wrapDistribute.forEach(tx => {
+            if (
+              tx?.parameter?.entrypoint &&
+              tx.parameter.entrypoint === "distribute"
+            ) {
+              tx.parameter.value.forEach(val => {
+                if (val.to_ === $store.userAddress) {
+                  unprocessedTxs = [...unprocessedTxs, tx];
+                }
+              });
+            }
+          });
+        }
 
         unprocessedTxs.sort((a, b) => b.id - a.id);
 

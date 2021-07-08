@@ -17,7 +17,7 @@ const initialState: HistoricalDataState = {
     wWBTC: [],
     wLINK: [],
     wMATIC: [],
-    sDAO: [],
+    //sDAO: [],
     crDAO: [],
     FLAME: [],
     KALAM: []
