@@ -8,7 +8,6 @@
 
   let expandGeneralAssets = true;
   let loading = true;
-  let loadingAllExchangeRates = true;
   let ticking = false;
   let showStickyHeader = false;
 
@@ -54,14 +53,6 @@
       // closes Other assets when user's balances are loaded
       expandGeneralAssets = false;
       loading = false;
-    }
-
-    if (
-      Object.values($store.tokensExchangeRates).every(el => el !== undefined)
-    ) {
-      // if some exchange rates are not set,
-      // it's probably because the ones that are set were pulled from the local storage
-      loadingAllExchangeRates = false;
     }
   });
 </script>
@@ -166,18 +157,13 @@
   {:else}
     <div class="container-grid">
       {#if assetsType === "owned" && $store.userAddress}
-        <Box
-          {assetsType}
-          token="tez"
-          {balancesInUsd}
-          {loadingAllExchangeRates}
-        />
+        <Box {assetsType} token="tez" {balancesInUsd} />
       {/if}
       {#each Object.entries($store.tokens) as token}
         {#if assetsType === "owned" && $store.tokensBalances[token[0]]}
-          <Box {assetsType} {token} {balancesInUsd} {loadingAllExchangeRates} />
+          <Box {assetsType} {token} {balancesInUsd} />
         {:else if assetsType === "general" && !$store.tokensBalances[token[0]]}
-          <Box {assetsType} {token} {balancesInUsd} {loadingAllExchangeRates} />
+          <Box {assetsType} {token} {balancesInUsd} />
         {/if}
       {/each}
     </div>

@@ -11,12 +11,12 @@
 
   export let assetsType: "owned" | "general",
     token: [AvailableToken | string, TokenContract] | "tez",
-    loadingAllExchangeRates: boolean,
     balancesInUsd;
 
   let nrOfTrends = 0;
   let trend: "up" | "down" | "same" | undefined = undefined;
   let trendModalOpen = false;
+  let loadingExchangeRates = true;
 
   /*const dummyChartData = {
     data: [
@@ -89,6 +89,7 @@
       }
     } else {
       // calculate tez trend
+      loadingExchangeRates = false;
       if (
         $store.xtzData.historic.length > 0 &&
         Date.now() - 60_000 > $store.xtzData.historic[0].timestamp
@@ -103,6 +104,14 @@
           store.updateTezBalance(balance.toNumber());
         }
       }
+    }
+
+    if (
+      $store.tokensExchangeRates[token[0]] &&
+      $store.tokensExchangeRates[token[0]].tezToToken !==
+        $store.tokensExchangeRates[token[0]].realPriceInTez
+    ) {
+      loadingExchangeRates = false;
     }
   });
 </script>
@@ -205,7 +214,7 @@
 </style>
 
 <div class="box">
-  <div class="icon" class:loading={loadingAllExchangeRates}>
+  <div class="icon" class:loading={loadingExchangeRates}>
     <div class="loading-rates" />
     <a href={`/#/token/${token === "tez" ? "XTZ" : token[0]}`}>
       <img
