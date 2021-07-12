@@ -277,7 +277,7 @@
         document.visibilityState === "visible" &&
         Date.now() > lastAppVisibility + 3 * 60 * 1000
       ) {
-        console.log("app visibility:", lastAppVisibility);
+        //console.log("app visibility:", lastAppVisibility);
         lastAppVisibility = Date.now();
         // refreshes XTZ balance
         const balance = await $store.Tezos.tz.getBalance($store.userAddress);

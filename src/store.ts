@@ -21,7 +21,7 @@ const settings: State["settings"] = {
     PLENTY: ""
   },
   mainnet: {
-    rpcUrl: "https://mainnet-tezos.giganode.io" //"https://api.tez.ie/rpc/mainnet"
+    rpcUrl: "https://api.tez.ie/rpc/mainnet" // "https://mainnet-tezos.giganode.io"
   }
 };
 
@@ -341,7 +341,7 @@ const initialState: State = {
         testnet: "KT1z"
       },
       balance: undefined,
-      decimals: 0,
+      decimals: 6,
       info: [],
       alias: "QuipuSwap kUSD",
       icons: ["QUIPU", AvailableToken.KUSD],

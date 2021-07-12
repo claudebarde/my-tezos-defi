@@ -2,17 +2,93 @@
   import { afterUpdate } from "svelte";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
-  import { getKolibriOvens } from "../../utils";
-  import type { KolibriOvenData } from "../../types";
+  import {
+    getKolibriOvens,
+    getPlentyReward,
+    prepareOperation
+  } from "../../utils";
+  import type { KolibriOvenData, AvailableInvestments } from "../../types";
+  import { AvailableToken } from "../../types";
   import Row from "./Row.svelte";
 
   let kolibriOvens: KolibriOvenData[] = [];
   let kolibriOvensChecked = false;
   let plentyValueInXtz = true;
+  let availableRewards = {};
   let showEmptyPlentyPools = false;
+  let harvestingAll = false;
+  let harvestingAllSuccess = undefined;
 
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
+
+  const harvestAll = async () => {
+    harvestingAll = true;
+    // gets the addresses of pools with rewards to harvest
+    let allRewards = [];
+    if (showEmptyPlentyPools) {
+      allRewards = (
+        await Promise.all(
+          Object.values($store.investments)
+            .filter(inv => inv.platform === "plenty")
+            .map(inv =>
+              (async () => ({
+                address: inv.address[$store.network],
+                rewards: await getPlentyReward(
+                  $store.userAddress,
+                  inv.address[$store.network],
+                  $store.lastOperations[0].level,
+                  inv.decimals
+                )
+              }))()
+            )
+        )
+      ).filter(res => res.rewards.status);
+    } else {
+      allRewards = Object.entries(availableRewards).map(item => ({
+        address: item[0],
+        rewards: { totalRewards: item[1] }
+      }));
+    }
+    const contractCalls = await Promise.all(
+      allRewards.map(async res => {
+        const contract = await $store.Tezos.wallet.at(res.address);
+        return contract.methods.GetReward([["unit"]]);
+      })
+    );
+    const fee = [
+      0,
+      0,
+      ...allRewards.map(res => res.rewards.totalRewards)
+    ].reduce((a, b) => +a + +b);
+    console.log(contractCalls, fee);
+    // batches transactions
+    try {
+      const batch = prepareOperation({
+        contractCalls: contractCalls,
+        amount: +fee,
+        tokenSymbol: AvailableToken.PLENTY
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      const receipt = await op.receipt();
+      harvestingAll = false;
+      if (!receipt) {
+        harvestingAllSuccess = false;
+        throw `Operation failed: ${receipt}`;
+      } else {
+        harvestingAllSuccess = true;
+        availableRewards = {};
+        setTimeout(() => {
+          harvestingAllSuccess = undefined;
+        }, 2000);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      harvestingAll = false;
+    }
+  };
 
   afterUpdate(async () => {
     // finds if user has Kolibri ovens
@@ -87,8 +163,8 @@
                   {shortenHash(oven.address)}
                 </a>
               </div>
-              <div>{+oven.locked / 10 ** 6} ꜩ</div>
-              <div>{+oven.borrowed / 10 ** 18} kUSD</div>
+              <div>{+(+oven.locked / 10 ** 6).toFixed(5) / 1} ꜩ</div>
+              <div>{+(+oven.borrowed / 10 ** 18).toFixed(5) / 1} kUSD</div>
             </div>
           {/if}
         {/each}
@@ -130,30 +206,65 @@
       {#each Object.entries($store.investments)
         .filter(inv => inv[1].platform === "plenty")
         .filter( inv => (showEmptyPlentyPools ? inv : inv[1].balance) ) as [_, data] (data.alias)}
-        <Row {data} platform={data.platform} valueInXtz={plentyValueInXtz} />
+        <Row
+          {data}
+          platform={data.platform}
+          valueInXtz={plentyValueInXtz}
+          on:new-rewards={event => {
+            availableRewards[data.address[$store.network]] = event.detail;
+          }}
+        />
       {/each}
-      <div class="row">
-        <div />
-        <div />
-        <div />
-        <div>
-          <button
-            class="button investments"
-            on:click={() => (plentyValueInXtz = !plentyValueInXtz)}
-          >
-            {#if plentyValueInXtz}
-              Show {$localStorageStore.preferredFiat}
-            {:else}
-              Show XTZ
-            {/if}
-          </button>
+      {#if Object.entries($store.investments)
+        .filter(inv => inv[1].platform === "plenty")
+        .filter(inv => inv[1].balance && inv[1].balance > 0).length > 0}
+        <div class="row">
+          <div />
+          <div />
+          <div />
+          <div>
+            <button
+              class="button investments"
+              on:click={() => (plentyValueInXtz = !plentyValueInXtz)}
+            >
+              {#if plentyValueInXtz}
+                Show {$localStorageStore.preferredFiat}
+              {:else}
+                Show XTZ
+              {/if}
+            </button>
+          </div>
+          {#if Object.keys(availableRewards).length === 0}
+            <div />
+          {:else}
+            <div>
+              {#if harvestingAll}
+                <button class="button investments loading">
+                  Harvesting <span class="material-icons"> sync </span>
+                </button>
+              {:else}
+                <!-- Harvest button states -->
+                {#if harvestingAllSuccess === true}
+                  <button class="button investments success">
+                    Harvested!
+                  </button>
+                {:else if harvestingAllSuccess === false}
+                  <button
+                    class="button investments error"
+                    on:click={harvestAll}
+                  >
+                    Retry
+                  </button>
+                {:else}
+                  <button class="button investments" on:click={harvestAll}>
+                    Harvest all
+                  </button>
+                {/if}
+              {/if}
+            </div>
+          {/if}
         </div>
-        <div>
-          <!--
-          -->
-          <button class="button investments">Harvest all</button>
-        </div>
-      </div>
+      {/if}
       {#if Object.values($store.investments)
         .filter(inv => inv.platform === "crunchy")
         .some(data => data.info.some(farm => farm.amount > 0))}

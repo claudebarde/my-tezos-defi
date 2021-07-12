@@ -54,7 +54,6 @@
     }
     // updates tokens prices
     Object.keys(conversions).forEach(tk => {
-      console.log(tk, $store.tokensExchangeRates[tk]);
       if (tk === token) {
         conversions[tk] = val;
       } else {

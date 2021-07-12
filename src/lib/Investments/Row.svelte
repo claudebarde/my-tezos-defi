@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { afterUpdate } from "svelte";
+  import { createEventDispatcher, afterUpdate } from "svelte";
   import store from "../../store";
   import { calcTotalShareValueInTez, getPlentyReward } from "../../utils";
   import ManagePlenty from "../Modal/ManagePlenty.svelte";
 
   export let data, platform, valueInXtz;
 
+  const dispatch = createEventDispatcher();
   let lastLevel = 0;
   let loadingPlentyRewards = false;
   let plentyRewards = "--";
@@ -28,8 +29,10 @@
         } else {
           plentyRewards = rewards.totalRewards.toFixed(5);
         }
+        dispatch("new-rewards", rewards.totalRewards);
       } else {
         plentyRewards = "N/A";
+        dispatch("new-rewards", 0);
       }
 
       lastLevel = level;

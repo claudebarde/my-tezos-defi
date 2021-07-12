@@ -594,7 +594,11 @@ export const getPlentyReward = async (
       totalRewards / Math.pow(10, decimals) + userDetails.rewards.toNumber();
     totalRewards = totalRewards / Math.pow(10, decimals); // Reducing to Token Decimals
 
-    return { status: true, totalRewards };
+    if (totalRewards >= 0) {
+      return { status: true, totalRewards };
+    } else {
+      throw `Negative rewards: ${totalRewards}`;
+    }
   } catch (error) {
     return { status: false, error };
   }
