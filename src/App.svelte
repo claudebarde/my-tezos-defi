@@ -77,13 +77,38 @@
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic") {
       const ops: Operation[] = [];
+      /*const testOp = {
+        id: "test",
+        hash: "123456",
+        level: 12355,
+        timestamp: new Date().toISOString(),
+        parameter: {
+          entrypoint: "transfer",
+          value: {
+            from: "tz1Q9ZuET5i4Yuitu35m1WX5GA27ZpR5siFk",
+            to: "tz1Me1MGhK7taay748h4gPnX2cXvbgL6xsYL",
+            value: "2516000000000000000"
+          }
+        },
+        sender: {
+          address: "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE",
+          alias: "PLENTY staking"
+        },
+        target: {
+          address: "KT1GRSvLoikDsXujKgZPsGLX8k8VvR2Tq95b",
+          alias: "PLENTY"
+        },
+        amount: 0,
+        status: "applied"
+      };
+      msg.data.msg.push(testOp);*/
       msg.data.msg.forEach(op => {
         //console.log("Operation:", op);
         const newOp: Operation = createNewOpEntry(op, $store.tokens);
-
         ops.push(newOp);
 
         if (
+          op.status === "applied" &&
           Object.values($store.tokens)
             .map(tk => tk.address[$store.network])
             .includes(op.target.address) &&
@@ -143,8 +168,9 @@
             Object.entries(updatedTokensBalances)
           );
         } else if (
-          op.sender.address === $store.userAddress ||
-          op.target.address === $store.userAddress
+          op.status === "applied" &&
+          (op.sender.address === $store.userAddress ||
+            op.target.address === $store.userAddress)
         ) {
           //console.log("User operation:", op);
           // Plenty GetReward

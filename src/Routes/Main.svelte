@@ -146,7 +146,8 @@
 {#if $store.userAddress}
   <div class="stats">
     <div>
-      Tokens + XTZ:
+      <!-- TOKENS + XTZ -->
+      Tokens value:
       {#if totalAmounts.XTZ}
         {totalAmounts.XTZ.toFixed(2)} XTZ
       {:else}
@@ -167,25 +168,6 @@
   </div>
   <div class="stats">
     <div>
-      Tokens value:
-      {#if totalAmounts.XTZ}
-        {totalAmounts.TOKENS.toFixed(2) / 1} XTZ
-      {:else}
-        N/A
-      {/if} - {#if totalAmounts.FIAT}
-        {+(totalAmounts.TOKENS * $store.xtzData.exchangeRate).toFixed(2) / 1}
-        {$localStorageStore.preferredFiat}
-      {:else}
-        N/A
-      {/if}
-    </div>
-    <div>
-      Owned tokens: {Object.values($store.tokensBalances).filter(tk => tk)
-        .length}
-    </div>
-  </div>
-  <div class="stats">
-    <div>
       {#if totalInvestments.XTZ && totalInvestments.FIAT}
         Investments: {+totalInvestments.XTZ.toFixed(2) / 1} XTZ - {+totalInvestments.FIAT.toFixed(
           2
@@ -194,6 +176,15 @@
       {/if}
     </div>
     <div />
+  </div>
+  <div class="stats">
+    <div>
+      {#if totalInvestments.XTZ && totalInvestments.FIAT && totalAmounts.XTZ && totalAmounts.FIAT}
+        Total: {+(totalInvestments.XTZ + totalAmounts.XTZ).toFixed(2) / 1} XTZ -
+        {+(totalInvestments.FIAT + totalAmounts.FIAT).toFixed(2) / 1}
+        {$localStorageStore.preferredFiat}
+      {/if}
+    </div>
   </div>
   <br />
 {:else}
