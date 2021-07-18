@@ -16,6 +16,7 @@ const loadInvestments = async (param: {
   rpcUrl: string;
   userAddress: TezosAccountAddress;
 }) => {
+  if (!localStore.investments) return null;
   // finds user's balances in investment contracts
   rpcUrl = param.rpcUrl;
   userAddress = param.userAddress;

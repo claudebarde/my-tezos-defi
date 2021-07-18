@@ -19,7 +19,7 @@
 
       const rewards = await getPlentyReward(
         $store.userAddress,
-        data.address[$store.network],
+        data.address,
         level,
         data.decimals
       );
@@ -77,9 +77,7 @@
     </div>
     <div>
       <a
-        href={`https://better-call.dev/mainnet/${
-          data.address[$store.network]
-        }/operations`}
+        href={`https://better-call.dev/mainnet/${data.address}/operations`}
         target="_blank"
         rel="noopener noreferrer nofollow"
       >
@@ -154,7 +152,7 @@
       <!--
     -->
       <ManagePlenty
-        contractAddress={data.address[$store.network]}
+        contractAddress={data.address}
         alias={data.alias}
         id={data.id}
       />
@@ -179,9 +177,7 @@
         </div>
         <div>
           <a
-            href={`https://better-call.dev/mainnet/${
-              data.address[$store.network]
-            }/operations`}
+            href={`https://better-call.dev/mainnet/${data.address}/operations`}
             target="_blank"
             rel="noopener noreferrer nofollow"
           >

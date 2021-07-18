@@ -5,23 +5,32 @@ import {
   estimateTezInToken,
   estimateTokenInTez
 } from "@quipuswap/sdk";
-import type { State, AvailableFiat, AvailableToken } from "./types";
+import type {
+  State,
+  AvailableFiat,
+  AvailableToken,
+  TokenContract
+} from "./types";
 import config from "./config";
 
 const ctx: Worker = self as any;
 let localNetwork;
+let favoriteTokens;
 
-let getExchangeRatesInterval, xtzFiatExchangeRateInterval;
+let getExchangeRatesInterval,
+  favoriteTokensInterval,
+  xtzFiatExchangeRateInterval;
 let Tezos: TezosToolkit;
-let localTokens: State["tokens"] | Partial<State["tokens"]>;
 let localFiat: AvailableFiat;
 let xtzFiatExchangeRate = 0;
 
-const getTokensExchangeRates = async () => {
+const getTokensExchangeRates = async (
+  tokens: [AvailableToken, TokenContract][]
+) => {
   const factories = config.quipuswapFactories;
 
   const exchangeRates = await Promise.all(
-    Object.entries(localTokens).map(async localToken => {
+    tokens.map(async localToken => {
       const [tokenSymbol, tokenInfo] = localToken;
       let token;
       if (tokenInfo.type === "fa2") {
@@ -31,17 +40,17 @@ const getTokensExchangeRates = async () => {
           !isNaN(+tokenInfo.ledgerKey[1])
         ) {
           token = {
-            contract: tokenInfo.address[localNetwork],
+            contract: tokenInfo.address,
             id: tokenInfo.ledgerKey[1]
           };
         } else {
           token = {
-            contract: tokenInfo.address[localNetwork],
+            contract: tokenInfo.address,
             id: 0
           };
         }
       } else {
-        token = { contract: tokenInfo.address[localNetwork] };
+        token = { contract: tokenInfo.address };
       }
 
       try {
@@ -145,31 +154,26 @@ const fetchXtzFiatExchangeRate = async () => {
 };
 
 const init = async (param: {
-  tokens: State["tokens"];
-  favoriteTokens: Partial<State["tokens"]>;
+  tokens: [AvailableToken, TokenContract][];
   rpcUrl: string;
   network: State["network"];
   fiat: AvailableFiat;
 }) => {
-  const { tokens, favoriteTokens, rpcUrl, network, fiat } = param;
-  if (favoriteTokens) {
-    localTokens = favoriteTokens;
-  } else {
-    localTokens = tokens;
-  }
+  const { rpcUrl, network, fiat, tokens } = param;
   localNetwork = network;
   localFiat = fiat;
+  favoriteTokens = tokens;
   Tezos = new TezosToolkit(rpcUrl);
   Tezos.setPackerProvider(new MichelCodecPacker());
-
-  // sets up fetching tokens exchange rates
-  await getTokensExchangeRates();
-  localTokens = tokens;
-  await getTokensExchangeRates();
-  getExchangeRatesInterval = setInterval(getTokensExchangeRates, 60000);
   // sets up fetching XTZ-FIAT exchange rate
   await fetchXtzFiatExchangeRate();
   xtzFiatExchangeRateInterval = setInterval(fetchXtzFiatExchangeRate, 60000);
+  if (!tokens || tokens.length === 0) {
+    ctx.postMessage({ type: "no-tokens" });
+  } else {
+    await getTokensExchangeRates(favoriteTokens);
+    favoriteTokensInterval = setInterval(() => getTokensExchangeRates, 60000);
+  }
 };
 
 ctx.addEventListener("message", async e => {
@@ -185,10 +189,18 @@ ctx.addEventListener("message", async e => {
     await fetchXtzFiatExchangeRate();
     xtzFiatExchangeRateInterval = setInterval(fetchXtzFiatExchangeRate, 60000);
   } else if (e.data.type === "fetch-tokens-exchange-rates") {
-    await getTokensExchangeRates();
+    await getTokensExchangeRates(e.data.payload);
+  } else if (e.data.type === "add-favorite") {
+    const tokenSymbol = e.data.payload;
+    if (!favoriteTokens.includes(tokenSymbol)) {
+      favoriteTokens = [...favoriteTokens, tokenSymbol];
+    }
+  } else if (e.data.type === "remove-favorite") {
+    favoriteTokens = [...favoriteTokens.filter(tk => tk !== e.data.payload)];
   } else if (e.data.type === "destroy") {
     clearInterval(getExchangeRatesInterval);
     clearInterval(xtzFiatExchangeRateInterval);
+    clearInterval(favoriteTokensInterval);
   }
 });
 

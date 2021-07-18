@@ -126,11 +126,12 @@ export const searchUserTokens = async ({
   tokens: State["tokens"] | { [p: string]: TokenContract };
   tokensBalances: State["tokensBalances"];
 }) => {
+  if (!tokens) return null;
   // search for user address in tokens ledgers
   const balances = await Promise.all(
     Object.entries(tokens).map(async (tokenInfo, i) => {
       const [tokenSymbol, token] = tokenInfo;
-      const contract = await Tezos.wallet.at(token.address[network]);
+      const contract = await Tezos.wallet.at(token.address);
       const storage = await contract.storage();
       // finds ledger in storage
       const ledgerPath = token.ledgerPath.split("/");
@@ -314,22 +315,21 @@ export const getOpIcons = (
 
 export const calculateValue = (op: any): number => {
   const localStore = get(store);
-  //console.log(op);
   const sender = op.sender;
   const target = op.target;
   const entrypoint = op.parameter ? op.parameter.entrypoint : null;
 
-  const tokenAddresses = Object.values(localStore.tokens).map(
-    tk => tk.address[localStore.network]
-  );
-  const investmentAddresses = Object.values(localStore.investments).map(
-    tk => tk.address[localStore.network]
-  );
+  const tokenAddresses = !localStore.tokens
+    ? []
+    : Object.values(localStore.tokens).map(tk => tk.address);
+  const investmentAddresses = !localStore.investments
+    ? []
+    : Object.values(localStore.investments).map(tk => tk.address);
 
   if (tokenAddresses.includes(target.address)) {
     // THIS IS ONE OF THE AVAILABLE TOKENS
     const token = Object.values(localStore.tokens).find(
-      tk => tk.address[localStore.network] === target.address
+      tk => tk.address === target.address
     );
     if (entrypoint === "transfer") {
       // FA1.2 TOKEN TRANFER
@@ -368,7 +368,7 @@ export const calculateValue = (op: any): number => {
     }
   } else if (investmentAddresses.includes(target.address)) {
     const contract = Object.values(localStore.investments).find(
-      inv => inv.address[localStore.network] === target.address
+      inv => inv.address === target.address
     );
 
     if (entrypoint === "stake" && contract.decimals) {
@@ -392,8 +392,7 @@ export const calculateValue = (op: any): number => {
       }
     } else if (
       entrypoint === "deposit" &&
-      target.address ===
-        localStore.investments["CRUNCHY-FARMS"].address[localStore.network]
+      target.address === localStore.investments["CRUNCHY-FARMS"].address
     ) {
       // CRUNCH DEPOSIT
       return (
@@ -477,9 +476,11 @@ export const createNewOpEntry = (
     alias = op.target.alias;
   } else {
     // check if alias is available in app
-    const invInfo = Object.values(localStore.investments).find(
-      inv => inv.address[localStore.network] === op.target.address
-    );
+    const invInfo = localStore.investments
+      ? Object.values(localStore.investments).find(
+          inv => inv.address === op.target.address
+        )
+      : null;
     if (invInfo) {
       alias = invInfo.alias;
     }

@@ -68,9 +68,9 @@
         tokens: $store.tokens,
         tokensBalances: $store.tokensBalances
       });
-      store.updateTokensBalances(newBalances);
-      // saves balances in local storage
-      localStorageStore.updateTokenBalances(Object.entries(newBalances));
+      if (newBalances) {
+        store.updateTokensBalances(newBalances);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -130,8 +130,6 @@
         tokensBalances: $store.tokensBalances
       });
       store.updateTokensBalances(newBalances);
-      // saves balances in local storage
-      localStorageStore.updateTokenBalances(Object.entries(newBalances));
     }
   });
 </script>

@@ -9,9 +9,8 @@
   import Modal from "../Modal/Modal.svelte";
   import { calculateTrend } from "../../utils";
 
-  export let assetsType: "owned" | "general",
-    token: [AvailableToken | string, TokenContract] | "tez",
-    balancesInUsd;
+  export let assetsType: "favorite" | "general" | "others",
+    token: [AvailableToken | string, TokenContract] | "tez";
 
   let nrOfTrends = 0;
   let trend: "up" | "down" | "same" | undefined = undefined;
@@ -77,6 +76,7 @@
   afterUpdate(async () => {
     if (token !== "tez") {
       if (
+        $historicDataStore.tokens.hasOwnProperty(token[0]) &&
         $historicDataStore.tokens[token[0]].length > 2 &&
         $historicDataStore.tokens[token[0]].length !== nrOfTrends
       ) {
@@ -107,6 +107,7 @@
     }
 
     if (
+      $store.tokensExchangeRates &&
       $store.tokensExchangeRates[token[0]] &&
       $store.tokensExchangeRates[token[0]].tezToToken !==
         $store.tokensExchangeRates[token[0]].realPriceInTez
@@ -223,7 +224,9 @@
       />
     </a>
   </div>
-  {#if $store.firstLoading || (token !== "tez" && $store.tokensExchangeRates[token[0]] === undefined)}
+  {#if token !== "tez" && $store.firstLoading}
+    <div class="info">Loading...</div>
+  {:else if token === "tez" && !$store.xtzData.exchangeRate}
     <div class="info">Loading...</div>
   {:else}
     <div class="info">
@@ -255,7 +258,7 @@
         <div>No data</div>
       {/if}
     </div>
-    {#if assetsType === "owned" && token !== "tez"}
+    {#if assetsType === "favorite" && token !== "tez" && $store.tokensBalances[token[0]]}
       <div class="info">
         <div>
           Balance: {+$store.tokensBalances[token[0]].toFixed(5) / 1 ||
@@ -263,16 +266,16 @@
         </div>
         {#if $store.tokensExchangeRates[token[0]]}
           <div>
-            {balancesInUsd[token[0]]
-              ? balancesInUsd[token[0]].toFixed(2) / 1
-              : ""}
+            {+(
+              $store.tokensBalances[token[0]] * $store.xtzData.exchangeRate
+            ).toFixed(2) / 1}
             {$localStorageStore.preferredFiat}
           </div>
         {:else}
           <div>N/A</div>
         {/if}
       </div>
-    {:else if assetsType === "owned" && token === "tez"}
+    {:else if token === "tez" && $store.xtzData.balance}
       <div class="info">
         <div>
           Balance: {+($store.xtzData.balance / 10 ** 6).toFixed(5) / 1}

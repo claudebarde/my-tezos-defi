@@ -16,7 +16,6 @@ export enum AvailableToken {
   WRAP = "WRAP",
   WDAI = "wDAI",
   WWBTC = "wWBTC",
-  //SDAO = "sDAO",
   CRDAO = "crDAO",
   FLAME = "FLAME",
   KALAM = "KALAM",
@@ -48,18 +47,15 @@ export enum AvailableInvestments {
 }
 
 export interface TokenContract {
-  address: {
-    mainnet: TezosContractAddress;
-    testnet: TezosContractAddress;
-  };
+  address: TezosContractAddress;
   dexContractAddress: TezosContractAddress;
   decimals: number;
   ledgerPath: string;
   ledgerKey: "address" | ["address", number] | [string, "address"];
   type: "fa1.2" | "fa2";
-  storage: any;
   color: string;
   tokenId?: number; // only for fa2 contracts
+  favorite: boolean;
 }
 
 export type IconValue = AvailableToken | "XTZ" | "QUIPU" | "crDAO" | "user";
@@ -100,25 +96,32 @@ export interface State {
       rpcUrl: string;
     };
   };
-  tokens: { [p in AvailableToken]: TokenContract };
-  tokensBalances: { [p in AvailableToken]: number | undefined };
-  tokensExchangeRates: {
-    [p in AvailableToken]: ExchangeRateData | undefined;
-  };
-  investments: {
-    [p in AvailableInvestments]: {
-      id: AvailableInvestments;
-      platform: "plenty" | "quipuswap" | "crunchy";
-      address: { mainnet: TezosContractAddress; testnet: TezosContractAddress };
-      balance: number | undefined;
-      decimals: number;
-      info: any;
-      icons: IconSet;
-      token: undefined | AvailableToken;
-      alias?: string;
-      shareValueInTez?: number;
-    };
-  };
+  tokens: { [p in AvailableToken]: TokenContract } | undefined;
+  tokensBalances: { [p in AvailableToken]: number } | undefined;
+  tokensExchangeRates:
+    | {
+        [p in AvailableToken]: ExchangeRateData | undefined;
+      }
+    | undefined;
+  investments:
+    | {
+        [p in AvailableInvestments]: {
+          id: AvailableInvestments;
+          platform: "plenty" | "quipuswap" | "crunchy";
+          address: {
+            mainnet: TezosContractAddress;
+            testnet: TezosContractAddress;
+          };
+          balance: number | undefined;
+          decimals: number;
+          info: any;
+          icons: IconSet;
+          token: undefined | AvailableToken;
+          alias?: string;
+          shareValueInTez?: number;
+        };
+      }
+    | undefined;
   lastOperations: Operation[];
   firstLoading: boolean;
   xtzData: {
@@ -128,15 +131,18 @@ export interface State {
   };
   serviceFee: null | number;
   admin: TezosAccountAddress;
+  defiData: string;
 }
 
 export interface HistoricalDataState {
-  tokens: {
-    [p in AvailableToken]: {
-      timestamp: number;
-      rate: { tokenToTez: number; tezToToken: number };
-    }[];
-  };
+  tokens:
+    | {
+        [p in AvailableToken]: {
+          timestamp: number;
+          rate: { tokenToTez: number; tezToToken: number };
+        }[];
+      }
+    | undefined;
 }
 
 export interface KolibriOvenData {
@@ -149,12 +155,8 @@ export interface KolibriOvenData {
 export interface LocalStorageState {
   preferredFiat: AvailableFiat;
   pushNotifications: boolean;
-  tokenExchangeRates: [
-    AvailableToken,
-    Omit<ExchangeRateData, "realPriceInTez" | "realPriceInToken">
-  ][];
-  xtzExchangeRate: number;
-  tokenBalances: [AvailableToken | "XTZ", number | null][];
+  favoriteTokens: AvailableToken[];
+  favoriteInvestments: AvailableInvestments[];
   lastUpdate: number;
   version: string;
 }

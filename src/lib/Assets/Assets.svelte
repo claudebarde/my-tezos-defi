@@ -1,18 +1,19 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
   import store from "../../store";
+  import localStorage from "../../localStorage";
   import Box from "./Box.svelte";
   import StickyHeader from "./StickyHeader.svelte";
 
-  export let balancesInUsd: any, assetsType: "owned" | "general";
+  export let assetsType: "general" | "favorite" | "others";
 
-  let expandGeneralAssets = true;
+  let expandGeneralAssets = false;
   let loading = true;
   let ticking = false;
   let showStickyHeader = false;
 
   const updateStickyHeaderDisplay = lastKnownScrollPosition => {
-    const container = document.getElementById("container-owned-tokens");
+    const container = document.getElementById("container-favorite-tokens");
     if (container) {
       const containerPos = container.getBoundingClientRect();
       /*console.log(
@@ -32,7 +33,7 @@
   };
 
   onMount(() => {
-    if (assetsType === "owned") {
+    if (assetsType === "favorite") {
       document.addEventListener("scroll", function (e) {
         const lastKnownScrollPosition = window.scrollY;
 
@@ -49,7 +50,11 @@
   });
 
   afterUpdate(() => {
-    if (loading && Object.values($store.tokensBalances).some(el => el)) {
+    if (
+      loading &&
+      $store.tokensBalances &&
+      Object.values($store.tokensBalances).some(el => el)
+    ) {
       // closes Other assets when user's balances are loaded
       expandGeneralAssets = false;
       loading = false;
@@ -80,7 +85,7 @@
       display: inline-block;
       white-space: nowrap;
       padding-right: 100%;
-      animation: ticker 30s linear infinite;
+      animation: ticker 40s linear infinite;
 
       &:hover {
         animation-play-state: paused;
@@ -107,22 +112,17 @@
   }
 </style>
 
-<div
-  class="container"
-  id={assetsType === "owned"
-    ? "container-owned-tokens"
-    : "container-general-tokens"}
->
+<div class="container" id={`container-${assetsType}-tokens`}>
   <div class="title">
-    {#if assetsType === "owned"}
-      Your assets
-    {:else if assetsType === "general" && Object.values($store.tokensBalances).some(el => el)}
-      Other assets
-    {:else}
+    {#if assetsType === "general"}
       Assets
+    {:else if assetsType === "favorite"}
+      Favorite assets
+    {:else if assetsType === "others"}
+      Other assets
     {/if}
   </div>
-  {#if assetsType === "general"}
+  {#if assetsType === "others"}
     <div class="expand">
       <button on:click={() => (expandGeneralAssets = !expandGeneralAssets)}>
         {#if expandGeneralAssets}
@@ -133,42 +133,61 @@
       </button>
     </div>
   {/if}
-  {#if assetsType === "general" && !expandGeneralAssets}
-    <div class="ticker-container">
-      <div class="ticker-wrap">
-        <div class="ticker-move">
-          {#if Object.values($store.tokensExchangeRates).some(val => !val)}
-            <div class="ticker-item">
-              Loading exchange rates, please wait...
-            </div>
-          {:else}
-            {#each Object.entries($store.tokensExchangeRates).filter(entry => $store.tokensBalances[entry[0]] === undefined) as entry (entry[0])}
-              {#if entry[1]}
-                <div class="ticker-item">
-                  <img src={`images/${entry[0]}.png`} alt="token" />&nbsp;&nbsp;
-                  {entry[0]}: {entry[1].tokenToTez} ꜩ
-                </div>
-              {/if}
-            {/each}
-          {/if}
+  {#if assetsType === "others"}
+    {#if !expandGeneralAssets}
+      <div class="ticker-container">
+        <div class="ticker-wrap">
+          <div class="ticker-move">
+            {#if !$store.tokensExchangeRates || ($store.tokensExchangeRates && Object.values($store.tokensExchangeRates).some(val => !val))}
+              <div class="ticker-item">
+                Loading exchange rates, please wait...
+              </div>
+            {:else}
+              {#each Object.entries($store.tokensExchangeRates)
+                .filter(token => !$localStorage.favoriteTokens.includes(token[0]))
+                .sort((a, b) => a[0]
+                    .toLowerCase()
+                    .localeCompare(b[0].toLowerCase())) as entry (entry[0])}
+                {#if entry[1]}
+                  <div class="ticker-item">
+                    <img
+                      src={`images/${entry[0]}.png`}
+                      alt="token"
+                    />&nbsp;&nbsp;
+                    {entry[0]}: {entry[1].tokenToTez} ꜩ
+                  </div>
+                {/if}
+              {/each}
+            {/if}
+          </div>
         </div>
       </div>
-    </div>
-  {:else}
-    <div class="container-grid">
-      {#if assetsType === "owned" && $store.userAddress}
-        <Box {assetsType} token="tez" {balancesInUsd} />
-      {/if}
-      {#each Object.entries($store.tokens) as token}
-        {#if assetsType === "owned" && $store.tokensBalances[token[0]]}
-          <Box {assetsType} {token} {balancesInUsd} />
-        {:else if assetsType === "general" && !$store.tokensBalances[token[0]]}
-          <Box {assetsType} {token} {balancesInUsd} />
+    {:else if expandGeneralAssets}
+      <div class="container-grid">
+        {#if $store.tokensExchangeRates && $store.tokensBalances}
+          {#each Object.entries($store.tokens).filter(token => !token[1].favorite) as token}
+            <Box {assetsType} {token} />
+          {/each}
+        {:else}
+          <div>Loading...</div>
         {/if}
-      {/each}
+      </div>
+    {/if}
+  {:else if assetsType === "favorite"}
+    <div class="container-grid">
+      <Box {assetsType} token="tez" />
+      {#if $store.tokens && $store.tokensExchangeRates && $store.tokensBalances}
+        {#each $localStorage.favoriteTokens.map( tk => [tk, $store.tokens[tk]] ) as token}
+          <Box {assetsType} {token} />
+        {/each}
+      {/if}
+    </div>
+  {:else if assetsType === "general"}
+    <div class="container-grid">
+      <Box {assetsType} token="tez" />
     </div>
   {/if}
 </div>
-{#if assetsType === "owned" && !$store.firstLoading && showStickyHeader}
-  <StickyHeader {balancesInUsd} />
+{#if assetsType === "favorite" && !$store.firstLoading && showStickyHeader}
+  <StickyHeader />
 {/if}

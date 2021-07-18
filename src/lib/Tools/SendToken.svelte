@@ -24,7 +24,7 @@
     }
     // prepares contract call
     const contract = await $store.Tezos.wallet.at(
-      $store.tokens[tokenSymbol].address[$store.network]
+      $store.tokens[tokenSymbol].address
     );
     let contractCall;
     if ($store.tokens[tokenSymbol].type === "fa1.2") {
