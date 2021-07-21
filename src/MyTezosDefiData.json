@@ -1,0 +1,327 @@
+{
+  "tokens": {
+    "kUSD": {
+      "address": "KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV",
+      "dexContractAddress": "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6",
+      "decimals": 18,
+      "ledgerPath": "balances",
+      "ledgerKey": "address",
+      "type": "fa1.2",
+      "color": "#3FBD93",
+      "whitelisted": true
+    },
+    "hDAO": {
+      "address": "KT1AFA2mwNUMNd4SsujE1YYp29vd8BZejyKW",
+      "decimals": 6,
+      "dexContractAddress": "KT1QxLqukyfohPV5kPkw97Rs6cw1DDDvYgbB",
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#020304",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "PLENTY": {
+      "address": "KT1GRSvLoikDsXujKgZPsGLX8k8VvR2Tq95b",
+      "dexContractAddress": "KT1X1LgNkQShpF9nRLYw3Dgdy4qp38MX617z",
+      "decimals": 18,
+      "ledgerPath": "balances",
+      "ledgerKey": "address",
+      "type": "fa1.2",
+      "color": "#5D0FAE",
+      "whitelisted": true
+    },
+    "wXTZ": {
+      "address": "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
+      "dexContractAddress": "KT1W3VGRUjvS869r4ror8kdaxqJAZUbPyjMT",
+      "decimals": 6,
+      "ledgerPath": "token/ledger",
+      "ledgerKey": "address",
+      "type": "fa1.2",
+      "color": "#00BAE7",
+      "whitelisted": true
+    },
+    "STKR": {
+      "address": "KT1AEfeckNbdEYwaMKkytBwPJPycz7jdSGea",
+      "dexContractAddress": "KT1BMEEPX7MWzwwadW3NCSZe9XGmFJ7rs7Dr",
+      "decimals": 18,
+      "ledgerPath": "token/ledger",
+      "ledgerKey": "address",
+      "type": "fa1.2",
+      "color": "#46C3E4",
+      "whitelisted": true
+    },
+    "tzBTC": {
+      "address": "KT1PWx2mnDueood7fEmfbBDKx1D9BAnnXitn",
+      "dexContractAddress": "KT1WBLrLE2vG8SedBqiSJFm4VVAZZBytJYHc",
+      "decimals": 8,
+      "ledgerPath": "0",
+      "ledgerKey": ["ledger", "address"],
+      "type": "fa1.2",
+      "color": "#2B71E3",
+      "whitelisted": true
+    },
+    "USDtz": {
+      "address": "KT1LN4LPSqTMS7Sd2CJw4bbDGRkMv2t68Fy9",
+      "dexContractAddress": "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb",
+      "decimals": 6,
+      "ledgerPath": "ledger",
+      "ledgerKey": "address",
+      "type": "fa1.2",
+      "color": "#159DA2",
+      "whitelisted": true
+    },
+    "ETHtz": {
+      "address": "KT19at7rQUvyjxnZ2fBv7D9zc8rkyG7gAoU8",
+      "dexContractAddress": "KT1Evsp2yA19Whm24khvFPcwimK6UaAJu8Zo",
+      "decimals": 18,
+      "ledgerPath": "ledger",
+      "ledgerKey": "address",
+      "type": "fa1.2",
+      "color": "#4E2CB6",
+      "whitelisted": true
+    },
+    "CRUNCH": {
+      "address": "KT1BHCumksALJQJ8q8to2EPigPW6qpyTr7Ng",
+      "dexContractAddress": "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4",
+      "decimals": 8,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": "address",
+      "type": "fa2",
+      "color": "#FEDD00",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "WRAP": {
+      "address": "KT1LRboPna9yQY9BrjtQYDS1DVxhKESK4VVd",
+      "dexContractAddress": "KT1FG63hhFtMEEEtmBSX2vuFmP87t9E7Ab4t",
+      "decimals": 8,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": "address",
+      "type": "fa2",
+      "color": "#FFCA00",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "wDAI": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1PQ8TMzGMfViRq4tCMFKD2QF5zwJnY67Xn",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 5],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 5,
+      "whitelisted": true
+    },
+    "wWBTC": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
+      "decimals": 8,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 19],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 19,
+      "whitelisted": true
+    },
+    "wLINK": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1Lpysr4nzcFegC9ci9kjoqVidwoanEmJWt",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 10],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 10,
+      "whitelisted": true
+    },
+    "wMATIC": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 11],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 11,
+      "whitelisted": true
+    },
+    "crDAO": {
+      "address": "KT1XPFjZqCULSnqfKaaYy8hJjeY63UNSGwXg",
+      "dexContractAddress": "KT1FHiJmJUgZMPtv5F8M4ZEa6cb1D9Lf758T",
+      "decimals": 8,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": "address",
+      "type": "fa2",
+      "color": "#8CFFFA",
+      "tokenId": 0,
+      "whitelisted": false
+    },
+    "FLAME": {
+      "address": "KT1Wa8yqRBpFCusJWgcQyjhRz7hUQAmFxW7j",
+      "dexContractAddress": "KT1Q93ftAUzvfMGPwC78nX8eouL1VzmHPd4d",
+      "decimals": 6,
+      "ledgerPath": "ledger",
+      "ledgerKey": "address",
+      "type": "fa2",
+      "color": "#FF9F00",
+      "tokenId": 0,
+      "whitelisted": false
+    },
+    "KALAM": {
+      "address": "KT1A5P4ejnLix13jtadsfV9GCnXLMNnab8UT",
+      "dexContractAddress": "KT1J3wTYb4xk5BsSBkg6ML55bX1xq7desS34",
+      "decimals": 10,
+      "ledgerPath": "ledger",
+      "ledgerKey": "address",
+      "type": "fa2",
+      "color": "#00B7AC",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "sDAO": {
+      "address": "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA",
+      "dexContractAddress": "KT1PrRTVNgxkRgyqqNQvwTiVhd55dqyxXJ6n",
+      "decimals": 0,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 1],
+      "type": "fa2",
+      "color": "#000000",
+      "tokenId": 1,
+      "whitelisted": false
+    }
+  },
+  "investments": {
+    "QUIPUSWAP-PLENTY": {
+      "id": "QUIPUSWAP-PLENTY",
+      "platform": "quipuswap",
+      "address": "KT1X1LgNkQShpF9nRLYw3Dgdy4qp38MX617z",
+      "decimals": 6,
+      "info": [],
+      "alias": "QuipuSwap PLENTY",
+      "icons": ["QUIPU", "PLENTY"],
+      "token": null
+    },
+    "QUIPUSWAP-KUSD": {
+      "id": "QUIPUSWAP-KUSD",
+      "platform": "quipuswap",
+      "address": "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6",
+      "decimals": 6,
+      "info": [],
+      "alias": "QuipuSwap kUSD",
+      "icons": ["QUIPU", "KUSD"],
+      "token": null
+    },
+    "QUIPUSWAP-USDtz": {
+      "id": "QUIPUSWAP-USDtz",
+      "platform": "quipuswap",
+      "address": "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb",
+      "decimals": 0,
+      "info": [],
+      "alias": "QuipuSwap USDtz",
+      "icons": ["QUIPU", "USDTZ"],
+      "token": null
+    },
+    "QUIPUSWAP-ETHtz": {
+      "id": "QUIPUSWAP-ETHtz",
+      "platform": "quipuswap",
+      "address": "KT1Evsp2yA19Whm24khvFPcwimK6UaAJu8Zo",
+      "decimals": 0,
+      "info": [],
+      "alias": "QuipuSwap ETHtz",
+      "icons": ["QUIPU", "ETHTZ"],
+      "token": null
+    },
+    "QUIPUSWAP-CRUNCH": {
+      "id": "QUIPUSWAP-CRUNCH",
+      "platform": "quipuswap",
+      "address": "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4",
+      "decimals": 0,
+      "info": [],
+      "alias": "QuipuSwap CRUNCH",
+      "icons": ["QUIPU", "CRUNCH"],
+      "token": null
+    },
+    "PLENTY-XTZ-LP": {
+      "id": "PLENTY-XTZ-LP",
+      "platform": "plenty",
+      "address": "KT1JQAZqShNMakSNXc2cgTzdAWZFemGcU6n1",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-XTZ LP farm",
+      "icons": ["PLENTY", "XTZ"],
+      "token": "PLENTY"
+    },
+    "PLENTY-hDAO": {
+      "id": "PLENTY-hDAO",
+      "platform": "plenty",
+      "address": "KT1Ga15wxGR5oWK1vBG2GXbjYM6WqPgpfRSP",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty hDAO staking",
+      "icons": ["PLENTY", "HDAO"],
+      "token": "hDAO"
+    },
+    "PLENTY-PLENTY": {
+      "id": "PLENTY-PLENTY",
+      "platform": "plenty",
+      "address": "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty staking",
+      "icons": ["PLENTY", "PLENTY"],
+      "token": "PLENTY"
+    },
+    "PLENTY-ETHtz": {
+      "id": "PLENTY-ETHtz",
+      "platform": "plenty",
+      "address": "KT19asUVzBNidHgTHp8MP31YSphooMb3piWR",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty ETHtz staking",
+      "icons": ["PLENTY", "ETHTZ"],
+      "token": "ETHtz"
+    },
+    "PLENTY-USDtz": {
+      "id": "PLENTY-USDtz",
+      "platform": "plenty",
+      "address": "KT1MBqc3GHpApBXaBZyvY63LF6eoFyTWtySn",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty USDtz staking",
+      "icons": ["PLENTY", "USDTZ"],
+      "token": "USDtz"
+    },
+    "PLENTY-wLINK": {
+      "id": "PLENTY-wLINK",
+      "platform": "plenty",
+      "address": "KT1KyxPitU1xNbTriondmAFtPEcFhjSLV1hz",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty wLINK staking",
+      "icons": ["PLENTY", "wLINK"],
+      "token": "PLENTY"
+    },
+    "PLENTY-wMATIC": {
+      "id": "PLENTY-wMATIC",
+      "platform": "plenty",
+      "address": "KT1XherecVvrE6X4PV5RTwdEKNzA294ZE9T9",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty wMATIC staking",
+      "icons": ["PLENTY", "wMATIC"],
+      "token": "PLENTY"
+    },
+    "CRUNCHY-FARMS": {
+      "id": "CRUNCHY-FARMS",
+      "platform": "crunchy",
+      "address": "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3",
+      "decimals": 6,
+      "info": [],
+      "alias": "Crunchy.Network Farms V1",
+      "icons": ["crDAO"],
+      "token": "CRUNCH"
+    }
+  }
+}

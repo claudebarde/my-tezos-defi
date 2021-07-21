@@ -1,23 +1,30 @@
 import { HubConnectionBuilder } from "@microsoft/signalr";
 import { get } from "svelte/store";
 import store from "./store";
+import type { State } from "./types";
 
 const ctx: Worker = self as any;
-const localStore = get(store);
-const addresses = [
-  ...Object.values(localStore.tokens).map(
-    token => token.address[localStore.network]
-  ),
-  ...Object.values(localStore.investments).map(
-    entry => entry.address[localStore.network]
-  )
-];
+let tokens: State["tokens"];
+let addresses = [];
 
 const connection = new HubConnectionBuilder()
   .withUrl("https://api.tzkt.io/v1/events")
   .build();
 
 async function init() {
+  const localStore = get(store);
+  if (tokens) {
+    addresses = [
+      ...addresses,
+      ...Object.values(tokens).map(token => token.address)
+    ];
+  }
+  if (localStore.investments) {
+    addresses = [
+      ...addresses,
+      ...Object.values(localStore.investments).map(entry => entry.address)
+    ];
+  }
   // open connection
   await connection.start();
   // subscribe to account transactions
@@ -55,8 +62,11 @@ connection.on("operations", msg => {
   }
 });
 
-init();
-
-ctx.postMessage("Live traffic worker ready");
+ctx.addEventListener("message", async e => {
+  if (e.data.type === "init") {
+    tokens = e.data.payload;
+    await init();
+  }
+});
 
 export {};

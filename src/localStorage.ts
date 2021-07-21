@@ -1,17 +1,16 @@
 import { writable } from "svelte/store";
 import type { LocalStorageState } from "./types";
-import { AvailableFiat, AvailableToken, ExchangeRateData } from "./types";
+import { AvailableFiat, AvailableToken, AvailableInvestments } from "./types";
 
 let state = null;
 const localStorageItemName = "mtd";
 let initialState: LocalStorageState = {
   preferredFiat: AvailableFiat.USD,
   pushNotifications: false,
-  tokenExchangeRates: [],
-  xtzExchangeRate: 0,
-  tokenBalances: [],
+  favoriteTokens: [],
+  favoriteInvestments: [],
   lastUpdate: Date.now(),
-  version: "2.7.0"
+  version: "3.0.0"
 };
 
 if (globalThis?.window?.localStorage) {
@@ -55,12 +54,13 @@ if (globalThis?.window?.localStorage) {
         return newStore;
       });
     },
-    updateTokenExchangeRates: (data: [AvailableToken, ExchangeRateData][]) => {
+    addFavoriteToken: (tokenSymbol: AvailableToken) => {
       store.update(store => {
         const newStore = {
           ...store,
-          tokenExchangeRates: data,
-          lastUpdate: Date.now()
+          favoriteTokens: !store.favoriteTokens.includes(tokenSymbol)
+            ? [...store.favoriteTokens, tokenSymbol]
+            : store.favoriteTokens
         };
         window.localStorage.setItem(
           localStorageItemName,
@@ -69,12 +69,43 @@ if (globalThis?.window?.localStorage) {
         return newStore;
       });
     },
-    updateTokenBalances: (data: [AvailableToken, number][]) => {
+    removeFavoriteToken: (tokenSymbol: AvailableToken) => {
       store.update(store => {
         const newStore = {
           ...store,
-          tokenBalances: data,
-          lastUpdate: Date.now()
+          favoriteTokens: [
+            ...store.favoriteTokens.filter(tk => tk !== tokenSymbol)
+          ]
+        };
+        window.localStorage.setItem(
+          localStorageItemName,
+          JSON.stringify(newStore)
+        );
+        return newStore;
+      });
+    },
+    addFavoriteInvestment: (investment: AvailableInvestments) => {
+      store.update(store => {
+        const newStore = {
+          ...store,
+          favoriteInvestments: !store.favoriteInvestments.includes(investment)
+            ? [...store.favoriteInvestments, investment]
+            : store.favoriteInvestments
+        };
+        window.localStorage.setItem(
+          localStorageItemName,
+          JSON.stringify(newStore)
+        );
+        return newStore;
+      });
+    },
+    removeFavoriteInvestment: (investment: AvailableInvestments) => {
+      store.update(store => {
+        const newStore = {
+          ...store,
+          favoriteInvestments: [
+            ...store.favoriteInvestments.filter(inv => inv !== investment)
+          ]
         };
         window.localStorage.setItem(
           localStorageItemName,

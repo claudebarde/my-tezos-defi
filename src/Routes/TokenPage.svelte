@@ -45,7 +45,7 @@
       if (currentLevel) {
         const lastTxsResponse = await fetch(
           `https://api.mainnet.tzkt.io/v1/operations/transactions?target=${
-            $store.tokens[tokenSymbol].address[$store.network]
+            $store.tokens[tokenSymbol].address
           }&level.ge=${
             currentLevel - 60 * hours * days
           }&sort.desc=id&limit=${contractCallResponseLimit}`
@@ -80,7 +80,7 @@
     if (!unsupportedToken && $store.Tezos && storage === undefined) {
       // loads contract storage
       const contract = await $store.Tezos.wallet.at(
-        $store.tokens[tokenSymbol].address[$store.network]
+        $store.tokens[tokenSymbol].address
       );
       storage = await contract.storage();
       if (storage.hasOwnProperty("metadata")) {
@@ -197,9 +197,7 @@
       <br />
       <div>
         <a
-          href={`https://better-call.dev/mainnet/${
-            $store.tokens[tokenSymbol].address[$store.network]
-          }/operations`}
+          href={`https://better-call.dev/mainnet/${$store.tokens[tokenSymbol].address}/operations`}
           target="_blank"
           rel="noopener noreferrer nofollow"
         >

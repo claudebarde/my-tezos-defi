@@ -7,7 +7,6 @@ import type { TezosAccountAddress } from "./types";
 import config from "./config";
 
 const ctx: Worker = self as any;
-const localStore = get(store);
 let Tezos: TezosToolkit;
 let rpcUrl: string;
 let userAddress: TezosAccountAddress;
@@ -16,6 +15,8 @@ const loadInvestments = async (param: {
   rpcUrl: string;
   userAddress: TezosAccountAddress;
 }) => {
+  const localStore = get(store);
+  if (!localStore.investments) return null;
   // finds user's balances in investment contracts
   rpcUrl = param.rpcUrl;
   userAddress = param.userAddress;
@@ -188,10 +189,14 @@ const loadInvestments = async (param: {
   ctx.postMessage({ type: "investments", msg: results });
 };
 
+const init = async () => {
+  console.log("init");
+};
+
 ctx.addEventListener("message", async e => {
-  // removes current interval
   if (e.data.type === "init") {
-    await loadInvestments(e.data.payload);
+    await init();
+    //await loadInvestments(e.data.payload);
   }
 });
 

@@ -12,20 +12,10 @@
 
   let totalAmounts = { XTZ: undefined, TOKENS: undefined, FIAT: undefined };
   let totalInvestments = { XTZ: undefined, FIAT: undefined };
-  let balancesInUsd = {
-    kUSD: undefined,
-    hDAO: undefined,
-    PLENTY: undefined,
-    wXTZ: undefined,
-    STKR: undefined,
-    tzBTC: undefined,
-    USDtz: undefined,
-    ETHtz: undefined
-  };
   let updating = false;
 
   afterUpdate(async () => {
-    if (!updating) {
+    if (!updating && $store.tokensBalances && $store.tokensExchangeRates) {
       updating = true;
 
       // calculates total in XTZ and USD
@@ -51,22 +41,8 @@
           $store.xtzData.exchangeRate
       };
 
-      // calculates balances in USD
-      if ($store.tokensBalances && $store.xtzData.exchangeRate) {
-        Object.entries($store.tokensBalances).forEach(
-          ([tokenSymbol, balance]) => {
-            if (balance && $store.tokensExchangeRates[tokenSymbol]) {
-              balancesInUsd[tokenSymbol] =
-                balance *
-                $store.tokensExchangeRates[tokenSymbol].tokenToTez *
-                $store.xtzData.exchangeRate;
-            }
-          }
-        );
-      }
-
       // calculates total investments
-      if ($store.xtzData.exchangeRate) {
+      if ($store.xtzData.exchangeRate && $store.investments) {
         let tempTotalInvestments = 0;
         Object.entries($store.investments).forEach(([contractName, data]) => {
           if ($store.tokensExchangeRates[data.token] === undefined) return;
@@ -197,12 +173,14 @@
   </div>
   <br />
 {/if}
-{#if $store.userAddress && Object.values($store.tokensBalances).some(el => el)}
-  <Assets {balancesInUsd} assetsType="owned" />
-  <br />
-  <br />
+{#if $store.userAddress && $store.tokens && $store.tokensExchangeRates && $store.tokensBalances}
+  <Assets assetsType="favorite" />
+{:else}
+  <Assets assetsType="general" />
 {/if}
-<Assets {balancesInUsd} assetsType="general" />
+<br />
+<br />
+<Assets assetsType="others" />
 <br />
 <br />
 {#if $store.userAddress}

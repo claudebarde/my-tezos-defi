@@ -10,6 +10,7 @@
 
   afterUpdate(() => {
     if (
+      $store.tokensExchangeRates &&
       $store.lastOperations.length > 1 &&
       Object.values($store.tokensExchangeRates).every(val => val)
     ) {
@@ -34,8 +35,7 @@
           if (op.raw?.parameter?.entrypoint === "transfer") {
             const { value } = op.raw.parameter;
             const findToken = Object.entries($store.tokens).find(
-              ([_, info]) =>
-                info.address[$store.network] === op.raw.target.address
+              ([_, info]) => info.address === op.raw.target.address
             );
             if (findToken) {
               const tokenSymbol: AvailableToken =
@@ -48,9 +48,10 @@
                 value.forEach(op => {
                   op.txs.forEach(tx => {
                     valueInToken = +tx.amount / 10 ** tokenDecimals;
-                    valueInXtz =
-                      valueInToken *
-                      $store.tokensExchangeRates[tokenSymbol].tokenToTez;
+                    valueInXtz = $store.tokensExchangeRates[tokenSymbol]
+                      ? valueInToken *
+                        $store.tokensExchangeRates[tokenSymbol].tokenToTez
+                      : 0;
                   });
                 });
               } else if (

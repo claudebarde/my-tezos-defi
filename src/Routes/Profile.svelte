@@ -1,27 +1,71 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
   import store from "../store";
+  import localStorageStore from "../localStorage";
   import type { Operation } from "../types";
-  import { createNewOpEntry } from "../utils";
+  import { createNewOpEntry, searchUserTokens } from "../utils";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
+  import workersStore from "../workersStore";
+  import PoolSelection from "../lib/Investments/PoolSelection.svelte";
 
   let lastTransactions: Operation[] = [];
   let daysInThePast = 7;
 
+  const addFavoriteToken = async tokenSymbol => {
+    // adds token to favorite list
+    localStorageStore.addFavoriteToken(tokenSymbol);
+    // gets token exchange rate
+    $workersStore.quipuWorker.postMessage({
+      type: "add-favorite",
+      payload: tokenSymbol
+    });
+    // gets user's balance
+    const userToken = await searchUserTokens({
+      Tezos: $store.Tezos,
+      network: $store.network,
+      userAddress: $store.userAddress,
+      tokens: Object.entries($store.tokens).filter(tk =>
+        $localStorageStore.favoriteTokens.includes(tk[0])
+      ),
+      tokensBalances: $store.tokensBalances
+    });
+    if (userToken) {
+      store.updateTokensBalances({
+        ...$store.tokensBalances,
+        [tokenSymbol]: userToken[tokenSymbol]
+      });
+    }
+  };
+
+  const removeFavoriteToken = async tokenSymbol => {
+    // removes token from favorite list
+    localStorageStore.removeFavoriteToken(tokenSymbol);
+    // unsubscribes token from favorite
+    $workersStore.quipuWorker.postMessage({
+      type: "remove-favorite",
+      payload: tokenSymbol
+    });
+  };
+
   afterUpdate(async () => {
     if (lastTransactions.length === 0 && $store.userAddress) {
-      const addresses = [
-        ...Object.values($store.tokens).map(
-          token => token.address[$store.network]
-        ),
-        ...Object.values($store.investments).map(
-          entry => entry.address[$store.network]
-        )
-      ];
+      let addresses = [];
+      if ($store.tokens) {
+        addresses = [
+          ...addresses,
+          ...Object.values($store.tokens).map(token => token.address)
+        ];
+      }
+      if ($store.investments) {
+        [
+          ...addresses,
+          ...Object.values($store.investments).map(entry => entry.address)
+        ];
+      }
 
       let unprocessedTxs = [];
       const headResponse = await fetch("https://api.mainnet.tzkt.io/v1/head");
-      if (headResponse) {
+      if (headResponse && addresses.length > 0) {
         const head = await headResponse.json();
         const currentLevel = head.level;
         // fetches transactions where user was the sender
@@ -121,6 +165,61 @@
   h2 {
     text-align: center;
   }
+
+  .container-favorite {
+    padding: 10px 0px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    .box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 5px;
+      margin: 5px;
+      min-width: 100px;
+
+      .icon {
+        position: relative;
+        padding: 10px;
+        margin: 5px;
+        cursor: pointer;
+
+        img {
+          width: 30px;
+          height: 30px;
+          vertical-align: middle;
+        }
+
+        .favorite-mark {
+          display: block;
+          position: absolute;
+          top: -5px;
+          left: -5px;
+          width: 100%;
+          height: 100%;
+          border: solid 5px transparent;
+          border-radius: 50%;
+        }
+
+        &.favorite {
+          .favorite-mark {
+            border-color: #059669;
+          }
+        }
+      }
+    }
+  }
+
+  .container-investments {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto;
+    justify-items: center;
+    padding: 10px;
+  }
 </style>
 
 <div>
@@ -129,5 +228,51 @@
   </a>
 </div>
 <h2>Your profile</h2>
+<br /><br />
+<div class="container">
+  <div class="title">Available tokens</div>
+  <div class="container-favorite">
+    {#if $store.tokens}
+      {#each Object.keys($store.tokens).sort((a, b) => a
+          .toLowerCase()
+          .localeCompare(b.toLowerCase())) as tokenSymbol}
+        <div class="box">
+          <div
+            class="icon"
+            class:favorite={$localStorageStore.favoriteTokens.includes(
+              tokenSymbol
+            )}
+            on:click={async () => {
+              if ($localStorageStore.favoriteTokens.includes(tokenSymbol)) {
+                await removeFavoriteToken(tokenSymbol);
+              } else {
+                await addFavoriteToken(tokenSymbol);
+              }
+            }}
+          >
+            <div class="favorite-mark" />
+            <img
+              src={`images/${tokenSymbol === "tez" ? "XTZ" : tokenSymbol}.png`}
+              alt={tokenSymbol}
+            />
+          </div>
+          <div>{tokenSymbol}</div>
+        </div>
+      {/each}
+    {:else}
+      <div>Loading...</div>
+    {/if}
+  </div>
+</div>
+<br /><br />
+<div class="container">
+  <div class="title">Investments</div>
+  <div class="container-investments">
+    <PoolSelection platform="quipuswap" />
+    <PoolSelection platform="plenty" />
+    <PoolSelection platform="crunchy" />
+    <PoolSelection platform="flame" />
+  </div>
+</div>
 <br /><br />
 <LastOperations lastOps={lastTransactions} filterOps={{ opType: "user" }} />

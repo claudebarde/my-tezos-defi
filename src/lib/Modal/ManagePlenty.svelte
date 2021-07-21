@@ -122,7 +122,7 @@
         if (!$store.tokens.hasOwnProperty(token)) throw "Unknown token";
         const tokenContract = $store.tokens[token];
         const tokenContractInstance = await $store.Tezos.wallet.at(
-          tokenContract.address[$store.network]
+          tokenContract.address
         );
         let approveCall;
         if (tokenContract.type === "fa1.2") {
@@ -231,7 +231,7 @@
     tokenForRewards = AvailableToken.PLENTY;
 
     const inv = Object.values($store.investments).find(
-      details => details.address[$store.network] === contractAddress
+      details => details.address === contractAddress
     );
     if (inv.token) {
       decimals = $store.tokens[inv.token].decimals;

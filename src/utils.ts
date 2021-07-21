@@ -4,6 +4,7 @@ import type {
   Wallet,
   WalletOperationBatch
 } from "@taquito/taquito";
+import { findDex, estimateTezInShares } from "@quipuswap/sdk";
 import type {
   HistoricalDataState,
   TokenContract,
@@ -13,7 +14,8 @@ import type {
   Operation,
   IconValue,
   IconSet,
-  KolibriOvenData
+  KolibriOvenData,
+  AvailableInvestments
 } from "./types";
 import { AvailableToken } from "./types";
 import { char2Bytes } from "@taquito/utils";
@@ -123,14 +125,15 @@ export const searchUserTokens = async ({
   Tezos: TezosToolkit;
   network: State["network"];
   userAddress: TezosAccountAddress;
-  tokens: State["tokens"] | { [p: string]: TokenContract };
+  tokens: [AvailableToken | string, TokenContract][];
   tokensBalances: State["tokensBalances"];
 }) => {
+  if (!tokens) return null;
   // search for user address in tokens ledgers
   const balances = await Promise.all(
-    Object.entries(tokens).map(async (tokenInfo, i) => {
+    tokens.map(async (tokenInfo, i) => {
       const [tokenSymbol, token] = tokenInfo;
-      const contract = await Tezos.wallet.at(token.address[network]);
+      const contract = await Tezos.wallet.at(token.address);
       const storage = await contract.storage();
       // finds ledger in storage
       const ledgerPath = token.ledgerPath.split("/");
@@ -314,22 +317,21 @@ export const getOpIcons = (
 
 export const calculateValue = (op: any): number => {
   const localStore = get(store);
-  //console.log(op);
   const sender = op.sender;
   const target = op.target;
   const entrypoint = op.parameter ? op.parameter.entrypoint : null;
 
-  const tokenAddresses = Object.values(localStore.tokens).map(
-    tk => tk.address[localStore.network]
-  );
-  const investmentAddresses = Object.values(localStore.investments).map(
-    tk => tk.address[localStore.network]
-  );
+  const tokenAddresses = !localStore.tokens
+    ? []
+    : Object.values(localStore.tokens).map(tk => tk.address);
+  const investmentAddresses = !localStore.investments
+    ? []
+    : Object.values(localStore.investments).map(tk => tk.address);
 
   if (tokenAddresses.includes(target.address)) {
     // THIS IS ONE OF THE AVAILABLE TOKENS
     const token = Object.values(localStore.tokens).find(
-      tk => tk.address[localStore.network] === target.address
+      tk => tk.address === target.address
     );
     if (entrypoint === "transfer") {
       // FA1.2 TOKEN TRANFER
@@ -368,7 +370,7 @@ export const calculateValue = (op: any): number => {
     }
   } else if (investmentAddresses.includes(target.address)) {
     const contract = Object.values(localStore.investments).find(
-      inv => inv.address[localStore.network] === target.address
+      inv => inv.address === target.address
     );
 
     if (entrypoint === "stake" && contract.decimals) {
@@ -392,8 +394,7 @@ export const calculateValue = (op: any): number => {
       }
     } else if (
       entrypoint === "deposit" &&
-      target.address ===
-        localStore.investments["CRUNCHY-FARMS"].address[localStore.network]
+      target.address === localStore.investments["CRUNCHY-FARMS"].address
     ) {
       // CRUNCH DEPOSIT
       return (
@@ -477,9 +478,11 @@ export const createNewOpEntry = (
     alias = op.target.alias;
   } else {
     // check if alias is available in app
-    const invInfo = Object.values(localStore.investments).find(
-      inv => inv.address[localStore.network] === op.target.address
-    );
+    const invInfo = localStore.investments
+      ? Object.values(localStore.investments).find(
+          inv => inv.address === op.target.address
+        )
+      : null;
     if (invInfo) {
       alias = invInfo.alias;
     }
@@ -630,4 +633,93 @@ export const prepareOperation = (p: {
       mutez: true
     });
   }
+};
+
+export const loadInvestment = async (investment: AvailableInvestments) => {
+  const localStore = get(store);
+  if (localStore.investments && localStore.investments[investment]) {
+    const inv = localStore.investments[investment];
+    const contract = await localStore.Tezos.wallet.at(inv.address);
+    const storage: any = await contract.storage();
+    if (inv.platform === "plenty") {
+      const userData = await storage.balances.get(localStore.userAddress);
+      if (userData) {
+        const balance = userData.balance.toNumber();
+        const info = [];
+        const entries = userData.InvestMap.entries();
+        for (let entry of entries) {
+          info.push({
+            amount: entry[1].amount.toNumber(),
+            level: entry[1].level.toNumber()
+          });
+        }
+
+        if (inv.id === "PLENTY-XTZ-LP") {
+          const dex = await findDex(
+            localStore.Tezos,
+            config.quipuswapFactories,
+            {
+              contract: localStore.tokens.PLENTY.address
+            }
+          );
+          const dexStorage = await dex.contract.storage();
+          const tezInShares = await estimateTezInShares(dexStorage, 1000000);
+
+          return {
+            id: inv.id,
+            balance,
+            info,
+            shareValueInTez: tezInShares.toNumber()
+          };
+        }
+
+        return { id: inv.id, balance, info };
+      } else {
+        return { id: inv.id, balance: 0, info: undefined };
+      }
+    } else if (inv.platform === "quipuswap") {
+      const userData = await storage.storage.ledger.get(localStore.userAddress);
+      if (userData) {
+        return {
+          id: inv.id,
+          balance: userData.balance.toNumber(),
+          info: undefined
+        };
+      }
+    }
+
+    return null;
+  }
+};
+
+export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
+  const localStore = get(store);
+
+  return tokens.sort((a, b) => {
+    let balanceA = a[1];
+    let balanceB = b[1];
+    if (balanceA === undefined) {
+      balanceA = 0;
+    } else if (balanceB === undefined) {
+      balanceB = 0;
+    }
+
+    if (
+      !localStore.tokensExchangeRates[a[0]] ||
+      !localStore.tokensExchangeRates[b[0]]
+    ) {
+      return 0;
+    }
+
+    return (
+      balanceB *
+        (localStore.tokensExchangeRates[b[0]]
+          ? localStore.tokensExchangeRates[b[0]].tokenToTez
+          : 0) -
+      balanceA *
+        (localStore.tokensExchangeRates[a[0]]
+          ? localStore.tokensExchangeRates[a[0]].tokenToTez
+          : 0)
+    );
+  });
 };

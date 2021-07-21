@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, afterUpdate, onDestroy } from "svelte";
   import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
   import Router from "svelte-spa-router";
   import routes from "./Routes/routes";
@@ -9,7 +9,7 @@
   import Footer from "./lib/Footer/Footer.svelte";
   import QuipuWorker from "worker-loader!./quipuswap.worker";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
-  import type { Operation, State } from "./types";
+  import type { Operation, State, AvailableToken } from "./types";
   import { createNewOpEntry } from "./utils";
   import workersStore from "./workersStore";
   import localStorageStore from "./localStorage";
@@ -38,19 +38,22 @@
         }
       });
       store.updateTokensExchangeRates(updatedTokensExchangeRates);
-      // updates local storage
-      const ratesToStore = Object.entries(updatedTokensExchangeRates)
-        .filter(
-          ([token, _]) =>
-            $store.tokensBalances[token] && $store.tokensBalances[token] > 0
-        )
-        .map(([token, data]) => [
-          token,
-          { tokenToTez: data.tokenToTez, tezToToken: data.tezToToken }
-        ]);
-      localStorageStore.updateTokenExchangeRates(ratesToStore);
 
       if ($store.firstLoading) store.updateFirstLoading(false);
+
+      // if tokens are favorite tokens, gets exchange rates for other tokens
+      const exchangeRateTokens = exchangeRates
+        .map(item => item.tokenSymbol)
+        .sort();
+      const favoriteTokens = $localStorageStore.favoriteTokens.sort();
+      if (exchangeRateTokens.join("") === favoriteTokens.join("")) {
+        quipuWorker.postMessage({
+          type: "fetch-tokens-exchange-rates",
+          payload: Object.entries($store.tokens).filter(
+            token => !$localStorageStore.favoriteTokens.includes(token[0])
+          )
+        });
+      }
 
       if (perfStart) {
         perfEnd = performance.now();
@@ -71,6 +74,13 @@
         $localStorageStore.preferredFiat,
         xtzFiatExchangeRate
       );
+    } else if (msg.data.type === "no-tokens" && $store.tokens) {
+      quipuWorker.postMessage({
+        type: "fetch-tokens-exchange-rates",
+        payload: Object.entries($store.tokens).filter(
+          token => !token[1].favorite
+        )
+      });
     }
   };
 
@@ -103,6 +113,7 @@
       };
       msg.data.msg.push(testOp);*/
       msg.data.msg.forEach(op => {
+        if (!$store.tokens) return;
         //console.log("Operation:", op);
         const newOp: Operation = createNewOpEntry(op, $store.tokens);
         ops.push(newOp);
@@ -110,7 +121,7 @@
         if (
           op.status === "applied" &&
           Object.values($store.tokens)
-            .map(tk => tk.address[$store.network])
+            .map(tk => tk.address)
             .includes(op.target.address) &&
           op?.parameter?.entrypoint === "transfer"
         ) {
@@ -118,7 +129,7 @@
           //console.log("Transfer operation:", op);
           let updatedTokensBalances = { ...$store.tokensBalances };
           let token = Object.entries($store.tokens).find(
-            tk => tk[1].address[$store.network] === op.target.address
+            tk => tk[1].address === op.target.address
           );
           if (!token) return;
 
@@ -163,10 +174,6 @@
           updatedTokensBalances[token[0]] = userBalance;
           // updates balances
           store.updateTokensBalances(updatedTokensBalances);
-          // saves balances in local storage
-          localStorageStore.updateTokenBalances(
-            Object.entries(updatedTokensBalances)
-          );
         } else if (
           op.status === "applied" &&
           (op.sender.address === $store.userAddress ||
@@ -179,7 +186,7 @@
             op.sender.address === $store.userAddress &&
             Object.keys($store.investments)
               .filter(inv => inv.split("-")[0].toLowerCase() === "plenty")
-              .map(inv => $store.investments[inv].address[$store.network])
+              .map(inv => $store.investments[inv].address)
               .includes(op.target.address)
           ) {
             if (op.parameter.entrypoint === "GetReward") {
@@ -193,7 +200,7 @@
             ) {
               // user staked or unstaked his tokens
               const investment = Object.values($store.investments).find(
-                inv => inv.address[$store.network] === op.target.address
+                inv => inv.address === op.target.address
               );
               if (!balanceUpdateRequests.includes(investment.token)) {
                 balanceUpdateRequests.push(investment.token);
@@ -212,7 +219,7 @@
             op.sender.address === $store.userAddress &&
             Object.keys($store.investments)
               .filter(inv => inv.split("-")[0].toLowerCase() === "quipuswap")
-              .map(inv => $store.investments[inv].address[$store.network])
+              .map(inv => $store.investments[inv].address)
               .includes(op.target.address)
           ) {
             // user interacts with Quipuswap pool
@@ -222,9 +229,11 @@
       });
       store.updateLastOperations(ops);
 
-      const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-      if (balance) {
-        store.updateTezBalance(balance.toNumber());
+      if ($store.userAddress) {
+        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+        if (balance) {
+          store.updateTezBalance(balance.toNumber());
+        }
       }
     } else if (msg.data.type === "init-last-ops") {
       // loads transactions from the last 5 blocks
@@ -236,9 +245,11 @@
       });
       store.updateLastOperations(ops);
 
-      const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-      if (balance) {
-        store.updateTezBalance(balance.toNumber());
+      if ($store.userAddress) {
+        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+        if (balance) {
+          store.updateTezBalance(balance.toNumber());
+        }
       }
     }
   };
@@ -250,29 +261,52 @@
     Tezos.setPackerProvider(new MichelCodecPacker());
     store.updateTezos(Tezos);
 
-    // loads exchange rates from local storage if recent enough
-    let favoriteTokens: Partial<State["tokens"]> = {};
-    if (
-      $localStorageStore.lastUpdate &&
-      $localStorageStore.lastUpdate > Date.now() - 6 * 60 * 1000
-    ) {
-      const newRates = { ...$store.tokensExchangeRates };
-      $localStorageStore.tokenExchangeRates.forEach(([token, rates]) => {
-        newRates[token] = {
-          ...rates,
-          realPriceInTez: rates.tezToToken,
-          realPriceInToken: rates.tokenToTez
-        };
-        favoriteTokens[token] = $store.tokens[token];
-      });
-      const newBalances = { ...$store.tokensBalances };
-      $localStorageStore.tokenBalances.forEach(([token, balance]) => {
-        newBalances[token] = balance;
-      });
-      store.updateTokensBalances(newBalances);
-      store.updateTokensExchangeRates(newRates);
-      store.updateXtzFiatExchangeRate($localStorageStore.xtzExchangeRate);
-      if ($store.firstLoading) store.updateFirstLoading(false);
+    // fetches data from the IPFS
+    const defiDataResponse = await fetch(
+      `https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
+    );
+    if (defiDataResponse) {
+      const defiData: {
+        tokens: Omit<State["tokens"], "favorite">;
+        investments: any;
+      } = await defiDataResponse.json();
+      if (defiData.tokens) {
+        // updates store
+        let tokens = [];
+        Object.entries(defiData.tokens).map(([tokenSymbol, token]) => {
+          tokens.push([
+            tokenSymbol,
+            {
+              ...token,
+              favorite: $localStorageStore.favoriteTokens.includes(tokenSymbol)
+            }
+          ]);
+        });
+        store.updateTokens(tokens);
+        // exchange rates
+        let exchangeRatesDefault = {};
+        Object.keys(defiData.tokens).forEach(
+          tk => (exchangeRatesDefault[tk] = undefined)
+        );
+        store.updateTokensExchangeRates(
+          exchangeRatesDefault as State["tokensExchangeRates"]
+        );
+        // available investments
+        store.updateInvestments(defiData.investments);
+        // init historical data store
+        historicDataStore.initTokens(
+          Object.keys(defiData.tokens) as AvailableToken[]
+        );
+      }
+
+      if (defiData.investments) {
+        Object.keys(defiData.investments).forEach(key => {
+          defiData.investments[key].balance = 0;
+          defiData.investments[key].favorite =
+            $localStorageStore.favoriteInvestments.includes(key) ? true : false;
+        });
+        store.updateInvestments({ ...defiData.investments });
+      }
     }
 
     // inits Quipuswap worker
@@ -280,9 +314,9 @@
     quipuWorker.postMessage({
       type: "init",
       payload: {
-        tokens: $store.tokens,
-        favoriteTokens:
-          Object.keys(favoriteTokens).length === 0 ? undefined : favoriteTokens,
+        tokens: Object.entries($store.tokens).filter(
+          token => token[1].favorite
+        ),
         rpcUrl: $store.settings[$store.network].rpcUrl,
         network: $store.network,
         fiat: $localStorageStore.preferredFiat
@@ -291,10 +325,6 @@
     quipuWorker.onmessage = handleQuipuWorker;
     // saves quipuWorker
     workersStore.updateQuipuWorker(quipuWorker);
-
-    // inits live traffic worker
-    liveTrafficWorker = new LiveTrafficWorker();
-    liveTrafficWorker.onmessage = handleLiveTrafficWorker;
 
     // reloads some data when user comes back to the page
     lastAppVisibility = Date.now();
@@ -305,19 +335,36 @@
       ) {
         //console.log("app visibility:", lastAppVisibility);
         lastAppVisibility = Date.now();
-        // refreshes XTZ balance
-        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-        if (balance) {
-          store.updateTezBalance(balance.toNumber());
-        }
         // refreshes tokens exchange rates
-        quipuWorker.postMessage({ type: "fetch-tokens-exchange-rates" });
+        quipuWorker.postMessage({
+          type: "fetch-tokens-exchange-rates",
+          payload: Object.entries($store.tokens)
+        });
+        // refreshes XTZ balance
+        if ($store.userAddress) {
+          const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+          if (balance) {
+            store.updateTezBalance(balance.toNumber());
+          }
+        }
       } else if (document.visibilityState === "visible") {
         lastAppVisibility = Date.now();
       }
     });
 
     appReady = true;
+  });
+
+  afterUpdate(() => {
+    if (!liveTrafficWorker && $store.tokens) {
+      // inits live traffic worker
+      liveTrafficWorker = new LiveTrafficWorker();
+      liveTrafficWorker.postMessage({
+        type: "init",
+        payload: $store.tokens
+      });
+      liveTrafficWorker.onmessage = handleLiveTrafficWorker;
+    }
   });
 
   onDestroy(() => {
