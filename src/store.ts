@@ -44,7 +44,7 @@ const initialState: State = {
   },
   serviceFee: process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "QmW9BG1nS8QXpZgKeL5banX7zy2ZvighyNgSJuXvgvgjAq"
+  defiData: "QmbrajTfZUbynZk7EWrTo4scVBBFmzfxLj8vYv9FAJYyTy"
 };
 
 const store = writable(initialState);
@@ -95,7 +95,7 @@ const state = {
         store.tokensBalances &&
         !Object.values(store.tokensBalances).every(entry => entry === undefined)
       ) {
-        let newTokens: any = {};
+        let newTokens = { ...store.tokens };
         const sortedBalances = Object.entries(store.tokensBalances).sort(
           (a, b) => {
             let balanceA = a[1];

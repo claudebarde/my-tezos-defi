@@ -108,15 +108,13 @@ export interface State {
         [p in AvailableInvestments]: {
           id: AvailableInvestments;
           platform: "plenty" | "quipuswap" | "crunchy";
-          address: {
-            mainnet: TezosContractAddress;
-            testnet: TezosContractAddress;
-          };
+          address: TezosContractAddress;
           balance: number | undefined;
           decimals: number;
           info: any;
           icons: IconSet;
           token: undefined | AvailableToken;
+          favorite: boolean;
           alias?: string;
           shareValueInTez?: number;
         };

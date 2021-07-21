@@ -261,7 +261,7 @@
       "info": [],
       "alias": "Plenty hDAO staking",
       "icons": ["PLENTY", "HDAO"],
-      "token": "HDAO"
+      "token": "hDAO"
     },
     "PLENTY-PLENTY": {
       "id": "PLENTY-PLENTY",
@@ -281,7 +281,7 @@
       "info": [],
       "alias": "Plenty ETHtz staking",
       "icons": ["PLENTY", "ETHTZ"],
-      "token": "ETHTZ"
+      "token": "ETHtz"
     },
     "PLENTY-USDtz": {
       "id": "PLENTY-USDtz",
@@ -291,7 +291,7 @@
       "info": [],
       "alias": "Plenty USDtz staking",
       "icons": ["PLENTY", "USDTZ"],
-      "token": "USDTZ"
+      "token": "USDtz"
     },
     "PLENTY-wLINK": {
       "id": "PLENTY-wLINK",

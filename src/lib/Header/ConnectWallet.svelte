@@ -10,8 +10,8 @@
   import type { TezosAccountAddress } from "../../types";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
-  import InvestmentsWorker from "worker-loader!../../investments.worker";
-  import { handleInvestmentsWorker } from "../../workersHandlers";
+  //import InvestmentsWorker from "worker-loader!../../investments.worker";
+  //import { handleInvestmentsWorker } from "../../workersHandlers";
   import { searchUserTokens } from "../../utils";
 
   const walletOptions = {
@@ -50,7 +50,7 @@
       $store.Tezos.setWalletProvider(wallet);
 
       // listens to investments worker
-      investmentsWorker = new InvestmentsWorker();
+      /*investmentsWorker = new InvestmentsWorker();
       investmentsWorker.onmessage = handleInvestmentsWorker;
       investmentsWorker.postMessage({
         type: "init",
@@ -58,14 +58,16 @@
           rpcUrl: $store.settings[$store.network].rpcUrl,
           userAddress: $store.userAddress
         }
-      });
+      });*/
 
       username = await fetchTezosDomain(userAddress);
       const newBalances = await searchUserTokens({
         Tezos: $store.Tezos,
         network: $store.network,
         userAddress: $store.userAddress,
-        tokens: $store.tokens,
+        tokens: Object.entries($store.tokens).filter(tk =>
+          $localStorageStore.favoriteTokens.includes(tk[0])
+        ),
         tokensBalances: $store.tokensBalances
       });
       if (newBalances) {
@@ -111,7 +113,7 @@
       $store.Tezos.setWalletProvider(wallet);
 
       // listens to investments worker
-      investmentsWorker = new InvestmentsWorker();
+      /*investmentsWorker = new InvestmentsWorker();
       investmentsWorker.onmessage = handleInvestmentsWorker;
       investmentsWorker.postMessage({
         type: "init",
@@ -119,14 +121,16 @@
           rpcUrl: $store.settings[$store.network].rpcUrl,
           userAddress: $store.userAddress
         }
-      });
+      });*/
 
       username = await fetchTezosDomain(userAddress);
       const newBalances = await searchUserTokens({
         Tezos: $store.Tezos,
         network: $store.network,
         userAddress: $store.userAddress,
-        tokens: $store.tokens,
+        tokens: Object.entries($store.tokens).filter(tk =>
+          $localStorageStore.favoriteTokens.includes(tk[0])
+        ),
         tokensBalances: $store.tokensBalances
       });
       store.updateTokensBalances(newBalances);

@@ -2,13 +2,59 @@
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import Modal from "../Modal/Modal.svelte";
+  import config from "../../config";
+  import { loadInvestment } from "../../utils";
 
   export let platform;
 
   let isModalOpen = false;
+  let loadingInv = "";
 
   const showModal = () => {
     isModalOpen = true;
+  };
+
+  const addFavoriteInvestment = async investment => {
+    // fetches balance for investment
+    loadingInv = investment;
+    const savedInv = await loadInvestment(investment);
+    if (savedInv) {
+      store.updateInvestments({
+        ...$store.investments,
+        [savedInv.id]: {
+          ...$store.investments[savedInv.id],
+          balance: savedInv.balance,
+          info: savedInv.info,
+          favorite: true,
+          shareValueInTez:
+            savedInv.id === "PLENTY-XTZ-LP"
+              ? savedInv.shareValueInTez
+              : undefined
+        }
+      });
+      // saves investment into the local storage
+      localStorageStore.addFavoriteInvestment(investment);
+    }
+
+    loadingInv = "";
+  };
+
+  const removeFavoriteInvestment = async investment => {
+    loadingInv = investment;
+
+    // removes investment from local storage
+    localStorageStore.removeFavoriteInvestment(investment);
+    // resets balance to zero in store
+    store.updateInvestments({
+      ...$store.investments,
+      [investment]: {
+        ...$store.investments[investment],
+        balance: 0,
+        favorite: false
+      }
+    });
+
+    loadingInv = "";
   };
 </script>
 
@@ -23,6 +69,10 @@
     width: 80%;
     display: flex;
     justify-content: space-between;
+
+    .material-icons.checkbox {
+      cursor: pointer;
+    }
   }
 </style>
 
@@ -84,12 +134,22 @@
               .toLowerCase()
               .localeCompare(b[0].toLowerCase())) as investment}
           <div class="investment-selection-row">
-            <div>{investment[0]}</div>
+            <div>{investment[1].alias}</div>
             <div>
               {#if $localStorageStore.favoriteInvestments.includes(investment[0])}
-                <span class="material-icons"> check_box </span>
+                <span
+                  class="material-icons checkbox"
+                  on:click={() => removeFavoriteInvestment(investment[0])}
+                >
+                  check_box
+                </span>
               {:else}
-                <span class="material-icons"> check_box_outline_blank </span>
+                <span
+                  class="material-icons checkbox"
+                  on:click={() => addFavoriteInvestment(investment[0])}
+                >
+                  check_box_outline_blank
+                </span>
               {/if}
             </div>
           </div>
@@ -101,12 +161,24 @@
               .toLowerCase()
               .localeCompare(b[0].toLowerCase())) as investment}
           <div class="investment-selection-row">
-            <div>{investment[0]}</div>
+            <div>{investment[1].alias}</div>
             <div>
-              {#if $localStorageStore.favoriteInvestments.includes(investment[0])}
-                <span class="material-icons"> check_box </span>
+              {#if loadingInv === investment[0]}
+                <span class="material-icons"> hourglass_empty </span>
+              {:else if $localStorageStore.favoriteInvestments.includes(investment[0])}
+                <span
+                  class="material-icons checkbox"
+                  on:click={() => removeFavoriteInvestment(investment[0])}
+                >
+                  check_box
+                </span>
               {:else}
-                <span class="material-icons"> check_box_outline_blank </span>
+                <span
+                  class="material-icons checkbox"
+                  on:click={() => addFavoriteInvestment(investment[0])}
+                >
+                  check_box_outline_blank
+                </span>
               {/if}
             </div>
           </div>
@@ -118,12 +190,22 @@
               .toLowerCase()
               .localeCompare(b[0].toLowerCase())) as investment}
           <div class="investment-selection-row">
-            <div>{investment[0]}</div>
+            <div>{investment[1].alias}</div>
             <div>
               {#if $localStorageStore.favoriteInvestments.includes(investment[0])}
-                <span class="material-icons"> check_box </span>
+                <span
+                  class="material-icons checkbox"
+                  on:click={() => removeFavoriteInvestment(investment[0])}
+                >
+                  check_box
+                </span>
               {:else}
-                <span class="material-icons"> check_box_outline_blank </span>
+                <span
+                  class="material-icons checkbox"
+                  on:click={() => addFavoriteInvestment(investment[0])}
+                >
+                  check_box_outline_blank
+                </span>
               {/if}
             </div>
           </div>

@@ -4,6 +4,7 @@ import type {
   Wallet,
   WalletOperationBatch
 } from "@taquito/taquito";
+import { findDex, estimateTezInShares } from "@quipuswap/sdk";
 import type {
   HistoricalDataState,
   TokenContract,
@@ -13,7 +14,8 @@ import type {
   Operation,
   IconValue,
   IconSet,
-  KolibriOvenData
+  KolibriOvenData,
+  AvailableInvestments
 } from "./types";
 import { AvailableToken } from "./types";
 import { char2Bytes } from "@taquito/utils";
@@ -123,13 +125,13 @@ export const searchUserTokens = async ({
   Tezos: TezosToolkit;
   network: State["network"];
   userAddress: TezosAccountAddress;
-  tokens: State["tokens"] | { [p: string]: TokenContract };
+  tokens: [AvailableToken | string, TokenContract][];
   tokensBalances: State["tokensBalances"];
 }) => {
   if (!tokens) return null;
   // search for user address in tokens ledgers
   const balances = await Promise.all(
-    Object.entries(tokens).map(async (tokenInfo, i) => {
+    tokens.map(async (tokenInfo, i) => {
       const [tokenSymbol, token] = tokenInfo;
       const contract = await Tezos.wallet.at(token.address);
       const storage = await contract.storage();
@@ -630,5 +632,62 @@ export const prepareOperation = (p: {
       amount: Math.ceil(fee * 10 ** 6),
       mutez: true
     });
+  }
+};
+
+export const loadInvestment = async (investment: AvailableInvestments) => {
+  const localStore = get(store);
+  if (localStore.investments && localStore.investments[investment]) {
+    const inv = localStore.investments[investment];
+    const contract = await localStore.Tezos.wallet.at(inv.address);
+    const storage: any = await contract.storage();
+    if (inv.platform === "plenty") {
+      const userData = await storage.balances.get(localStore.userAddress);
+      if (userData) {
+        const balance = userData.balance.toNumber();
+        const info = [];
+        const entries = userData.InvestMap.entries();
+        for (let entry of entries) {
+          info.push({
+            amount: entry[1].amount.toNumber(),
+            level: entry[1].level.toNumber()
+          });
+        }
+
+        if (inv.id === "PLENTY-XTZ-LP") {
+          const dex = await findDex(
+            localStore.Tezos,
+            config.quipuswapFactories,
+            {
+              contract: localStore.tokens.PLENTY.address
+            }
+          );
+          const dexStorage = await dex.contract.storage();
+          const tezInShares = await estimateTezInShares(dexStorage, 1000000);
+
+          return {
+            id: inv.id,
+            balance,
+            info,
+            shareValueInTez: tezInShares.toNumber()
+          };
+        }
+
+        return { id: inv.id, balance, info };
+      } else {
+        return { id: inv.id, balance: 0, info: undefined };
+      }
+    } else if (inv.platform === "quipuswap") {
+      const userData = await storage.storage.ledger.get(localStore.userAddress);
+      if (userData) {
+        return {
+          id: inv.id,
+          balance: userData.balance.toNumber(),
+          info: undefined
+        };
+      }
+    }
+
+    return null;
   }
 };

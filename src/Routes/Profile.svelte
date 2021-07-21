@@ -1,7 +1,7 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
   import store from "../store";
-  import localStorage from "../localStorage";
+  import localStorageStore from "../localStorage";
   import type { Operation } from "../types";
   import { createNewOpEntry, searchUserTokens } from "../utils";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
@@ -13,7 +13,7 @@
 
   const addFavoriteToken = async tokenSymbol => {
     // adds token to favorite list
-    localStorage.addFavoriteToken(tokenSymbol);
+    localStorageStore.addFavoriteToken(tokenSymbol);
     // gets token exchange rate
     $workersStore.quipuWorker.postMessage({
       type: "add-favorite",
@@ -24,7 +24,9 @@
       Tezos: $store.Tezos,
       network: $store.network,
       userAddress: $store.userAddress,
-      tokens: { [tokenSymbol]: $store.tokens[tokenSymbol] },
+      tokens: Object.entries($store.tokens).filter(tk =>
+        $localStorageStore.favoriteTokens.includes(tk[0])
+      ),
       tokensBalances: $store.tokensBalances
     });
     if (userToken) {
@@ -37,7 +39,7 @@
 
   const removeFavoriteToken = async tokenSymbol => {
     // removes token from favorite list
-    localStorage.removeFavoriteToken(tokenSymbol);
+    localStorageStore.removeFavoriteToken(tokenSymbol);
     // unsubscribes token from favorite
     $workersStore.quipuWorker.postMessage({
       type: "remove-favorite",
@@ -237,9 +239,11 @@
         <div class="box">
           <div
             class="icon"
-            class:favorite={$localStorage.favoriteTokens.includes(tokenSymbol)}
+            class:favorite={$localStorageStore.favoriteTokens.includes(
+              tokenSymbol
+            )}
             on:click={async () => {
-              if ($localStorage.favoriteTokens.includes(tokenSymbol)) {
+              if ($localStorageStore.favoriteTokens.includes(tokenSymbol)) {
                 await removeFavoriteToken(tokenSymbol);
               } else {
                 await addFavoriteToken(tokenSymbol);

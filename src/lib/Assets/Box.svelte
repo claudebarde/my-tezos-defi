@@ -267,7 +267,9 @@
         {#if $store.tokensExchangeRates[token[0]]}
           <div>
             {+(
-              $store.tokensBalances[token[0]] * $store.xtzData.exchangeRate
+              $store.tokensBalances[token[0]] *
+              $store.tokensExchangeRates[token[0]].tokenToTez *
+              $store.xtzData.exchangeRate
             ).toFixed(2) / 1}
             {$localStorageStore.preferredFiat}
           </div>

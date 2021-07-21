@@ -298,6 +298,15 @@
           Object.keys(defiData.tokens) as AvailableToken[]
         );
       }
+
+      if (defiData.investments) {
+        Object.keys(defiData.investments).forEach(key => {
+          defiData.investments[key].balance = 0;
+          defiData.investments[key].favorite =
+            $localStorageStore.favoriteInvestments.includes(key) ? true : false;
+        });
+        store.updateInvestments({ ...defiData.investments });
+      }
     }
 
     // inits Quipuswap worker
