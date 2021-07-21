@@ -5,9 +5,10 @@ import type {
   State,
   TezosAccountAddress,
   TokenContract,
-  Operation
+  Operation,
+  AvailableToken
 } from "./types";
-import { AvailableToken, AvailableInvestments } from "./types";
+import { sortTokensByBalance } from "./utils";
 
 const settings: State["settings"] = {
   testnet: {
@@ -96,25 +97,8 @@ const state = {
         !Object.values(store.tokensBalances).every(entry => entry === undefined)
       ) {
         let newTokens = { ...store.tokens };
-        const sortedBalances = Object.entries(store.tokensBalances).sort(
-          (a, b) => {
-            let balanceA = a[1];
-            let balanceB = b[1];
-            if (balanceA === undefined) {
-              balanceA = 0;
-            } else if (balanceB === undefined) {
-              balanceB = 0;
-            }
-
-            return (
-              balanceB *
-                (newExchangeRates[b[0]]
-                  ? newExchangeRates[b[0]].tokenToTez
-                  : 0) -
-              balanceA *
-                (newExchangeRates[a[0]] ? newExchangeRates[a[0]].tokenToTez : 0)
-            );
-          }
+        const sortedBalances = sortTokensByBalance(
+          Object.entries(store.tokensBalances) as [AvailableToken, number][]
         );
         sortedBalances.forEach(tk => (newTokens[tk[0]] = store.tokens[tk[0]]));
         return {

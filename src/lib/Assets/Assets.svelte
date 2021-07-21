@@ -4,6 +4,7 @@
   import localStorage from "../../localStorage";
   import Box from "./Box.svelte";
   import StickyHeader from "./StickyHeader.svelte";
+  import { sortTokensByBalance } from "../../utils";
 
   export let assetsType: "general" | "favorite" | "others";
 
@@ -177,9 +178,12 @@
     <div class="container-grid">
       <Box {assetsType} token="tez" />
       {#if $store.tokens && $store.tokensExchangeRates && $store.tokensBalances}
-        {#each $localStorage.favoriteTokens.map( tk => [tk, $store.tokens[tk]] ) as token}
+        {#each sortTokensByBalance($localStorage.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map( tk => [tk[0], $store.tokens[tk[0]]] ) as token}
           <Box {assetsType} {token} />
         {/each}
+        <!--{#each $localStorage.favoriteTokens.map(tk => [tk, $store.tokens[tk]]) as token}
+          <Box {assetsType} {token} />
+        {/each}-->
       {/if}
     </div>
   {:else if assetsType === "general"}

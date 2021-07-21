@@ -691,3 +691,35 @@ export const loadInvestment = async (investment: AvailableInvestments) => {
     return null;
   }
 };
+
+export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
+  const localStore = get(store);
+
+  return tokens.sort((a, b) => {
+    let balanceA = a[1];
+    let balanceB = b[1];
+    if (balanceA === undefined) {
+      balanceA = 0;
+    } else if (balanceB === undefined) {
+      balanceB = 0;
+    }
+
+    if (
+      !localStore.tokensExchangeRates[a[0]] ||
+      !localStore.tokensExchangeRates[b[0]]
+    ) {
+      return 0;
+    }
+
+    return (
+      balanceB *
+        (localStore.tokensExchangeRates[b[0]]
+          ? localStore.tokensExchangeRates[b[0]].tokenToTez
+          : 0) -
+      balanceA *
+        (localStore.tokensExchangeRates[a[0]]
+          ? localStore.tokensExchangeRates[a[0]].tokenToTez
+          : 0)
+    );
+  });
+};
