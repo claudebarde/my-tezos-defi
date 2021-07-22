@@ -73,6 +73,8 @@
       if (newBalances) {
         store.updateTokensBalances(newBalances);
       }
+      // inits local storage
+      localStorageStore.init($store.userAddress);
     } catch (err) {
       console.error(err);
     }

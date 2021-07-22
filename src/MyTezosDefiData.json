@@ -190,6 +190,17 @@
       "color": "#000000",
       "tokenId": 1,
       "whitelisted": false
+    },
+    "PAUL": {
+      "address": "KT19DUSZw7mfeEATrbWVPHRrWNVbNnmfFAE6",
+      "dexContractAddress": "KT1K8A8DLUTVuHaDBCZiG6AJdvKJbtH8dqmN",
+      "decimals": 8,
+      "ledgerPath": "ledger",
+      "ledgerKey": "address",
+      "type": "fa1.2",
+      "color": "#09FF00",
+      "tokenId": 0,
+      "whitelisted": false
     }
   },
   "investments": {
