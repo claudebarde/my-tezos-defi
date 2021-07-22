@@ -278,7 +278,10 @@
             tokenSymbol,
             {
               ...token,
-              favorite: $localStorageStore.favoriteTokens.includes(tokenSymbol)
+              favorite:
+                $localStorageStore &&
+                $localStorageStore.favoriteTokens &&
+                $localStorageStore.favoriteTokens.includes(tokenSymbol)
             }
           ]);
         });
@@ -303,7 +306,9 @@
         Object.keys(defiData.investments).forEach(key => {
           defiData.investments[key].balance = 0;
           defiData.investments[key].favorite =
-            $localStorageStore.favoriteInvestments.includes(key) ? true : false;
+            $localStorageStore &&
+            $localStorageStore.favoriteInvestments &&
+            $localStorageStore.favoriteInvestments.includes(key);
         });
         store.updateInvestments({ ...defiData.investments });
       }
@@ -364,6 +369,11 @@
         payload: $store.tokens
       });
       liveTrafficWorker.onmessage = handleLiveTrafficWorker;
+    }
+
+    if (!$localStorageStore && $store.userAddress) {
+      // inits local storage
+      localStorageStore.init($store.userAddress);
     }
   });
 

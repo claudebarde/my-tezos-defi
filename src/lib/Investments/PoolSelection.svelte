@@ -2,7 +2,6 @@
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import Modal from "../Modal/Modal.svelte";
-  import config from "../../config";
   import { loadInvestment } from "../../utils";
 
   export let platform;
@@ -121,7 +120,7 @@
       {:else if platform === "plenty"}
         Plenty Pools and Farms
       {:else if platform === "crunchy"}
-        Cruncy Farms
+        Crunchy Farms
       {:else if platform === "flame"}
         Flame Farms
       {/if}
@@ -136,7 +135,9 @@
           <div class="investment-selection-row">
             <div>{investment[1].alias}</div>
             <div>
-              {#if $localStorageStore.favoriteInvestments.includes(investment[0])}
+              {#if loadingInv === investment[0]}
+                <span class="material-icons"> hourglass_empty </span>
+              {:else if $localStorageStore.favoriteInvestments.includes(investment[0])}
                 <span
                   class="material-icons checkbox"
                   on:click={() => removeFavoriteInvestment(investment[0])}
@@ -184,32 +185,7 @@
           </div>
         {/each}
       {:else if platform === "crunchy"}
-        {#each Object.entries($store.investments)
-          .filter(inv => inv[1].platform === "crunchy")
-          .sort((a, b) => a[0]
-              .toLowerCase()
-              .localeCompare(b[0].toLowerCase())) as investment}
-          <div class="investment-selection-row">
-            <div>{investment[1].alias}</div>
-            <div>
-              {#if $localStorageStore.favoriteInvestments.includes(investment[0])}
-                <span
-                  class="material-icons checkbox"
-                  on:click={() => removeFavoriteInvestment(investment[0])}
-                >
-                  check_box
-                </span>
-              {:else}
-                <span
-                  class="material-icons checkbox"
-                  on:click={() => addFavoriteInvestment(investment[0])}
-                >
-                  check_box_outline_blank
-                </span>
-              {/if}
-            </div>
-          </div>
-        {/each}
+        <div>Input pool address:</div>
       {:else if platform === "flame"}
         <div>Coming soon</div>
       {/if}

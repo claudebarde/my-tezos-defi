@@ -18,9 +18,9 @@
     if (!updating && $store.tokensBalances && $store.tokensExchangeRates) {
       updating = true;
 
-      // calculates total in XTZ and USD
-      const valueInXTZ = Object.entries($store.tokensBalances)
-        .map(token => {
+      let valueInXTZ = 0;
+      if (Object.entries($store.tokensBalances).length === 1) {
+        valueInXTZ = Object.entries($store.tokensBalances).map(token => {
           const [tokenSymbol, tokenVal] = token;
           if (!tokenVal) return 0;
 
@@ -30,8 +30,23 @@
           } else {
             return 0;
           }
-        })
-        .reduce((a, b) => a + b);
+        })[0];
+      } else if (Object.entries($store.tokensBalances).length > 1) {
+        // calculates total in XTZ and USD
+        valueInXTZ = Object.entries($store.tokensBalances)
+          .map(token => {
+            const [tokenSymbol, tokenVal] = token;
+            if (!tokenVal) return 0;
+
+            const exchangeRate = $store.tokensExchangeRates[tokenSymbol];
+            if (exchangeRate) {
+              return +tokenVal * +exchangeRate.tokenToTez;
+            } else {
+              return 0;
+            }
+          })
+          .reduce((a, b) => a + b);
+      }
 
       totalAmounts = {
         TOKENS: valueInXTZ,

@@ -685,6 +685,12 @@ export const loadInvestment = async (investment: AvailableInvestments) => {
           balance: userData.balance.toNumber(),
           info: undefined
         };
+      } else {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
       }
     }
 

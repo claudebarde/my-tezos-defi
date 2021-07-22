@@ -16,6 +16,7 @@ import config from "./config";
 const ctx: Worker = self as any;
 let localNetwork;
 let favoriteTokens;
+const refreshInterval = 600000;
 
 let getExchangeRatesInterval,
   favoriteTokensInterval,
@@ -167,12 +168,18 @@ const init = async (param: {
   Tezos.setPackerProvider(new MichelCodecPacker());
   // sets up fetching XTZ-FIAT exchange rate
   await fetchXtzFiatExchangeRate();
-  xtzFiatExchangeRateInterval = setInterval(fetchXtzFiatExchangeRate, 60000);
+  xtzFiatExchangeRateInterval = setInterval(
+    fetchXtzFiatExchangeRate,
+    refreshInterval
+  );
   if (!tokens || tokens.length === 0) {
     ctx.postMessage({ type: "no-tokens" });
   } else {
     await getTokensExchangeRates(favoriteTokens);
-    favoriteTokensInterval = setInterval(() => getTokensExchangeRates, 60000);
+    favoriteTokensInterval = setInterval(
+      () => getTokensExchangeRates,
+      refreshInterval
+    );
   }
 };
 
@@ -187,7 +194,10 @@ ctx.addEventListener("message", async e => {
     localFiat = e.data.payload;
     // resets the interval
     await fetchXtzFiatExchangeRate();
-    xtzFiatExchangeRateInterval = setInterval(fetchXtzFiatExchangeRate, 60000);
+    xtzFiatExchangeRateInterval = setInterval(
+      fetchXtzFiatExchangeRate,
+      refreshInterval
+    );
   } else if (e.data.type === "fetch-tokens-exchange-rates") {
     await getTokensExchangeRates(e.data.payload);
   } else if (e.data.type === "add-favorite") {

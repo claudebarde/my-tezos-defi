@@ -97,7 +97,7 @@
     if (Object.values($store.investments).some(inv => !!inv.balance)) {
       loading = false;
     }
-    // loads investments
+
     const investments = await Promise.all(
       Object.values($store.investments)
         .filter(inv => $localStorageStore.favoriteInvestments.includes(inv.id))

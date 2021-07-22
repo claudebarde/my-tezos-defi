@@ -20,7 +20,8 @@ export enum AvailableToken {
   FLAME = "FLAME",
   KALAM = "KALAM",
   wLINK = "wLINK",
-  wMATIC = "wMATIC"
+  wMATIC = "wMATIC",
+  PAUL = "PAUL"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -156,5 +157,4 @@ export interface LocalStorageState {
   favoriteTokens: AvailableToken[];
   favoriteInvestments: AvailableInvestments[];
   lastUpdate: number;
-  version: string;
 }
