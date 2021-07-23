@@ -21,7 +21,8 @@ export enum AvailableToken {
   KALAM = "KALAM",
   wLINK = "wLINK",
   wMATIC = "wMATIC",
-  PAUL = "PAUL"
+  PAUL = "PAUL",
+  SDAO = "sDAO"
 }
 export enum AvailableFiat {
   USD = "USD",

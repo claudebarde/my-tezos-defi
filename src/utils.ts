@@ -298,17 +298,20 @@ export const getOpIcons = (
         ? tokenIds.map(tokenId => config.wrapTokenIds[tokenId].name)
         : [AvailableToken.WRAP];
       break;
-    /*case "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA":
+    case "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA":
       icons = [AvailableToken.SDAO];
-      break;*/
+      break;
     case "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3":
       icons = ["crDAO"];
       break;
     default:
-      icons =
-        target.alias && Object.keys(localStore.tokens).includes(target.alias)
-          ? [target.alias.trim() as IconValue]
-          : ["user"];
+      if(target.alias && Object.keys(localStore.tokens).includes(target.alias)){
+        icons = [target.alias.trim() as IconValue]
+      } else if(Object.values(localStore.tokens).filter(tk => tk.address === target.address).length === 1){
+        icons = [(Object.entries(localStore.tokens).filter(tk => tk[1].address === target.address)[0][0]) as IconValue]
+      } else {
+        icons = ["user"]
+      }
       break;
   }
 
@@ -572,6 +575,10 @@ export const getPlentyReward = async (
   const localStore = get(store);
 
   try {
+    if(!stakingContractAddress){
+      throw "No contract address provided"
+    }
+    
     const contract = await localStore.Tezos.wallet.at(stakingContractAddress);
     const storage: any = await contract.storage();
     if (storage.totalSupply.toNumber() == 0) {

@@ -17,7 +17,11 @@
 
   afterUpdate(async () => {
     // loads PLENTY rewards
-    if (lastLevel !== $store.lastOperations[0].level && !loadingPlentyRewards) {
+    if (
+      data.platform === "plenty" &&
+      lastLevel !== $store.lastOperations[0].level &&
+      !loadingPlentyRewards
+    ) {
       loadingPlentyRewards = true;
       let level = $store.lastOperations[0].level;
 
