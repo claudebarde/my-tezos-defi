@@ -320,6 +320,17 @@
             <Row {data} platform={data.platform} valueInXtz={true} />
           {/each}
         {/if}
+        <!-- wXTZ -->
+        {#if $localStorageStore.wXtzVaults.length > 0}
+          <div class="row header">
+            <div />
+            <div>Vault</div>
+            <div>Locked</div>
+          </div>
+          {#each $localStorageStore.wXtzVaults as data}
+            <Row {data} platform="wxtz" valueInXtz={true} />
+          {/each}
+        {/if}
       {/if}
     {:else}
       <div>Loading...</div>

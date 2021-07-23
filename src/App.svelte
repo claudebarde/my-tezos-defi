@@ -22,7 +22,7 @@
   const handleQuipuWorker = (msg: MessageEvent) => {
     if (msg.data.type === "exchange-rates") {
       const exchangeRates = msg.data.payload;
-      //console.log(exchangeRates);
+      //console.log(exchangeRates, new Date());
       const updatedTokensExchangeRates = { ...$store.tokensExchangeRates };
       exchangeRates.forEach(rate => {
         if (rate) {
@@ -49,9 +49,7 @@
       if (exchangeRateTokens.join("") === favoriteTokens.join("")) {
         quipuWorker.postMessage({
           type: "fetch-tokens-exchange-rates",
-          payload: Object.entries($store.tokens).filter(
-            token => !$localStorageStore.favoriteTokens.includes(token[0])
-          )
+          payload: Object.entries($store.tokens)
         });
       }
 

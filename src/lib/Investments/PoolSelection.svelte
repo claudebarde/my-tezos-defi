@@ -2,15 +2,60 @@
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import Modal from "../Modal/Modal.svelte";
-  import { loadInvestment } from "../../utils";
+  import { loadInvestment, shortenHash } from "../../utils";
 
   export let platform;
 
   let isModalOpen = false;
   let loadingInv = "";
+  let newWxtzVault = "";
 
-  const showModal = () => {
+  const showModal = async () => {
     isModalOpen = true;
+
+    if (platform === "crunchy") {
+      await loadCrunchyFarms();
+    }
+  };
+
+  const loadCrunchyFarms = async () => {
+    if (
+      $store.investments &&
+      $store.investments.hasOwnProperty("CRUNCHY-FARMS")
+    ) {
+      let farmsData = undefined;
+      if (
+        window.sessionStorage &&
+        window.sessionStorage.getItem("crunchy-farms")
+      ) {
+        farmsData = JSON.parse(window.sessionStorage.getItem("crunchy-farms"));
+      } else {
+        // loads contract and storage
+        const contract = await $store.Tezos.wallet.at(
+          $store.investments["CRUNCHY-FARMS"].address
+        );
+        const storage: any = await contract.storage();
+        // loads available farms
+        const numberOfFarms = storage.nextFarmId.toNumber() - 1;
+        // loads farms with TzKT API
+        const url = `https://api.tzkt.io/v1/contracts/KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3/bigmaps/ledger/keys?limit=${numberOfFarms}&key.address=${$store.userAddress}&active=true`;
+        const farmsResponse = await fetch(url);
+        if (farmsResponse) {
+          const activeFarms = await farmsResponse.json();
+          farmsData = await Promise.all(
+            activeFarms.map(farm => storage.farms.get(farm.key.nat))
+          );
+          if (window.sessionStorage) {
+            window.sessionStorage.setItem(
+              "crunchy-farms",
+              JSON.stringify(farmsData)
+            );
+          }
+        }
+      }
+
+      console.log(farmsData);
+    }
   };
 
   const addFavoriteInvestment = async investment => {
@@ -111,6 +156,14 @@
     <br />
     <button class="button main">Coming soon</button>
   </div>
+{:else if platform === "wxtz"}
+  <div class="container-investments-select">
+    <div>
+      wXTZ ({$localStorageStore.wXtzVaults.length})
+    </div>
+    <br />
+    <button class="button main" on:click={showModal}>Vaults</button>
+  </div>
 {/if}
 {#if isModalOpen}
   <Modal type="manage" on:close={() => (isModalOpen = false)}>
@@ -123,6 +176,8 @@
         Crunchy Farms
       {:else if platform === "flame"}
         Flame Farms
+      {:else if platform === "wxtz"}
+        wXTZ Vaults
       {/if}
     </div>
     <div slot="modal-body" class="modal-body">
@@ -188,6 +243,39 @@
         <div>Input pool address:</div>
       {:else if platform === "flame"}
         <div>Coming soon</div>
+      {:else if platform === "wxtz"}
+        <div>
+          {#each $localStorageStore.wXtzVaults as vault}
+            {#await $store.Tezos.tz.getBalance(vault)}
+              Loading {shortenHash(vault)}...
+            {:then value}
+              <span class="material-icons" style="vertical-align:sub">
+                inventory_2
+              </span>
+              <span>{shortenHash(vault)}: {+value / 10 ** 6} ꜩ</span>
+            {:catch error}
+              Unable to load the vault
+            {/await}
+          {:else}
+            No vault
+          {/each}
+        </div>
+        <br />
+        <br />
+        <div>Add a new vault:</div>
+        <br />
+        <div style="display:flex">
+          <input type="text" bind:value={newWxtzVault} />
+          <button
+            class="button main"
+            on:click={() => {
+              localStorageStore.addWxtzVault(newWxtzVault);
+              newWxtzVault = "";
+            }}
+          >
+            Add
+          </button>
+        </div>
       {/if}
     </div>
     <div slot="modal-footer" class="modal-footer">

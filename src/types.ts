@@ -156,5 +156,6 @@ export interface LocalStorageState {
   pushNotifications: boolean;
   favoriteTokens: AvailableToken[];
   favoriteInvestments: AvailableInvestments[];
+  wXtzVaults: TezosContractAddress[];
   lastUpdate: number;
 }

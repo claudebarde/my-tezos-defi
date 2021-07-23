@@ -1,7 +1,11 @@
 <script lang="ts">
   import { createEventDispatcher, afterUpdate } from "svelte";
   import store from "../../store";
-  import { calcTotalShareValueInTez, getPlentyReward } from "../../utils";
+  import {
+    calcTotalShareValueInTez,
+    getPlentyReward,
+    shortenHash
+  } from "../../utils";
   import ManagePlenty from "../Modal/ManagePlenty.svelte";
 
   export let data, platform, valueInXtz;
@@ -222,5 +226,27 @@
         <div>--</div>
       {/if}
     {/each}
+  {:else if platform === "wxtz"}
+    <div class="icon">
+      <img src={`images/wXTZ.png`} alt="token-icon" />
+    </div>
+    <div>
+      <a
+        href={`https://better-call.dev/mainnet/${data}/operations`}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        {shortenHash(data)}
+      </a>
+    </div>
+    <div>
+      {#await $store.Tezos.tz.getBalance(data)}
+        Loading...
+      {:then value}
+        {+value / 10 ** 6} ꜩ
+      {:catch error}
+        Error
+      {/await}
+    </div>
   {/if}
 </div>

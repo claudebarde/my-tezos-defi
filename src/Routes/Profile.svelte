@@ -272,6 +272,7 @@
     <PoolSelection platform="plenty" />
     <PoolSelection platform="crunchy" />
     <PoolSelection platform="flame" />
+    <PoolSelection platform="wxtz" />
   </div>
 </div>
 <br /><br />

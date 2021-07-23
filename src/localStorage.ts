@@ -1,16 +1,17 @@
 import { writable, get } from "svelte/store";
-import type { LocalStorageState, TezosAccountAddress } from "./types";
+import type { LocalStorageState, TezosAccountAddress, TezosContractAddress } from "./types";
 import { AvailableFiat, AvailableToken, AvailableInvestments } from "./types";
 import generalStore from "./store";
 
 let state = null;
 const localStorageItemName = "mtd";
-const version = "3.0.1";
+const version = "3.0.2";
 let initialState: LocalStorageState = {
   preferredFiat: AvailableFiat.USD,
   pushNotifications: false,
   favoriteTokens: [],
   favoriteInvestments: [],
+  wXtzVaults: [],
   lastUpdate: Date.now()
 };
 
@@ -59,18 +60,19 @@ if (globalThis?.window?.localStorage) {
           if (localStorage) {
             // gets the local storage
             const stateFromStorage = JSON.parse(localStorage);
+            let newState;
             if (stateFromStorage.version !== version) {
-              initialState = { ...stateFromStorage[userAddress] };
+              newState = { ...initialState, ...stateFromStorage[userAddress] };
               // updates the local storage
               window.localStorage.setItem(
                 localStorageItemName,
-                JSON.stringify(wrapUserState(initialState, userAddress))
+                JSON.stringify(wrapUserState(newState, userAddress))
               );
             } else {
-              initialState = { ...stateFromStorage[userAddress] };
+              newState = { ...stateFromStorage[userAddress] };
             }
 
-            return initialState;
+            return newState;
           } else {
             // sets up the local storage
             window.localStorage.setItem(
@@ -164,7 +166,39 @@ if (globalThis?.window?.localStorage) {
         );
         return newStore;
       });
-    }
+    },
+    addWxtzVault: (vault: TezosContractAddress) => {
+      store.update(store => {
+        const gnrlStore = get(generalStore);
+        const newStore = {
+          ...store,
+          wXtzVaults: !store.wXtzVaults.includes(vault)
+            ? [...store.wXtzVaults, vault]
+            : store.wXtzVaults
+        };
+        window.localStorage.setItem(
+          localStorageItemName,
+          JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
+        );
+        return newStore;
+      });
+    },
+    removeWxtzVault: (vault: TezosContractAddress) => {
+      store.update(store => {
+        const gnrlStore = get(generalStore);
+        const newStore = {
+          ...store,
+          wXtzVaults: [
+            ...store.wXtzVaults.filter(v => v !== vault)
+          ]
+        };
+        window.localStorage.setItem(
+          localStorageItemName,
+          JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
+        );
+        return newStore;
+      });
+    },
   };
 }
 

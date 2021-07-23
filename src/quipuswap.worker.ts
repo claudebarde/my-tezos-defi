@@ -176,10 +176,6 @@ const init = async (param: {
     ctx.postMessage({ type: "no-tokens" });
   } else {
     await getTokensExchangeRates(favoriteTokens);
-    favoriteTokensInterval = setInterval(
-      () => getTokensExchangeRates,
-      refreshInterval
-    );
   }
 };
 
@@ -200,6 +196,10 @@ ctx.addEventListener("message", async e => {
     );
   } else if (e.data.type === "fetch-tokens-exchange-rates") {
     await getTokensExchangeRates(e.data.payload);
+    getExchangeRatesInterval = setInterval(
+      () => getTokensExchangeRates(e.data.payload),
+      refreshInterval
+    );
   } else if (e.data.type === "add-favorite") {
     const tokenSymbol = e.data.payload;
     if (!favoriteTokens.includes(tokenSymbol)) {
