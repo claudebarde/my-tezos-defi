@@ -236,26 +236,6 @@
       }
 
       if (defiData.investments) {
-        defiData.investments["PAUL-PAUL"] = {
-          id: "PAUL-PAUL",
-          platform: "paul",
-          address: "KT1DMCGGiHT2dgjjXHG7qh1C1maFchrLNphx",
-          decimals: 8,
-          info: [],
-          alias: "PAUL farm",
-          icons: ["PAUL"],
-          token: "PAUL"
-        };
-        defiData.investments["PAUL-XTZ"] = {
-          id: "PAUL-XTZ",
-          platform: "paul",
-          address: "KT1WfbRVLuJUEizo6FSTFq5tsi3rsUHLY7vg",
-          decimals: 6,
-          info: [],
-          alias: "PAUL/XTZ farm",
-          icons: ["PAUL", "XTZ"],
-          token: "PAUL"
-        };
         Object.keys(defiData.investments).forEach(key => {
           defiData.investments[key].balance = 0;
           defiData.investments[key].favorite =
