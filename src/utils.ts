@@ -126,7 +126,7 @@ export const searchUserTokens = async ({
   network: State["network"];
   userAddress: TezosAccountAddress;
   tokens: [AvailableToken | string, TokenContract][];
-  tokensBalances: State["tokensBalances"];
+  tokensBalances: Partial<State["tokensBalances"]>;
 }) => {
   if (!tokens) return null;
   // search for user address in tokens ledgers

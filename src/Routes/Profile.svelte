@@ -5,7 +5,6 @@
   import type { Operation } from "../types";
   import { createNewOpEntry, searchUserTokens } from "../utils";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
-  import workersStore from "../workersStore";
   import PoolSelection from "../lib/Investments/PoolSelection.svelte";
 
   let lastTransactions: Operation[] = [];
@@ -14,11 +13,6 @@
   const addFavoriteToken = async tokenSymbol => {
     // adds token to favorite list
     localStorageStore.addFavoriteToken(tokenSymbol);
-    // gets token exchange rate
-    $workersStore.quipuWorker.postMessage({
-      type: "add-favorite",
-      payload: tokenSymbol
-    });
     // gets user's balance
     const userToken = await searchUserTokens({
       Tezos: $store.Tezos,
@@ -40,11 +34,6 @@
   const removeFavoriteToken = async tokenSymbol => {
     // removes token from favorite list
     localStorageStore.removeFavoriteToken(tokenSymbol);
-    // unsubscribes token from favorite
-    $workersStore.quipuWorker.postMessage({
-      type: "remove-favorite",
-      payload: tokenSymbol
-    });
   };
 
   afterUpdate(async () => {

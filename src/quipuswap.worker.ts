@@ -88,6 +88,7 @@ const getTokensExchangeRates = async (
             await dex.contract.storage(),
             1_000_000
           );
+
           /*console.log(
             tokenSymbol,
             inTokenValue.toNumber(),

@@ -7,80 +7,17 @@
   import historicDataStore from "./historicDataStore";
   import Header from "./lib/Header/Header.svelte";
   import Footer from "./lib/Footer/Footer.svelte";
-  import QuipuWorker from "worker-loader!./quipuswap.worker";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
-  import type { Operation, State, AvailableToken } from "./types";
+  import type { Operation, State } from "./types";
+  import { AvailableToken } from "./types";
   import { createNewOpEntry } from "./utils";
-  import workersStore from "./workersStore";
   import localStorageStore from "./localStorage";
+  import config from "./config";
 
   let appReady = false;
-  let quipuWorker, liveTrafficWorker;
+  let liveTrafficWorker;
   let lastAppVisibility = 0;
-  let perfStart, perfEnd;
-
-  const handleQuipuWorker = (msg: MessageEvent) => {
-    if (msg.data.type === "exchange-rates") {
-      const exchangeRates = msg.data.payload;
-      //console.log(exchangeRates, new Date());
-      const updatedTokensExchangeRates = { ...$store.tokensExchangeRates };
-      exchangeRates.forEach(rate => {
-        if (rate) {
-          const data = {
-            tezToToken: rate.tezToToken,
-            tokenToTez: rate.tokenToTez,
-            realPriceInTez: rate.realPriceInTez,
-            realPriceInToken: rate.realPriceInToken
-          };
-          updatedTokensExchangeRates[rate.tokenSymbol] = data;
-          // updates historic data
-          historicDataStore.updateToken(rate.tokenSymbol, data);
-        }
-      });
-      store.updateTokensExchangeRates(updatedTokensExchangeRates);
-
-      if ($store.firstLoading) store.updateFirstLoading(false);
-
-      // if tokens are favorite tokens, gets exchange rates for other tokens
-      const exchangeRateTokens = exchangeRates
-        .map(item => item.tokenSymbol)
-        .sort();
-      const favoriteTokens = $localStorageStore.favoriteTokens.sort();
-      if (exchangeRateTokens.join("") === favoriteTokens.join("")) {
-        quipuWorker.postMessage({
-          type: "fetch-tokens-exchange-rates",
-          payload: Object.entries($store.tokens)
-        });
-      }
-
-      if (perfStart) {
-        perfEnd = performance.now();
-        console.log(
-          `${exchangeRates.length} tokens loaded in ${Math.round(
-            (perfEnd - perfStart) / 1000
-          )} seconds`
-        );
-        perfStart = 0;
-        perfEnd = 0;
-      }
-    } else if (msg.data.type === "xtz-fiat-exchange-rate") {
-      const { xtzFiatExchangeRate, historicExchangeRates } = msg.data.payload;
-      store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
-      store.updateXtzDataHistoric(historicExchangeRates);
-      // saves the exchange rate in the local store
-      localStorageStore.updateFiat(
-        $localStorageStore.preferredFiat,
-        xtzFiatExchangeRate
-      );
-    } else if (msg.data.type === "no-tokens" && $store.tokens) {
-      quipuWorker.postMessage({
-        type: "fetch-tokens-exchange-rates",
-        payload: Object.entries($store.tokens).filter(
-          token => !token[1].favorite
-        )
-      });
-    }
-  };
+  let coinGeckoInterval, tokensDataInterval;
 
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic") {
@@ -253,8 +190,6 @@
   };
 
   onMount(async () => {
-    perfStart = performance.now();
-
     const Tezos = new TezosToolkit($store.settings[$store.network].rpcUrl);
     Tezos.setPackerProvider(new MichelCodecPacker());
     store.updateTezos(Tezos);
@@ -312,22 +247,38 @@
       }
     }
 
-    // inits Quipuswap worker
-    quipuWorker = new QuipuWorker();
-    quipuWorker.postMessage({
-      type: "init",
-      payload: {
-        tokens: Object.entries($store.tokens).filter(
-          token => token[1].favorite
-        ),
-        rpcUrl: $store.settings[$store.network].rpcUrl,
-        network: $store.network,
-        fiat: $localStorageStore.preferredFiat
+    // fetches token data from TezTools
+    const fetchTokensData = async () => {
+      const tokensDataResponse = await fetch(
+        `https://api.teztools.io/token/prices`
+      );
+      if (tokensDataResponse) {
+        const tokensData = await tokensDataResponse.json();
+        const availableTokenAddresses = Object.values($store.tokens).map(
+          tk => tk.address
+        );
+        let exchangesRates = {};
+        let availableTokenSymbols = Object.values(AvailableToken);
+        tokensData.contracts
+          .filter(tk => availableTokenAddresses.includes(tk.tokenAddress))
+          .forEach(tk => {
+            if (availableTokenSymbols.includes(tk.symbol)) {
+              exchangesRates[tk.symbol] = {
+                tokenToTez: +tk.currentPrice.toFixed(5) / 1,
+                tezToToken: +(1 / tk.currentPrice).toFixed(5) / 1,
+                realPriceInTez: +(1 / tk.currentPrice).toFixed(5) / 1,
+                realPriceInToken: +tk.currentPrice.toFixed(5) / 1
+              };
+            }
+          });
+        store.updateTokensExchangeRates(
+          exchangesRates as State["tokensExchangeRates"]
+        );
       }
-    });
-    quipuWorker.onmessage = handleQuipuWorker;
-    // saves quipuWorker
-    workersStore.updateQuipuWorker(quipuWorker);
+    };
+
+    await fetchTokensData();
+    tokensDataInterval = setInterval(fetchTokensData, 600_000);
 
     // reloads some data when user comes back to the page
     lastAppVisibility = Date.now();
@@ -338,27 +289,14 @@
       ) {
         //console.log("app visibility:", lastAppVisibility);
         lastAppVisibility = Date.now();
-        // refreshes tokens exchange rates
-        quipuWorker.postMessage({
-          type: "fetch-tokens-exchange-rates",
-          payload: Object.entries($store.tokens)
-        });
-        // refreshes XTZ balance
-        if ($store.userAddress) {
-          const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-          if (balance) {
-            store.updateTezBalance(balance.toNumber());
-          }
-        }
       } else if (document.visibilityState === "visible") {
         lastAppVisibility = Date.now();
       }
     });
-
     appReady = true;
   });
 
-  afterUpdate(() => {
+  afterUpdate(async () => {
     if (!liveTrafficWorker && $store.tokens) {
       // inits live traffic worker
       liveTrafficWorker = new LiveTrafficWorker();
@@ -373,17 +311,58 @@
       // inits local storage
       localStorageStore.init($store.userAddress);
     }
+
+    if ($localStorageStore && !$store.xtzData.exchangeRate) {
+      // fetches XTZ exchange rate
+      try {
+        const coinGeckoFetch = async () => {
+          const coinGeckoResponse = await fetch(
+            `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${$localStorageStore.preferredFiat.toLowerCase()}&days=2`
+          );
+          if (coinGeckoResponse) {
+            const data = await coinGeckoResponse.json();
+            const prices = data.prices;
+            const xtzFiatExchangeRate = prices[prices.length - 1][1];
+            store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
+            store.updateXtzDataHistoric(
+              prices.map(price => ({
+                timestamp: price[0],
+                rate: price[1]
+              }))
+            );
+            // saves the exchange rate in the local store
+            localStorageStore.updateFiat(
+              $localStorageStore.preferredFiat,
+              xtzFiatExchangeRate
+            );
+          } else {
+            throw "No response from CoinGecko API";
+          }
+        };
+
+        await coinGeckoFetch();
+        coinGeckoInterval = setInterval(coinGeckoFetch, 600_000);
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+    }
   });
 
   onDestroy(() => {
-    quipuWorker.postMessage({
-      type: "destroy"
-    });
+    clearInterval(coinGeckoInterval);
   });
 </script>
 
 <style lang="scss">
   @import "./styles/settings.scss";
+
+  :root {
+    --toastContainerTop: auto;
+    --toastContainerRight: auto;
+    --toastContainerBottom: 8rem;
+    --toastContainerLeft: calc(50vw - 8rem);
+  }
 
   #under-construction {
     position: absolute;

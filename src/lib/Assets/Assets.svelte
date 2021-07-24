@@ -192,6 +192,6 @@
     </div>
   {/if}
 </div>
-{#if assetsType === "favorite" && !$store.firstLoading && showStickyHeader}
+{#if assetsType === "favorite" && showStickyHeader}
   <StickyHeader />
 {/if}

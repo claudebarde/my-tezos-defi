@@ -3,7 +3,6 @@
   import Modal from "../Modal/Modal.svelte";
   import store from "../../store";
   import { AvailableFiat } from "../../types";
-  import workersStore from "../../workersStore";
   import localStorageStore from "../../localStorage";
   import FeeDisclaimer from "../Modal/FeeDisclaimer.svelte";
   import config from "../../config";
@@ -64,10 +63,6 @@
                 Object.keys(AvailableFiat).includes(newFiat)
               ) {
                 localStorageStore.updateFiat(newFiat, 0);
-                $workersStore.quipuWorker.postMessage({
-                  type: "change-fiat",
-                  payload: newFiat
-                });
                 openSettings = false;
               } else {
                 newFiat = undefined;

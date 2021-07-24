@@ -37,7 +37,6 @@ const initialState: State = {
   tokensExchangeRates: undefined,
   investments: undefined,
   lastOperations: [],
-  firstLoading: true,
   xtzData: {
     exchangeRate: undefined,
     balance: 0,
@@ -45,7 +44,7 @@ const initialState: State = {
   },
   serviceFee: process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "Qmcsvgz8Nkt1DRkbQ2nmJAjsRq2CNbinAfEmAJTWMZKHm6"
+  defiData: "QmfZw4EnuxHE5LiJ12DCwFNZZqdXgUnTtLFsirjmubjQJy"
 };
 
 const store = writable(initialState);
@@ -133,9 +132,6 @@ const state = {
       ...store,
       lastOperations: [...ops.reverse(), ...store.lastOperations]
     }));
-  },
-  updateFirstLoading: (state: boolean) => {
-    store.update(store => ({ ...store, firstLoading: state }));
   },
   updateInvestments: (newInvestments: State["investments"]) => {
     store.update(store => ({ ...store, investments: newInvestments }));

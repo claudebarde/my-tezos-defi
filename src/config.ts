@@ -53,5 +53,19 @@ export default {
     { code: AvailableFiat.GBP, name: "British pound", symbol: "£" },
     { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
     { code: AvailableFiat.KRW, name: "South Korea won", symbol: "₩" }
-  ]
+  ],
+  toastColor: {
+    green: {
+      theme: {
+        '--toastBackground': '#48BB78',
+        '--toastProgressBackground': '#2F855A'
+      }
+    }, 
+    red: {
+      theme: {
+        '--toastBackground': '#F56565',
+        '--toastProgressBackground': '#C53030'
+      }
+    }
+  }
 };

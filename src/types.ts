@@ -22,7 +22,10 @@ export enum AvailableToken {
   wLINK = "wLINK",
   wMATIC = "wMATIC",
   PAUL = "PAUL",
-  SDAO = "sDAO"
+  SDAO = "sDAO",
+  SMAK = "SMAK",
+  GOT = "GOT",
+  HERA = "HERA"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -123,7 +126,6 @@ export interface State {
       }
     | undefined;
   lastOperations: Operation[];
-  firstLoading: boolean;
   xtzData: {
     exchangeRate: number | undefined;
     balance: number;

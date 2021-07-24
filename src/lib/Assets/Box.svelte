@@ -106,12 +106,7 @@
       }
     }
 
-    if (
-      $store.tokensExchangeRates &&
-      $store.tokensExchangeRates[token[0]] &&
-      $store.tokensExchangeRates[token[0]].tezToToken !==
-        $store.tokensExchangeRates[token[0]].realPriceInTez
-    ) {
+    if ($store.tokensExchangeRates && $store.tokensExchangeRates[token[0]]) {
       loadingExchangeRates = false;
     }
   });
@@ -145,7 +140,7 @@
       }
 
       &.loading {
-        padding: 4px;
+        padding: 10px;
         .loading-rates {
           display: block;
           position: absolute;
@@ -216,7 +211,9 @@
 
 <div class="box">
   <div class="icon" class:loading={loadingExchangeRates}>
-    <div class="loading-rates" />
+    {#if loadingExchangeRates}
+      <div class="loading-rates" />
+    {/if}
     <a href={`/#/token/${token === "tez" ? "XTZ" : token[0]}`}>
       <img
         src={`images/${token === "tez" ? "XTZ" : token[0]}.png`}
@@ -224,7 +221,7 @@
       />
     </a>
   </div>
-  {#if token !== "tez" && $store.firstLoading}
+  {#if token !== "tez" && !$store.tokensExchangeRates[token[0]]}
     <div class="info">Loading...</div>
   {:else if token === "tez" && !$store.xtzData.exchangeRate}
     <div class="info">Loading...</div>

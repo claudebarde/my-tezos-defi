@@ -201,6 +201,39 @@
       "color": "#09FF00",
       "tokenId": 0,
       "whitelisted": false
+    },
+    "SMAK": {
+      "address": "KT1TwzD6zV3WeJ39ukuqxcfK2fJCnhvrdN1X",
+      "dexContractAddress": "KT1Gdix8LoDoQng7YqdPNhdP5V7JRX8FqWvM",
+      "decimals": 3,
+      "ledgerPath": "balances",
+      "ledgerKey": "address",
+      "type": "fa1.2",
+      "color": "#5C67D3",
+      "tokenId": 0,
+      "whitelisted": false
+    },
+    "GOT": {
+      "address": "KT1GioMCKwRyWoQpdrwxvsPVEsFJkkLyquVZ",
+      "dexContractAddress": "KT1JyPE1BWdYoRGBvvKhEPbcVRd3C9NCCwQC",
+      "decimals": 3,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": "address",
+      "type": "fa2",
+      "color": "#E65205",
+      "tokenId": 0,
+      "whitelisted": false
+    },
+    "HERA": {
+      "address": "KT1JXxK3bd39ayLiiBdKm2cdReYnVSG3bkzK",
+      "dexContractAddress": "KT1DgbAE84xno2wdaEgeYpZkFZMs5fskAgP7",
+      "decimals": 3,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#E8C011",
+      "tokenId": 0,
+      "whitelisted": false
     }
   },
   "investments": {

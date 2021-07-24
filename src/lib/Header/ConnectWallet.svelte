@@ -6,8 +6,8 @@
     BeaconEvent,
     defaultEventCallbacks
   } from "@airgap/beacon-sdk";
-  import { char2Bytes, bytes2Char } from "@taquito/utils";
-  import type { TezosAccountAddress } from "../../types";
+  import { bytes2Char } from "@taquito/utils";
+  import type { TezosAccountAddress, State } from "../../types";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   //import InvestmentsWorker from "worker-loader!../../investments.worker";
@@ -126,6 +126,10 @@
       });*/
 
       username = await fetchTezosDomain(userAddress);
+      let favoriteBalances: Partial<State["tokensBalances"]> = {};
+      $localStorageStore.favoriteTokens.forEach(
+        tk => (favoriteBalances[tk] = 0)
+      );
       const newBalances = await searchUserTokens({
         Tezos: $store.Tezos,
         network: $store.network,
@@ -133,9 +137,9 @@
         tokens: Object.entries($store.tokens).filter(tk =>
           $localStorageStore.favoriteTokens.includes(tk[0])
         ),
-        tokensBalances: $store.tokensBalances
+        tokensBalances: favoriteBalances
       });
-      store.updateTokensBalances(newBalances);
+      store.updateTokensBalances(newBalances as State["tokensBalances"]);
     }
   });
 </script>
