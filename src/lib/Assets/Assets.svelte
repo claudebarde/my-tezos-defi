@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
   import store from "../../store";
-  import localStorage from "../../localStorage";
+  import localStorageStore from "../../localStorage";
   import Box from "./Box.svelte";
   import StickyHeader from "./StickyHeader.svelte";
   import { sortTokensByBalance } from "../../utils";
@@ -145,7 +145,7 @@
               </div>
             {:else}
               {#each Object.entries($store.tokensExchangeRates)
-                .filter(token => !$localStorage.favoriteTokens.includes(token[0]))
+                .filter( token => (!$localStorageStore ? true : !$localStorageStore.favoriteTokens.includes(token[0])) )
                 .sort((a, b) => a[0]
                     .toLowerCase()
                     .localeCompare(b[0].toLowerCase())) as entry (entry[0])}
@@ -177,11 +177,11 @@
   {:else if assetsType === "favorite"}
     <div class="container-grid">
       <Box {assetsType} token="tez" />
-      {#if $store.tokens && $store.tokensExchangeRates && $store.tokensBalances}
-        {#each sortTokensByBalance($localStorage.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map( tk => [tk[0], $store.tokens[tk[0]]] ) as token}
+      {#if $store.tokens && $store.tokensExchangeRates && $store.tokensBalances && $localStorageStore && $localStorageStore.favoriteTokens}
+        {#each sortTokensByBalance($localStorageStore.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map( tk => [tk[0], $store.tokens[tk[0]]] ) as token}
           <Box {assetsType} {token} />
         {/each}
-        <!--{#each $localStorage.favoriteTokens.map(tk => [tk, $store.tokens[tk]]) as token}
+        <!--{#each $localStorageStore.favoriteTokens.map(tk => [tk, $store.tokens[tk]]) as token}
           <Box {assetsType} {token} />
         {/each}-->
       {/if}

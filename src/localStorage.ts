@@ -19,11 +19,9 @@ const wrapUserState = (
   state: LocalStorageState,
   userAddress: TezosAccountAddress
 ) => {
-  if (userAddress) {
-    return { [userAddress]: state, version };
-  } else {
-    return { unknown: state, version };
-  }
+  if(!userAddress) throw "No user address";
+
+  return { [userAddress]: state, version };
 };
 
 if (globalThis?.window?.localStorage) {
@@ -54,7 +52,9 @@ if (globalThis?.window?.localStorage) {
     subscribe: store.subscribe,
     init: (userAddress: TezosAccountAddress) => {
       store.update(store => {
-        if (!store) {
+        if(!userAddress){
+          return initialState;
+        } else {
           const localStorage =
             window.localStorage.getItem(localStorageItemName);
           if (localStorage) {
@@ -64,10 +64,14 @@ if (globalThis?.window?.localStorage) {
             if (stateFromStorage.version !== version) {
               newState = { ...initialState, ...stateFromStorage[userAddress] };
               // updates the local storage
-              window.localStorage.setItem(
-                localStorageItemName,
-                JSON.stringify(wrapUserState(newState, userAddress))
-              );
+              try {
+                window.localStorage.setItem(
+                  localStorageItemName,
+                  JSON.stringify(wrapUserState(newState, userAddress))
+                );
+              } catch (error) {
+                console.error(error)
+              }
             } else {
               newState = { ...stateFromStorage[userAddress] };
             }
@@ -75,17 +79,22 @@ if (globalThis?.window?.localStorage) {
             return newState;
           } else {
             // sets up the local storage
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(wrapUserState(initialState, userAddress))
-            );
+            try {
+              window.localStorage.setItem(
+                localStorageItemName,
+                JSON.stringify(wrapUserState(initialState, userAddress))
+              );
+            } catch (error) {
+              console.error(error)
+            }
 
             return initialState;
           }
-        } else {
-          return store;
         }
       });
+    },
+    destroy: () => {
+      store.update(_ => initialState)
     },
     updateFiat: (fiat: AvailableFiat, exchangeRate: number) => {
       store.update(store => {
@@ -96,10 +105,14 @@ if (globalThis?.window?.localStorage) {
           xtzExchangeRate: exchangeRate,
           lastUpdate: Date.now()
         };
-        window.localStorage.setItem(
-          localStorageItemName,
-          JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-        );
+        try {
+          window.localStorage.setItem(
+            localStorageItemName,
+            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
+          );
+        } catch (error) {
+          console.error(error)
+        }
         return newStore;
       });
     },
@@ -112,10 +125,14 @@ if (globalThis?.window?.localStorage) {
             ? [...store.favoriteTokens, tokenSymbol]
             : store.favoriteTokens
         };
-        window.localStorage.setItem(
-          localStorageItemName,
-          JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-        );
+        try {
+          window.localStorage.setItem(
+            localStorageItemName,
+            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
+          );
+        } catch (error) {
+          console.error(error)
+        }
         return newStore;
       });
     },
@@ -128,10 +145,14 @@ if (globalThis?.window?.localStorage) {
             ...store.favoriteTokens.filter(tk => tk !== tokenSymbol)
           ]
         };
-        window.localStorage.setItem(
-          localStorageItemName,
-          JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-        );
+        try {
+          window.localStorage.setItem(
+            localStorageItemName,
+            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
+          );
+        } catch (error) {
+          console.error(error)
+        }
         return newStore;
       });
     },
@@ -144,10 +165,14 @@ if (globalThis?.window?.localStorage) {
             ? [...store.favoriteInvestments, investment]
             : store.favoriteInvestments
         };
-        window.localStorage.setItem(
-          localStorageItemName,
-          JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-        );
+        try {
+          window.localStorage.setItem(
+            localStorageItemName,
+            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
+          );
+        } catch (error) {
+          console.error(error)
+        }
         return newStore;
       });
     },
@@ -160,10 +185,14 @@ if (globalThis?.window?.localStorage) {
             ...store.favoriteInvestments.filter(inv => inv !== investment)
           ]
         };
-        window.localStorage.setItem(
-          localStorageItemName,
-          JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-        );
+        try {
+          window.localStorage.setItem(
+            localStorageItemName,
+            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
+          );
+        } catch (error) {
+          console.error(error)
+        }
         return newStore;
       });
     },
@@ -176,10 +205,14 @@ if (globalThis?.window?.localStorage) {
             ? [...store.wXtzVaults, vault]
             : store.wXtzVaults
         };
-        window.localStorage.setItem(
-          localStorageItemName,
-          JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-        );
+        try {
+          window.localStorage.setItem(
+            localStorageItemName,
+            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
+          );
+        } catch (error) {
+          console.error(error)
+        }
         return newStore;
       });
     },
@@ -192,10 +225,14 @@ if (globalThis?.window?.localStorage) {
             ...store.wXtzVaults.filter(v => v !== vault)
           ]
         };
-        window.localStorage.setItem(
-          localStorageItemName,
-          JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-        );
+        try {
+          window.localStorage.setItem(
+            localStorageItemName,
+            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
+          );
+        } catch (error) {
+          console.error(error)
+        }
         return newStore;
       });
     },

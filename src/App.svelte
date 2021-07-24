@@ -307,17 +307,21 @@
       liveTrafficWorker.onmessage = handleLiveTrafficWorker;
     }
 
-    if (!$localStorageStore && $store.userAddress) {
+    /*if (!$localStorageStore && $store.userAddress) {
       // inits local storage
       localStorageStore.init($store.userAddress);
-    }
+    }*/
 
-    if ($localStorageStore && !$store.xtzData.exchangeRate) {
+    if (!$store.xtzData.exchangeRate) {
       // fetches XTZ exchange rate
       try {
         const coinGeckoFetch = async () => {
           const coinGeckoResponse = await fetch(
-            `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${$localStorageStore.preferredFiat.toLowerCase()}&days=2`
+            `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${
+              $localStorageStore
+                ? $localStorageStore.preferredFiat.toLowerCase()
+                : "USD"
+            }&days=2`
           );
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();
@@ -330,11 +334,13 @@
                 rate: price[1]
               }))
             );
-            // saves the exchange rate in the local store
-            localStorageStore.updateFiat(
-              $localStorageStore.preferredFiat,
-              xtzFiatExchangeRate
-            );
+            if ($localStorageStore && $store.userAddress) {
+              // saves the exchange rate in the local store
+              localStorageStore.updateFiat(
+                $localStorageStore.preferredFiat,
+                xtzFiatExchangeRate
+              );
+            }
           } else {
             throw "No response from CoinGecko API";
           }
@@ -351,6 +357,7 @@
 
   onDestroy(() => {
     clearInterval(coinGeckoInterval);
+    clearInterval(tokensDataInterval);
   });
 </script>
 

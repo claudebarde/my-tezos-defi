@@ -48,6 +48,8 @@
       store.updateUserAddress(userAddress as any);
       store.updateWallet(wallet);
       $store.Tezos.setWalletProvider(wallet);
+      // inits local storage
+      localStorageStore.init($store.userAddress);
 
       // listens to investments worker
       /*investmentsWorker = new InvestmentsWorker();
@@ -61,6 +63,11 @@
       });*/
 
       username = await fetchTezosDomain(userAddress);
+
+      let favoriteBalances: Partial<State["tokensBalances"]> = {};
+      $localStorageStore.favoriteTokens.forEach(
+        tk => (favoriteBalances[tk] = 0)
+      );
       const newBalances = await searchUserTokens({
         Tezos: $store.Tezos,
         network: $store.network,
@@ -68,13 +75,9 @@
         tokens: Object.entries($store.tokens).filter(tk =>
           $localStorageStore.favoriteTokens.includes(tk[0])
         ),
-        tokensBalances: $store.tokensBalances
+        tokensBalances: favoriteBalances
       });
-      if (newBalances) {
-        store.updateTokensBalances(newBalances);
-      }
-      // inits local storage
-      localStorageStore.init($store.userAddress);
+      store.updateTokensBalances(newBalances as State["tokensBalances"]);
     } catch (err) {
       console.error(err);
     }
@@ -91,6 +94,7 @@
       token => (zeroBalances[token] = undefined)
     );
     store.updateTokensBalances(zeroBalances);
+    localStorageStore.destroy();
   };
 
   const fetchTezosDomain = async (address: string): Promise<string> => {
@@ -113,6 +117,7 @@
       store.updateUserAddress(userAddress as TezosAccountAddress);
       store.updateWallet(wallet);
       $store.Tezos.setWalletProvider(wallet);
+      localStorageStore.init(userAddress);
 
       // listens to investments worker
       /*investmentsWorker = new InvestmentsWorker();
@@ -126,6 +131,7 @@
       });*/
 
       username = await fetchTezosDomain(userAddress);
+
       let favoriteBalances: Partial<State["tokensBalances"]> = {};
       $localStorageStore.favoriteTokens.forEach(
         tk => (favoriteBalances[tk] = 0)
@@ -140,6 +146,8 @@
         tokensBalances: favoriteBalances
       });
       store.updateTokensBalances(newBalances as State["tokensBalances"]);
+    } else {
+      localStorageStore.init();
     }
   });
 </script>
