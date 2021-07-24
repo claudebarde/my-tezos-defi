@@ -112,7 +112,7 @@ export interface State {
     | {
         [p in AvailableInvestments]: {
           id: AvailableInvestments;
-          platform: "plenty" | "quipuswap" | "crunchy";
+          platform: "plenty" | "quipuswap" | "crunchy" | "paul";
           address: TezosContractAddress;
           balance: number | undefined;
           decimals: number;

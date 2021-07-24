@@ -699,8 +699,25 @@ export const loadInvestment = async (investment: AvailableInvestments) => {
           info: undefined
         };
       }
+    }else if (inv.platform === "paul") {
+      const userData = await storage.account_info.get(localStore.userAddress);
+      if (userData) {
+        return {
+          id: inv.id,
+          balance: userData.amount.toNumber(),
+          info: undefined
+        };
+      } else {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
     }
 
+    return null;
+  } else {
     return null;
   }
 };

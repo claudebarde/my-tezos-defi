@@ -20,6 +20,7 @@
   let showEmptyPlentyPools = false;
   let harvestingAll = false;
   let harvestingAllSuccess = undefined;
+  let paulValueInXtz = true;
 
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
@@ -170,10 +171,6 @@
         <div class="row">
           <div style="grid-column:1 / span 2">Loading...</div>
         </div>
-      {:else if $localStorageStore.favoriteInvestments.length === 0 || Object.values($store.investments).every(inv => !inv.balance)}
-        <div class="row">
-          <div style="grid-column:1 / span 2">No pool or farm in favorites</div>
-        </div>
       {:else}
         {#if kolibriOvens.length > 0 && kolibriOvens.filter(oven => !oven.isLiquidated).length > 0}
           <div class="row header">
@@ -204,122 +201,6 @@
           {/each}
           <div class="row break-line" />
         {/if}
-        <!-- QUIPUSWAP -->
-        {#if Object.entries($store.investments).filter(inv => inv[1].platform === "quipuswap" && inv[1].favorite).length > 0}
-          <div class="row header">
-            <div />
-            <div>Contract</div>
-            <div>Tokens</div>
-            <div>Value in XTZ</div>
-            <div>Value in {$localStorageStore.preferredFiat}</div>
-          </div>
-          {#each Object.entries($store.investments).filter(inv => inv[1].platform === "quipuswap" && inv[1].favorite) as [contractName, data]}
-            <Row {data} platform={data.platform} valueInXtz={true} />
-          {/each}
-        {/if}
-        <!-- PLENTY -->
-        {#if Object.entries($store.investments).filter(inv => inv[1].platform === "plenty" && inv[1].favorite).length > 0}
-          <div class="row header">
-            <div>
-              <span
-                class="material-icons"
-                style="vertical-align:middle;cursor:pointer"
-                on:click={() => (showEmptyPlentyPools = !showEmptyPlentyPools)}
-              >
-                {#if showEmptyPlentyPools}
-                  visibility_off
-                {:else}
-                  visibility
-                {/if}
-              </span>
-            </div>
-            <div>Contract</div>
-            <div>Stake</div>
-            <div>
-              Stake in {plentyValueInXtz
-                ? "XTZ"
-                : $localStorageStore.preferredFiat}
-            </div>
-            <div>Reward</div>
-          </div>
-          {#each Object.entries($store.investments)
-            .filter(inv => inv[1].platform === "plenty")
-            .filter( inv => (showEmptyPlentyPools ? inv : inv[1].favorite) ) as [_, data] (data.alias)}
-            <Row
-              {data}
-              platform={data.platform}
-              valueInXtz={plentyValueInXtz}
-              on:new-rewards={event => {
-                availableRewards[data.address[$store.network]] = event.detail;
-              }}
-            />
-          {/each}
-          {#if Object.entries($store.investments)
-            .filter(inv => inv[1].platform === "plenty")
-            .filter(inv => inv[1].balance && inv[1].balance > 0).length > 0}
-            <div class="row">
-              <div />
-              <div />
-              <div />
-              <div>
-                <button
-                  class="button investments"
-                  on:click={() => (plentyValueInXtz = !plentyValueInXtz)}
-                >
-                  {#if plentyValueInXtz}
-                    Show {$localStorageStore.preferredFiat}
-                  {:else}
-                    Show XTZ
-                  {/if}
-                </button>
-              </div>
-              {#if Object.keys(availableRewards).length === 0}
-                <div />
-              {:else}
-                <div>
-                  {#if harvestingAll}
-                    <button class="button investments loading">
-                      Harvesting <span class="material-icons"> sync </span>
-                    </button>
-                  {:else}
-                    <!-- Harvest button states -->
-                    {#if harvestingAllSuccess === true}
-                      <button class="button investments success">
-                        Harvested!
-                      </button>
-                    {:else if harvestingAllSuccess === false}
-                      <button
-                        class="button investments error"
-                        on:click={harvestAll}
-                      >
-                        Retry
-                      </button>
-                    {:else}
-                      <button class="button investments" on:click={harvestAll}>
-                        Harvest all
-                      </button>
-                    {/if}
-                  {/if}
-                </div>
-              {/if}
-            </div>
-          {/if}
-        {/if}
-        <!-- CRUNCHY -->
-        {#if Object.values($store.investments)
-          .filter(inv => inv.platform === "crunchy")
-          .some(data => data.info.some(farm => farm.amount > 0))}
-          <div class="row header">
-            <div />
-            <div>Contract</div>
-            <div>Stake</div>
-            <div>Stake in XTZ</div>
-            <div>Reward</div>
-          </div>
-          {#each Object.entries($store.investments).filter(inv => inv[1].platform === "crunchy") as [contractName, data]}
-            <Row {data} platform={data.platform} valueInXtz={true} />
-          {/each}
-        {/if}
         <!-- wXTZ -->
         {#if $localStorageStore.wXtzVaults.length > 0}
           <div class="row header">
@@ -330,6 +211,155 @@
           {#each $localStorageStore.wXtzVaults as data}
             <Row {data} platform="wxtz" valueInXtz={true} />
           {/each}
+        {/if}
+        {#if $localStorageStore.favoriteInvestments.length === 0}
+          <div class="row">
+            <div style="grid-column:1 / span 2">
+              No pool or farm in favorites
+            </div>
+          </div>
+        {:else}
+          <!-- QUIPUSWAP -->
+          {#if Object.entries($store.investments).filter(inv => inv[1].platform === "quipuswap" && inv[1].favorite).length > 0}
+            <div class="row header">
+              <div />
+              <div>Contract</div>
+              <div>Tokens</div>
+              <div>Value in XTZ</div>
+              <div>Value in {$localStorageStore.preferredFiat}</div>
+            </div>
+            {#each Object.entries($store.investments).filter(inv => inv[1].platform === "quipuswap" && inv[1].favorite) as [contractName, data]}
+              <Row {data} platform={data.platform} valueInXtz={true} />
+            {/each}
+          {/if}
+          <!-- PLENTY -->
+          {#if Object.entries($store.investments).filter(inv => inv[1].platform === "plenty" && inv[1].favorite).length > 0}
+            <div class="row header">
+              <div>
+                <span
+                  class="material-icons"
+                  style="vertical-align:middle;cursor:pointer"
+                  on:click={() =>
+                    (showEmptyPlentyPools = !showEmptyPlentyPools)}
+                >
+                  {#if showEmptyPlentyPools}
+                    visibility_off
+                  {:else}
+                    visibility
+                  {/if}
+                </span>
+              </div>
+              <div>Contract</div>
+              <div>Stake</div>
+              <div>
+                Stake in {plentyValueInXtz
+                  ? "XTZ"
+                  : $localStorageStore.preferredFiat}
+              </div>
+              <div>Reward</div>
+            </div>
+            {#each Object.entries($store.investments)
+              .filter(inv => inv[1].platform === "plenty")
+              .filter( inv => (showEmptyPlentyPools ? inv : inv[1].favorite) ) as [_, data] (data.alias)}
+              <Row
+                {data}
+                platform={data.platform}
+                valueInXtz={plentyValueInXtz}
+                on:new-rewards={event => {
+                  availableRewards[data.address[$store.network]] = event.detail;
+                }}
+              />
+            {/each}
+            {#if Object.entries($store.investments)
+              .filter(inv => inv[1].platform === "plenty")
+              .filter(inv => inv[1].balance && inv[1].balance > 0).length > 0}
+              <div class="row">
+                <div />
+                <div />
+                <div />
+                <div>
+                  <button
+                    class="button investments"
+                    on:click={() => (plentyValueInXtz = !plentyValueInXtz)}
+                  >
+                    {#if plentyValueInXtz}
+                      Show {$localStorageStore.preferredFiat}
+                    {:else}
+                      Show XTZ
+                    {/if}
+                  </button>
+                </div>
+                {#if Object.keys(availableRewards).length === 0}
+                  <div />
+                {:else}
+                  <div>
+                    {#if harvestingAll}
+                      <button class="button investments loading">
+                        Harvesting <span class="material-icons"> sync </span>
+                      </button>
+                    {:else}
+                      <!-- Harvest button states -->
+                      {#if harvestingAllSuccess === true}
+                        <button class="button investments success">
+                          Harvested!
+                        </button>
+                      {:else if harvestingAllSuccess === false}
+                        <button
+                          class="button investments error"
+                          on:click={harvestAll}
+                        >
+                          Retry
+                        </button>
+                      {:else}
+                        <button
+                          class="button investments"
+                          on:click={harvestAll}
+                        >
+                          Harvest all
+                        </button>
+                      {/if}
+                    {/if}
+                  </div>
+                {/if}
+              </div>
+            {/if}
+          {/if}
+          <!-- CRUNCHY -->
+          {#if Object.values($store.investments)
+            .filter(inv => inv.platform === "crunchy")
+            .some(data => data.info.some(farm => farm.amount > 0))}
+            <div class="row header">
+              <div />
+              <div>Contract</div>
+              <div>Stake</div>
+              <div>Stake in XTZ</div>
+              <div>Reward</div>
+            </div>
+            {#each Object.entries($store.investments).filter(inv => inv[1].platform === "crunchy") as [contractName, data]}
+              <Row {data} platform={data.platform} valueInXtz={true} />
+            {/each}
+          {/if}
+          <!-- PAUL -->
+          {#if Object.entries($store.investments).filter(inv => inv[1].platform === "paul" && inv[1].favorite).length > 0}
+            <div class="row header">
+              <div />
+              <div>Contract</div>
+              <div>Stake</div>
+              <div>
+                Stake in {paulValueInXtz
+                  ? "XTZ"
+                  : $localStorageStore.preferredFiat}
+              </div>
+              <div>Reward</div>
+            </div>
+            {#each Object.entries($store.investments).filter(inv => inv[1].platform === "paul" && inv[1].favorite) as [contractName, data]}
+              <Row
+                {data}
+                platform={data.platform}
+                valueInXtz={paulValueInXtz}
+              />
+            {/each}
+          {/if}
         {/if}
       {/if}
     {:else}

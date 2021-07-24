@@ -252,5 +252,25 @@
         Error
       {/await}
     </div>
+  {:else if platform === "paul"}
+    <div class="icon">
+      {#each data.icons as icon}
+        <img src={`images/${icon}.png`} alt="token-icon" />
+      {/each}
+    </div>
+    <div>
+      <a
+        href={`https://better-call.dev/mainnet/${data.address}/operations`}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        {data.alias}
+      </a>
+    </div>
+    <div>
+      {+(data.balance / 10 ** data.decimals).toFixed(5) / 1}
+    </div>
+    <div>--</div>
+    <div>--</div>
   {/if}
 </div>
