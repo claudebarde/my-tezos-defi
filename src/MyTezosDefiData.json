@@ -216,7 +216,7 @@
     "GOT": {
       "address": "KT1GioMCKwRyWoQpdrwxvsPVEsFJkkLyquVZ",
       "dexContractAddress": "KT1JyPE1BWdYoRGBvvKhEPbcVRd3C9NCCwQC",
-      "decimals": 3,
+      "decimals": 8,
       "ledgerPath": "assets/ledger",
       "ledgerKey": "address",
       "type": "fa2",

@@ -274,6 +274,13 @@
         store.updateTokensExchangeRates(
           exchangesRates as State["tokensExchangeRates"]
         );
+        // saves the data into the session storage
+        if (window.sessionStorage) {
+          window.sessionStorage.setItem(
+            "tez-tools-prices",
+            JSON.stringify(tokensData)
+          );
+        }
       }
     };
 
@@ -329,6 +336,7 @@
               ? $localStorageStore.preferredFiat.toLowerCase()
               : "USD"
           }&days=2`;
+          console.log(url);
           const coinGeckoResponse = await fetch(url);
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();

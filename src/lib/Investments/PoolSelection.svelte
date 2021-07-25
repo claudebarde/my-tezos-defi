@@ -9,12 +9,13 @@
   let isModalOpen = false;
   let loadingInv = "";
   let newWxtzVault = "";
+  let crunchyFarms;
 
   const showModal = async () => {
     isModalOpen = true;
 
     if (platform === "crunchy") {
-      await loadCrunchyFarms();
+      crunchyFarms = await loadCrunchyFarms();
     }
   };
 
@@ -45,16 +46,10 @@
           farmsData = await Promise.all(
             activeFarms.map(farm => storage.farms.get(farm.key.nat))
           );
-          if (window.sessionStorage) {
-            window.sessionStorage.setItem(
-              "crunchy-farms",
-              JSON.stringify(farmsData)
-            );
-          }
         }
       }
 
-      console.log(farmsData);
+      return farmsData;
     }
   };
 
@@ -252,7 +247,21 @@
           </div>
         {/each}
       {:else if platform === "crunchy"}
-        <div>Input pool address:</div>
+        {#if crunchyFarms && Array.isArray(crunchyFarms) && crunchyFarms.length > 0}
+          {#each crunchyFarms as farm}
+            {#if window.sessionStorage && window.sessionStorage.getItem("tez-tools-prices")}
+              {JSON.parse(
+                window.sessionStorage.getItem("tez-tools-prices")
+              ).contracts.filter(
+                tk => tk.tokenAddress === farm.poolToken.address
+              )[0].name}
+            {:else}
+              {shortenHash(farm.poolToken.address)}
+            {/if}
+          {/each}
+        {:else}
+          <div>No stake in any Crunchy farms</div>
+        {/if}
       {:else if platform === "paul"}
         {#each Object.entries($store.investments)
           .filter(inv => inv[1].platform === "paul")
