@@ -174,12 +174,25 @@
         position: relative;
         padding: 10px;
         margin: 5px;
+        width: 20px;
+        height: 20px;
         cursor: pointer;
 
+        &:hover img {
+          width: 44px;
+          height: 44px;
+          top: calc(50% - 22px);
+          left: calc(50% - 22px);
+        }
+
         img {
+          position: absolute;
+          top: calc(50% - 15px);
+          left: calc(50% - 15px);
           width: 30px;
           height: 30px;
           vertical-align: middle;
+          transition: 0.3s;
         }
 
         .favorite-mark {
