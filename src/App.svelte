@@ -106,7 +106,7 @@
             }
           }
           // updates balance
-          updatedTokensBalances[token[0]] = userBalance;
+          updatedTokensBalances[token[0]] = userBalance < 0 ? 0 : userBalance;
           // updates balances
           store.updateTokensBalances(updatedTokensBalances);
         } else if (
@@ -280,6 +280,14 @@
     await fetchTokensData();
     tokensDataInterval = setInterval(fetchTokensData, 600_000);
 
+    // updates service fee for test version
+    if (
+      window.location.href.includes("localhost") ||
+      window.location.href.includes("staging")
+    ) {
+      store.updateServiceFee(null);
+    }
+
     // reloads some data when user comes back to the page
     lastAppVisibility = Date.now();
     document.addEventListener("visibilitychange", async () => {
@@ -316,13 +324,12 @@
       // fetches XTZ exchange rate
       try {
         const coinGeckoFetch = async () => {
-          const coinGeckoResponse = await fetch(
-            `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${
-              $localStorageStore
-                ? $localStorageStore.preferredFiat.toLowerCase()
-                : "USD"
-            }&days=2`
-          );
+          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${
+            $localStorageStore
+              ? $localStorageStore.preferredFiat.toLowerCase()
+              : "USD"
+          }&days=2`;
+          const coinGeckoResponse = await fetch(url);
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();
             const prices = data.prices;

@@ -145,6 +145,7 @@
         ),
         tokensBalances: favoriteBalances
       });
+      console.log(newBalances);
       store.updateTokensBalances(newBalances as State["tokensBalances"]);
     } else {
       localStorageStore.init();

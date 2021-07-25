@@ -57,12 +57,41 @@
           />
           <button
             class="button mini"
-            on:click={() => {
+            on:click={async () => {
               if (
                 newFiat !== $localStorageStore.preferredFiat &&
                 Object.keys(AvailableFiat).includes(newFiat)
               ) {
                 localStorageStore.updateFiat(newFiat, 0);
+
+                const coinGeckoResponse = await fetch(
+                  `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${
+                    $localStorageStore
+                      ? $localStorageStore.preferredFiat.toLowerCase()
+                      : "USD"
+                  }&days=2`
+                );
+                if (coinGeckoResponse) {
+                  const data = await coinGeckoResponse.json();
+                  const prices = data.prices;
+                  const xtzFiatExchangeRate = prices[prices.length - 1][1];
+                  store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
+                  store.updateXtzDataHistoric(
+                    prices.map(price => ({
+                      timestamp: price[0],
+                      rate: price[1]
+                    }))
+                  );
+                  if ($localStorageStore && $store.userAddress) {
+                    // saves the exchange rate in the local store
+                    localStorageStore.updateFiat(
+                      $localStorageStore.preferredFiat,
+                      xtzFiatExchangeRate
+                    );
+                  }
+                } else {
+                  throw "No response from CoinGecko API";
+                }
                 openSettings = false;
               } else {
                 newFiat = undefined;
