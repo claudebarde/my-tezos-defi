@@ -12,7 +12,8 @@
   import { AvailableToken } from "./types";
   import { createNewOpEntry } from "./utils";
   import localStorageStore from "./localStorage";
-  import config from "./config";
+  import Toast from "./lib/Toast/Toast.svelte";
+  import toastStore from "./lib/Toast/toastStore";
 
   let appReady = false;
   let liveTrafficWorker;
@@ -245,6 +246,12 @@
         });
         store.updateInvestments({ ...defiData.investments });
       }
+    } else {
+      toastStore.addToast({
+        type: "error",
+        text: "Unable to fetch dapp data",
+        dismissable: false
+      });
     }
 
     // fetches token data from TezTools
@@ -288,6 +295,12 @@
             JSON.stringify(tokensData)
           );
         }
+      } else {
+        toastStore.addToast({
+          type: "error",
+          text: "Unable to fetch tokens data",
+          dismissable: false
+        });
       }
     };
 
@@ -371,6 +384,11 @@
         coinGeckoInterval = setInterval(coinGeckoFetch, 600_000);
       } catch (error) {
         console.log(error);
+        toastStore.addToast({
+          type: "error",
+          text: "Unable to fetch CoinGecko data",
+          dismissable: false
+        });
         return;
       }
     }
@@ -434,3 +452,4 @@
   {/if}
 </main>
 <Footer />
+<Toast />

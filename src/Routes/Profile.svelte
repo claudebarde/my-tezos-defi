@@ -6,27 +6,37 @@
   import { createNewOpEntry, searchUserTokens } from "../utils";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
   import PoolSelection from "../lib/Investments/PoolSelection.svelte";
+  import toastStore from "../lib/Toast/toastStore";
 
   let lastTransactions: Operation[] = [];
   let daysInThePast = 7;
 
   const addFavoriteToken = async tokenSymbol => {
-    // adds token to favorite list
-    localStorageStore.addFavoriteToken(tokenSymbol);
-    // gets user's balance
-    const userToken = await searchUserTokens({
-      Tezos: $store.Tezos,
-      network: $store.network,
-      userAddress: $store.userAddress,
-      tokens: Object.entries($store.tokens).filter(tk =>
-        $localStorageStore.favoriteTokens.includes(tk[0])
-      ),
-      tokensBalances: $store.tokensBalances
-    });
-    if (userToken) {
-      store.updateTokensBalances({
-        ...$store.tokensBalances,
-        [tokenSymbol]: userToken[tokenSymbol]
+    try {
+      // adds token to favorite list
+      localStorageStore.addFavoriteToken(tokenSymbol);
+      // gets user's balance
+      const userToken = await searchUserTokens({
+        Tezos: $store.Tezos,
+        network: $store.network,
+        userAddress: $store.userAddress,
+        tokens: Object.entries($store.tokens).filter(tk =>
+          $localStorageStore.favoriteTokens.includes(tk[0])
+        ),
+        tokensBalances: $store.tokensBalances
+      });
+      if (userToken) {
+        store.updateTokensBalances({
+          ...$store.tokensBalances,
+          [tokenSymbol]: userToken[tokenSymbol]
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toastStore.addToast({
+        type: error,
+        text: "Couldn't add favorite token",
+        dismissable: false
       });
     }
   };
