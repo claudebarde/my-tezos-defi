@@ -136,16 +136,20 @@
       $localStorageStore.favoriteTokens.forEach(
         tk => (favoriteBalances[tk] = 0)
       );
-      const newBalances = await searchUserTokens({
-        Tezos: $store.Tezos,
-        network: $store.network,
-        userAddress: $store.userAddress,
-        tokens: Object.entries($store.tokens).filter(tk =>
-          $localStorageStore.favoriteTokens.includes(tk[0])
-        ),
-        tokensBalances: favoriteBalances
-      });
-      store.updateTokensBalances(newBalances as State["tokensBalances"]);
+      try {
+        const newBalances = await searchUserTokens({
+          Tezos: $store.Tezos,
+          network: $store.network,
+          userAddress: $store.userAddress,
+          tokens: Object.entries($store.tokens).filter(tk =>
+            $localStorageStore.favoriteTokens.includes(tk[0])
+          ),
+          tokensBalances: favoriteBalances
+        });
+        store.updateTokensBalances(newBalances as State["tokensBalances"]);
+      } catch (error) {
+        console.error(error);
+      }
     } else {
       localStorageStore.init();
     }

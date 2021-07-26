@@ -17,6 +17,8 @@
   let trendModalOpen = false;
   let loadingExchangeRates = true;
   let localBalance: number | undefined = undefined;
+  let newTransferIn = false;
+  let newTransferOut = false;
 
   /*const dummyChartData = {
     data: [
@@ -90,11 +92,11 @@
       }
 
       if (localBalance === undefined && $store.tokensBalances[token[0]]) {
-        console.log(
+        /*console.log(
           "set local balance:",
           localBalance,
           $store.tokensBalances[token[0]]
-        );
+        );*/
         localBalance = $store.tokensBalances[token[0]];
       } else if (
         localBalance &&
@@ -105,6 +107,15 @@
           localBalance,
           $store.tokensBalances[token[0]]
         );
+        if ($store.tokensBalances[token[0]] > localBalance) {
+          newTransferIn = true;
+          newTransferOut = false;
+          setTimeout(() => (newTransferIn = false), 4000);
+        } else {
+          newTransferOut = true;
+          newTransferIn = false;
+          setTimeout(() => (newTransferOut = false), 4000);
+        }
         localBalance = $store.tokensBalances[token[0]];
       }
     } else {
@@ -141,6 +152,8 @@
     padding: 10px;
     margin: 10px;
     min-width: 180px;
+    position: relative;
+    z-index: 1;
 
     .icon {
       position: relative;
@@ -217,6 +230,38 @@
         }
       }
     }
+
+    .transfer-in {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      top: -40px;
+      animation: transfer-in 3s forwards;
+      padding: 0px;
+      margin: 0px;
+      z-index: 2;
+
+      img {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    .transfer-out {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      top: 40px;
+      animation: transfer-out 3s forwards;
+      padding: 0px;
+      margin: 0px;
+      z-index: 2;
+
+      img {
+        width: 40px;
+        height: 40px;
+      }
+    }
   }
 
   @keyframes spin {
@@ -227,9 +272,41 @@
       transform: rotate(360deg);
     }
   }
+
+  @keyframes transfer-in {
+    from {
+      transform: translateY(0px);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(80px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes transfer-out {
+    from {
+      transform: translateY(0px) rotate(180deg);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(-80px) rotate(180deg);
+      opacity: 0;
+    }
+  }
 </style>
 
 <div class="box">
+  {#if newTransferIn}
+    <div class="transfer-in">
+      <img src={`images/down-arrow.svg`} alt="down-arrow" />
+    </div>
+  {/if}
+  {#if newTransferOut}
+    <div class="transfer-out">
+      <img src={`images/down-arrow.svg`} alt="down-arrow" />
+    </div>
+  {/if}
   <div class="icon" class:loading={loadingExchangeRates}>
     {#if loadingExchangeRates}
       <div class="loading-rates" />
