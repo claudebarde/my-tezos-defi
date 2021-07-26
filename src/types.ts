@@ -48,7 +48,9 @@ export enum AvailableInvestments {
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
   "QUIPUSWAP-ETHtz" = "QUIPUSWAP-ETHtz",
   "QUIPUSWAP-CRUNCH" = "QUIPUSWAP-CRUNCH",
-  "CRUNCHY-FARMS" = "CRUNCHY-FARMS"
+  "CRUNCHY-FARMS" = "CRUNCHY-FARMS",
+  "PAUL-PAUL" = "PAUL-PAUL",
+  "PAUL-XTZ" = "PAUL-XTZ"
 }
 
 export interface TokenContract {

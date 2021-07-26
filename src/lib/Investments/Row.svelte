@@ -8,6 +8,7 @@
     getPaulReward
   } from "../../utils";
   import ManagePlenty from "../Modal/ManagePlenty.svelte";
+  import toastStore from "../Toast/toastStore";
 
   export let data, platform, valueInXtz;
 
@@ -42,6 +43,13 @@
       } else {
         plentyRewards = "N/A";
         dispatch("new-rewards", 0);
+        {
+          toastStore.addToast({
+            type: "error",
+            text: "Couldn't load PLENTY rewards",
+            dismissable: false
+          });
+        }
       }
 
       lastLevel = level;

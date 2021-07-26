@@ -306,12 +306,23 @@ export const getOpIcons = (
       icons = ["crDAO"];
       break;
     default:
-      if(target.alias && Object.keys(localStore.tokens).includes(target.alias)){
-        icons = [target.alias.trim() as IconValue]
-      } else if(Object.values(localStore.tokens).filter(tk => tk.address === target.address).length === 1){
-        icons = [(Object.entries(localStore.tokens).filter(tk => tk[1].address === target.address)[0][0]) as IconValue]
+      if (
+        target.alias &&
+        Object.keys(localStore.tokens).includes(target.alias)
+      ) {
+        icons = [target.alias.trim() as IconValue];
+      } else if (
+        Object.values(localStore.tokens).filter(
+          tk => tk.address === target.address
+        ).length === 1
+      ) {
+        icons = [
+          Object.entries(localStore.tokens).filter(
+            tk => tk[1].address === target.address
+          )[0][0] as IconValue
+        ];
       } else {
-        icons = ["user"]
+        icons = ["user"];
       }
       break;
   }
@@ -369,6 +380,17 @@ export const calculateValue = (op: any): number => {
         }
       });
       return amount / 10 ** token.decimals;
+    } else if (
+      entrypoint === "mint" &&
+      [
+        localStore.investments["PAUL-PAUL"].address,
+        localStore.investments["PAUL-XTZ"].address
+      ].includes(op.sender.address)
+    ) {
+      // PAUL farms
+      let totalValue = 0;
+      op.parameter.value.forEach(val => (totalValue += +val.nat));
+      return totalValue / 10 ** token.decimals;
     } else {
       return 0;
     }
@@ -576,10 +598,10 @@ export const getPlentyReward = async (
   const localStore = get(store);
 
   try {
-    if(!stakingContractAddress){
-      throw "No contract address provided"
+    if (!stakingContractAddress) {
+      throw "No contract address provided";
     }
-    
+
     const contract = await localStore.Tezos.wallet.at(stakingContractAddress);
     const storage: any = await contract.storage();
     if (storage.totalSupply.toNumber() == 0) {
@@ -700,7 +722,7 @@ export const loadInvestment = async (investment: AvailableInvestments) => {
           info: undefined
         };
       }
-    }else if (inv.platform === "paul") {
+    } else if (inv.platform === "paul") {
       const userData = await storage.account_info.get(localStore.userAddress);
       if (userData) {
         return {
@@ -757,7 +779,7 @@ export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
 
 export const getPaulReward = async (
   contractAddress: string,
-  vaultMode?: boolean,
+  vaultMode?: boolean
 ): Promise<BigNumber | null> => {
   const localStore = get(store);
   const numberAccuracy = new BigNumber(1000000000000000000);
@@ -770,30 +792,35 @@ export const getPaulReward = async (
     account_info: accountInfo,
     reward_per_second: rewardPerSecond,
     coefficient,
-    referral_system: referralSystem,
+    referral_system: referralSystem
   } = await contract.storage();
 
   if (totalStaked.eq(0)) {
     return new BigNumber(0);
   }
 
-  const referralSystemContract = await localStore.Tezos.wallet.at(referralSystem);
-  const {
-    commission,
-  } = await referralSystemContract.storage();
+  const referralSystemContract = await localStore.Tezos.wallet.at(
+    referralSystem
+  );
+  const { commission } = await referralSystemContract.storage();
 
   const currentTime = new BigNumber(+new Date());
   const lastTime = new BigNumber(+new Date(lastUpdated));
   const time = currentTime.minus(lastTime).idiv(1000).abs();
 
-  const newReward = time.times(rewardPerSecond.times(coefficient)).times(numberAccuracy);
-  const newShareReward = new BigNumber(shareReward).plus(newReward.idiv(totalStaked).idiv(100));
+  const newReward = time
+    .times(rewardPerSecond.times(coefficient))
+    .times(numberAccuracy);
+  const newShareReward = new BigNumber(shareReward).plus(
+    newReward.idiv(totalStaked).idiv(100)
+  );
 
   const val = await accountInfo.get(localStore.userAddress);
   if (!val) return null;
 
   const reward = val.reward
-    .plus(val.amount.times(newShareReward).minus(val.former)).idiv(numberAccuracy);
+    .plus(val.amount.times(newShareReward).minus(val.former))
+    .idiv(numberAccuracy);
 
   // There is no commission for vaults
   if (vaultMode) {
