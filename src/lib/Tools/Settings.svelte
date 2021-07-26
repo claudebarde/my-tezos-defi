@@ -65,11 +65,7 @@
                 localStorageStore.updateFiat(newFiat, 0);
 
                 const coinGeckoResponse = await fetch(
-                  `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${
-                    $localStorageStore
-                      ? $localStorageStore.preferredFiat.toLowerCase()
-                      : "USD"
-                  }&days=2`
+                  `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${newFiat}&days=2`
                 );
                 if (coinGeckoResponse) {
                   const data = await coinGeckoResponse.json();

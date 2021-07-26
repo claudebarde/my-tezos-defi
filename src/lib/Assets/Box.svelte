@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from "svelte";
+  import { afterUpdate } from "svelte";
   import Chart from "chart.js/auto";
   import moment from "moment";
   import type { AvailableToken, TokenContract } from "../../types";
@@ -16,6 +16,7 @@
   let trend: "up" | "down" | "same" | undefined = undefined;
   let trendModalOpen = false;
   let loadingExchangeRates = true;
+  let localBalance: number | undefined = undefined;
 
   /*const dummyChartData = {
     data: [
@@ -86,6 +87,25 @@
         );
         trend = newTrend.trend;
         nrOfTrends = newTrend.nrOfTrends;
+      }
+
+      if (localBalance === undefined && $store.tokensBalances[token[0]]) {
+        console.log(
+          "set local balance:",
+          localBalance,
+          $store.tokensBalances[token[0]]
+        );
+        localBalance = $store.tokensBalances[token[0]];
+      } else if (
+        localBalance &&
+        $store.tokensBalances[token[0]] !== localBalance
+      ) {
+        console.log(
+          "different balance:",
+          localBalance,
+          $store.tokensBalances[token[0]]
+        );
+        localBalance = $store.tokensBalances[token[0]];
       }
     } else {
       // calculate tez trend

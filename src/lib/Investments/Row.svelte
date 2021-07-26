@@ -4,7 +4,8 @@
   import {
     calcTotalShareValueInTez,
     getPlentyReward,
-    shortenHash
+    shortenHash,
+    getPaulReward
   } from "../../utils";
   import ManagePlenty from "../Modal/ManagePlenty.svelte";
 
@@ -151,7 +152,7 @@
     {/if}
     <div>
       {#if loadingPlentyRewards}
-        Calculating...
+        <span class="material-icons"> hourglass_empty </span>
       {:else}
         {plentyRewards}
       {/if}
@@ -245,7 +246,7 @@
     </div>
     <div>
       {#await $store.Tezos.tz.getBalance(data)}
-        Loading...
+        <span class="material-icons"> hourglass_empty </span>
       {:then value}
         {+value / 10 ** 6} ꜩ
       {:catch error}
@@ -271,6 +272,15 @@
       {+(data.balance / 10 ** data.decimals).toFixed(5) / 1}
     </div>
     <div>--</div>
-    <div>--</div>
+    <div>
+      {#await getPaulReward(data.address)}
+        <span class="material-icons"> hourglass_empty </span>
+      {:then reward}
+        {+(reward.toNumber() / 10 ** $store.tokens.PAUL.decimals).toFixed(5) /
+          1}
+      {:catch error}
+        Error
+      {/await}
+    </div>
   {/if}
 </div>

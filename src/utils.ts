@@ -4,6 +4,7 @@ import type {
   Wallet,
   WalletOperationBatch
 } from "@taquito/taquito";
+import BigNumber from "bignumber.js";
 import { findDex, estimateTezInShares } from "@quipuswap/sdk";
 import type {
   HistoricalDataState,
@@ -752,4 +753,52 @@ export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
           : 0)
     );
   });
+};
+
+export const getPaulReward = async (
+  contractAddress: string,
+  vaultMode?: boolean,
+): Promise<BigNumber | null> => {
+  const localStore = get(store);
+  const numberAccuracy = new BigNumber(1000000000000000000);
+
+  const contract = await localStore.Tezos.wallet.at(contractAddress);
+  const {
+    last_updated: lastUpdated,
+    share_reward: shareReward,
+    total_staked: totalStaked,
+    account_info: accountInfo,
+    reward_per_second: rewardPerSecond,
+    coefficient,
+    referral_system: referralSystem,
+  } = await contract.storage();
+
+  if (totalStaked.eq(0)) {
+    return new BigNumber(0);
+  }
+
+  const referralSystemContract = await localStore.Tezos.wallet.at(referralSystem);
+  const {
+    commission,
+  } = await referralSystemContract.storage();
+
+  const currentTime = new BigNumber(+new Date());
+  const lastTime = new BigNumber(+new Date(lastUpdated));
+  const time = currentTime.minus(lastTime).idiv(1000).abs();
+
+  const newReward = time.times(rewardPerSecond.times(coefficient)).times(numberAccuracy);
+  const newShareReward = new BigNumber(shareReward).plus(newReward.idiv(totalStaked).idiv(100));
+
+  const val = await accountInfo.get(localStore.userAddress);
+  if (!val) return null;
+
+  const reward = val.reward
+    .plus(val.amount.times(newShareReward).minus(val.former)).idiv(numberAccuracy);
+
+  // There is no commission for vaults
+  if (vaultMode) {
+    return reward;
+  }
+
+  return reward.times(new BigNumber(100).minus(commission)).idiv(100);
 };

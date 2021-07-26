@@ -263,12 +263,19 @@
           .filter(tk => availableTokenAddresses.includes(tk.tokenAddress))
           .forEach(tk => {
             if (availableTokenSymbols.includes(tk.symbol)) {
+              const tokenToTez = +tk.currentPrice.toFixed(5) / 1;
+              const tezToToken = +(1 / tk.currentPrice).toFixed(5) / 1;
+
               exchangesRates[tk.symbol] = {
-                tokenToTez: +tk.currentPrice.toFixed(5) / 1,
-                tezToToken: +(1 / tk.currentPrice).toFixed(5) / 1,
-                realPriceInTez: +(1 / tk.currentPrice).toFixed(5) / 1,
-                realPriceInToken: +tk.currentPrice.toFixed(5) / 1
+                tokenToTez: tokenToTez,
+                tezToToken: tezToToken,
+                realPriceInTez: tezToToken,
+                realPriceInToken: tokenToTez
               };
+              historicDataStore.updateToken(tk.symbol, {
+                tokenToTez,
+                tezToToken
+              });
             }
           });
         store.updateTokensExchangeRates(
@@ -336,7 +343,6 @@
               ? $localStorageStore.preferredFiat.toLowerCase()
               : "USD"
           }&days=2`;
-          console.log(url);
           const coinGeckoResponse = await fetch(url);
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();
