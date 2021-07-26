@@ -25,7 +25,8 @@ export enum AvailableToken {
   SDAO = "sDAO",
   SMAK = "SMAK",
   GOT = "GOT",
-  HERA = "HERA"
+  HERA = "HERA",
+  KDAO = "kDAO"
 }
 export enum AvailableFiat {
   USD = "USD",

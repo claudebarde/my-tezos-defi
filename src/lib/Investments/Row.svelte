@@ -258,7 +258,14 @@
       {:then value}
         {+value / 10 ** 6} ꜩ
       {:catch error}
-        Error
+        {() => {
+          toastStore.addToast({
+            type: "error",
+            text: `Couldn't load value of wXTZ vault`,
+            dismissable: false
+          });
+          return "Error";
+        }}
       {/await}
     </div>
   {:else if platform === "paul"}
@@ -287,7 +294,14 @@
         {+(reward.toNumber() / 10 ** $store.tokens.PAUL.decimals).toFixed(5) /
           1}
       {:catch error}
-        Error
+        {() => {
+          toastStore.addToast({
+            type: "error",
+            text: `Couldn't load rewards for ${data.alias}`,
+            dismissable: false
+          });
+          return "Error";
+        }}
       {/await}
     </div>
   {/if}

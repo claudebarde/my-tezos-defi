@@ -234,6 +234,17 @@
       "color": "#E8C011",
       "tokenId": 0,
       "whitelisted": false
+    },
+    "kDAO": {
+      "address": "KT1JkoE42rrMBP9b2oDhbx6EUr26GcySZMUH",
+      "dexContractAddress": "KT1NEa7CmaLaWgHNi6LkRi5Z1f4oHfdzRdGA",
+      "decimals": 18,
+      "ledgerPath": "balances",
+      "ledgerKey": "address",
+      "type": "fa1.2",
+      "color": "#3FBD93",
+      "tokenId": 0,
+      "whitelisted": true
     }
   },
   "investments": {
