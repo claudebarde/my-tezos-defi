@@ -408,11 +408,11 @@
       "icons": ["PAUL", "XTZ"],
       "token": "PAUL"
     },
-    "KUSD-QUIPU_LP": {
+    "KUSD-QUIPU-LP": {
       "id": "KUSD-QUIPU-LP",
       "platform": "kdao",
       "address": "KT1RB179ddATKbCi7E8ben91bo2hqRRPrNQf",
-      "decimals": 18,
+      "decimals": 6,
       "info": [],
       "alias": "kUSD Quipu LP Farm",
       "icons": ["KUSD", "QUIPU"],

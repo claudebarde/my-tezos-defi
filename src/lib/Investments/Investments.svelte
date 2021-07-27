@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
   import store from "../../store";
+  import toastStore from "../Toast/toastStore";
   import localStorageStore from "../../localStorage";
   import {
     getKolibriOvens,
@@ -130,6 +131,12 @@
       if (ovens) {
         kolibriOvens = [...ovens];
         kolibriOvensChecked = true;
+      } else {
+        toastStore.addToast({
+          type: "error",
+          text: "Couldn't load Kolibri ovens",
+          dismissable: false
+        });
       }
     }
   });
