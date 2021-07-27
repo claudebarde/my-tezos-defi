@@ -163,25 +163,27 @@
   });
 
   afterUpdate(() => {
-    const nodeUrl = $store.Tezos.rpc.getRpcUrl();
-    switch (nodeUrl) {
-      case "https://mainnet-tezos.giganode.io":
-        nodeIconLetter = "G";
-        break;
-      case "https://api.tez.ie/rpc/mainnet":
-        nodeIconLetter = "E";
-        break;
-      case "https://mainnet.smartpy.io/":
-        nodeIconLetter = "S";
-        break;
-      case "https://rpc.tzbeta.net/":
-        nodeIconLetter = "B";
-        break;
-      case "https://teznode.letzbake.com/":
-        nodeIconLetter = "L";
-        break;
-      default:
-        nodeIconLetter = "";
+    if ($store.Tezos) {
+      const nodeUrl = $store.Tezos.rpc.getRpcUrl();
+      switch (nodeUrl) {
+        case "https://mainnet-tezos.giganode.io":
+          nodeIconLetter = "G";
+          break;
+        case "https://api.tez.ie/rpc/mainnet":
+          nodeIconLetter = "E";
+          break;
+        case "https://mainnet.smartpy.io/":
+          nodeIconLetter = "S";
+          break;
+        case "https://rpc.tzbeta.net/":
+          nodeIconLetter = "B";
+          break;
+        case "https://teznode.letzbake.com/":
+          nodeIconLetter = "L";
+          break;
+        default:
+          nodeIconLetter = "";
+      }
     }
   });
 </script>
