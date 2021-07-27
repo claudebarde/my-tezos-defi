@@ -102,9 +102,13 @@ export interface State {
   wallet: BeaconWallet;
   userAddress: TezosAccountAddress;
   settings: {
-    testnet: any;
+    testnet: {
+      rpcUrl: string;
+      validRpcUrls: { name: string; url: string }[];
+    };
     mainnet: {
       rpcUrl: string;
+      validRpcUrls: { name: string; url: string }[];
     };
   };
   tokens: { [p in AvailableToken]: TokenContract } | undefined;
@@ -165,6 +169,7 @@ export interface LocalStorageState {
   pushNotifications: boolean;
   favoriteTokens: AvailableToken[];
   favoriteInvestments: AvailableInvestments[];
+  favoriteRpcUrl: string;
   wXtzVaults: TezosContractAddress[];
   lastUpdate: number;
 }

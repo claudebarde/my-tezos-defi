@@ -1,16 +1,21 @@
 import { writable, get } from "svelte/store";
-import type { LocalStorageState, TezosAccountAddress, TezosContractAddress } from "./types";
+import type {
+  LocalStorageState,
+  TezosAccountAddress,
+  TezosContractAddress
+} from "./types";
 import { AvailableFiat, AvailableToken, AvailableInvestments } from "./types";
 import generalStore from "./store";
 
 let state = null;
 const localStorageItemName = "mtd";
-const version = "3.0.2";
+const version = "3.0.3";
 let initialState: LocalStorageState = {
   preferredFiat: AvailableFiat.USD,
   pushNotifications: false,
   favoriteTokens: [],
   favoriteInvestments: [],
+  favoriteRpcUrl: "https://mainnet-tezos.giganode.io",
   wXtzVaults: [],
   lastUpdate: Date.now()
 };
@@ -19,7 +24,7 @@ const wrapUserState = (
   state: LocalStorageState,
   userAddress: TezosAccountAddress
 ) => {
-  if(!userAddress) throw "No user address";
+  if (!userAddress) throw "No user address";
 
   return { [userAddress]: state, version };
 };
@@ -52,7 +57,7 @@ if (globalThis?.window?.localStorage) {
     subscribe: store.subscribe,
     init: (userAddress: TezosAccountAddress) => {
       store.update(store => {
-        if(!userAddress){
+        if (!userAddress) {
           return initialState;
         } else {
           const localStorage =
@@ -70,7 +75,7 @@ if (globalThis?.window?.localStorage) {
                   JSON.stringify(wrapUserState(newState, userAddress))
                 );
               } catch (error) {
-                console.error(error)
+                console.error(error);
               }
             } else {
               newState = { ...stateFromStorage[userAddress] };
@@ -85,7 +90,7 @@ if (globalThis?.window?.localStorage) {
                 JSON.stringify(wrapUserState(initialState, userAddress))
               );
             } catch (error) {
-              console.error(error)
+              console.error(error);
             }
 
             return initialState;
@@ -94,7 +99,7 @@ if (globalThis?.window?.localStorage) {
       });
     },
     destroy: () => {
-      store.update(_ => initialState)
+      store.update(_ => initialState);
     },
     updateFiat: (fiat: AvailableFiat, exchangeRate: number) => {
       store.update(store => {
@@ -111,7 +116,7 @@ if (globalThis?.window?.localStorage) {
             JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
           );
         } catch (error) {
-          console.error(error)
+          console.error(error);
         }
         return newStore;
       });
@@ -131,7 +136,7 @@ if (globalThis?.window?.localStorage) {
             JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
           );
         } catch (error) {
-          console.error(error)
+          console.error(error);
         }
         return newStore;
       });
@@ -151,7 +156,7 @@ if (globalThis?.window?.localStorage) {
             JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
           );
         } catch (error) {
-          console.error(error)
+          console.error(error);
         }
         return newStore;
       });
@@ -171,7 +176,7 @@ if (globalThis?.window?.localStorage) {
             JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
           );
         } catch (error) {
-          console.error(error)
+          console.error(error);
         }
         return newStore;
       });
@@ -191,7 +196,7 @@ if (globalThis?.window?.localStorage) {
             JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
           );
         } catch (error) {
-          console.error(error)
+          console.error(error);
         }
         return newStore;
       });
@@ -211,7 +216,7 @@ if (globalThis?.window?.localStorage) {
             JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
           );
         } catch (error) {
-          console.error(error)
+          console.error(error);
         }
         return newStore;
       });
@@ -221,9 +226,7 @@ if (globalThis?.window?.localStorage) {
         const gnrlStore = get(generalStore);
         const newStore = {
           ...store,
-          wXtzVaults: [
-            ...store.wXtzVaults.filter(v => v !== vault)
-          ]
+          wXtzVaults: [...store.wXtzVaults.filter(v => v !== vault)]
         };
         try {
           window.localStorage.setItem(
@@ -231,11 +234,30 @@ if (globalThis?.window?.localStorage) {
             JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
           );
         } catch (error) {
-          console.error(error)
+          console.error(error);
         }
         return newStore;
       });
     },
+    updateFavoriteRpcUrl: (url: string) => {
+      store.update(store => {
+        const gnrlStore = get(generalStore);
+        const newStore = {
+          ...store,
+          favoriteRpcUrl: url,
+          lastUpdate: Date.now()
+        };
+        try {
+          window.localStorage.setItem(
+            localStorageItemName,
+            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
+          );
+        } catch (error) {
+          console.error(error);
+        }
+        return newStore;
+      });
+    }
   };
 }
 

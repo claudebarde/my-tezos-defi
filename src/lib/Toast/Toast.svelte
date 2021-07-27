@@ -35,15 +35,14 @@
     class={`toast ${toast.type}`}
     transition:fly={{ y: 300, duration: 1000, easing: expoInOut }}
     style={"bottom:" + (index === 0 ? "50px" : 50 + 60 * index + "px")}
-    on:click={() => {
-      toastStore.addToast({
-        id: "test " + (index + 1),
-        type: "default",
-        text: "Test toast " + (index + 1),
-        dismissable: true
-      });
-    }}
   >
     {toast.text}
+    <span
+      class="material-icons"
+      style="cursor:pointer;vertical-align:middle"
+      on:click={() => toastStore.removeToast(toast.id)}
+    >
+      close
+    </span>
   </div>
 {/each}

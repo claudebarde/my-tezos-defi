@@ -103,6 +103,31 @@
             {/each}
           </datalist>
         </div>
+        <div>Change RPC node</div>
+        <div>
+          <input
+            type="text"
+            list="rpc-nodes"
+            placeholder={$localStorageStore.favoriteRpcUrl}
+            bind:value={newRpcNode}
+          />
+          <button
+            class="button mini"
+            on:click={() => {
+              $store.Tezos.setRpcProvider(newRpcNode);
+              store.updateTezos($store.Tezos);
+              localStorageStore.updateFavoriteRpcUrl(newRpcNode);
+              openSettings = false;
+            }}
+          >
+            Change
+          </button>
+          <datalist id="rpc-nodes">
+            {#each $store.settings[$store.network].validRpcUrls as item}
+              <option value={item.url}>{item.name}</option>
+            {/each}
+          </datalist>
+        </div>
         <div>Allow contribution</div>
         <FeeDisclaimer />
         <div>Allow Push Notifications</div>
@@ -118,34 +143,6 @@
               <button class="button mini" style="float:right">Allow</button>
             {/if}
           </div>
-        </div>
-        <div>Change RPC node</div>
-        <div>
-          <input
-            type="text"
-            list="rpc-nodes"
-            placeholder={newRpcNode}
-            bind:value={newRpcNode}
-          />
-          <button
-            class="button mini"
-            on:click={() => {
-              $store.Tezos.setRpcProvider(newRpcNode);
-              store.updateTezos($store.Tezos);
-              openSettings = false;
-            }}
-          >
-            Change
-          </button>
-          <datalist id="rpc-nodes">
-            <option value={$store.settings[$store.network].rpcUrl}>
-              Tezos Giganode
-            </option>
-            <option value="https://api.tez.ie/rpc/mainnet">ECAD Labs</option>
-            <option value="https://mainnet.smartpy.io/">SmartPy</option>
-            <option value="https://rpc.tzbeta.net/">Blockscale</option>
-            <option value="https://teznode.letzbake.com/">LetzBake!</option>
-          </datalist>
         </div>
       </div>
     </div>

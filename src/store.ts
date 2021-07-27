@@ -12,16 +12,17 @@ import { sortTokensByBalance } from "./utils";
 
 const settings: State["settings"] = {
   testnet: {
-    rpcUrl: "https://api.tez.ie/rpc/florencenet",
-    KUSD: "",
-    WXTZ: "",
-    STKR: "",
-    USDTZ: "",
-    ETHTZ: "",
-    HDAO: "",
-    PLENTY: ""
+    validRpcUrls: [],
+    rpcUrl: "https://api.tez.ie/rpc/florencenet"
   },
   mainnet: {
+    validRpcUrls: [
+      { name: "Tezos Giganode", url: "https://mainnet-tezos.giganode.io" },
+      { name: "ECAD Labs", url: "https://api.tez.ie/rpc/mainnet" },
+      { name: "SmartPy", url: "https://mainnet.smartpy.io/" },
+      { name: "Blockscale", url: "https://rpc.tzbeta.net/" },
+      { name: "LetzBake!", url: "https://teznode.letzbake.com/" }
+    ],
     rpcUrl: "https://mainnet-tezos.giganode.io" // "https://api.tez.ie/rpc/mainnet"
   }
 };
@@ -44,7 +45,7 @@ const initialState: State = {
   },
   serviceFee: process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "QmWHRcSFdxCvBwSPA5HsMUY4ibwHuDeAxyQMfbgeXyL7NG"
+  defiData: "QmNiu3PHqyhxZzATcyUV4rGstiozKvkzahsHuWau861yxf"
 };
 
 const store = writable(initialState);

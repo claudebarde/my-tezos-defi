@@ -1,23 +1,17 @@
 <script lang="ts">
-  import { createEventDispatcher, afterUpdate } from "svelte";
+  import { afterUpdate } from "svelte";
   import store from "../../store";
   import {
     calcTotalShareValueInTez,
-    getPlentyReward,
     shortenHash,
     getPaulReward
   } from "../../utils";
   import ManagePlenty from "../Modal/ManagePlenty.svelte";
   import toastStore from "../Toast/toastStore";
 
-  export let data, platform, valueInXtz;
+  export let data, platform, valueInXtz, rewards;
 
-  const dispatch = createEventDispatcher();
-  let lastLevel = 0;
-  let loadingPlentyRewards = false;
-  let plentyRewards = "--";
-
-  afterUpdate(async () => {
+  /*afterUpdate(async () => {
     // loads PLENTY rewards
     if (
       data.platform === "plenty" &&
@@ -55,7 +49,7 @@
       lastLevel = level;
       loadingPlentyRewards = false;
     }
-  });
+  });*/
 </script>
 
 <style lang="scss">
@@ -159,10 +153,10 @@
       <div>--</div>
     {/if}
     <div>
-      {#if loadingPlentyRewards}
+      {#if !rewards}
         <span class="material-icons"> hourglass_empty </span>
       {:else}
-        {plentyRewards}
+        {+rewards.amount.toFixed(5) / 1}
       {/if}
     </div>
     <div>
@@ -258,14 +252,7 @@
       {:then value}
         {+value / 10 ** 6} ꜩ
       {:catch error}
-        {() => {
-          toastStore.addToast({
-            type: "error",
-            text: `Couldn't load value of wXTZ vault`,
-            dismissable: false
-          });
-          return "Error";
-        }}
+        Error
       {/await}
     </div>
   {:else if platform === "paul"}
@@ -297,21 +284,11 @@
       {/if}
     </div>
     <div>
-      {#await getPaulReward(data.address)}
+      {#if !rewards}
         <span class="material-icons"> hourglass_empty </span>
-      {:then reward}
-        {+(reward.toNumber() / 10 ** $store.tokens.PAUL.decimals).toFixed(5) /
-          1}
-      {:catch error}
-        {() => {
-          toastStore.addToast({
-            type: "error",
-            text: `Couldn't load rewards for ${data.alias}`,
-            dismissable: false
-          });
-          return "Error";
-        }}
-      {/await}
+      {:else}
+        {+rewards.amount.toFixed(5) / 1}
+      {/if}
     </div>
   {:else if platform === "kdao"}
     <div class="icon">

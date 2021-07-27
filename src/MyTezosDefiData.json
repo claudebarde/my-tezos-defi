@@ -427,6 +427,16 @@
       "alias": "kUSD Farm",
       "icons": ["KUSD", "KDAO"],
       "token": "kUSD"
+    },
+    "KUSD-QL": {
+      "id": "KUSD-QL",
+      "platform": "kdao",
+      "address": "KT18oxtA5uyhyYXyAVhTa7agJmxHCTjHpiF7",
+      "decimals": 36,
+      "info": [],
+      "alias": "QL kUSD Farm",
+      "icons": ["QUIPU"],
+      "token": "kUSD"
     }
   }
 }

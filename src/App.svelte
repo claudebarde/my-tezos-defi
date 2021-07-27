@@ -195,8 +195,6 @@
     Tezos.setPackerProvider(new MichelCodecPacker());
     store.updateTezos(Tezos);
 
-    console.log(Tezos.rpc.getRpcUrl());
-
     // fetches data from the IPFS
     const defiDataResponse = await fetch(
       `https://cloudflare-ipfs.com/ipfs/${$store.defiData}`

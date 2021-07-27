@@ -6,23 +6,31 @@
   import {
     getKolibriOvens,
     getPlentyReward,
+    getPaulReward,
     prepareOperation,
     loadInvestment
   } from "../../utils";
-  import type { KolibriOvenData } from "../../types";
+  import type { KolibriOvenData, AvailableInvestments } from "../../types";
   import { AvailableToken } from "../../types";
   import Row from "./Row.svelte";
+  import InfoRow from "./InfoRow.svelte";
 
   let loading = true;
   let kolibriOvens: KolibriOvenData[] = [];
   let kolibriOvensChecked = false;
   let plentyValueInXtz = true;
-  let availableRewards = {};
+  let readyRewards = {};
   let showEmptyPlentyPools = false;
   let harvestingAll = false;
   let harvestingAllSuccess = undefined;
   let paulValueInXtz = true;
   let kdaoValueInXtz = true;
+  let lastRewardsCheck = 0;
+  let availableRewards: {
+    id: AvailableInvestments;
+    platform: string;
+    amount: number;
+  }[] = [];
 
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
@@ -50,7 +58,7 @@
         )
       ).filter(res => res.rewards.status);
     } else {
-      allRewards = Object.entries(availableRewards).map(item => ({
+      allRewards = Object.entries(readyRewards).map(item => ({
         address: item[0],
         rewards: { totalRewards: item[1] }
       }));
@@ -83,7 +91,7 @@
         throw `Operation failed: ${receipt}`;
       } else {
         harvestingAllSuccess = true;
-        availableRewards = {};
+        readyRewards = {};
         setTimeout(() => {
           harvestingAllSuccess = undefined;
         }, 2000);
@@ -130,7 +138,6 @@
       const ovens = await getKolibriOvens($store.userAddress, $store.Tezos);
       if (ovens) {
         kolibriOvens = [...ovens];
-        kolibriOvensChecked = true;
       } else {
         toastStore.addToast({
           type: "error",
@@ -138,6 +145,55 @@
           dismissable: false
         });
       }
+      kolibriOvensChecked = true;
+    }
+
+    // calculates available rewards
+    if (
+      $localStorageStore &&
+      $store.investments &&
+      lastRewardsCheck + 6000 < Date.now()
+    ) {
+      lastRewardsCheck = Date.now();
+
+      const investmentData = $localStorageStore.favoriteInvestments
+        .map(inv => $store.investments[inv])
+        .filter(inv => inv.platform === "plenty" || inv.platform === "paul");
+      const rewards: any = await Promise.all(
+        investmentData.map(async inv => {
+          let rewards;
+          if (inv.platform === "plenty") {
+            rewards = await getPlentyReward(
+              $store.userAddress,
+              inv.address,
+              $store.lastOperations[0].level,
+              inv.decimals
+            );
+          } else if (inv.platform === "paul") {
+            rewards = await getPaulReward(inv.address);
+          }
+
+          return {
+            platform: inv.platform,
+            id: inv.id,
+            amount: rewards
+          };
+        })
+      );
+      rewards.forEach(rw => {
+        let tempRw = { ...rw };
+        if (rw.platform === "plenty") {
+          tempRw.amount = tempRw.amount.totalRewards;
+        } else if (rw.platform === "paul") {
+          tempRw.amount =
+            tempRw.amount.toNumber() / 10 ** $store.tokens.PAUL.decimals;
+        }
+
+        availableRewards = [
+          ...availableRewards.filter(arw => arw.id !== rw.id),
+          tempRw
+        ];
+      });
     }
   });
 </script>
@@ -217,7 +273,7 @@
             <div>Locked</div>
           </div>
           {#each $localStorageStore.wXtzVaults as data}
-            <Row {data} platform="wxtz" valueInXtz={true} />
+            <Row {data} platform="wxtz" valueInXtz={true} rewards={undefined} />
           {/each}
         {/if}
         {#if $localStorageStore.favoriteInvestments.length === 0}
@@ -237,7 +293,12 @@
               <div>Value in {$localStorageStore.preferredFiat}</div>
             </div>
             {#each Object.entries($store.investments).filter(inv => inv[1].platform === "quipuswap" && inv[1].favorite) as [contractName, data]}
-              <Row {data} platform={data.platform} valueInXtz={true} />
+              <Row
+                {data}
+                platform={data.platform}
+                valueInXtz={true}
+                rewards={undefined}
+              />
             {/each}
           {/if}
           <!-- PLENTY -->
@@ -273,9 +334,7 @@
                 {data}
                 platform={data.platform}
                 valueInXtz={plentyValueInXtz}
-                on:new-rewards={event => {
-                  availableRewards[data.address[$store.network]] = event.detail;
-                }}
+                rewards={availableRewards.find(rw => rw.id === data.id)}
               />
             {/each}
             {#if Object.entries($store.investments)
@@ -297,7 +356,7 @@
                     {/if}
                   </button>
                 </div>
-                {#if Object.keys(availableRewards).length === 0}
+                {#if Object.keys(readyRewards).length === 0}
                   <div />
                 {:else}
                   <div>
@@ -344,7 +403,12 @@
               <div>Reward</div>
             </div>
             {#each Object.entries($store.investments).filter(inv => inv[1].platform === "crunchy") as [contractName, data]}
-              <Row {data} platform={data.platform} valueInXtz={true} />
+              <Row
+                {data}
+                platform={data.platform}
+                valueInXtz={true}
+                rewards={undefined}
+              />
             {/each}
           {/if}
           <!-- PAUL -->
@@ -365,6 +429,7 @@
                 {data}
                 platform={data.platform}
                 valueInXtz={paulValueInXtz}
+                rewards={availableRewards.find(rw => rw.id === data.id)}
               />
             {/each}
           {/if}
@@ -386,9 +451,11 @@
                 {data}
                 platform={data.platform}
                 valueInXtz={kdaoValueInXtz}
+                rewards={undefined}
               />
             {/each}
           {/if}
+          <InfoRow {availableRewards} />
         {/if}
       {/if}
     {:else}

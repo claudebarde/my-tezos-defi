@@ -80,6 +80,11 @@
         tokensBalances: favoriteBalances
       });
       store.updateTokensBalances(newBalances as State["tokensBalances"]);
+
+      // replaces default node url with user's favorite
+      if ($localStorageStore.favoriteRpcUrl) {
+        $store.Tezos.setRpcProvider($localStorageStore.favoriteRpcUrl);
+      }
     } catch (err) {
       console.error(err);
       toastStore.addToast({
@@ -154,6 +159,11 @@
           tokensBalances: favoriteBalances
         });
         store.updateTokensBalances(newBalances as State["tokensBalances"]);
+
+        // replaces default node url with user's favorite
+        if ($localStorageStore.favoriteRpcUrl) {
+          $store.Tezos.setRpcProvider($localStorageStore.favoriteRpcUrl);
+        }
       } catch (error) {
         console.error(error);
       }
