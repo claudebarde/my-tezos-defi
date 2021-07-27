@@ -276,8 +276,8 @@
               exchangesRates[tk.symbol] = {
                 tokenToTez: tokenToTez,
                 tezToToken: tezToToken,
-                realPriceInTez: tezToToken,
-                realPriceInToken: tokenToTez
+                realPriceInTez: tokenToTez,
+                realPriceInToken: tezToToken
               };
               historicDataStore.updateToken(tk.symbol, {
                 tokenToTez,
