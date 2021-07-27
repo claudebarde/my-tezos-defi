@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { afterUpdate } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import store from "../store";
   import localStorageStore from "../localStorage";
   import Assets from "../lib/Assets/Assets.svelte";
@@ -8,11 +8,29 @@
   import Charts from "../lib/Charts/Charts.svelte";
   import Settings from "../lib/Tools/Settings.svelte";
   import Calculator from "../lib/Tools/Calculator.svelte";
+  import { AvailableInvestments } from "../types";
   import { calcTotalShareValueInTez } from "../utils";
 
   let totalAmounts = { XTZ: undefined, TOKENS: undefined, FIAT: undefined };
   let totalInvestments = { XTZ: undefined, FIAT: undefined };
   let updating = false;
+  let wXtzLockedXtz = 0;
+
+  onMount(async () => {
+    // gets balance for wXTZ vaults
+    if ($localStorageStore.wXtzVaults.length > 0) {
+      const lockedXtz = await Promise.all(
+        $localStorageStore.wXtzVaults.map(vault =>
+          $store.Tezos.tz.getBalance(vault)
+        )
+      );
+      if (lockedXtz.length > 0) {
+        lockedXtz.forEach((xtz: any) => {
+          wXtzLockedXtz += xtz.toNumber();
+        });
+      }
+    }
+  });
 
   afterUpdate(async () => {
     if (!updating && $store.tokensBalances && $store.tokensExchangeRates) {
@@ -57,8 +75,64 @@
       };
 
       // calculates total investments
-      if ($store.xtzData.exchangeRate && $store.investments) {
+      if (
+        $store.xtzData.exchangeRate &&
+        $store.investments &&
+        localStorageStore
+      ) {
         let tempTotalInvestments = 0;
+
+        $localStorageStore.favoriteInvestments.forEach(inv => {
+          // PLENTY
+          if ($store.investments[inv].platform === "plenty") {
+            if (
+              inv !== AvailableInvestments["PLENTY-XTZ-LP"] &&
+              $store.tokensExchangeRates[$store.investments[inv].token]
+            ) {
+              tempTotalInvestments +=
+                ($store.investments[inv].balance /
+                  10 ** $store.investments[inv].decimals) *
+                $store.tokensExchangeRates[$store.investments[inv].token]
+                  .tokenToTez;
+            } else if (
+              inv === AvailableInvestments["PLENTY-XTZ-LP"] &&
+              $store.tokensExchangeRates.PLENTY
+            ) {
+              tempTotalInvestments += calcTotalShareValueInTez(
+                $store.investments[inv].balance,
+                $store.investments[inv].shareValueInTez,
+                $store.tokensExchangeRates.PLENTY.tokenToTez,
+                $store.tokens.PLENTY.decimals
+              );
+            }
+          } else if ($store.investments[inv].platform === "paul") {
+            if (inv === AvailableInvestments["PAUL-PAUL"]) {
+              tempTotalInvestments +=
+                ($store.investments[inv].balance /
+                  10 ** $store.investments[inv].decimals) *
+                $store.tokensExchangeRates[$store.investments[inv].token]
+                  .tokenToTez;
+            }
+          } else if ($store.investments[inv].platform === "kdao") {
+            if (inv === AvailableInvestments["KUSD-KDAO"]) {
+              tempTotalInvestments +=
+                ($store.investments[inv].balance /
+                  10 ** $store.investments[inv].decimals) *
+                $store.tokensExchangeRates[$store.investments[inv].token]
+                  .tokenToTez;
+            }
+          }
+        });
+
+        // adds amount of XTZ locked in WXTZ vaults
+        tempTotalInvestments += wXtzLockedXtz / 10 ** 6;
+
+        totalInvestments = {
+          XTZ: tempTotalInvestments,
+          FIAT: tempTotalInvestments * $store.xtzData.exchangeRate
+        };
+
+        /*let tempTotalInvestments = 0;
         Object.entries($store.investments).forEach(([contractName, data]) => {
           if ($store.tokensExchangeRates[data.token] === undefined) return;
 
@@ -97,7 +171,7 @@
         totalInvestments = {
           XTZ: tempTotalInvestments,
           FIAT: tempTotalInvestments * $store.xtzData.exchangeRate
-        };
+        };*/
       }
 
       updating = false;

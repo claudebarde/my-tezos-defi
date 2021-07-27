@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import { BeaconWallet } from "@taquito/beacon-wallet";
   import {
     NetworkType,
@@ -10,6 +10,7 @@
   import type { TezosAccountAddress, State } from "../../types";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
+  import toastStore from "../Toast/toastStore";
   //import InvestmentsWorker from "worker-loader!../../investments.worker";
   //import { handleInvestmentsWorker } from "../../workersHandlers";
   import { searchUserTokens } from "../../utils";
@@ -34,6 +35,7 @@
   const tezosDomainContract = "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS";
   let username = "";
   let investmentsWorker;
+  let nodeIconLetter = "";
 
   const connect = async () => {
     try {
@@ -80,6 +82,11 @@
       store.updateTokensBalances(newBalances as State["tokensBalances"]);
     } catch (err) {
       console.error(err);
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't load your tokens",
+        dismissable: false
+      });
     }
   };
 
@@ -154,6 +161,29 @@
       localStorageStore.init();
     }
   });
+
+  afterUpdate(() => {
+    const nodeUrl = $store.Tezos.rpc.getRpcUrl();
+    switch (nodeUrl) {
+      case "https://mainnet-tezos.giganode.io":
+        nodeIconLetter = "G";
+        break;
+      case "https://api.tez.ie/rpc/mainnet":
+        nodeIconLetter = "E";
+        break;
+      case "https://mainnet.smartpy.io/":
+        nodeIconLetter = "S";
+        break;
+      case "https://rpc.tzbeta.net/":
+        nodeIconLetter = "B";
+        break;
+      case "https://teznode.letzbake.com/":
+        nodeIconLetter = "L";
+        break;
+      default:
+        nodeIconLetter = "";
+    }
+  });
 </script>
 
 <style lang="scss">
@@ -183,9 +213,20 @@
       text-decoration: underline;
     }
   }
+
+  .connected-node {
+    position: relative;
+    padding: 0px;
+    padding-right: 10px;
+  }
 </style>
 
 {#if $store.userAddress}
+  <div title={`Connected to ${$store.Tezos.rpc.getRpcUrl()}`}>
+    <sup>{nodeIconLetter}</sup><span class="material-icons connected-node">
+      dns
+    </span>
+  </div>
   <div>
     <a href="#/profile">
       {username}

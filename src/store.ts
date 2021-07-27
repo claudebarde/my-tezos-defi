@@ -44,7 +44,7 @@ const initialState: State = {
   },
   serviceFee: process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "QmcJnnxN4m6YL7sxtSkHjqfjw3oSSja6HJnNpiR1XYwvRa"
+  defiData: "QmR5S4wmYJsNnHRJgPTnw7tZQznLBvLbU8SCE9nPK9UBof"
 };
 
 const store = writable(initialState);

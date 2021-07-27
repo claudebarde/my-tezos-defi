@@ -44,6 +44,7 @@ export enum AvailableInvestments {
   "PLENTY-USDtz" = "PLENTY-USDtz",
   "PLENTY-wLINK" = "PLENTY-wLINK",
   "PLENTY-wMATIC" = "PLENTY-wMATIC",
+  "PLENTY-WRAP" = "PLENTY-WRAP",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
@@ -51,7 +52,9 @@ export enum AvailableInvestments {
   "QUIPUSWAP-CRUNCH" = "QUIPUSWAP-CRUNCH",
   "CRUNCHY-FARMS" = "CRUNCHY-FARMS",
   "PAUL-PAUL" = "PAUL-PAUL",
-  "PAUL-XTZ" = "PAUL-XTZ"
+  "PAUL-XTZ" = "PAUL-XTZ",
+  "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
+  "KUSD-KDAO" = "KUSD-KDAO"
 }
 
 export interface TokenContract {
@@ -115,7 +118,7 @@ export interface State {
     | {
         [p in AvailableInvestments]: {
           id: AvailableInvestments;
-          platform: "plenty" | "quipuswap" | "crunchy" | "paul";
+          platform: "plenty" | "quipuswap" | "crunchy" | "paul" | "kdao";
           address: TezosContractAddress;
           balance: number | undefined;
           decimals: number;

@@ -21,6 +21,7 @@
   let harvestingAll = false;
   let harvestingAllSuccess = undefined;
   let paulValueInXtz = true;
+  let kdaoValueInXtz = true;
 
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
@@ -357,6 +358,27 @@
                 {data}
                 platform={data.platform}
                 valueInXtz={paulValueInXtz}
+              />
+            {/each}
+          {/if}
+          <!-- KDAO -->
+          {#if Object.entries($store.investments).filter(inv => inv[1].platform === "kdao" && inv[1].favorite).length > 0}
+            <div class="row header">
+              <div />
+              <div>Contract</div>
+              <div>Stake</div>
+              <div>
+                Stake in {kdaoValueInXtz
+                  ? "XTZ"
+                  : $localStorageStore.preferredFiat}
+              </div>
+              <div>Reward</div>
+            </div>
+            {#each Object.entries($store.investments).filter(inv => inv[1].platform === "kdao" && inv[1].favorite) as [contractName, data]}
+              <Row
+                {data}
+                platform={data.platform}
+                valueInXtz={kdaoValueInXtz}
               />
             {/each}
           {/if}

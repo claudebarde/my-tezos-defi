@@ -286,7 +286,16 @@
     <div>
       {+(data.balance / 10 ** data.decimals).toFixed(5) / 1}
     </div>
-    <div>--</div>
+    <div>
+      {#if data.id === "PAUL-PAUL"}
+        {+(
+          ($store.tokensExchangeRates.PAUL.tokenToTez * data.balance) /
+          10 ** data.decimals
+        ).toFixed(5) / 1}
+      {:else}
+        --
+      {/if}
+    </div>
     <div>
       {#await getPaulReward(data.address)}
         <span class="material-icons"> hourglass_empty </span>
@@ -304,5 +313,34 @@
         }}
       {/await}
     </div>
+  {:else if platform === "kdao"}
+    <div class="icon">
+      {#each data.icons as icon}
+        <img src={`images/${icon}.png`} alt="token-icon" />
+      {/each}
+    </div>
+    <div>
+      <a
+        href={`https://better-call.dev/mainnet/${data.address}/operations`}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        {data.alias}
+      </a>
+    </div>
+    <div>
+      {+(data.balance / 10 ** data.decimals).toFixed(5) / 1}
+    </div>
+    <div>
+      {#if data.id === "KUSD-KDAO"}
+        {+(
+          ($store.tokensExchangeRates.kUSD.tokenToTez * data.balance) /
+          10 ** data.decimals
+        ).toFixed(5) / 1}
+      {:else}
+        --
+      {/if}
+    </div>
+    <div>--</div>
   {/if}
 </div>

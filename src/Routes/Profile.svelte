@@ -284,6 +284,7 @@
     <PoolSelection platform="plenty" />
     <PoolSelection platform="crunchy" />
     <PoolSelection platform="paul" />
+    <PoolSelection platform="kdao" />
     <PoolSelection platform="flame" />
     <PoolSelection platform="wxtz" />
   </div>

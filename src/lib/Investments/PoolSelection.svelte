@@ -143,13 +143,23 @@
       ).length})
     </div>
     <br />
-    <button class="button main" on:click={showModal}>Select</button>
+    <button class="button main">Coming soon</button>
   </div>
 {:else if platform === "paul"}
   <div class="container-investments-select">
     <div>
       Paul ({$localStorageStore.favoriteInvestments.filter(
         inv => $store.investments[inv].platform === "paul"
+      ).length})
+    </div>
+    <br />
+    <button class="button main" on:click={showModal}>Select</button>
+  </div>
+{:else if platform === "kdao"}
+  <div class="container-investments-select">
+    <div>
+      kDAO ({$localStorageStore.favoriteInvestments.filter(
+        inv => $store.investments[inv].platform === "kdao"
       ).length})
     </div>
     <br />
@@ -183,6 +193,8 @@
         Paul Farms
       {:else if platform === "flame"}
         Flame Farms
+      {:else if platform === "kdao"}
+        kDAO Farms
       {:else if platform === "wxtz"}
         wXTZ Vaults
       {/if}
@@ -265,6 +277,35 @@
       {:else if platform === "paul"}
         {#each Object.entries($store.investments)
           .filter(inv => inv[1].platform === "paul")
+          .sort((a, b) => a[0]
+              .toLowerCase()
+              .localeCompare(b[0].toLowerCase())) as investment}
+          <div class="investment-selection-row">
+            <div>{investment[1].alias}</div>
+            <div>
+              {#if loadingInv === investment[0]}
+                <span class="material-icons"> hourglass_empty </span>
+              {:else if $localStorageStore.favoriteInvestments.includes(investment[0])}
+                <span
+                  class="material-icons checkbox"
+                  on:click={() => removeFavoriteInvestment(investment[0])}
+                >
+                  check_box
+                </span>
+              {:else}
+                <span
+                  class="material-icons checkbox"
+                  on:click={() => addFavoriteInvestment(investment[0])}
+                >
+                  check_box_outline_blank
+                </span>
+              {/if}
+            </div>
+          </div>
+        {/each}
+      {:else if platform === "kdao"}
+        {#each Object.entries($store.investments)
+          .filter(inv => inv[1].platform === "kdao")
           .sort((a, b) => a[0]
               .toLowerCase()
               .localeCompare(b[0].toLowerCase())) as investment}

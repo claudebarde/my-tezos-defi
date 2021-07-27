@@ -368,6 +368,16 @@
       "icons": ["PLENTY", "wMATIC"],
       "token": "PLENTY"
     },
+    "PLENTY-WRAP": {
+      "id": "PLENTY-WRAP",
+      "platform": "plenty",
+      "address": "KT18oB3x8SLxMJq2o9hKNupbZZ5ZMsgr2aho",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty WRAP staking",
+      "icons": ["PLENTY", "WRAP"],
+      "token": "WRAP"
+    },
     "CRUNCHY-FARMS": {
       "id": "CRUNCHY-FARMS",
       "platform": "crunchy",
@@ -397,6 +407,26 @@
       "alias": "PAUL/XTZ farm",
       "icons": ["PAUL", "XTZ"],
       "token": "PAUL"
+    },
+    "KUSD-QUIPU_LP": {
+      "id": "KUSD-QUIPU-LP",
+      "platform": "kdao",
+      "address": "KT1RB179ddATKbCi7E8ben91bo2hqRRPrNQf",
+      "decimals": 18,
+      "info": [],
+      "alias": "kUSD Quipu LP Farm",
+      "icons": ["KUSD", "QUIPU"],
+      "token": "kDAO"
+    },
+    "KUSD-KDAO": {
+      "id": "KUSD-KDAO",
+      "platform": "kdao",
+      "address": "KT1HDXjPtjv7Y7XtJxrNc5rNjnegTi2ZzNfv",
+      "decimals": 18,
+      "info": [],
+      "alias": "kUSD Farm",
+      "icons": ["KUSD", "KDAO"],
+      "token": "kUSD"
     }
   }
 }

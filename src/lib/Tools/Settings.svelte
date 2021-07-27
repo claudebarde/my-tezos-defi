@@ -14,6 +14,7 @@
   afterUpdate(() => {
     if (!openSettings) {
       newFiat = undefined;
+      newRpcNode = "";
     }
   });
 </script>
@@ -120,8 +121,22 @@
         </div>
         <div>Change RPC node</div>
         <div>
-          <input type="text" list="rpc-nodes" placeholder={newRpcNode} />
-          <button class="button mini">Change</button>
+          <input
+            type="text"
+            list="rpc-nodes"
+            placeholder={newRpcNode}
+            bind:value={newRpcNode}
+          />
+          <button
+            class="button mini"
+            on:click={() => {
+              $store.Tezos.setRpcProvider(newRpcNode);
+              store.updateTezos($store.Tezos);
+              openSettings = false;
+            }}
+          >
+            Change
+          </button>
           <datalist id="rpc-nodes">
             <option value={$store.settings[$store.network].rpcUrl}>
               Tezos Giganode

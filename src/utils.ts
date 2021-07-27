@@ -742,6 +742,21 @@ export const loadInvestment = async (investment: AvailableInvestments) => {
           info: undefined
         };
       }
+    } else if (inv.platform === "kdao") {
+      const userData = await storage.delegators.get(localStore.userAddress);
+      if (userData) {
+        return {
+          id: inv.id,
+          balance: userData.lpTokenBalance.toNumber(),
+          info: undefined
+        };
+      } else {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
     }
 
     return null;
