@@ -849,3 +849,54 @@ export const getPaulReward = async (
 
   return reward.times(new BigNumber(100).minus(commission)).idiv(100);
 };
+
+export const getKdaoReward = async (
+  farmAddress: TezosContractAddress,
+  userAddress: TezosAccountAddress,
+  currentBlockHeight: number
+): Promise<BigNumber | null> => {
+  const localStore = get(store);
+  if (!farmAddress || !userAddress || !currentBlockHeight) return null;
+
+  const contract = await localStore.Tezos.wallet.at(farmAddress);
+  const farmContractData: any = await contract.storage();
+  const depositedTokens = await farmContractData.delegators.get(userAddress);
+
+  if (
+    depositedTokens === undefined ||
+    depositedTokens.lpTokenBalance.isZero()
+  ) {
+    return new BigNumber(0);
+  }
+  const accRewardPerShareStart = depositedTokens.accumulatedRewardPerShareStart;
+  const nextBlock = new BigNumber(currentBlockHeight + 1);
+  const multiplier = nextBlock.minus(farmContractData.farm.lastBlockUpdate);
+  const outstandingReward = multiplier.times(
+    farmContractData.farm.plannedRewards.rewardPerBlock
+  );
+  const claimedRewards = farmContractData.farm.claimedRewards.paid.plus(
+    farmContractData.farm.claimedRewards.unpaid
+  );
+  const totalRewards = outstandingReward.plus(claimedRewards);
+  const plannedRewards =
+    farmContractData.farm.plannedRewards.rewardPerBlock.times(
+      farmContractData.farm.plannedRewards.totalBlocks
+    );
+  const totalRewardsExhausted = totalRewards.isGreaterThan(plannedRewards);
+  const reward = totalRewardsExhausted
+    ? plannedRewards.minus(claimedRewards)
+    : outstandingReward;
+  const lpMantissa = new BigNumber(10).pow(36);
+  const rewardRatio = reward
+    .times(lpMantissa)
+    .div(farmContractData.farmLpTokenBalance);
+  const accRewardPerShareEnd =
+    farmContractData.farm.accumulatedRewardPerShare.plus(rewardRatio);
+  const accumulatedRewardPerShare = accRewardPerShareEnd.minus(
+    accRewardPerShareStart
+  );
+
+  return accumulatedRewardPerShare
+    .times(depositedTokens.lpTokenBalance)
+    .dividedBy(lpMantissa);
+};

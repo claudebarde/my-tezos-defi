@@ -130,20 +130,22 @@
         </div>
         <div>Allow contribution</div>
         <FeeDisclaimer />
-        <div>Allow Push Notifications</div>
-        <div>
+        {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+          <div>Allow Push Notifications</div>
           <div>
-            Push notifications will only be sent when the app is open and when
-            you receive/send a transaction
+            <div>
+              Push notifications will only be sent when the app is open and when
+              you receive/send a transaction
+            </div>
+            <div>
+              {#if $localStorageStore.pushNotifications}
+                <button class="button mini" style="float:right">Disable</button>
+              {:else}
+                <button class="button mini" style="float:right">Allow</button>
+              {/if}
+            </div>
           </div>
-          <div>
-            {#if $localStorageStore.pushNotifications}
-              <button class="button mini" style="float:right">Disable</button>
-            {:else}
-              <button class="button mini" style="float:right">Allow</button>
-            {/if}
-          </div>
-        </div>
+        {/if}
       </div>
     </div>
     <div slot="modal-footer" class="modal-footer">

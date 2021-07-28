@@ -71,7 +71,9 @@
   </div>
   <div>
     {+(
-      $store.tokensBalances[tokenSymbol] * $store.xtzData.exchangeRate
+      $store.tokensBalances[tokenSymbol] *
+      $store.tokensExchangeRates[tokenSymbol].tokenToTez *
+      $store.xtzData.exchangeRate
     ).toFixed(2) / 1}
     {$localStorageStore.preferredFiat}
   </div>

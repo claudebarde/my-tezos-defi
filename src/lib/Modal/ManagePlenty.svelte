@@ -1,6 +1,7 @@
 <script lang="ts">
   import Modal from "./Modal.svelte";
   import store from "../../store";
+  import toastStore from "../Toast/toastStore";
   import config from "../../config";
   import { AvailableToken } from "../../types";
   import { getPlentyReward, prepareOperation } from "../../utils";
@@ -73,7 +74,8 @@
           id: stake[0],
           amount: amount / 10 ** (id === "PLENTY-XTZ-LP" ? 6 : decimals),
           level: stakeLevel,
-          withdrawalFee: withdrawalFee / 10 ** decimals
+          withdrawalFee:
+            withdrawalFee / 10 ** (id === "PLENTY-XTZ-LP" ? 6 : decimals)
         }
       ];
     }
@@ -344,11 +346,22 @@
   <button
     class="button investments"
     on:click={async () => {
-      openModal = true;
-      await openmanageModalInput(contractAddress);
+      if (
+        window.location.href.includes("localhost") ||
+        window.location.href.includes("staging")
+      ) {
+        openModal = true;
+        await openmanageModalInput(contractAddress);
+      } else {
+        toastStore.addToast({
+          type: "info",
+          text: "Coming soon!",
+          dismissable: false
+        });
+      }
     }}
   >
-    Manage
+    <span class="material-icons"> settings </span>
   </button>
 {/if}
 {#if openModal}

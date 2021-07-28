@@ -25,6 +25,10 @@
           totalRewardsInXtz =
             availableRewards[0].amount *
             $store.tokensExchangeRates.PAUL.tokenToTez;
+        } else if (availableRewards[0].platform === "kdao") {
+          totalRewardsInXtz =
+            availableRewards[0].amount *
+            $store.tokensExchangeRates.kDAO.tokenToTez;
         }
       } else {
         totalRewardsInXtz = availableRewards
@@ -33,6 +37,8 @@
               return rw.amount * $store.tokensExchangeRates.PLENTY.tokenToTez;
             } else if (rw.platform === "paul") {
               return rw.amount * $store.tokensExchangeRates.PAUL.tokenToTez;
+            } else if (rw.platform === "kdao") {
+              return rw.amount * $store.tokensExchangeRates.kDAO.tokenToTez;
             }
           })
           .reduce((a, b) => a + b);
@@ -53,10 +59,12 @@
   }
 </style>
 
-<div class="row info">
-  {availableRewards.length} reward{availableRewards.length > 1 ? "s" : ""} ready
-  to harvest: {+totalRewardsInXtz.toFixed(2) / 1} ꜩ / {+(
-    totalRewardsInXtz * $store.xtzData.exchangeRate
-  ).toFixed(2) / 1}
-  {$localStorageStore.preferredFiat}
-</div>
+{#if availableRewards && availableRewards.length > 0}
+  <div class="row info">
+    {availableRewards.length} reward{availableRewards.length > 1 ? "s" : ""} ready
+    to harvest: {+totalRewardsInXtz.toFixed(2) / 1} ꜩ / {+(
+      totalRewardsInXtz * $store.xtzData.exchangeRate
+    ).toFixed(2) / 1}
+    {$localStorageStore.preferredFiat}
+  </div>
+{/if}

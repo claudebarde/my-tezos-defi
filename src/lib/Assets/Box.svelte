@@ -102,11 +102,6 @@
         localBalance &&
         $store.tokensBalances[token[0]] !== localBalance
       ) {
-        console.log(
-          "different balance:",
-          localBalance,
-          $store.tokensBalances[token[0]]
-        );
         if ($store.tokensBalances[token[0]] > localBalance) {
           newTransferIn = true;
           newTransferOut = false;

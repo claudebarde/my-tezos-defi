@@ -37,12 +37,14 @@
     style={"bottom:" + (index === 0 ? "50px" : 50 + 60 * index + "px")}
   >
     {toast.text}
-    <span
-      class="material-icons"
-      style="cursor:pointer;vertical-align:middle"
-      on:click={() => toastStore.removeToast(toast.id)}
-    >
-      close
-    </span>
+    {#if toast.dismissable}
+      <span
+        class="material-icons"
+        style="cursor:pointer;vertical-align:middle;float:right"
+        on:click={() => toastStore.removeToast(toast.id)}
+      >
+        close
+      </span>
+    {/if}
   </div>
 {/each}

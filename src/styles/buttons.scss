@@ -7,6 +7,10 @@
   font-size: 1rem;
   cursor: pointer;
 
+  .material-icons {
+    vertical-align: middle !important;
+  }
+
   &.main {
     border: solid 2px white;
     background-color: transparent;
@@ -33,7 +37,6 @@
 
     .material-icons {
       font-size: 0.9rem;
-      vertical-align: middle !important;
       transition: 0.5s;
     }
 
@@ -63,7 +66,6 @@
   &.loading {
     .material-icons {
       animation: loading-rotate 2s ease-out infinite;
-      vertical-align: middle;
     }
   }
 

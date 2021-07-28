@@ -7,6 +7,7 @@
     getKolibriOvens,
     getPlentyReward,
     getPaulReward,
+    getKdaoReward,
     prepareOperation,
     loadInvestment
   } from "../../utils";
@@ -103,6 +104,18 @@
     }
   };
 
+  const resetRewards = (id: AvailableInvestments) => {
+    availableRewards = [
+      ...availableRewards.map(rw => {
+        if (rw.id === id) {
+          return { ...rw, amount: 0 };
+        } else {
+          return rw;
+        }
+      })
+    ];
+  };
+
   onMount(async () => {
     // investments have already been loaded
     if (Object.values($store.investments).some(inv => !!inv.balance)) {
@@ -158,7 +171,12 @@
 
       const investmentData = $localStorageStore.favoriteInvestments
         .map(inv => $store.investments[inv])
-        .filter(inv => inv.platform === "plenty" || inv.platform === "paul");
+        .filter(
+          inv =>
+            inv.platform === "plenty" ||
+            inv.platform === "paul" ||
+            inv.platform === "kdao"
+        );
       const rewards: any = await Promise.all(
         investmentData.map(async inv => {
           let rewards;
@@ -171,6 +189,12 @@
             );
           } else if (inv.platform === "paul") {
             rewards = await getPaulReward(inv.address);
+          } else if (inv.platform === "kdao") {
+            rewards = await getKdaoReward(
+              inv.address,
+              $store.userAddress,
+              $store.lastOperations[0].level
+            );
           }
 
           return {
@@ -187,6 +211,9 @@
         } else if (rw.platform === "paul") {
           tempRw.amount =
             tempRw.amount.toNumber() / 10 ** $store.tokens.PAUL.decimals;
+        } else if (rw.platform === "kdao") {
+          tempRw.amount =
+            tempRw.amount.toNumber() / 10 ** $store.tokens.kDAO.decimals;
         }
 
         availableRewards = [
@@ -335,6 +362,7 @@
                 platform={data.platform}
                 valueInXtz={plentyValueInXtz}
                 rewards={availableRewards.find(rw => rw.id === data.id)}
+                on:reset-rewards={event => resetRewards(event.detail)}
               />
             {/each}
             {#if Object.entries($store.investments)
@@ -430,6 +458,7 @@
                 platform={data.platform}
                 valueInXtz={paulValueInXtz}
                 rewards={availableRewards.find(rw => rw.id === data.id)}
+                on:reset-rewards={event => resetRewards(event.detail)}
               />
             {/each}
           {/if}
@@ -451,7 +480,7 @@
                 {data}
                 platform={data.platform}
                 valueInXtz={kdaoValueInXtz}
-                rewards={undefined}
+                rewards={availableRewards.find(rw => rw.id === data.id)}
               />
             {/each}
           {/if}
