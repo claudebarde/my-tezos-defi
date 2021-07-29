@@ -316,7 +316,7 @@
     }
 
     // reloads some data when user comes back to the page
-    lastAppVisibility = Date.now();
+    /*lastAppVisibility = Date.now();
     document.addEventListener("visibilitychange", async () => {
       if (
         document.visibilityState === "visible" &&
@@ -327,17 +327,20 @@
       } else if (document.visibilityState === "visible") {
         lastAppVisibility = Date.now();
       }
-    });
+    });*/
     appReady = true;
   });
 
   afterUpdate(async () => {
-    if (!liveTrafficWorker && $store.tokens) {
+    if (!liveTrafficWorker && $store.tokens && $store.investments) {
       // inits live traffic worker
       liveTrafficWorker = new LiveTrafficWorker();
       liveTrafficWorker.postMessage({
         type: "init",
-        payload: $store.tokens
+        payload: [
+          ...Object.values($store.tokens).map(tk => tk.address),
+          ...Object.values($store.investments).map(inv => inv.address)
+        ]
       });
       liveTrafficWorker.onmessage = handleLiveTrafficWorker;
     }

@@ -310,6 +310,11 @@ export const getOpIcons = (
     case "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3":
       icons = ["crDAO"];
       break;
+    case "KT1DMCGGiHT2dgjjXHG7qh1C1maFchrLNphx":
+    case "KT1WfbRVLuJUEizo6FSTFq5tsi3rsUHLY7vg":
+    case "KT1CjrJzk4S66uqv2M3DQHwBAzjD7MVm1jYs":
+      icons = [AvailableToken.PAUL];
+      break;
     default:
       if (
         target.alias &&
@@ -847,7 +852,13 @@ export const getPaulReward = async (
     return reward;
   }
 
-  return reward.times(new BigNumber(100).minus(commission)).idiv(100);
+  const result = reward.times(new BigNumber(100).minus(commission)).idiv(100);
+
+  if (result.toNumber() < 0) {
+    return new BigNumber(0);
+  } else {
+    return result;
+  }
 };
 
 export const getKdaoReward = async (
@@ -896,7 +907,13 @@ export const getKdaoReward = async (
     accRewardPerShareStart
   );
 
-  return accumulatedRewardPerShare
+  const result = accumulatedRewardPerShare
     .times(depositedTokens.lpTokenBalance)
     .dividedBy(lpMantissa);
+
+  if (result.toNumber() < 0) {
+    return new BigNumber(0);
+  } else {
+    return result;
+  }
 };

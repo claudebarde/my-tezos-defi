@@ -12,37 +12,47 @@
 
   let totalRewardsInXtz = 0;
 
+  const calculateTotalRewards = () => {
+    if (availableRewards.length === 0) {
+      totalRewardsInXtz = 0;
+    } else if (availableRewards.length === 1) {
+      if (availableRewards[0].platform === "plenty") {
+        totalRewardsInXtz =
+          availableRewards[0].amount *
+          $store.tokensExchangeRates.PLENTY.tokenToTez;
+      } else if (availableRewards[0].platform === "paul") {
+        totalRewardsInXtz =
+          availableRewards[0].amount *
+          $store.tokensExchangeRates.PAUL.tokenToTez;
+      } else if (availableRewards[0].platform === "kdao") {
+        totalRewardsInXtz =
+          availableRewards[0].amount *
+          $store.tokensExchangeRates.kDAO.tokenToTez;
+      }
+    } else {
+      totalRewardsInXtz = availableRewards
+        .map(rw => {
+          if (rw.platform === "plenty") {
+            return rw.amount * $store.tokensExchangeRates.PLENTY.tokenToTez;
+          } else if (rw.platform === "paul") {
+            return rw.amount * $store.tokensExchangeRates.PAUL.tokenToTez;
+          } else if (rw.platform === "kdao") {
+            return rw.amount * $store.tokensExchangeRates.kDAO.tokenToTez;
+          }
+        })
+        .reduce((a, b) => a + b);
+    }
+  };
+
   afterUpdate(() => {
     if ($store.investments) {
-      if (availableRewards.length === 0) {
-        totalRewardsInXtz = 0;
-      } else if (availableRewards.length === 1) {
-        if (availableRewards[0].platform === "plenty") {
-          totalRewardsInXtz =
-            availableRewards[0].amount *
-            $store.tokensExchangeRates.PLENTY.tokenToTez;
-        } else if (availableRewards[0].platform === "paul") {
-          totalRewardsInXtz =
-            availableRewards[0].amount *
-            $store.tokensExchangeRates.PAUL.tokenToTez;
-        } else if (availableRewards[0].platform === "kdao") {
-          totalRewardsInXtz =
-            availableRewards[0].amount *
-            $store.tokensExchangeRates.kDAO.tokenToTez;
-        }
-      } else {
-        totalRewardsInXtz = availableRewards
-          .map(rw => {
-            if (rw.platform === "plenty") {
-              return rw.amount * $store.tokensExchangeRates.PLENTY.tokenToTez;
-            } else if (rw.platform === "paul") {
-              return rw.amount * $store.tokensExchangeRates.PAUL.tokenToTez;
-            } else if (rw.platform === "kdao") {
-              return rw.amount * $store.tokensExchangeRates.kDAO.tokenToTez;
-            }
-          })
-          .reduce((a, b) => a + b);
-      }
+      calculateTotalRewards();
+    }
+  });
+
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "visible") {
+      calculateTotalRewards();
     }
   });
 </script>

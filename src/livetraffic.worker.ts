@@ -4,32 +4,32 @@ import store from "./store";
 import type { State } from "./types";
 
 const ctx: Worker = self as any;
-let tokens: State["tokens"];
-let addresses = [];
+let contractsToWatch: string[] = [];
 
 const connection = new HubConnectionBuilder()
   .withUrl("https://api.tzkt.io/v1/events")
   .build();
 
 async function init() {
-  const localStore = get(store);
+  /*const localStore = get(store);
   if (tokens) {
     addresses = [
       ...addresses,
       ...Object.values(tokens).map(token => token.address)
     ];
   }
+  console.log(localStore.investments);
   if (localStore.investments) {
     addresses = [
       ...addresses,
       ...Object.values(localStore.investments).map(entry => entry.address)
     ];
-  }
+  }*/
   // open connection
   await connection.start();
   // subscribe to account transactions
   await Promise.all(
-    addresses.map(address =>
+    contractsToWatch.map(address =>
       connection.invoke("SubscribeToOperations", {
         address: address,
         types: "transaction"
@@ -44,7 +44,7 @@ async function init() {
     const lastTxsResponse = await fetch(
       `https://api.mainnet.tzkt.io/v1/operations/transactions?level.ge=${
         currentLevel - 5
-      }&target.in=${addresses.join(",")}`
+      }&target.in=${contractsToWatch.join(",")}`
     );
     if (lastTxsResponse) {
       const lastTxs = await lastTxsResponse.json();
@@ -64,7 +64,7 @@ connection.on("operations", msg => {
 
 ctx.addEventListener("message", async e => {
   if (e.data.type === "init") {
-    tokens = e.data.payload;
+    contractsToWatch = e.data.payload;
     await init();
   }
 });

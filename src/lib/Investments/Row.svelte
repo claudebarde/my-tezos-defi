@@ -17,6 +17,8 @@
   let harvestingPaulSuccess = undefined;
   let harvestingPlenty = false;
   let harvestingPlentySuccess = undefined;
+  let harvestingKdao = false;
+  let harvestingKdaoSuccess = undefined;
 
   const harvestPaul = async () => {
     harvestingPaul = true;
@@ -43,7 +45,7 @@
         dispatch("reset-rewards", data.id);
         toastStore.addToast({
           type: "success",
-          text: "Successfully harvested!",
+          text: `Successfully harvested ${rewards.amount} PAUL!`,
           dismissable: false
         });
         setTimeout(() => {
@@ -83,7 +85,7 @@
         dispatch("reset-rewards", data.id);
         toastStore.addToast({
           type: "success",
-          text: "Successfully harvested!",
+          text: `Successfully harvested ${rewards.amount} PLENTY!`,
           dismissable: false
         });
         setTimeout(() => {
@@ -99,6 +101,46 @@
       });
     } finally {
       harvestingPlenty = false;
+    }
+  };
+
+  const harvestKdao = async () => {
+    harvestingKdao = true;
+    try {
+      const contract = await $store.Tezos.wallet.at(data.address);
+      const batch = prepareOperation({
+        contractCalls: [contract.methods.claim([["unit"]])],
+        amount: +rewards.amount,
+        tokenSymbol: AvailableToken.KDAO
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      const receipt = await op.receipt();
+      harvestingKdao = false;
+      if (!receipt) {
+        harvestingKdaoSuccess = false;
+        throw `Operation failed: ${receipt}`;
+      } else {
+        harvestingKdaoSuccess = true;
+        dispatch("reset-rewards", data.id);
+        toastStore.addToast({
+          type: "success",
+          text: `Successfully harvested ${rewards.amount} kDAO!`,
+          dismissable: false
+        });
+        setTimeout(() => {
+          harvestingKdaoSuccess = undefined;
+        }, 2000);
+      }
+    } catch (error) {
+      console.log(error);
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't harvest PLENTY tokens",
+        dismissable: false
+      });
+    } finally {
+      harvestingKdao = false;
     }
   };
 </script>
@@ -421,6 +463,37 @@
       {:else}
         {+rewards.amount.toFixed(5) / 1}
       {/if}
+    </div>
+    <div>
+      {#if harvestingKdao}
+        <button class="button investments">
+          <span class="material-icons"> sync </span>
+        </button>
+      {:else if harvestingKdaoSuccess === true}
+        <button class="button main success">
+          <span class="material-icons"> thumb_up </span>
+        </button>
+      {:else if harvestingKdaoSuccess === false}
+        <button class="button main error" on:click={harvestKdao}>
+          Retry
+        </button>
+      {:else}
+        <button class="button investments" on:click={harvestKdao}>
+          <span class="material-icons"> agriculture </span>
+        </button>
+      {/if}
+      <button
+        class="button investments"
+        on:click={() => {
+          toastStore.addToast({
+            type: "info",
+            text: "Coming soon!",
+            dismissable: false
+          });
+        }}
+      >
+        <span class="material-icons"> settings </span>
+      </button>
     </div>
   {/if}
 </div>
