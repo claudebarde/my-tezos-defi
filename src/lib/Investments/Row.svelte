@@ -249,7 +249,7 @@
       {#if !rewards}
         <span class="material-icons"> hourglass_empty </span>
       {:else}
-        {+rewards.amount.toFixed(5) / 1}
+        {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
       {/if}
     </div>
     <div>

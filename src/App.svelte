@@ -112,55 +112,42 @@
           store.updateTokensBalances(updatedTokensBalances);
         } else if (
           op.status === "applied" &&
-          (op.sender.address === $store.userAddress ||
-            op.target.address === $store.userAddress)
+          Object.values($store.investments)
+            .map(inv => inv.address)
+            .includes(op.target.address)
         ) {
-          //console.log("User operation:", op);
-          // Plenty GetReward
-          // Plenty stake/unstake
-          /*if (
-            op.sender.address === $store.userAddress &&
-            Object.keys($store.investments)
-              .filter(inv => inv.split("-")[0].toLowerCase() === "plenty")
-              .map(inv => $store.investments[inv].address)
-              .includes(op.target.address)
-          ) {
-            if (op.parameter.entrypoint === "GetReward") {
-              // user got his reward from a PLENTY farm/pool
-              if (!balanceUpdateRequests.includes(AvailableToken.PLENTY)) {
-                balanceUpdateRequests.push(AvailableToken.PLENTY);
-              }
-            } else if (
-              op.parameter.entrypoint === "stake" ||
-              op.parameter.entrypoint === "unstake"
+          // one of the followed investments contracts
+          const investment = Object.entries($store.investments).find(
+            inv => inv[1].address === op.target.address
+          );
+          // PLENTY contracts
+          if (investment[1].platform === "plenty") {
+            if (
+              op?.parameter?.entrypoint === "stake" &&
+              op.sender.address === $store.userAddress
             ) {
-              // user staked or unstaked his tokens
-              const investment = Object.values($store.investments).find(
-                inv => inv.address === op.target.address
-              );
-              if (!balanceUpdateRequests.includes(investment.token)) {
-                balanceUpdateRequests.push(investment.token);
-              }
+              console.log("Plenty stake");
+            } else if (
+              op?.parameter?.entrypoint === "unstake" &&
+              op.sender.address === $store.userAddress
+            ) {
+              console.log("Plenty unstake");
             }
-          } else if (
-            op.sender.address === $store.userAddress &&
-            Object.keys($store.tokens).includes(op.target.alias) &&
-            op.parameter.entrypoint === "transfer"
-          ) {
-            // user interacts with token contract
-            if (!balanceUpdateRequests.includes(op.target.alias)) {
-              balanceUpdateRequests.push(op.target.alias);
+          }
+          // PAUL contracts
+          if (investment[1].platform === "paul") {
+            if (
+              op?.parameter?.entrypoint === "join" &&
+              op.sender.address === $store.userAddress
+            ) {
+              console.log("Paul stake");
+            } else if (
+              op?.parameter?.entrypoint === "quit" &&
+              op.sender.address === $store.userAddress
+            ) {
+              console.log("Paul unstake");
             }
-          } else if (
-            op.sender.address === $store.userAddress &&
-            Object.keys($store.investments)
-              .filter(inv => inv.split("-")[0].toLowerCase() === "quipuswap")
-              .map(inv => $store.investments[inv].address)
-              .includes(op.target.address)
-          ) {
-            // user interacts with Quipuswap pool
-            console.log("Quipuswap interaction:", op);
-          }*/
+          }
         }
       });
       store.updateLastOperations(ops);
@@ -350,15 +337,15 @@
       localStorageStore.init($store.userAddress);
     }*/
 
-    if (!$store.xtzData.exchangeRate) {
+    if (!$store.xtzData.exchangeRate && $localStorageStore) {
       // fetches XTZ exchange rate
       try {
+        if (!$localStorageStore.preferredFiat) {
+          throw "Unknown preferred fiat value";
+        }
+
         const coinGeckoFetch = async () => {
-          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${
-            $localStorageStore
-              ? $localStorageStore.preferredFiat.toLowerCase()
-              : "USD"
-          }&days=2`;
+          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${$localStorageStore.preferredFiat.toLowerCase()}&days=2`;
           const coinGeckoResponse = await fetch(url);
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();

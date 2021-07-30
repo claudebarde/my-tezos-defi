@@ -178,12 +178,9 @@
     <div class="container-grid">
       <Box {assetsType} token="tez" />
       {#if $store.tokens && $store.tokensExchangeRates && $store.tokensBalances && $localStorageStore && $localStorageStore.favoriteTokens}
-        {#each sortTokensByBalance($localStorageStore.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map( tk => [tk[0], $store.tokens[tk[0]]] ) as token}
+        {#each sortTokensByBalance($localStorageStore.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map( tk => [tk[0], $store.tokens[tk[0]]] ) as token (token[0])}
           <Box {assetsType} {token} />
         {/each}
-        <!--{#each $localStorageStore.favoriteTokens.map(tk => [tk, $store.tokens[tk]]) as token}
-          <Box {assetsType} {token} />
-        {/each}-->
       {/if}
     </div>
   {:else if assetsType === "general"}

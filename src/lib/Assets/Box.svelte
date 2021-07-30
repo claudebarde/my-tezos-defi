@@ -91,15 +91,16 @@
         nrOfTrends = newTrend.nrOfTrends;
       }
 
-      if (localBalance === undefined && $store.tokensBalances[token[0]]) {
-        /*console.log(
-          "set local balance:",
-          localBalance,
-          $store.tokensBalances[token[0]]
-        );*/
-        localBalance = $store.tokensBalances[token[0]];
-      } else if (
-        localBalance &&
+      if (localBalance === undefined) {
+        if ($store.tokensBalances[token[0]]) {
+          localBalance = $store.tokensBalances[token[0]];
+        } else {
+          localBalance = 0;
+        }
+      }
+      if (
+        localBalance !== undefined &&
+        $store.tokensBalances[token[0]] &&
         $store.tokensBalances[token[0]] !== localBalance
       ) {
         if ($store.tokensBalances[token[0]] > localBalance) {
