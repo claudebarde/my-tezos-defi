@@ -1,35 +1,44 @@
 <script lang="ts">
-  import { afterUpdate } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import store from "../store";
+  import localStorageStore from "../localStorage";
   import Assets from "../lib/Assets/Assets.svelte";
   import Investments from "../lib/Investments/Investments.svelte";
   import LastOperations from "../lib/LastOperations/LastOperations.svelte";
   import Charts from "../lib/Charts/Charts.svelte";
   import Settings from "../lib/Tools/Settings.svelte";
   import Calculator from "../lib/Tools/Calculator.svelte";
+  import { AvailableInvestments } from "../types";
   import { calcTotalShareValueInTez } from "../utils";
 
   let totalAmounts = { XTZ: undefined, TOKENS: undefined, FIAT: undefined };
   let totalInvestments = { XTZ: undefined, FIAT: undefined };
-  let balancesInUsd = {
-    kUSD: undefined,
-    hDAO: undefined,
-    PLENTY: undefined,
-    wXTZ: undefined,
-    STKR: undefined,
-    tzBTC: undefined,
-    USDtz: undefined,
-    ETHtz: undefined
-  };
   let updating = false;
+  let wXtzLockedXtz = 0;
+
+  onMount(async () => {
+    // gets balance for wXTZ vaults
+    if ($localStorageStore.wXtzVaults.length > 0) {
+      const lockedXtz = await Promise.all(
+        $localStorageStore.wXtzVaults.map(vault =>
+          $store.Tezos.tz.getBalance(vault)
+        )
+      );
+      if (lockedXtz.length > 0) {
+        lockedXtz.forEach((xtz: any) => {
+          wXtzLockedXtz += xtz.toNumber();
+        });
+      }
+    }
+  });
 
   afterUpdate(async () => {
-    if (!updating) {
+    if (!updating && $store.tokensBalances && $store.tokensExchangeRates) {
       updating = true;
 
-      // calculates total in XTZ and USD
-      const valueInXTZ = Object.entries($store.tokensBalances)
-        .map(token => {
+      let valueInXTZ = 0;
+      if (Object.entries($store.tokensBalances).length === 1) {
+        valueInXTZ = Object.entries($store.tokensBalances).map(token => {
           const [tokenSymbol, tokenVal] = token;
           if (!tokenVal) return 0;
 
@@ -39,8 +48,23 @@
           } else {
             return 0;
           }
-        })
-        .reduce((a, b) => a + b);
+        })[0];
+      } else if (Object.entries($store.tokensBalances).length > 1) {
+        // calculates total in XTZ and USD
+        valueInXTZ = Object.entries($store.tokensBalances)
+          .map(token => {
+            const [tokenSymbol, tokenVal] = token;
+            if (!tokenVal) return 0;
+
+            const exchangeRate = $store.tokensExchangeRates[tokenSymbol];
+            if (exchangeRate) {
+              return +tokenVal * +exchangeRate.tokenToTez;
+            } else {
+              return 0;
+            }
+          })
+          .reduce((a, b) => a + b);
+      }
 
       totalAmounts = {
         TOKENS: valueInXTZ,
@@ -50,24 +74,70 @@
           $store.xtzData.exchangeRate
       };
 
-      // calculates balances in USD
-      if ($store.tokensBalances && $store.xtzData.exchangeRate) {
-        Object.entries($store.tokensBalances).forEach(
-          ([tokenSymbol, balance]) => {
-            if (balance && $store.tokensExchangeRates[tokenSymbol]) {
-              balancesInUsd[tokenSymbol] =
-                balance *
-                $store.tokensExchangeRates[tokenSymbol].tokenToTez *
-                $store.xtzData.exchangeRate;
+      // calculates total investments
+      if (
+        $store.xtzData.exchangeRate &&
+        $store.investments &&
+        localStorageStore
+      ) {
+        let tempTotalInvestments = 0;
+
+        $localStorageStore.favoriteInvestments.forEach(inv => {
+          // PLENTY
+          if ($store.investments[inv].platform === "plenty") {
+            if (
+              inv !== AvailableInvestments["PLENTY-XTZ-LP"] &&
+              $store.tokensExchangeRates[$store.investments[inv].token]
+            ) {
+              tempTotalInvestments +=
+                ($store.investments[inv].balance /
+                  10 ** $store.investments[inv].decimals) *
+                $store.tokensExchangeRates[$store.investments[inv].token]
+                  .tokenToTez;
+            } else if (
+              inv === AvailableInvestments["PLENTY-XTZ-LP"] &&
+              $store.tokensExchangeRates.PLENTY
+            ) {
+              tempTotalInvestments += calcTotalShareValueInTez(
+                $store.investments[inv].balance,
+                $store.investments[inv].shareValueInTez,
+                $store.tokensExchangeRates.PLENTY.tokenToTez,
+                $store.tokens.PLENTY.decimals
+              );
+            }
+            // PAUL
+          } else if ($store.investments[inv].platform === "paul") {
+            if (inv === AvailableInvestments["PAUL-PAUL"]) {
+              tempTotalInvestments +=
+                ($store.investments[inv].balance /
+                  10 ** $store.investments[inv].decimals) *
+                $store.tokensExchangeRates[$store.investments[inv].token]
+                  .tokenToTez;
+            }
+            // kDAO
+          } else if ($store.investments[inv].platform === "kdao") {
+            if (inv === AvailableInvestments["KUSD-KDAO"]) {
+              tempTotalInvestments +=
+                ($store.investments[inv].balance /
+                  10 ** $store.investments[inv].decimals) *
+                $store.tokensExchangeRates[$store.investments[inv].token]
+                  .tokenToTez;
             }
           }
-        );
-      }
+        });
 
-      // calculates total investments
-      if ($store.xtzData.exchangeRate) {
-        let tempTotalInvestments = 0;
+        // adds amount of XTZ locked in WXTZ vaults
+        tempTotalInvestments += wXtzLockedXtz / 10 ** 6;
+
+        totalInvestments = {
+          XTZ: tempTotalInvestments,
+          FIAT: tempTotalInvestments * $store.xtzData.exchangeRate
+        };
+
+        /*let tempTotalInvestments = 0;
         Object.entries($store.investments).forEach(([contractName, data]) => {
+          if ($store.tokensExchangeRates[data.token] === undefined) return;
+
           if (
             [
               "Plenty hDAO staking",
@@ -103,7 +173,7 @@
         totalInvestments = {
           XTZ: tempTotalInvestments,
           FIAT: tempTotalInvestments * $store.xtzData.exchangeRate
-        };
+        };*/
       }
 
       updating = false;
@@ -143,13 +213,14 @@
 {#if $store.userAddress}
   <div class="stats">
     <div>
-      Tokens + XTZ:
+      <!-- TOKENS + XTZ -->
+      Tokens value:
       {#if totalAmounts.XTZ}
         {totalAmounts.XTZ.toFixed(2)} XTZ
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
-        {totalAmounts.FIAT.toFixed(2)} {$store.xtzData.toFiat}
+        {totalAmounts.FIAT.toFixed(2)} {$localStorageStore.preferredFiat}
       {:else}
         N/A
       {/if}
@@ -164,33 +235,23 @@
   </div>
   <div class="stats">
     <div>
-      Tokens value:
-      {#if totalAmounts.XTZ}
-        {totalAmounts.TOKENS.toFixed(2) / 1} XTZ
-      {:else}
-        N/A
-      {/if} - {#if totalAmounts.FIAT}
-        {+(totalAmounts.TOKENS * $store.xtzData.exchangeRate).toFixed(2) / 1}
-        {$store.xtzData.toFiat}
-      {:else}
-        N/A
-      {/if}
-    </div>
-    <div>
-      Owned tokens: {Object.values($store.tokensBalances).filter(tk => tk)
-        .length}
-    </div>
-  </div>
-  <div class="stats">
-    <div>
       {#if totalInvestments.XTZ && totalInvestments.FIAT}
         Investments: {+totalInvestments.XTZ.toFixed(2) / 1} XTZ - {+totalInvestments.FIAT.toFixed(
           2
         ) / 1}
-        {$store.xtzData.toFiat}
+        {$localStorageStore.preferredFiat}
       {/if}
     </div>
     <div />
+  </div>
+  <div class="stats">
+    <div>
+      {#if totalInvestments.XTZ && totalInvestments.FIAT && totalAmounts.XTZ && totalAmounts.FIAT}
+        Total: {+(totalInvestments.XTZ + totalAmounts.XTZ).toFixed(2) / 1} XTZ -
+        {+(totalInvestments.FIAT + totalAmounts.FIAT).toFixed(2) / 1}
+        {$localStorageStore.preferredFiat}
+      {/if}
+    </div>
   </div>
   <br />
 {:else}
@@ -203,12 +264,14 @@
   </div>
   <br />
 {/if}
-{#if $store.userAddress && Object.values($store.tokensBalances).some(el => el)}
-  <Assets {balancesInUsd} assetsType="owned" />
-  <br />
-  <br />
+{#if $store.userAddress && $store.tokens && $store.tokensExchangeRates && $store.tokensBalances}
+  <Assets assetsType="favorite" />
+{:else}
+  <Assets assetsType="general" />
 {/if}
-<Assets {balancesInUsd} assetsType="general" />
+<br />
+<br />
+<Assets assetsType="others" />
 <br />
 <br />
 {#if $store.userAddress}

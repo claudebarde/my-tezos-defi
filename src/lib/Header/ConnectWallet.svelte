@@ -1,16 +1,18 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import { BeaconWallet } from "@taquito/beacon-wallet";
   import {
     NetworkType,
     BeaconEvent,
     defaultEventCallbacks
   } from "@airgap/beacon-sdk";
-  import { char2Bytes, bytes2Char } from "@taquito/utils";
-  import type { TezosAccountAddress } from "../../types";
+  import { bytes2Char } from "@taquito/utils";
+  import type { TezosAccountAddress, State } from "../../types";
   import store from "../../store";
-  import InvestmentsWorker from "worker-loader!../../investments.worker";
-  import { handleInvestmentsWorker } from "../../workersHandlers";
+  import localStorageStore from "../../localStorage";
+  import toastStore from "../Toast/toastStore";
+  //import InvestmentsWorker from "worker-loader!../../investments.worker";
+  //import { handleInvestmentsWorker } from "../../workersHandlers";
   import { searchUserTokens } from "../../utils";
 
   const walletOptions = {
@@ -33,6 +35,7 @@
   const tezosDomainContract = "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS";
   let username = "";
   let investmentsWorker;
+  let nodeIconLetter = "";
 
   const connect = async () => {
     try {
@@ -47,9 +50,11 @@
       store.updateUserAddress(userAddress as any);
       store.updateWallet(wallet);
       $store.Tezos.setWalletProvider(wallet);
+      // inits local storage
+      localStorageStore.init($store.userAddress);
 
       // listens to investments worker
-      investmentsWorker = new InvestmentsWorker();
+      /*investmentsWorker = new InvestmentsWorker();
       investmentsWorker.onmessage = handleInvestmentsWorker;
       investmentsWorker.postMessage({
         type: "init",
@@ -57,19 +62,36 @@
           rpcUrl: $store.settings[$store.network].rpcUrl,
           userAddress: $store.userAddress
         }
-      });
+      });*/
 
       username = await fetchTezosDomain(userAddress);
+
+      let favoriteBalances: Partial<State["tokensBalances"]> = {};
+      $localStorageStore.favoriteTokens.forEach(
+        tk => (favoriteBalances[tk] = 0)
+      );
       const newBalances = await searchUserTokens({
         Tezos: $store.Tezos,
         network: $store.network,
         userAddress: $store.userAddress,
-        tokens: $store.tokens,
-        tokensBalances: $store.tokensBalances
+        tokens: Object.entries($store.tokens).filter(tk =>
+          $localStorageStore.favoriteTokens.includes(tk[0])
+        ),
+        tokensBalances: favoriteBalances
       });
-      store.updateTokensBalances(newBalances);
+      store.updateTokensBalances(newBalances as State["tokensBalances"]);
+
+      // replaces default node url with user's favorite
+      if ($localStorageStore.favoriteRpcUrl) {
+        $store.Tezos.setRpcProvider($localStorageStore.favoriteRpcUrl);
+      }
     } catch (err) {
       console.error(err);
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't load your tokens",
+        dismissable: false
+      });
     }
   };
 
@@ -84,6 +106,7 @@
       token => (zeroBalances[token] = undefined)
     );
     store.updateTokensBalances(zeroBalances);
+    localStorageStore.destroy();
   };
 
   const fetchTezosDomain = async (address: string): Promise<string> => {
@@ -106,9 +129,10 @@
       store.updateUserAddress(userAddress as TezosAccountAddress);
       store.updateWallet(wallet);
       $store.Tezos.setWalletProvider(wallet);
+      localStorageStore.init(userAddress);
 
       // listens to investments worker
-      investmentsWorker = new InvestmentsWorker();
+      /*investmentsWorker = new InvestmentsWorker();
       investmentsWorker.onmessage = handleInvestmentsWorker;
       investmentsWorker.postMessage({
         type: "init",
@@ -116,17 +140,60 @@
           rpcUrl: $store.settings[$store.network].rpcUrl,
           userAddress: $store.userAddress
         }
-      });
+      });*/
 
       username = await fetchTezosDomain(userAddress);
-      const newBalances = await searchUserTokens({
-        Tezos: $store.Tezos,
-        network: $store.network,
-        userAddress: $store.userAddress,
-        tokens: $store.tokens,
-        tokensBalances: $store.tokensBalances
-      });
-      store.updateTokensBalances(newBalances);
+
+      let favoriteBalances: Partial<State["tokensBalances"]> = {};
+      $localStorageStore.favoriteTokens.forEach(
+        tk => (favoriteBalances[tk] = 0)
+      );
+      try {
+        const newBalances = await searchUserTokens({
+          Tezos: $store.Tezos,
+          network: $store.network,
+          userAddress: $store.userAddress,
+          tokens: Object.entries($store.tokens).filter(tk =>
+            $localStorageStore.favoriteTokens.includes(tk[0])
+          ),
+          tokensBalances: favoriteBalances
+        });
+        store.updateTokensBalances(newBalances as State["tokensBalances"]);
+
+        // replaces default node url with user's favorite
+        if ($localStorageStore.favoriteRpcUrl) {
+          $store.Tezos.setRpcProvider($localStorageStore.favoriteRpcUrl);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      localStorageStore.init();
+    }
+  });
+
+  afterUpdate(() => {
+    if ($store.Tezos) {
+      const nodeUrl = $store.Tezos.rpc.getRpcUrl();
+      switch (nodeUrl) {
+        case "https://mainnet-tezos.giganode.io":
+          nodeIconLetter = "G";
+          break;
+        case "https://api.tez.ie/rpc/mainnet":
+          nodeIconLetter = "E";
+          break;
+        case "https://mainnet.smartpy.io/":
+          nodeIconLetter = "S";
+          break;
+        case "https://rpc.tzbeta.net/":
+          nodeIconLetter = "B";
+          break;
+        case "https://teznode.letzbake.com/":
+          nodeIconLetter = "L";
+          break;
+        default:
+          nodeIconLetter = "";
+      }
     }
   });
 </script>
@@ -158,9 +225,20 @@
       text-decoration: underline;
     }
   }
+
+  .connected-node {
+    position: relative;
+    padding: 0px;
+    padding-right: 10px;
+  }
 </style>
 
 {#if $store.userAddress}
+  <div title={`Connected to ${$store.Tezos.rpc.getRpcUrl()}`}>
+    <sup>{nodeIconLetter}</sup><span class="material-icons connected-node">
+      dns
+    </span>
+  </div>
   <div>
     <a href="#/profile">
       {username}

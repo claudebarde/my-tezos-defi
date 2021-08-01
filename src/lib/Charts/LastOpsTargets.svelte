@@ -62,6 +62,8 @@
             barColor = $store.tokens["WRAP"].color;
           } else if (target.toLowerCase().split(" ")[0] === "quipuswap") {
             barColor = "#575FE6";
+          } else if (target.toLowerCase() === "paul token") {
+            barColor = $store.tokens.PAUL.color;
           }
           data.datasets[0].backgroundColor.push(barColor);
         }

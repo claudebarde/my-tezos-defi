@@ -1,41 +1,151 @@
 <script lang="ts">
-  import { afterUpdate } from "svelte";
+  import { createEventDispatcher } from "svelte";
   import store from "../../store";
-  import { calcTotalShareValueInTez, getPlentyReward } from "../../utils";
+  import {
+    calcTotalShareValueInTez,
+    shortenHash,
+    prepareOperation
+  } from "../../utils";
   import ManagePlenty from "../Modal/ManagePlenty.svelte";
+  import { AvailableToken } from "../../types";
+  import toastStore from "../Toast/toastStore";
 
-  export let data, platform, valueInXtz;
+  export let data, platform, valueInXtz, rewards;
 
-  let lastLevel = 0;
-  let loadingPlentyRewards = false;
-  let plentyRewards = "--";
+  const dispatch = createEventDispatcher();
+  let harvestingPaul = false;
+  let harvestingPaulSuccess = undefined;
+  let harvestingPlenty = false;
+  let harvestingPlentySuccess = undefined;
+  let harvestingKdao = false;
+  let harvestingKdaoSuccess = undefined;
 
-  afterUpdate(async () => {
-    // loads PLENTY rewards
-    if (lastLevel !== $store.lastOperations[0].level && !loadingPlentyRewards) {
-      loadingPlentyRewards = true;
-      let level = $store.lastOperations[0].level;
-
-      const rewards = await getPlentyReward(
-        $store.userAddress,
-        data.address[$store.network],
-        level,
-        data.decimals
-      );
-      if (rewards.status) {
-        if (rewards.totalRewards === 0) {
-          plentyRewards = "0";
-        } else {
-          plentyRewards = rewards.totalRewards.toFixed(5);
-        }
+  const harvestPaul = async () => {
+    harvestingPaul = true;
+    try {
+      const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
+      const contract = await $store.Tezos.wallet.at(data.address);
+      const batch = prepareOperation({
+        contractCalls: [
+          data.id === "PAUL-PAUL"
+            ? contract.methods.earn($store.userAddress, false)
+            : contract.methods.earn($store.userAddress)
+        ],
+        amount: +rewards.amount,
+        tokenSymbol: AvailableToken.PAUL
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      const receipt = await op.receipt();
+      harvestingPaul = false;
+      if (!receipt) {
+        harvestingPaulSuccess = false;
+        throw `Operation failed: ${receipt}`;
       } else {
-        plentyRewards = "N/A";
+        harvestingPaulSuccess = true;
+        dispatch("reset-rewards", data.id);
+        toastStore.addToast({
+          type: "success",
+          text: `Successfully harvested ${rewardsToHarvest} PAUL!`,
+          dismissable: false
+        });
+        setTimeout(() => {
+          harvestingPaulSuccess = undefined;
+        }, 2000);
       }
-
-      lastLevel = level;
-      loadingPlentyRewards = false;
+    } catch (error) {
+      console.log(error);
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't harvest PAUL tokens",
+        dismissable: false
+      });
+    } finally {
+      harvestingPaul = false;
     }
-  });
+  };
+
+  const harvestPlenty = async () => {
+    harvestingPlenty = true;
+    try {
+      const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
+      const contract = await $store.Tezos.wallet.at(data.address);
+      const batch = prepareOperation({
+        contractCalls: [contract.methods.GetReward([["unit"]])],
+        amount: +rewards.amount,
+        tokenSymbol: AvailableToken.PLENTY
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      const receipt = await op.receipt();
+      harvestingPlenty = false;
+      if (!receipt) {
+        harvestingPlentySuccess = false;
+        throw `Operation failed: ${receipt}`;
+      } else {
+        harvestingPlentySuccess = true;
+        dispatch("reset-rewards", data.id);
+        toastStore.addToast({
+          type: "success",
+          text: `Successfully harvested ${rewardsToHarvest} PLENTY!`,
+          dismissable: false
+        });
+        setTimeout(() => {
+          harvestingPlentySuccess = undefined;
+        }, 2000);
+      }
+    } catch (error) {
+      console.log(error);
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't harvest PLENTY tokens",
+        dismissable: false
+      });
+    } finally {
+      harvestingPlenty = false;
+    }
+  };
+
+  const harvestKdao = async () => {
+    harvestingKdao = true;
+    try {
+      const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
+      const contract = await $store.Tezos.wallet.at(data.address);
+      const batch = prepareOperation({
+        contractCalls: [contract.methods.claim([["unit"]])],
+        amount: +rewards.amount,
+        tokenSymbol: AvailableToken.KDAO
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      const receipt = await op.receipt();
+      harvestingKdao = false;
+      if (!receipt) {
+        harvestingKdaoSuccess = false;
+        throw `Operation failed: ${receipt}`;
+      } else {
+        harvestingKdaoSuccess = true;
+        dispatch("reset-rewards", data.id);
+        toastStore.addToast({
+          type: "success",
+          text: `Successfully harvested ${rewardsToHarvest} kDAO!`,
+          dismissable: false
+        });
+        setTimeout(() => {
+          harvestingKdaoSuccess = undefined;
+        }, 2000);
+      }
+    } catch (error) {
+      console.log(error);
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't harvest PLENTY tokens",
+        dismissable: false
+      });
+    } finally {
+      harvestingKdao = false;
+    }
+  };
 </script>
 
 <style lang="scss">
@@ -43,7 +153,7 @@
 
   .row {
     display: grid;
-    grid-template-columns: 10% 25% 20% 17% 17% 11%;
+    grid-template-columns: 10% 25% 20% 17% 16% 12%;
     padding: 5px 10px;
     align-items: center;
 
@@ -74,9 +184,7 @@
     </div>
     <div>
       <a
-        href={`https://better-call.dev/mainnet/${
-          data.address[$store.network]
-        }/operations`}
+        href={`https://better-call.dev/mainnet/${data.address}/operations`}
         target="_blank"
         rel="noopener noreferrer nofollow"
       >
@@ -141,25 +249,40 @@
       <div>--</div>
     {/if}
     <div>
-      {#if loadingPlentyRewards}
-        Calculating...
+      {#if !rewards}
+        <span class="material-icons"> hourglass_empty </span>
       {:else}
-        {plentyRewards}
+        {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
       {/if}
     </div>
     <div>
-      <!--
-            <ManagePlenty
-              contractAddress={data.address[$store.network]}
-              alias={data.alias}
-              id={data.id}
-            />
-        -->
+      {#if harvestingPlenty}
+        <button class="button investments loading">
+          <span class="material-icons"> sync </span>
+        </button>
+      {:else if harvestingPlentySuccess === true}
+        <button class="button main success">
+          <span class="material-icons"> thumb_up </span>
+        </button>
+      {:else if harvestingPlentySuccess === false}
+        <button class="button main error" on:click={harvestPlenty}>
+          Retry
+        </button>
+      {:else}
+        <button class="button investments" on:click={harvestPlenty}>
+          <span class="material-icons"> agriculture </span>
+        </button>
+      {/if}
+      <ManagePlenty
+        contractAddress={data.address}
+        alias={data.alias}
+        id={data.id}
+      />
     </div>
   {:else if platform === "crunchy"}
     <!-- CRUNCHY FARMS have a zero balance but data in the info array -->
     {#each data.info as farm}
-      {#if farm.farmId < 3}
+      {#if farm.farmId < 3 && farm.amount > 0}
         <div class="icon">
           {#if farm.farmId == 0}
             <img src="images/XTZ.png" alt="token-icon" />
@@ -176,9 +299,7 @@
         </div>
         <div>
           <a
-            href={`https://better-call.dev/mainnet/${
-              data.address[$store.network]
-            }/operations`}
+            href={`https://better-call.dev/mainnet/${data.address}/operations`}
             target="_blank"
             rel="noopener noreferrer nofollow"
           >
@@ -223,5 +344,159 @@
         <div>--</div>
       {/if}
     {/each}
+  {:else if platform === "wxtz"}
+    <div class="icon">
+      <img src={`images/wXTZ.png`} alt="token-icon" />
+    </div>
+    <div>
+      <a
+        href={`https://better-call.dev/mainnet/${data}/operations`}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        {shortenHash(data)}
+      </a>
+    </div>
+    <div>
+      {#await $store.Tezos.tz.getBalance(data)}
+        <span class="material-icons"> hourglass_empty </span>
+      {:then value}
+        {+value / 10 ** 6} ꜩ
+      {:catch error}
+        Error
+      {/await}
+    </div>
+  {:else if platform === "paul"}
+    <div class="icon">
+      {#each data.icons as icon}
+        <img src={`images/${icon}.png`} alt="token-icon" />
+      {/each}
+    </div>
+    <div>
+      <a
+        href={`https://better-call.dev/mainnet/${data.address}/operations`}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        {data.alias}
+      </a>
+    </div>
+    <div>
+      {+(data.balance / 10 ** data.decimals).toFixed(5) / 1}
+    </div>
+    <div>
+      {#if data.id === "PAUL-PAUL"}
+        {+(
+          ($store.tokensExchangeRates.PAUL.tokenToTez * data.balance) /
+          10 ** data.decimals
+        ).toFixed(5) / 1}
+      {:else}
+        --
+      {/if}
+    </div>
+    <div>
+      {#if !rewards || harvestingPaul}
+        <span class="material-icons"> hourglass_empty </span>
+      {:else}
+        {+rewards.amount.toFixed(5) / 1}
+      {/if}
+    </div>
+    <div>
+      {#if harvestingPaul}
+        <button class="button investments">
+          <span class="material-icons"> sync </span>
+        </button>
+      {:else if harvestingPaulSuccess === true}
+        <button class="button main success">
+          <span class="material-icons"> thumb_up </span>
+        </button>
+      {:else if harvestingPaulSuccess === false}
+        <button class="button main error" on:click={harvestPaul}>
+          Retry
+        </button>
+      {:else}
+        <button class="button investments" on:click={harvestPaul}>
+          <span class="material-icons"> agriculture </span>
+        </button>
+      {/if}
+      <button
+        class="button investments"
+        on:click={() => {
+          toastStore.addToast({
+            type: "info",
+            text: "Coming soon!",
+            dismissable: false
+          });
+        }}
+      >
+        <span class="material-icons"> settings </span>
+      </button>
+    </div>
+  {:else if platform === "kdao"}
+    <div class="icon">
+      {#each data.icons as icon}
+        <img src={`images/${icon}.png`} alt="token-icon" />
+      {/each}
+    </div>
+    <div>
+      <a
+        href={`https://better-call.dev/mainnet/${data.address}/operations`}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        {data.alias}
+      </a>
+    </div>
+    <div>
+      {+(data.balance / 10 ** data.decimals).toFixed(5) / 1}
+    </div>
+    <div>
+      {#if data.id === "KUSD-KDAO"}
+        {+(
+          ($store.tokensExchangeRates.kUSD.tokenToTez * data.balance) /
+          10 ** data.decimals
+        ).toFixed(5) / 1}
+      {:else}
+        --
+      {/if}
+    </div>
+    <div>
+      {#if !rewards}
+        <span class="material-icons"> hourglass_empty </span>
+      {:else}
+        {+rewards.amount.toFixed(5) / 1}
+      {/if}
+    </div>
+    <div>
+      {#if harvestingKdao}
+        <button class="button investments">
+          <span class="material-icons"> sync </span>
+        </button>
+      {:else if harvestingKdaoSuccess === true}
+        <button class="button main success">
+          <span class="material-icons"> thumb_up </span>
+        </button>
+      {:else if harvestingKdaoSuccess === false}
+        <button class="button main error" on:click={harvestKdao}>
+          Retry
+        </button>
+      {:else}
+        <button class="button investments" on:click={harvestKdao}>
+          <span class="material-icons"> agriculture </span>
+        </button>
+      {/if}
+      <button
+        class="button investments"
+        on:click={() => {
+          toastStore.addToast({
+            type: "info",
+            text: "Coming soon!",
+            dismissable: false
+          });
+        }}
+      >
+        <span class="material-icons"> settings </span>
+      </button>
+    </div>
   {/if}
 </div>

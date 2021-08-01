@@ -47,11 +47,25 @@ export default {
       zeroPerCent: 12288
     },
   validFiats: [
-    { code: AvailableFiat.USD, name: "US dollar" },
-    { code: AvailableFiat.EUR, name: "Euro" },
-    { code: AvailableFiat.CAD, name: "Canadian Dollar" },
-    { code: AvailableFiat.GBP, name: "British pound" },
-    { code: AvailableFiat.SGD, name: "Singapore dollar" },
-    { code: AvailableFiat.KRW, name: "South Korea won" }
-  ]
+    { code: AvailableFiat.USD, name: "US dollar", symbol: "$" },
+    { code: AvailableFiat.EUR, name: "Euro", symbol: "€" },
+    { code: AvailableFiat.CAD, name: "Canadian Dollar", symbol: "CA$" },
+    { code: AvailableFiat.GBP, name: "British pound", symbol: "£" },
+    { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
+    { code: AvailableFiat.KRW, name: "South Korea won", symbol: "₩" }
+  ],
+  toastColor: {
+    green: {
+      theme: {
+        '--toastBackground': '#48BB78',
+        '--toastProgressBackground': '#2F855A'
+      }
+    }, 
+    red: {
+      theme: {
+        '--toastBackground': '#F56565',
+        '--toastProgressBackground': '#C53030'
+      }
+    }
+  }
 };

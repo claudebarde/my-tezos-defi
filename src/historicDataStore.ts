@@ -2,30 +2,19 @@ import { writable } from "svelte/store";
 import type { AvailableToken, HistoricalDataState } from "./types";
 
 const initialState: HistoricalDataState = {
-  tokens: {
-    kUSD: [],
-    hDAO: [],
-    PLENTY: [],
-    wXTZ: [],
-    STKR: [],
-    tzBTC: [],
-    USDtz: [],
-    ETHtz: [],
-    CRUNCH: [],
-    WRAP: [],
-    wDAI: [],
-    wWBTC: [],
-    sDAO: [],
-    crDAO: [],
-    FLAME: [],
-    KALAM: []
-  }
+  tokens: undefined
 };
 
 const store = writable(initialState);
 
 const state = {
   subscribe: store.subscribe,
+  initTokens: (tokensList: AvailableToken[]) =>
+    store.update(store => {
+      let tokens: any = {};
+      tokensList.forEach(token => (tokens[token] = []));
+      return { ...store, tokens };
+    }),
   updateToken: (
     tokenSymbol: AvailableToken,
     data: { tokenToTez: number; tezToToken: number }

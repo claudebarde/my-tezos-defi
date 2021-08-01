@@ -4,6 +4,8 @@ import type {
   Wallet,
   WalletOperationBatch
 } from "@taquito/taquito";
+import BigNumber from "bignumber.js";
+import { findDex, estimateTezInShares } from "@quipuswap/sdk";
 import type {
   HistoricalDataState,
   TokenContract,
@@ -13,7 +15,8 @@ import type {
   Operation,
   IconValue,
   IconSet,
-  KolibriOvenData
+  KolibriOvenData,
+  AvailableInvestments
 } from "./types";
 import { AvailableToken } from "./types";
 import { char2Bytes } from "@taquito/utils";
@@ -123,68 +126,74 @@ export const searchUserTokens = async ({
   Tezos: TezosToolkit;
   network: State["network"];
   userAddress: TezosAccountAddress;
-  tokens: State["tokens"] | { [p: string]: TokenContract };
-  tokensBalances: State["tokensBalances"];
+  tokens: [AvailableToken | string, TokenContract][];
+  tokensBalances: Partial<State["tokensBalances"]>;
 }) => {
-  // search for user address in tokens ledgers
-  const balances = await Promise.all(
-    Object.entries(tokens).map(async (tokenInfo, i) => {
-      const [tokenSymbol, token] = tokenInfo;
-      const contract = await Tezos.wallet.at(token.address[network]);
-      const storage = await contract.storage();
-      // finds ledger in storage
-      const ledgerPath = token.ledgerPath.split("/");
-      const ledger =
-        ledgerPath.length === 1
-          ? storage[ledgerPath[0]]
-          : [storage, ...ledgerPath].reduce(
-              (storage: any, sub: any) => storage[sub]
-            );
-      //return [Object.keys($store.tokens)[i], ledger];
-      let balance;
-      if (
-        token.ledgerKey === "address" &&
-        (token.type == "fa1.2" || token.type == "fa2")
-      ) {
-        const user = await ledger.get(userAddress);
-        if (user) {
-          if (user.hasOwnProperty("balance")) {
-            balance = user.balance.toNumber() / 10 ** token.decimals;
+  try {
+    if (!tokens) return null;
+    // search for user address in tokens ledgers
+    const balances = await Promise.all(
+      tokens.map(async (tokenInfo, i) => {
+        const [tokenSymbol, token] = tokenInfo;
+        const contract = await Tezos.wallet.at(token.address);
+        const storage = await contract.storage();
+        // finds ledger in storage
+        const ledgerPath = token.ledgerPath.split("/");
+        const ledger =
+          ledgerPath.length === 1
+            ? storage[ledgerPath[0]]
+            : [storage, ...ledgerPath].reduce(
+                (storage: any, sub: any) => storage[sub]
+              );
+        //return [Object.keys($store.tokens)[i], ledger];
+        let balance;
+        if (
+          token.ledgerKey === "address" &&
+          (token.type == "fa1.2" || token.type == "fa2")
+        ) {
+          const user = await ledger.get(userAddress);
+          if (user) {
+            if (user.hasOwnProperty("balance")) {
+              balance = user.balance.toNumber() / 10 ** token.decimals;
+            } else {
+              balance = user.toNumber() / 10 ** token.decimals;
+            }
           } else {
-            balance = user.toNumber() / 10 ** token.decimals;
+            balance = undefined;
           }
+        } else if (
+          Array.isArray(token.ledgerKey) &&
+          token.ledgerKey[0] === "address"
+        ) {
+          balance = await ledger.get({ 0: userAddress, 1: token.ledgerKey[1] });
+          if (balance) {
+            balance = balance.toNumber() / 10 ** token.decimals;
+          }
+        } else if (
+          Array.isArray(token.ledgerKey) &&
+          token.ledgerKey[1] === "address"
+        ) {
+          balance = await ledger.get(
+            char2Bytes(`{ Pair "ledger" "${userAddress}" }`)
+          );
         } else {
           balance = undefined;
         }
-      } else if (
-        Array.isArray(token.ledgerKey) &&
-        token.ledgerKey[0] === "address"
-      ) {
-        balance = await ledger.get({ 0: userAddress, 1: token.ledgerKey[1] });
-        if (balance) {
-          balance = balance.toNumber() / 10 ** token.decimals;
-        }
-      } else if (
-        Array.isArray(token.ledgerKey) &&
-        token.ledgerKey[1] === "address"
-      ) {
-        balance = await ledger.get(
-          char2Bytes(`{ Pair "ledger" "${userAddress}" }`)
-        );
-      } else {
-        balance = undefined;
-      }
 
-      return [tokenSymbol, balance];
-    })
-  );
-  // updates token balances
-  const newBalances = { ...tokensBalances };
-  balances.forEach(param => {
-    newBalances[param[0]] = param[1];
-  });
+        return [tokenSymbol, balance];
+      })
+    );
+    // updates token balances
+    const newBalances = { ...tokensBalances };
+    balances.forEach(param => {
+      newBalances[param[0]] = param[1];
+    });
 
-  return newBalances;
+    return newBalances;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 };
 
 export const calcTotalShareValueInTez = (
@@ -301,11 +310,30 @@ export const getOpIcons = (
     case "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3":
       icons = ["crDAO"];
       break;
+    case "KT1DMCGGiHT2dgjjXHG7qh1C1maFchrLNphx":
+    case "KT1WfbRVLuJUEizo6FSTFq5tsi3rsUHLY7vg":
+    case "KT1CjrJzk4S66uqv2M3DQHwBAzjD7MVm1jYs":
+      icons = [AvailableToken.PAUL];
+      break;
     default:
-      icons =
-        target.alias && Object.keys(localStore.tokens).includes(target.alias)
-          ? [target.alias.trim() as IconValue]
-          : ["user"];
+      if (
+        target.alias &&
+        Object.keys(localStore.tokens).includes(target.alias)
+      ) {
+        icons = [target.alias.trim() as IconValue];
+      } else if (
+        Object.values(localStore.tokens).filter(
+          tk => tk.address === target.address
+        ).length === 1
+      ) {
+        icons = [
+          Object.entries(localStore.tokens).filter(
+            tk => tk[1].address === target.address
+          )[0][0] as IconValue
+        ];
+      } else {
+        icons = ["user"];
+      }
       break;
   }
 
@@ -314,22 +342,21 @@ export const getOpIcons = (
 
 export const calculateValue = (op: any): number => {
   const localStore = get(store);
-  //console.log(op);
   const sender = op.sender;
   const target = op.target;
   const entrypoint = op.parameter ? op.parameter.entrypoint : null;
 
-  const tokenAddresses = Object.values(localStore.tokens).map(
-    tk => tk.address[localStore.network]
-  );
-  const investmentAddresses = Object.values(localStore.investments).map(
-    tk => tk.address[localStore.network]
-  );
+  const tokenAddresses = !localStore.tokens
+    ? []
+    : Object.values(localStore.tokens).map(tk => tk.address);
+  const investmentAddresses = !localStore.investments
+    ? []
+    : Object.values(localStore.investments).map(tk => tk.address);
 
   if (tokenAddresses.includes(target.address)) {
     // THIS IS ONE OF THE AVAILABLE TOKENS
     const token = Object.values(localStore.tokens).find(
-      tk => tk.address[localStore.network] === target.address
+      tk => tk.address === target.address
     );
     if (entrypoint === "transfer") {
       // FA1.2 TOKEN TRANFER
@@ -354,12 +381,32 @@ export const calculateValue = (op: any): number => {
       } else {
         return 0;
       }
+    } else if (entrypoint === "distribute") {
+      // WRAP PROTOCOL
+      let amount = 0;
+      op.parameter.value.forEach(val => {
+        if (val.to_ === localStore.userAddress) {
+          amount += +val.amount;
+        }
+      });
+      return amount / 10 ** token.decimals;
+    } else if (
+      entrypoint === "mint" &&
+      [
+        localStore.investments["PAUL-PAUL"].address,
+        localStore.investments["PAUL-XTZ"].address
+      ].includes(op.sender.address)
+    ) {
+      // PAUL farms
+      let totalValue = 0;
+      op.parameter.value.forEach(val => (totalValue += +val.nat));
+      return totalValue / 10 ** token.decimals;
     } else {
       return 0;
     }
   } else if (investmentAddresses.includes(target.address)) {
     const contract = Object.values(localStore.investments).find(
-      inv => inv.address[localStore.network] === target.address
+      inv => inv.address === target.address
     );
 
     if (entrypoint === "stake" && contract.decimals) {
@@ -383,8 +430,7 @@ export const calculateValue = (op: any): number => {
       }
     } else if (
       entrypoint === "deposit" &&
-      target.address ===
-        localStore.investments["CRUNCHY-FARMS"].address[localStore.network]
+      target.address === localStore.investments["CRUNCHY-FARMS"].address
     ) {
       // CRUNCH DEPOSIT
       return (
@@ -468,9 +514,11 @@ export const createNewOpEntry = (
     alias = op.target.alias;
   } else {
     // check if alias is available in app
-    const invInfo = Object.values(localStore.investments).find(
-      inv => inv.address[localStore.network] === op.target.address
-    );
+    const invInfo = localStore.investments
+      ? Object.values(localStore.investments).find(
+          inv => inv.address === op.target.address
+        )
+      : null;
     if (invInfo) {
       alias = invInfo.alias;
     }
@@ -560,6 +608,10 @@ export const getPlentyReward = async (
   const localStore = get(store);
 
   try {
+    if (!stakingContractAddress) {
+      throw "No contract address provided";
+    }
+
     const contract = await localStore.Tezos.wallet.at(stakingContractAddress);
     const storage: any = await contract.storage();
     if (storage.totalSupply.toNumber() == 0) {
@@ -585,7 +637,11 @@ export const getPlentyReward = async (
       totalRewards / Math.pow(10, decimals) + userDetails.rewards.toNumber();
     totalRewards = totalRewards / Math.pow(10, decimals); // Reducing to Token Decimals
 
-    return { status: true, totalRewards };
+    if (totalRewards >= 0) {
+      return { status: true, totalRewards };
+    } else {
+      throw `Negative rewards: ${totalRewards}`;
+    }
   } catch (error) {
     return { status: false, error };
   }
@@ -616,5 +672,248 @@ export const prepareOperation = (p: {
       amount: Math.ceil(fee * 10 ** 6),
       mutez: true
     });
+  }
+};
+
+export const loadInvestment = async (investment: AvailableInvestments) => {
+  const localStore = get(store);
+  if (localStore.investments && localStore.investments[investment]) {
+    const inv = localStore.investments[investment];
+    const contract = await localStore.Tezos.wallet.at(inv.address);
+    const storage: any = await contract.storage();
+    if (inv.platform === "plenty") {
+      const userData = await storage.balances.get(localStore.userAddress);
+      if (userData) {
+        const balance = userData.balance.toNumber();
+        const info = [];
+        const entries = userData.InvestMap.entries();
+        for (let entry of entries) {
+          info.push({
+            amount: entry[1].amount.toNumber(),
+            level: entry[1].level.toNumber()
+          });
+        }
+
+        if (inv.id === "PLENTY-XTZ-LP") {
+          const dex = await findDex(
+            localStore.Tezos,
+            config.quipuswapFactories,
+            {
+              contract: localStore.tokens.PLENTY.address
+            }
+          );
+          const dexStorage = await dex.contract.storage();
+          const tezInShares = await estimateTezInShares(dexStorage, 1000000);
+
+          return {
+            id: inv.id,
+            balance,
+            info,
+            shareValueInTez: tezInShares.toNumber()
+          };
+        }
+
+        return { id: inv.id, balance, info };
+      } else {
+        return { id: inv.id, balance: 0, info: undefined };
+      }
+    } else if (inv.platform === "quipuswap") {
+      const userData = await storage.storage.ledger.get(localStore.userAddress);
+      if (userData) {
+        return {
+          id: inv.id,
+          balance: userData.balance.toNumber(),
+          info: undefined
+        };
+      } else {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "paul") {
+      const userData = await storage.account_info.get(localStore.userAddress);
+      if (userData) {
+        return {
+          id: inv.id,
+          balance: userData.amount.toNumber(),
+          info: undefined
+        };
+      } else {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "kdao") {
+      const userData = await storage.delegators.get(localStore.userAddress);
+      if (userData) {
+        return {
+          id: inv.id,
+          balance: userData.lpTokenBalance.toNumber(),
+          info: undefined
+        };
+      } else {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    }
+
+    return null;
+  } else {
+    return null;
+  }
+};
+
+export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
+  const localStore = get(store);
+
+  return tokens.sort((a, b) => {
+    let balanceA = a[1];
+    let balanceB = b[1];
+    if (balanceA === undefined) {
+      balanceA = 0;
+    } else if (balanceB === undefined) {
+      balanceB = 0;
+    }
+
+    if (
+      !localStore.tokensExchangeRates[a[0]] ||
+      !localStore.tokensExchangeRates[b[0]]
+    ) {
+      return 0;
+    }
+
+    return (
+      balanceB *
+        (localStore.tokensExchangeRates[b[0]]
+          ? localStore.tokensExchangeRates[b[0]].tokenToTez
+          : 0) -
+      balanceA *
+        (localStore.tokensExchangeRates[a[0]]
+          ? localStore.tokensExchangeRates[a[0]].tokenToTez
+          : 0)
+    );
+  });
+};
+
+export const getPaulReward = async (
+  contractAddress: string,
+  vaultMode?: boolean
+): Promise<BigNumber | null> => {
+  const localStore = get(store);
+  const numberAccuracy = new BigNumber(1000000000000000000);
+
+  const contract = await localStore.Tezos.wallet.at(contractAddress);
+  const {
+    last_updated: lastUpdated,
+    share_reward: shareReward,
+    total_staked: totalStaked,
+    account_info: accountInfo,
+    reward_per_second: rewardPerSecond,
+    coefficient,
+    referral_system: referralSystem
+  } = await contract.storage();
+
+  if (totalStaked.eq(0)) {
+    return new BigNumber(0);
+  }
+
+  const referralSystemContract = await localStore.Tezos.wallet.at(
+    referralSystem
+  );
+  const { commission } = await referralSystemContract.storage();
+
+  const currentTime = new BigNumber(+new Date());
+  const lastTime = new BigNumber(+new Date(lastUpdated));
+  const time = currentTime.minus(lastTime).idiv(1000).abs();
+
+  const newReward = time
+    .times(rewardPerSecond.times(coefficient))
+    .times(numberAccuracy);
+  const newShareReward = new BigNumber(shareReward).plus(
+    newReward.idiv(totalStaked).idiv(100)
+  );
+
+  const val = await accountInfo.get(localStore.userAddress);
+  if (!val) return null;
+
+  const reward = val.reward
+    .plus(val.amount.times(newShareReward).minus(val.former))
+    .idiv(numberAccuracy);
+
+  // There is no commission for vaults
+  if (vaultMode) {
+    return reward;
+  }
+
+  const result = reward.times(new BigNumber(100).minus(commission)).idiv(100);
+
+  if (result.toNumber() < 0) {
+    return new BigNumber(0);
+  } else {
+    return result;
+  }
+};
+
+export const getKdaoReward = async (
+  farmAddress: TezosContractAddress,
+  userAddress: TezosAccountAddress,
+  currentBlockHeight: number
+): Promise<BigNumber | null> => {
+  const localStore = get(store);
+  if (!farmAddress || !userAddress || !currentBlockHeight) return null;
+
+  const contract = await localStore.Tezos.wallet.at(farmAddress);
+  const farmContractData: any = await contract.storage();
+  const depositedTokens = await farmContractData.delegators.get(userAddress);
+
+  if (
+    depositedTokens === undefined ||
+    depositedTokens.lpTokenBalance.isZero()
+  ) {
+    return new BigNumber(0);
+  }
+  const accRewardPerShareStart = depositedTokens.accumulatedRewardPerShareStart;
+  const nextBlock = new BigNumber(currentBlockHeight + 1);
+  const multiplier = nextBlock.minus(farmContractData.farm.lastBlockUpdate);
+  const outstandingReward = multiplier.times(
+    farmContractData.farm.plannedRewards.rewardPerBlock
+  );
+  const claimedRewards = farmContractData.farm.claimedRewards.paid.plus(
+    farmContractData.farm.claimedRewards.unpaid
+  );
+  const totalRewards = outstandingReward.plus(claimedRewards);
+  const plannedRewards =
+    farmContractData.farm.plannedRewards.rewardPerBlock.times(
+      farmContractData.farm.plannedRewards.totalBlocks
+    );
+  const totalRewardsExhausted = totalRewards.isGreaterThan(plannedRewards);
+  const reward = totalRewardsExhausted
+    ? plannedRewards.minus(claimedRewards)
+    : outstandingReward;
+  const lpMantissa = new BigNumber(10).pow(36);
+  const rewardRatio = reward
+    .times(lpMantissa)
+    .div(farmContractData.farmLpTokenBalance);
+  const accRewardPerShareEnd =
+    farmContractData.farm.accumulatedRewardPerShare.plus(rewardRatio);
+  const accumulatedRewardPerShare = accRewardPerShareEnd.minus(
+    accRewardPerShareStart
+  );
+
+  const result = accumulatedRewardPerShare
+    .times(depositedTokens.lpTokenBalance)
+    .dividedBy(lpMantissa);
+
+  if (result.toNumber() < 0) {
+    return new BigNumber(0);
+  } else {
+    return result;
   }
 };

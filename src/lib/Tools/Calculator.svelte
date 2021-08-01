@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import CalculatorBox from "./CalculatorBox.svelte";
 
   let openCalculator = false;
@@ -70,12 +71,12 @@
       const target = e.target.getAttribute("data-target");
       // checks if target is a token
       let [token, _] = Object.entries($store.tokens).find(
-        tk => tk[1].address[$store.network] === target
+        tk => tk[1].address === target
       ) || [undefined, undefined];
       if (!token) {
         // checks if target is an investment
         let inv = Object.values($store.investments).find(
-          tk => tk.address[$store.network] === target
+          tk => tk.address === target
         );
         if (inv && inv.token) {
           token = inv.token;
@@ -90,7 +91,9 @@
   };
 
   onMount(() => {
-    Object.keys($store.tokens).forEach(token => (conversions[token] = 0));
+    if ($store.tokens) {
+      Object.keys($store.tokens).forEach(token => (conversions[token] = 0));
+    }
   });
 </script>
 
@@ -157,7 +160,7 @@
   on:dblclick={handleDoubleClick}
 />
 
-{#if !Object.values($store.tokensExchangeRates).every(val => val === undefined)}
+{#if $store.tokensExchangeRates && !Object.values($store.tokensExchangeRates).some(val => val === undefined)}
   <span
     class="material-icons"
     style="cursor:pointer"
@@ -170,7 +173,7 @@
     calculate
   </span>
 {/if}
-{#if openCalculator}
+{#if $store.tokensExchangeRates && openCalculator}
   <div
     class="calculator-container"
     style={`left: ${leftPos}px; top: ${topPos}px`}
@@ -185,7 +188,11 @@
       </span>
     </div>
     <div class="calculator-body">
-      <CalculatorBox tokenSymbol="FIAT" value={fiatVal} on:update={update} />
+      <CalculatorBox
+        tokenSymbol={$localStorageStore.preferredFiat}
+        value={fiatVal}
+        on:update={update}
+      />
       <CalculatorBox tokenSymbol="XTZ" value={xtzVal} on:update={update} />
       {#each Object.keys($store.tokens) as tokenSymbol}
         <CalculatorBox

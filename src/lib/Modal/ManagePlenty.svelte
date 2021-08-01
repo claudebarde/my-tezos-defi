@@ -1,6 +1,7 @@
 <script lang="ts">
   import Modal from "./Modal.svelte";
   import store from "../../store";
+  import toastStore from "../Toast/toastStore";
   import config from "../../config";
   import { AvailableToken } from "../../types";
   import { getPlentyReward, prepareOperation } from "../../utils";
@@ -10,6 +11,7 @@
   let openModal = false;
   let loading = false;
   let balance = 0;
+  let plentyXtzLpBalance = 0;
   let body = [];
   let token: AvailableToken;
   let decimals = 18;
@@ -21,6 +23,7 @@
   }[] = [];
   let unstakeSelect: { id: number; amount: number }[] = [];
   let rewards = "N/A";
+  let tokenForRewards: AvailableToken;
   let harvesting = false;
   let harvestingSuccess = undefined;
   let newStake = "";
@@ -33,7 +36,6 @@
     const investMapEntries = investMap.entries();
     let tempStakes = [];
     for (let stake of investMapEntries) {
-      console.log(stake, decimals);
       // calculates withdrawal fee
       const amount = stake[1].amount.toNumber();
       let withdrawalFee = 0;
@@ -72,7 +74,8 @@
           id: stake[0],
           amount: amount / 10 ** (id === "PLENTY-XTZ-LP" ? 6 : decimals),
           level: stakeLevel,
-          withdrawalFee: withdrawalFee / 10 ** decimals
+          withdrawalFee:
+            withdrawalFee / 10 ** (id === "PLENTY-XTZ-LP" ? 6 : decimals)
         }
       ];
     }
@@ -121,7 +124,7 @@
         if (!$store.tokens.hasOwnProperty(token)) throw "Unknown token";
         const tokenContract = $store.tokens[token];
         const tokenContractInstance = await $store.Tezos.wallet.at(
-          tokenContract.address[$store.network]
+          tokenContract.address
         );
         let approveCall;
         if (tokenContract.type === "fa1.2") {
@@ -227,9 +230,10 @@
     loading = true;
     body = [];
     rewards = "N/A";
+    tokenForRewards = AvailableToken.PLENTY;
 
     const inv = Object.values($store.investments).find(
-      details => details.address[$store.network] === contractAddress
+      details => details.address === contractAddress
     );
     if (inv.token) {
       decimals = $store.tokens[inv.token].decimals;
@@ -264,7 +268,7 @@
       }
       // calculates APR and APY
       const tokenPriceInUsd =
-        $store.tokensExchangeRates.PLENTY.realPriceInTez *
+        $store.tokensExchangeRates[tokenForRewards].realPriceInTez *
         $store.xtzData.exchangeRate;
       let stakeTokenPriceInUsd;
       if (inv.id === "PLENTY-XTZ-LP") {
@@ -282,6 +286,26 @@
       body = [...body, `APR: ${apr.toFixed(2)} %`];
       const apy = ((1 + apr / 100 / 365) ** 365 - 1) * 100;
       body = [...body, `APY: ${apy.toFixed(2)} %`];
+
+      // calculates balances of Plenty-XTZ LP tokens
+      if (id === "PLENTY-XTZ-LP") {
+        const qlpContract = await $store.Tezos.wallet.at(
+          $store.tokens.PLENTY.dexContractAddress
+        );
+        const qlpStorage: any = await qlpContract.storage();
+        const qlpBalance = await qlpStorage.storage.ledger.get(
+          $store.userAddress
+        );
+        if (
+          qlpBalance &&
+          qlpBalance.balance &&
+          qlpBalance.balance.toNumber() > 0
+        ) {
+          plentyXtzLpBalance = qlpBalance.balance.toNumber();
+        } else {
+          plentyXtzLpBalance = 0;
+        }
+      }
 
       loading = false;
     } else {
@@ -322,11 +346,22 @@
   <button
     class="button investments"
     on:click={async () => {
-      openModal = true;
-      await openmanageModalInput(contractAddress);
+      if (
+        window.location.href.includes("localhost") ||
+        window.location.href.includes("staging")
+      ) {
+        openModal = true;
+        await openmanageModalInput(contractAddress);
+      } else {
+        toastStore.addToast({
+          type: "info",
+          text: "Coming soon!",
+          dismissable: false
+        });
+      }
     }}
   >
-    Manage
+    <span class="material-icons"> settings </span>
   </button>
 {/if}
 {#if openModal}
@@ -340,7 +375,10 @@
       {:else}
         {#if balance && token}
           <div>Total staked: {balance} {token}</div>
-          <div>Available rewards: {rewards} PLENTY</div>
+          <div>
+            Available rewards: {rewards}
+            {id === "PLENTY-KALAM" ? "KALAM" : "PLENTY"}
+          </div>
           <br />
         {/if}
         <div class="pool-details">
@@ -354,7 +392,11 @@
             type="text"
             bind:value={newStake}
             placeholder={token
-              ? `Max: ${Math.floor($store.tokensBalances[token] * 1000) / 1000}`
+              ? `Max: ${
+                  id === "PLENTY-XTZ-LP"
+                    ? plentyXtzLpBalance / 10 ** 6
+                    : Math.floor($store.tokensBalances[token] * 1000) / 1000
+                }`
               : "ERROR"}
           />
           {#if staking}
@@ -381,7 +423,16 @@
           {#each stakes as stake, index (stake.id)}
             <div class="stake-row">
               <div>Stake {index + 1}</div>
-              <div>{stake.amount} {token || "--"}</div>
+              <div>
+                {stake.amount}
+                {#if token === "PLENTY" && id === "PLENTY-XTZ-LP"}
+                  QLP
+                {:else if token}
+                  {token}
+                {:else}
+                  --
+                {/if}
+              </div>
               <div>
                 Withdrawal fee: {+stake.withdrawalFee.toFixed(5) / 1}
                 {token || "--"}

@@ -1,4 +1,3 @@
-import type { State, AvailableFiat } from "./types";
 import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
 import {
   findDex,
@@ -6,22 +5,33 @@ import {
   estimateTezInToken,
   estimateTokenInTez
 } from "@quipuswap/sdk";
+import type {
+  State,
+  AvailableFiat,
+  AvailableToken,
+  TokenContract
+} from "./types";
 import config from "./config";
 
 const ctx: Worker = self as any;
 let localNetwork;
+let favoriteTokens;
+const refreshInterval = 600000;
 
-let getExchangeRatesInterval, xtzFiatExchangeRateInterval;
+let getExchangeRatesInterval,
+  favoriteTokensInterval,
+  xtzFiatExchangeRateInterval;
 let Tezos: TezosToolkit;
-let localTokens: State["tokens"];
 let localFiat: AvailableFiat;
 let xtzFiatExchangeRate = 0;
 
-const getTokensExchangeRates = async () => {
+const getTokensExchangeRates = async (
+  tokens: [AvailableToken, TokenContract][]
+) => {
   const factories = config.quipuswapFactories;
 
   const exchangeRates = await Promise.all(
-    Object.entries(localTokens).map(async localToken => {
+    tokens.map(async localToken => {
       const [tokenSymbol, tokenInfo] = localToken;
       let token;
       if (tokenInfo.type === "fa2") {
@@ -31,17 +41,17 @@ const getTokensExchangeRates = async () => {
           !isNaN(+tokenInfo.ledgerKey[1])
         ) {
           token = {
-            contract: tokenInfo.address[localNetwork],
+            contract: tokenInfo.address,
             id: tokenInfo.ledgerKey[1]
           };
         } else {
           token = {
-            contract: tokenInfo.address[localNetwork],
+            contract: tokenInfo.address,
             id: 0
           };
         }
       } else {
-        token = { contract: tokenInfo.address[localNetwork] };
+        token = { contract: tokenInfo.address };
       }
 
       try {
@@ -78,6 +88,7 @@ const getTokensExchangeRates = async () => {
             await dex.contract.storage(),
             1_000_000
           );
+
           /*console.log(
             tokenSymbol,
             inTokenValue.toNumber(),
@@ -145,24 +156,28 @@ const fetchXtzFiatExchangeRate = async () => {
 };
 
 const init = async (param: {
-  tokens: State["tokens"];
+  tokens: [AvailableToken, TokenContract][];
   rpcUrl: string;
   network: State["network"];
   fiat: AvailableFiat;
 }) => {
-  const { tokens, rpcUrl, network, fiat } = param;
-  localTokens = tokens;
+  const { rpcUrl, network, fiat, tokens } = param;
   localNetwork = network;
   localFiat = fiat;
+  favoriteTokens = tokens;
   Tezos = new TezosToolkit(rpcUrl);
   Tezos.setPackerProvider(new MichelCodecPacker());
-
-  // sets up fetching tokens exchange rates
-  await getTokensExchangeRates();
-  getExchangeRatesInterval = setInterval(getTokensExchangeRates, 60000);
   // sets up fetching XTZ-FIAT exchange rate
   await fetchXtzFiatExchangeRate();
-  xtzFiatExchangeRateInterval = setInterval(fetchXtzFiatExchangeRate, 60000);
+  xtzFiatExchangeRateInterval = setInterval(
+    fetchXtzFiatExchangeRate,
+    refreshInterval
+  );
+  if (!tokens || tokens.length === 0) {
+    ctx.postMessage({ type: "no-tokens" });
+  } else {
+    await getTokensExchangeRates(favoriteTokens);
+  }
 };
 
 ctx.addEventListener("message", async e => {
@@ -176,10 +191,27 @@ ctx.addEventListener("message", async e => {
     localFiat = e.data.payload;
     // resets the interval
     await fetchXtzFiatExchangeRate();
-    xtzFiatExchangeRateInterval = setInterval(fetchXtzFiatExchangeRate, 60000);
+    xtzFiatExchangeRateInterval = setInterval(
+      fetchXtzFiatExchangeRate,
+      refreshInterval
+    );
+  } else if (e.data.type === "fetch-tokens-exchange-rates") {
+    await getTokensExchangeRates(e.data.payload);
+    getExchangeRatesInterval = setInterval(
+      () => getTokensExchangeRates(e.data.payload),
+      refreshInterval
+    );
+  } else if (e.data.type === "add-favorite") {
+    const tokenSymbol = e.data.payload;
+    if (!favoriteTokens.includes(tokenSymbol)) {
+      favoriteTokens = [...favoriteTokens, tokenSymbol];
+    }
+  } else if (e.data.type === "remove-favorite") {
+    favoriteTokens = [...favoriteTokens.filter(tk => tk !== e.data.payload)];
   } else if (e.data.type === "destroy") {
     clearInterval(getExchangeRatesInterval);
     clearInterval(xtzFiatExchangeRateInterval);
+    clearInterval(favoriteTokensInterval);
   }
 });
 

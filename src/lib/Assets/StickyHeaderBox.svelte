@@ -3,8 +3,10 @@
   import historicDataStore from "../../historicDataStore";
   import { calculateTrend } from "../../utils";
   import type { AvailableToken } from "../../types";
+  import store from "../../store";
+  import localStorageStore from "../../localStorage";
 
-  export let tokenSymbol, tokenBalance, balanceInUsd;
+  export let tokenSymbol, tokenBalance;
 
   let nrOfTrends = 0;
   let trend: "up" | "down" | "same" | undefined = undefined;
@@ -68,10 +70,11 @@
     {tokenSymbol}
   </div>
   <div>
-    {#if !balanceInUsd}
-      N/A
-    {:else}
-      {balanceInUsd.toFixed(2) / 1} USD
-    {/if}
+    {+(
+      $store.tokensBalances[tokenSymbol] *
+      $store.tokensExchangeRates[tokenSymbol].tokenToTez *
+      $store.xtzData.exchangeRate
+    ).toFixed(2) / 1}
+    {$localStorageStore.preferredFiat}
   </div>
 </div>

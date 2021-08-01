@@ -1,62 +1,63 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
+  import { onMount, afterUpdate, onDestroy } from "svelte";
   import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
   import Router from "svelte-spa-router";
   import routes from "./Routes/routes";
   import store from "./store";
   import historicDataStore from "./historicDataStore";
-  import Main from "./Routes/Main.svelte";
   import Header from "./lib/Header/Header.svelte";
   import Footer from "./lib/Footer/Footer.svelte";
-  import QuipuWorker from "worker-loader!./quipuswap.worker";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
-  import type { Operation } from "./types";
+  import type { Operation, State } from "./types";
+  import { AvailableToken } from "./types";
   import { createNewOpEntry } from "./utils";
-  import workersStore from "./workersStore";
+  import localStorageStore from "./localStorage";
+  import Toast from "./lib/Toast/Toast.svelte";
+  import toastStore from "./lib/Toast/toastStore";
 
   let appReady = false;
-  let quipuWorker, liveTrafficWorker;
-
-  const handleQuipuWorker = (msg: MessageEvent) => {
-    if (msg.data.type === "exchange-rates") {
-      const exchangeRates = msg.data.payload;
-      //console.log(exchangeRates);
-      const updatedTokensExchangeRates = { ...$store.tokensExchangeRates };
-      exchangeRates.forEach(rate => {
-        if (rate) {
-          const data = {
-            tezToToken: rate.tezToToken,
-            tokenToTez: rate.tokenToTez,
-            realPriceInTez: rate.realPriceInTez,
-            realPriceInToken: rate.realPriceInToken
-          };
-          updatedTokensExchangeRates[rate.tokenSymbol] = data;
-          // updates historic data
-          historicDataStore.updateToken(rate.tokenSymbol, data);
-        }
-      });
-      store.updateTokensExchangeRates(updatedTokensExchangeRates);
-
-      if ($store.firstLoading) store.updateFirstLoading(false);
-    } else if (msg.data.type === "xtz-fiat-exchange-rate") {
-      const { xtzFiatExchangeRate, historicExchangeRates } = msg.data.payload;
-      store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
-      store.updateXtzDataHistoric(historicExchangeRates);
-    }
-  };
+  let liveTrafficWorker;
+  let lastAppVisibility = 0;
+  let coinGeckoInterval, tokensDataInterval;
 
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic") {
       const ops: Operation[] = [];
+      /*const testOp = {
+        id: "test",
+        hash: "123456",
+        level: 12355,
+        timestamp: new Date().toISOString(),
+        parameter: {
+          entrypoint: "transfer",
+          value: {
+            from: "tz1Q9ZuET5i4Yuitu35m1WX5GA27ZpR5siFk",
+            to: "tz1Me1MGhK7taay748h4gPnX2cXvbgL6xsYL",
+            value: "2516000000000000000"
+          }
+        },
+        sender: {
+          address: "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE",
+          alias: "PLENTY staking"
+        },
+        target: {
+          address: "KT1GRSvLoikDsXujKgZPsGLX8k8VvR2Tq95b",
+          alias: "PLENTY"
+        },
+        amount: 0,
+        status: "applied"
+      };
+      msg.data.msg.push(testOp);*/
       msg.data.msg.forEach(op => {
+        if (!$store.tokens) return;
         //console.log("Operation:", op);
         const newOp: Operation = createNewOpEntry(op, $store.tokens);
-
         ops.push(newOp);
 
         if (
+          op.status === "applied" &&
           Object.values($store.tokens)
-            .map(tk => tk.address[$store.network])
+            .map(tk => tk.address)
             .includes(op.target.address) &&
           op?.parameter?.entrypoint === "transfer"
         ) {
@@ -64,7 +65,7 @@
           //console.log("Transfer operation:", op);
           let updatedTokensBalances = { ...$store.tokensBalances };
           let token = Object.entries($store.tokens).find(
-            tk => tk[1].address[$store.network] === op.target.address
+            tk => tk[1].address === op.target.address
           );
           if (!token) return;
 
@@ -106,66 +107,56 @@
             }
           }
           // updates balance
-          updatedTokensBalances[token[0]] = userBalance;
+          updatedTokensBalances[token[0]] = userBalance < 0 ? 0 : userBalance;
           // updates balances
           store.updateTokensBalances(updatedTokensBalances);
         } else if (
-          op.sender.address === $store.userAddress ||
-          op.target.address === $store.userAddress
+          op.status === "applied" &&
+          Object.values($store.investments)
+            .map(inv => inv.address)
+            .includes(op.target.address)
         ) {
-          //console.log("User operation:", op);
-          // Plenty GetReward
-          // Plenty stake/unstake
-          /*if (
-            op.sender.address === $store.userAddress &&
-            Object.keys($store.investments)
-              .filter(inv => inv.split("-")[0].toLowerCase() === "plenty")
-              .map(inv => $store.investments[inv].address[$store.network])
-              .includes(op.target.address)
-          ) {
-            if (op.parameter.entrypoint === "GetReward") {
-              // user got his reward from a PLENTY farm/pool
-              if (!balanceUpdateRequests.includes(AvailableToken.PLENTY)) {
-                balanceUpdateRequests.push(AvailableToken.PLENTY);
-              }
-            } else if (
-              op.parameter.entrypoint === "stake" ||
-              op.parameter.entrypoint === "unstake"
+          // one of the followed investments contracts
+          const investment = Object.entries($store.investments).find(
+            inv => inv[1].address === op.target.address
+          );
+          // PLENTY contracts
+          if (investment[1].platform === "plenty") {
+            if (
+              op?.parameter?.entrypoint === "stake" &&
+              op.sender.address === $store.userAddress
             ) {
-              // user staked or unstaked his tokens
-              const investment = Object.values($store.investments).find(
-                inv => inv.address[$store.network] === op.target.address
-              );
-              if (!balanceUpdateRequests.includes(investment.token)) {
-                balanceUpdateRequests.push(investment.token);
-              }
+              console.log("Plenty stake");
+            } else if (
+              op?.parameter?.entrypoint === "unstake" &&
+              op.sender.address === $store.userAddress
+            ) {
+              console.log("Plenty unstake");
             }
-          } else if (
-            op.sender.address === $store.userAddress &&
-            Object.keys($store.tokens).includes(op.target.alias) &&
-            op.parameter.entrypoint === "transfer"
-          ) {
-            // user interacts with token contract
-            if (!balanceUpdateRequests.includes(op.target.alias)) {
-              balanceUpdateRequests.push(op.target.alias);
+          }
+          // PAUL contracts
+          if (investment[1].platform === "paul") {
+            if (
+              op?.parameter?.entrypoint === "join" &&
+              op.sender.address === $store.userAddress
+            ) {
+              console.log("Paul stake");
+            } else if (
+              op?.parameter?.entrypoint === "quit" &&
+              op.sender.address === $store.userAddress
+            ) {
+              console.log("Paul unstake");
             }
-          } else if (
-            op.sender.address === $store.userAddress &&
-            Object.keys($store.investments)
-              .filter(inv => inv.split("-")[0].toLowerCase() === "quipuswap")
-              .map(inv => $store.investments[inv].address[$store.network])
-              .includes(op.target.address)
-          ) {
-            // user interacts with Quipuswap pool
-            console.log("Quipuswap interaction:", op);
-          }*/
+          }
         }
       });
       store.updateLastOperations(ops);
 
-      const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-      if (balance) {
-        store.updateTezBalance(balance.toNumber());
+      if ($store.userAddress) {
+        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+        if (balance) {
+          store.updateTezBalance(balance.toNumber());
+        }
       }
     } else if (msg.data.type === "init-last-ops") {
       // loads transactions from the last 5 blocks
@@ -177,9 +168,11 @@
       });
       store.updateLastOperations(ops);
 
-      const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-      if (balance) {
-        store.updateTezBalance(balance.toNumber());
+      if ($store.userAddress) {
+        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+        if (balance) {
+          store.updateTezBalance(balance.toNumber());
+        }
       }
     }
   };
@@ -189,37 +182,223 @@
     Tezos.setPackerProvider(new MichelCodecPacker());
     store.updateTezos(Tezos);
 
-    // inits Quipuswap worker
-    quipuWorker = new QuipuWorker();
-    quipuWorker.postMessage({
-      type: "init",
-      payload: {
-        tokens: $store.tokens,
-        rpcUrl: $store.settings[$store.network].rpcUrl,
-        network: $store.network,
-        fiat: $store.xtzData.toFiat
+    // fetches data from the IPFS
+    const defiDataResponse = await fetch(
+      `https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
+    );
+    if (defiDataResponse) {
+      const defiData: {
+        tokens: Omit<State["tokens"], "favorite">;
+        investments: any;
+      } = await defiDataResponse.json();
+      if (defiData.tokens) {
+        // updates store
+        let tokens = [];
+        Object.entries(defiData.tokens).map(([tokenSymbol, token]) => {
+          tokens.push([
+            tokenSymbol,
+            {
+              ...token,
+              favorite:
+                $localStorageStore &&
+                $localStorageStore.favoriteTokens &&
+                $localStorageStore.favoriteTokens.includes(tokenSymbol)
+            }
+          ]);
+        });
+        store.updateTokens(tokens);
+        // exchange rates
+        let exchangeRatesDefault = {};
+        Object.keys(defiData.tokens).forEach(
+          tk => (exchangeRatesDefault[tk] = undefined)
+        );
+        store.updateTokensExchangeRates(
+          exchangeRatesDefault as State["tokensExchangeRates"]
+        );
+        // available investments
+        store.updateInvestments(defiData.investments);
+        // init historical data store
+        historicDataStore.initTokens(
+          Object.keys(defiData.tokens) as AvailableToken[]
+        );
       }
-    });
-    quipuWorker.onmessage = handleQuipuWorker;
-    // saves quipuWorker
-    workersStore.updateQuipuWorker(quipuWorker);
 
-    // inits live traffic worker
-    liveTrafficWorker = new LiveTrafficWorker();
-    liveTrafficWorker.onmessage = handleLiveTrafficWorker;
+      if (defiData.investments) {
+        Object.keys(defiData.investments).forEach(key => {
+          defiData.investments[key].balance = 0;
+          defiData.investments[key].favorite =
+            $localStorageStore &&
+            $localStorageStore.favoriteInvestments &&
+            $localStorageStore.favoriteInvestments.includes(key);
+        });
+        store.updateInvestments({ ...defiData.investments });
+      }
+    } else {
+      toastStore.addToast({
+        type: "error",
+        text: "Unable to fetch dapp data",
+        dismissable: false
+      });
+    }
 
+    // fetches token data from TezTools
+    const fetchTokensData = async () => {
+      const tokensDataResponse = await fetch(
+        `https://api.teztools.io/token/prices`
+      );
+      if (tokensDataResponse) {
+        const tokensData = await tokensDataResponse.json();
+        const availableTokenAddresses = Object.values($store.tokens).map(
+          tk => tk.address
+        );
+        let exchangesRates = {};
+        let availableTokenSymbols = Object.values(AvailableToken);
+        tokensData.contracts
+          .filter(tk => availableTokenAddresses.includes(tk.tokenAddress))
+          .forEach(tk => {
+            if (availableTokenSymbols.includes(tk.symbol)) {
+              const tokenToTez = +tk.currentPrice.toFixed(5) / 1;
+              const tezToToken = +(1 / tk.currentPrice).toFixed(5) / 1;
+
+              exchangesRates[tk.symbol] = {
+                tokenToTez: tokenToTez,
+                tezToToken: tezToToken,
+                realPriceInTez: tokenToTez,
+                realPriceInToken: tezToToken
+              };
+              historicDataStore.updateToken(tk.symbol, {
+                tokenToTez,
+                tezToToken
+              });
+            }
+          });
+        store.updateTokensExchangeRates(
+          exchangesRates as State["tokensExchangeRates"]
+        );
+        // saves the data into the session storage
+        if (window.sessionStorage) {
+          window.sessionStorage.setItem(
+            "tez-tools-prices",
+            JSON.stringify(tokensData)
+          );
+        }
+      } else {
+        toastStore.addToast({
+          type: "error",
+          text: "Unable to fetch tokens data",
+          dismissable: false
+        });
+      }
+    };
+
+    await fetchTokensData();
+    tokensDataInterval = setInterval(fetchTokensData, 600_000);
+
+    // updates service fee for test version
+    if (
+      window.location.href.includes("localhost") ||
+      window.location.href.includes("staging")
+    ) {
+      store.updateServiceFee(null);
+    }
+
+    // reloads some data when user comes back to the page
+    /*lastAppVisibility = Date.now();
+    document.addEventListener("visibilitychange", async () => {
+      if (
+        document.visibilityState === "visible" &&
+        Date.now() > lastAppVisibility + 3 * 60 * 1000
+      ) {
+        //console.log("app visibility:", lastAppVisibility);
+        lastAppVisibility = Date.now();
+      } else if (document.visibilityState === "visible") {
+        lastAppVisibility = Date.now();
+      }
+    });*/
     appReady = true;
   });
 
+  afterUpdate(async () => {
+    if (!liveTrafficWorker && $store.tokens && $store.investments) {
+      // inits live traffic worker
+      liveTrafficWorker = new LiveTrafficWorker();
+      liveTrafficWorker.postMessage({
+        type: "init",
+        payload: [
+          ...Object.values($store.tokens).map(tk => tk.address),
+          ...Object.values($store.investments).map(inv => inv.address)
+        ]
+      });
+      liveTrafficWorker.onmessage = handleLiveTrafficWorker;
+    }
+
+    /*if (!$localStorageStore && $store.userAddress) {
+      // inits local storage
+      localStorageStore.init($store.userAddress);
+    }*/
+
+    if (!$store.xtzData.exchangeRate && $localStorageStore) {
+      // fetches XTZ exchange rate
+      try {
+        if (!$localStorageStore.preferredFiat) {
+          throw "Unknown preferred fiat value";
+        }
+
+        const coinGeckoFetch = async () => {
+          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${$localStorageStore.preferredFiat.toLowerCase()}&days=2`;
+          const coinGeckoResponse = await fetch(url);
+          if (coinGeckoResponse) {
+            const data = await coinGeckoResponse.json();
+            const prices = data.prices;
+            const xtzFiatExchangeRate = prices[prices.length - 1][1];
+            store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
+            store.updateXtzDataHistoric(
+              prices.map(price => ({
+                timestamp: price[0],
+                rate: price[1]
+              }))
+            );
+            if ($localStorageStore && $store.userAddress) {
+              // saves the exchange rate in the local store
+              localStorageStore.updateFiat(
+                $localStorageStore.preferredFiat,
+                xtzFiatExchangeRate
+              );
+            }
+          } else {
+            throw "No response from CoinGecko API";
+          }
+        };
+
+        await coinGeckoFetch();
+        coinGeckoInterval = setInterval(coinGeckoFetch, 600_000);
+      } catch (error) {
+        console.log(error);
+        toastStore.addToast({
+          type: "error",
+          text: "Unable to fetch CoinGecko data",
+          dismissable: false
+        });
+        return;
+      }
+    }
+  });
+
   onDestroy(() => {
-    quipuWorker.postMessage({
-      type: "destroy"
-    });
+    clearInterval(coinGeckoInterval);
+    clearInterval(tokensDataInterval);
   });
 </script>
 
 <style lang="scss">
   @import "./styles/settings.scss";
+
+  :root {
+    --toastContainerTop: auto;
+    --toastContainerRight: auto;
+    --toastContainerBottom: 8rem;
+    --toastContainerLeft: calc(50vw - 8rem);
+  }
 
   #under-construction {
     position: absolute;
@@ -263,3 +442,4 @@
   {/if}
 </main>
 <Footer />
+<Toast />

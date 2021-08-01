@@ -3,7 +3,7 @@
   import Modal from "../Modal/Modal.svelte";
   import store from "../../store";
   import { AvailableFiat } from "../../types";
-  import workersStore from "../../workersStore";
+  import localStorageStore from "../../localStorage";
   import FeeDisclaimer from "../Modal/FeeDisclaimer.svelte";
   import config from "../../config";
 
@@ -14,6 +14,7 @@
   afterUpdate(() => {
     if (!openSettings) {
       newFiat = undefined;
+      newRpcNode = "";
     }
   });
 </script>
@@ -53,20 +54,41 @@
             list="currencies"
             id="currencies-datalist"
             bind:value={newFiat}
-            placeholder={$store.xtzData.toFiat}
+            placeholder={$localStorageStore.preferredFiat}
           />
           <button
             class="button mini"
-            on:click={() => {
+            on:click={async () => {
               if (
-                newFiat !== $store.xtzData.toFiat &&
+                newFiat !== $localStorageStore.preferredFiat &&
                 Object.keys(AvailableFiat).includes(newFiat)
               ) {
-                store.updateToFiat(newFiat);
-                $workersStore.quipuWorker.postMessage({
-                  type: "change-fiat",
-                  payload: newFiat
-                });
+                localStorageStore.updateFiat(newFiat, 0);
+
+                const coinGeckoResponse = await fetch(
+                  `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${newFiat}&days=2`
+                );
+                if (coinGeckoResponse) {
+                  const data = await coinGeckoResponse.json();
+                  const prices = data.prices;
+                  const xtzFiatExchangeRate = prices[prices.length - 1][1];
+                  store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
+                  store.updateXtzDataHistoric(
+                    prices.map(price => ({
+                      timestamp: price[0],
+                      rate: price[1]
+                    }))
+                  );
+                  if ($localStorageStore && $store.userAddress) {
+                    // saves the exchange rate in the local store
+                    localStorageStore.updateFiat(
+                      $localStorageStore.preferredFiat,
+                      xtzFiatExchangeRate
+                    );
+                  }
+                } else {
+                  throw "No response from CoinGecko API";
+                }
                 openSettings = false;
               } else {
                 newFiat = undefined;
@@ -81,35 +103,49 @@
             {/each}
           </datalist>
         </div>
-        <!--
         <div>Allow contribution</div>
         <FeeDisclaimer />
-        <div>Allow Push Notifications</div>
-        <div>
+        {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+          <div>Allow Push Notifications</div>
           <div>
-            Push notifications will only be sent when the app is open and when
-            you receive/send a transaction
+            <div>
+              Push notifications will only be sent when the app is open and when
+              you receive/send a transaction
+            </div>
+            <div>
+              {#if $localStorageStore.pushNotifications}
+                <button class="button mini" style="float:right">Disable</button>
+              {:else}
+                <button class="button mini" style="float:right">Allow</button>
+              {/if}
+            </div>
           </div>
+          <div>Change RPC node</div>
           <div>
-            <button class="button mini" style="float:right">Disable</button>
-            <button class="button mini" style="float:right">Allow</button>
+            <input
+              type="text"
+              list="rpc-nodes"
+              placeholder={$localStorageStore.favoriteRpcUrl}
+              bind:value={newRpcNode}
+            />
+            <button
+              class="button mini"
+              on:click={() => {
+                $store.Tezos.setRpcProvider(newRpcNode);
+                store.updateTezos($store.Tezos);
+                localStorageStore.updateFavoriteRpcUrl(newRpcNode);
+                openSettings = false;
+              }}
+            >
+              Change
+            </button>
+            <datalist id="rpc-nodes">
+              {#each $store.settings[$store.network].validRpcUrls as item}
+                <option value={item.url}>{item.name}</option>
+              {/each}
+            </datalist>
           </div>
-        </div>
-        <div>Change RPC node</div>
-        <div>
-          <input type="text" list="rpc-nodes" placeholder={newRpcNode} />
-          <button class="button mini">Change</button>
-          <datalist id="rpc-nodes">
-            <option value={$store.settings[$store.network].rpcUrl}>
-              Tezos Giganode
-            </option>
-            <option value="https://api.tez.ie/rpc/mainnet">ECAD Labs</option>
-            <option value="https://mainnet.smartpy.io/">SmartPy</option>
-            <option value="https://rpc.tzbeta.net/">Blockscale</option>
-            <option value="https://teznode.letzbake.com/">LetzBake!</option>
-          </datalist>
-        </div>
-        -->
+        {/if}
       </div>
     </div>
     <div slot="modal-footer" class="modal-footer">

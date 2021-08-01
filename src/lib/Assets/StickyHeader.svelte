@@ -1,9 +1,8 @@
 <script lang="ts">
   import { fade } from "svelte/transition";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import StickyHeaderBox from "./StickyHeaderBox.svelte";
-
-  export let balancesInUsd;
 </script>
 
 <style lang="scss">
@@ -38,12 +37,11 @@
 
 {#if Object.values($store.tokensBalances).filter(balance => !!balance).length > 0}
   <div class="sticky-header" transition:fade={{ duration: 300 }}>
-    {#each Object.entries($store.tokens) as [tokenSymbol, tokenData]}
+    {#each $localStorageStore.favoriteTokens as tokenSymbol}
       {#if $store.tokensBalances[tokenSymbol]}
         <StickyHeaderBox
           {tokenSymbol}
           tokenBalance={$store.tokensBalances[tokenSymbol]}
-          balanceInUsd={balancesInUsd[tokenSymbol]}
         />
       {/if}
     {/each}

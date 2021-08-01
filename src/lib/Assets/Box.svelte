@@ -1,20 +1,24 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from "svelte";
+  import { afterUpdate } from "svelte";
   import Chart from "chart.js/auto";
   import moment from "moment";
   import type { AvailableToken, TokenContract } from "../../types";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import historicDataStore from "../../historicDataStore";
   import Modal from "../Modal/Modal.svelte";
   import { calculateTrend } from "../../utils";
 
-  export let assetsType: "owned" | "general",
-    token: [AvailableToken | string, TokenContract] | "tez",
-    balancesInUsd;
+  export let assetsType: "favorite" | "general" | "others",
+    token: [AvailableToken | string, TokenContract] | "tez";
 
   let nrOfTrends = 0;
   let trend: "up" | "down" | "same" | undefined = undefined;
   let trendModalOpen = false;
+  let loadingExchangeRates = true;
+  let localBalance: number | undefined = undefined;
+  let newTransferIn = false;
+  let newTransferOut = false;
 
   /*const dummyChartData = {
     data: [
@@ -75,6 +79,7 @@
   afterUpdate(async () => {
     if (token !== "tez") {
       if (
+        $historicDataStore.tokens.hasOwnProperty(token[0]) &&
         $historicDataStore.tokens[token[0]].length > 2 &&
         $historicDataStore.tokens[token[0]].length !== nrOfTrends
       ) {
@@ -85,8 +90,33 @@
         trend = newTrend.trend;
         nrOfTrends = newTrend.nrOfTrends;
       }
+
+      if (localBalance === undefined) {
+        if ($store.tokensBalances[token[0]]) {
+          localBalance = $store.tokensBalances[token[0]];
+        } else {
+          localBalance = 0;
+        }
+      }
+      if (
+        localBalance !== undefined &&
+        $store.tokensBalances[token[0]] &&
+        $store.tokensBalances[token[0]] !== localBalance
+      ) {
+        if ($store.tokensBalances[token[0]] > localBalance) {
+          newTransferIn = true;
+          newTransferOut = false;
+          setTimeout(() => (newTransferIn = false), 4000);
+        } else {
+          newTransferOut = true;
+          newTransferIn = false;
+          setTimeout(() => (newTransferOut = false), 4000);
+        }
+        localBalance = $store.tokensBalances[token[0]];
+      }
     } else {
       // calculate tez trend
+      loadingExchangeRates = false;
       if (
         $store.xtzData.historic.length > 0 &&
         Date.now() - 60_000 > $store.xtzData.historic[0].timestamp
@@ -102,6 +132,10 @@
         }
       }
     }
+
+    if ($store.tokensExchangeRates && $store.tokensExchangeRates[token[0]]) {
+      loadingExchangeRates = false;
+    }
   });
 </script>
 
@@ -114,8 +148,11 @@
     padding: 10px;
     margin: 10px;
     min-width: 180px;
+    position: relative;
+    z-index: 1;
 
     .icon {
+      position: relative;
       padding: 10px;
       a {
         text-decoration: none;
@@ -123,6 +160,27 @@
         img {
           width: 50px;
           height: 50px;
+          vertical-align: middle;
+        }
+      }
+
+      .loading-rates {
+        display: none;
+      }
+
+      &.loading {
+        padding: 10px;
+        .loading-rates {
+          display: block;
+          position: absolute;
+          top: -5px;
+          left: -5px;
+          width: 100%;
+          height: 100%;
+          border: solid 5px rgba(255, 255, 255, 0.3);
+          border-top-color: rgba(255, 255, 255, 0.6);
+          border-radius: 50%;
+          animation: spin 3s linear infinite;
         }
       }
     }
@@ -168,11 +226,87 @@
         }
       }
     }
+
+    .transfer-in {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      top: -40px;
+      animation: transfer-in 3s forwards;
+      padding: 0px;
+      margin: 0px;
+      z-index: 2;
+
+      img {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    .transfer-out {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      top: 40px;
+      animation: transfer-out 3s forwards;
+      padding: 0px;
+      margin: 0px;
+      z-index: 2;
+
+      img {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes transfer-in {
+    from {
+      transform: translateY(0px);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(80px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes transfer-out {
+    from {
+      transform: translateY(0px) rotate(180deg);
+      opacity: 1;
+    }
+    to {
+      transform: translateY(-80px) rotate(180deg);
+      opacity: 0;
+    }
   }
 </style>
 
 <div class="box">
-  <div class="icon">
+  {#if newTransferIn}
+    <div class="transfer-in">
+      <img src={`images/down-arrow.svg`} alt="down-arrow" />
+    </div>
+  {/if}
+  {#if newTransferOut}
+    <div class="transfer-out">
+      <img src={`images/down-arrow.svg`} alt="down-arrow" />
+    </div>
+  {/if}
+  <div class="icon" class:loading={loadingExchangeRates}>
+    {#if loadingExchangeRates}
+      <div class="loading-rates" />
+    {/if}
     <a href={`/#/token/${token === "tez" ? "XTZ" : token[0]}`}>
       <img
         src={`images/${token === "tez" ? "XTZ" : token[0]}.png`}
@@ -180,7 +314,9 @@
       />
     </a>
   </div>
-  {#if $store.firstLoading}
+  {#if token !== "tez" && !$store.tokensExchangeRates[token[0]]}
+    <div class="info">Loading...</div>
+  {:else if token === "tez" && !$store.xtzData.exchangeRate}
     <div class="info">Loading...</div>
   {:else}
     <div class="info">
@@ -188,10 +324,10 @@
       {#if token === "tez" && $store.xtzData.exchangeRate}
         <div>
           1 XTZ = {+$store.xtzData.exchangeRate.toFixed(5) / 1}
-          {$store.xtzData.toFiat}
+          {$localStorageStore.preferredFiat}
         </div>
         <div>
-          1 {$store.xtzData.toFiat} = {+(
+          1 {$localStorageStore.preferredFiat} = {+(
             $store.xtzData.exchangeRate / 10
           ).toFixed(5) / 1} XTZ
         </div>
@@ -212,7 +348,7 @@
         <div>No data</div>
       {/if}
     </div>
-    {#if assetsType === "owned" && token !== "tez"}
+    {#if assetsType === "favorite" && token !== "tez" && $store.tokensBalances[token[0]]}
       <div class="info">
         <div>
           Balance: {+$store.tokensBalances[token[0]].toFixed(5) / 1 ||
@@ -220,16 +356,18 @@
         </div>
         {#if $store.tokensExchangeRates[token[0]]}
           <div>
-            {balancesInUsd[token[0]]
-              ? balancesInUsd[token[0]].toFixed(2) / 1
-              : ""}
-            {$store.xtzData.toFiat}
+            {+(
+              $store.tokensBalances[token[0]] *
+              $store.tokensExchangeRates[token[0]].tokenToTez *
+              $store.xtzData.exchangeRate
+            ).toFixed(2) / 1}
+            {$localStorageStore.preferredFiat}
           </div>
         {:else}
           <div>N/A</div>
         {/if}
       </div>
-    {:else if assetsType === "owned" && token === "tez"}
+    {:else if token === "tez" && $store.xtzData.balance}
       <div class="info">
         <div>
           Balance: {+($store.xtzData.balance / 10 ** 6).toFixed(5) / 1}
@@ -240,7 +378,7 @@
               ($store.xtzData.balance / 10 ** 6) *
               $store.xtzData.exchangeRate
             ).toFixed(5) / 1}
-            {$store.xtzData.toFiat}
+            {$localStorageStore.preferredFiat}
           </div>
         {:else}
           <div>N/A</div>

@@ -34,10 +34,7 @@
           if (filterOps.opType === "general" || filterOps.opType === "user") {
             return true;
           } else if (filterOps.opType === "token") {
-            return (
-              op.target.address ===
-              $store.tokens[filterOps.token].address[$store.network]
-            );
+            return op.target.address === $store.tokens[filterOps.token].address;
           }
         });
     }
