@@ -105,6 +105,7 @@
                 $store.tokens.PLENTY.decimals
               );
             }
+            // PAUL
           } else if ($store.investments[inv].platform === "paul") {
             if (inv === AvailableInvestments["PAUL-PAUL"]) {
               tempTotalInvestments +=
@@ -113,6 +114,7 @@
                 $store.tokensExchangeRates[$store.investments[inv].token]
                   .tokenToTez;
             }
+            // kDAO
           } else if ($store.investments[inv].platform === "kdao") {
             if (inv === AvailableInvestments["KUSD-KDAO"]) {
               tempTotalInvestments +=

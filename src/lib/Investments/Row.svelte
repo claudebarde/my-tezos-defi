@@ -23,6 +23,7 @@
   const harvestPaul = async () => {
     harvestingPaul = true;
     try {
+      const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
       const contract = await $store.Tezos.wallet.at(data.address);
       const batch = prepareOperation({
         contractCalls: [
@@ -45,7 +46,7 @@
         dispatch("reset-rewards", data.id);
         toastStore.addToast({
           type: "success",
-          text: `Successfully harvested ${rewards.amount} PAUL!`,
+          text: `Successfully harvested ${rewardsToHarvest} PAUL!`,
           dismissable: false
         });
         setTimeout(() => {
@@ -67,6 +68,7 @@
   const harvestPlenty = async () => {
     harvestingPlenty = true;
     try {
+      const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
       const contract = await $store.Tezos.wallet.at(data.address);
       const batch = prepareOperation({
         contractCalls: [contract.methods.GetReward([["unit"]])],
@@ -85,7 +87,7 @@
         dispatch("reset-rewards", data.id);
         toastStore.addToast({
           type: "success",
-          text: `Successfully harvested ${rewards.amount} PLENTY!`,
+          text: `Successfully harvested ${rewardsToHarvest} PLENTY!`,
           dismissable: false
         });
         setTimeout(() => {
@@ -107,6 +109,7 @@
   const harvestKdao = async () => {
     harvestingKdao = true;
     try {
+      const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
       const contract = await $store.Tezos.wallet.at(data.address);
       const batch = prepareOperation({
         contractCalls: [contract.methods.claim([["unit"]])],
@@ -125,7 +128,7 @@
         dispatch("reset-rewards", data.id);
         toastStore.addToast({
           type: "success",
-          text: `Successfully harvested ${rewards.amount} kDAO!`,
+          text: `Successfully harvested ${rewardsToHarvest} kDAO!`,
           dismissable: false
         });
         setTimeout(() => {
