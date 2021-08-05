@@ -1,6 +1,6 @@
 {
   "name": "my-tezos-defi",
-  "version": "3.0.0",
+  "version": "3.0.3",
   "homepage": "https://www.mytezosdefi.com",
   "devDependencies": {
     "@tsconfig/svelte": "^1.0.10",

@@ -32,12 +32,13 @@
     } else {
       totalRewardsInXtz = availableRewards
         .map(rw => {
+          const amount = rw.amount ? rw.amount : 0;
           if (rw.platform === "plenty") {
-            return rw.amount * $store.tokensExchangeRates.PLENTY.tokenToTez;
+            return amount * $store.tokensExchangeRates.PLENTY.tokenToTez;
           } else if (rw.platform === "paul") {
-            return rw.amount * $store.tokensExchangeRates.PAUL.tokenToTez;
+            return amount * $store.tokensExchangeRates.PAUL.tokenToTez;
           } else if (rw.platform === "kdao") {
-            return rw.amount * $store.tokensExchangeRates.kDAO.tokenToTez;
+            return amount * $store.tokensExchangeRates.kDAO.tokenToTez;
           }
         })
         .reduce((a, b) => a + b);

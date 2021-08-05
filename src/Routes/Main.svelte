@@ -229,6 +229,11 @@
       <a href="#/profile">
         <span class="material-icons"> account_circle </span>
       </a>
+      {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+        <a href="#/swaps">
+          <span class="material-icons"> swap_horiz </span>
+        </a>
+      {/if}
       <Calculator />
       <Settings />
     </div>

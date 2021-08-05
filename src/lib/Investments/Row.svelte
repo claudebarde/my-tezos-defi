@@ -403,7 +403,7 @@
     </div>
     <div>
       {#if harvestingPaul}
-        <button class="button investments">
+        <button class="button investments loading">
           <span class="material-icons"> sync </span>
         </button>
       {:else if harvestingPaulSuccess === true}
@@ -469,7 +469,7 @@
     </div>
     <div>
       {#if harvestingKdao}
-        <button class="button investments">
+        <button class="button investments loading">
           <span class="material-icons"> sync </span>
         </button>
       {:else if harvestingKdaoSuccess === true}

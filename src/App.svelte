@@ -126,7 +126,22 @@
               op?.parameter?.entrypoint === "stake" &&
               op.sender.address === $store.userAddress
             ) {
-              console.log("Plenty stake");
+              const value = +op.parameter.value;
+              const newInvestments = {
+                ...$store.investments,
+                [investment[0]]: {
+                  ...investment[1],
+                  balance: +investment[1].balance + value
+                }
+              };
+              store.updateInvestments(newInvestments);
+              toastStore.addToast({
+                type: "info",
+                text: `Staked ${
+                  +(value / investment[1].decimals).toFixed(2) / 1
+                } tokens on ${investment[1].alias}`,
+                dismissable: false
+              });
             } else if (
               op?.parameter?.entrypoint === "unstake" &&
               op.sender.address === $store.userAddress
@@ -140,12 +155,56 @@
               op?.parameter?.entrypoint === "join" &&
               op.sender.address === $store.userAddress
             ) {
-              console.log("Paul stake");
+              const value = +op.parameter.value.nat;
+              const newInvestments = {
+                ...$store.investments,
+                [investment[0]]: {
+                  ...investment[1],
+                  balance: +investment[1].balance + value
+                }
+              };
+              store.updateInvestments(newInvestments);
+              toastStore.addToast({
+                type: "info",
+                text: `Staked ${
+                  +(value / investment[1].decimals).toFixed(2) / 1
+                } tokens on ${investment[1].alias}`,
+                dismissable: false
+              });
             } else if (
               op?.parameter?.entrypoint === "quit" &&
               op.sender.address === $store.userAddress
             ) {
               console.log("Paul unstake");
+            }
+          }
+          // kDAO contracts
+          if (investment[1].platform === "kdao") {
+            if (
+              op?.parameter?.entrypoint === "deposit" &&
+              op.sender.address === $store.userAddress
+            ) {
+              const value = +op.parameter.value;
+              const newInvestments = {
+                ...$store.investments,
+                [investment[0]]: {
+                  ...investment[1],
+                  balance: +investment[1].balance + value
+                }
+              };
+              store.updateInvestments(newInvestments);
+              toastStore.addToast({
+                type: "info",
+                text: `Staked ${
+                  +(value / investment[1].decimals).toFixed(2) / 1
+                } tokens on ${investment[1].alias}`,
+                dismissable: false
+              });
+            } else if (
+              op?.parameter?.entrypoint === "withdraw" &&
+              op.sender.address === $store.userAddress
+            ) {
+              console.log("kDAO unstake");
             }
           }
         }
@@ -231,7 +290,9 @@
             $localStorageStore.favoriteInvestments &&
             $localStorageStore.favoriteInvestments.includes(key);
         });
-        store.updateInvestments({ ...defiData.investments });
+        store.updateInvestments({
+          ...defiData.investments
+        });
       }
     } else {
       toastStore.addToast({
