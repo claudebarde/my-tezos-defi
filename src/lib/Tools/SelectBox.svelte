@@ -206,7 +206,9 @@
   </button>
   {#if openOptions}
     <div class="select-box-options" transition:slide={{ duration: 300 }}>
-      {#each options.sort() as option, index}
+      {#each options.sort((a, b) => a
+          .toLowerCase()
+          .localeCompare(b.toLowerCase())) as option, index}
         {#if !sortByChars || (sortByChars && option
               .toLowerCase()
               .includes(sortByChars.toLowerCase()))}

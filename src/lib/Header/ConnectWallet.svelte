@@ -110,12 +110,25 @@
   };
 
   const fetchTezosDomain = async (address: string): Promise<string> => {
-    const contract = await $store.Tezos.wallet.at(tezosDomainContract);
-    const storage: any = await contract.storage();
-    const user = await storage.store.reverse_records.get(address);
-    if (user) {
-      return bytes2Char(user.name);
-    } else {
+    try {
+      const contract = await $store.Tezos.wallet.at(tezosDomainContract);
+      const storage: any = await contract.storage();
+      const user = await storage.store.reverse_records.get(address);
+      if (user) {
+        return bytes2Char(user.name);
+      } else {
+        return address.slice(0, 5) + "..." + address.slice(-5);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to fetch Tezos domain contract or username with error:",
+        error
+      );
+      toastStore.addToast({
+        type: "error",
+        text: "Failed to fetch Tezos domain contract or username",
+        dismissable: false
+      });
       return address.slice(0, 5) + "..." + address.slice(-5);
     }
   };
@@ -162,7 +175,7 @@
 
         // replaces default node url with user's favorite
         if ($localStorageStore.favoriteRpcUrl) {
-          $store.Tezos.setRpcProvider($localStorageStore.favoriteRpcUrl);
+          //$store.Tezos.setRpcProvider($localStorageStore.favoriteRpcUrl);
         }
       } catch (error) {
         console.error(error);

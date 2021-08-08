@@ -124,9 +124,15 @@
         <div class="row">
           <div style="grid-column:1 / span 4;margin:10px 0px;">
             Block level: {op.level}
-            <span style="font-size:0.8rem"
-              >({moment(op.timestamp).fromNow()})</span
-            >
+            <span style="font-size:0.8rem">
+              <!--({moment(op.timestamp).fromNow()})-->
+              {#if +moment(op.timestamp) + 120_000 > Date.now()}
+                ({moment(Date.now()).diff(moment(op.timestamp), "seconds")} seconds
+                ago)
+              {:else}
+                ({moment(op.timestamp).fromNow()})
+              {/if}
+            </span>
           </div>
         </div>
       {/if}

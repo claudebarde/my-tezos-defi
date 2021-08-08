@@ -20,7 +20,6 @@
   let kolibriOvens: KolibriOvenData[] = [];
   let kolibriOvensChecked = false;
   let plentyValueInXtz = true;
-  let readyRewards = {};
   let showEmptyPlentyPools = false;
   let harvestingAll = false;
   let harvestingAllSuccess = undefined;
@@ -39,8 +38,24 @@
   const harvestAll = async () => {
     harvestingAll = true;
     // gets the addresses of pools with rewards to harvest
-    let allRewards = [];
-    if (showEmptyPlentyPools) {
+    let allRewards = (
+      await Promise.all(
+        Object.values($store.investments)
+          .filter(inv => inv.platform === "plenty")
+          .map(inv =>
+            (async () => ({
+              address: inv.address,
+              rewards: await getPlentyReward(
+                $store.userAddress,
+                inv.address,
+                $store.lastOperations[0].level,
+                inv.decimals
+              )
+            }))()
+          )
+      )
+    ).filter(res => res.rewards.status && res.rewards.totalRewards > 0);
+    /*if (showEmptyPlentyPools) {
       allRewards = (
         await Promise.all(
           Object.values($store.investments)
@@ -63,7 +78,7 @@
         address: item[0],
         rewards: { totalRewards: item[1] }
       }));
-    }
+    }*/
     const contractCalls = await Promise.all(
       allRewards.map(async res => {
         const contract = await $store.Tezos.wallet.at(res.address);
@@ -92,7 +107,6 @@
         throw `Operation failed: ${receipt}`;
       } else {
         harvestingAllSuccess = true;
-        readyRewards = {};
         setTimeout(() => {
           harvestingAllSuccess = undefined;
         }, 2000);
@@ -384,7 +398,9 @@
                     {/if}
                   </button>
                 </div>
-                {#if Object.keys(readyRewards).length === 0}
+                {#if Object.entries($store.investments)
+                  .filter(inv => inv[1].platform === "plenty")
+                  .filter(inv => inv[1].balance && inv[1].balance > 0).length === 0}
                   <div />
                 {:else}
                   <div>

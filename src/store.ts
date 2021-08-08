@@ -23,7 +23,7 @@ const settings: State["settings"] = {
       { name: "Blockscale", url: "https://rpc.tzbeta.net/" },
       { name: "LetzBake!", url: "https://teznode.letzbake.com/" }
     ],
-    rpcUrl: "https://mainnet-tezos.giganode.io" // "https://api.tez.ie/rpc/mainnet"
+    rpcUrl: "https://api.tez.ie/rpc/mainnet" // "https://mainnet-tezos.giganode.io"
   }
 };
 
@@ -45,7 +45,7 @@ const initialState: State = {
   },
   serviceFee: process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "QmZVWFNh5F7S2XGD48b7pJw9pV4KBfdUoSCyybdwa48pJm"
+  defiData: "Qmc3Furj5s62uzeCKHH3KXfWqgYETsyoe7PxXwf4ohY4DP"
 };
 
 const store = writable(initialState);

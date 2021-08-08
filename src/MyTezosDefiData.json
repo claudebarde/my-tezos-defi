@@ -382,7 +382,7 @@
       "id": "WRAP-PLENTY",
       "platform": "plenty",
       "address": "KT1GotpjdBaxt2GiMFcQExLEk9GTfYo4UoTa",
-      "decimals": 18,
+      "decimals": 8,
       "info": [],
       "alias": "Plenty WRAP pond",
       "icons": ["WRAP", "PLENTY"],
