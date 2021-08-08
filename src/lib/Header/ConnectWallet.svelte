@@ -175,7 +175,7 @@
 
         // replaces default node url with user's favorite
         if ($localStorageStore.favoriteRpcUrl) {
-          //$store.Tezos.setRpcProvider($localStorageStore.favoriteRpcUrl);
+          $store.Tezos.setRpcProvider($localStorageStore.favoriteRpcUrl);
         }
       } catch (error) {
         console.error(error);
