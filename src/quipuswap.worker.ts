@@ -30,7 +30,7 @@ const getTokensExchangeRates = async (
 ) => {
   const factories = config.quipuswapFactories;
 
-  const exchangeRates = await Promise.all(
+  const exchangeRates: any = await Promise.allSettled(
     tokens.map(async localToken => {
       const [tokenSymbol, tokenInfo] = localToken;
       let token;
@@ -121,7 +121,12 @@ const getTokensExchangeRates = async (
     })
   );
 
-  ctx.postMessage({ type: "exchange-rates", payload: exchangeRates });
+  ctx.postMessage({
+    type: "exchange-rates",
+    payload: exchangeRates
+      .filter(res => res.status === "fulfilled")
+      .map(res => res.value)
+  });
 };
 
 const fetchXtzFiatExchangeRate = async () => {

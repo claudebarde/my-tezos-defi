@@ -378,6 +378,16 @@
       "icons": ["PLENTY", "WRAP"],
       "token": "WRAP"
     },
+    "WRAP-PLENTY": {
+      "id": "WRAP-PLENTY",
+      "platform": "plenty",
+      "address": "KT1GotpjdBaxt2GiMFcQExLEk9GTfYo4UoTa",
+      "decimals": 8,
+      "info": [],
+      "alias": "Plenty WRAP pond",
+      "icons": ["WRAP", "PLENTY"],
+      "token": "PLENTY"
+    },
     "CRUNCHY-FARMS": {
       "id": "CRUNCHY-FARMS",
       "platform": "crunchy",

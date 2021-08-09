@@ -108,6 +108,7 @@
 
   .container-chart {
     padding: 10px;
+    width: 100%;
 
     canvas {
       background-color: white;

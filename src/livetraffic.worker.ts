@@ -1,7 +1,4 @@
 import { HubConnectionBuilder } from "@microsoft/signalr";
-import { get } from "svelte/store";
-import store from "./store";
-import type { State } from "./types";
 
 const ctx: Worker = self as any;
 let contractsToWatch: string[] = [];
@@ -11,24 +8,10 @@ const connection = new HubConnectionBuilder()
   .build();
 
 async function init() {
-  /*const localStore = get(store);
-  if (tokens) {
-    addresses = [
-      ...addresses,
-      ...Object.values(tokens).map(token => token.address)
-    ];
-  }
-  console.log(localStore.investments);
-  if (localStore.investments) {
-    addresses = [
-      ...addresses,
-      ...Object.values(localStore.investments).map(entry => entry.address)
-    ];
-  }*/
   // open connection
   await connection.start();
   // subscribe to account transactions
-  await Promise.all(
+  await Promise.allSettled(
     contractsToWatch.map(address =>
       connection.invoke("SubscribeToOperations", {
         address: address,

@@ -124,9 +124,16 @@
         <div class="row">
           <div style="grid-column:1 / span 4;margin:10px 0px;">
             Block level: {op.level}
-            <span style="font-size:0.8rem"
-              >({moment(op.timestamp).fromNow()})</span
-            >
+            <span style="font-size:0.8rem">
+              {#if index !== 0}
+                ({moment(lastOpsFiltered[index - 1].timestamp).diff(
+                  moment(op.timestamp),
+                  "seconds"
+                )} seconds block time)
+              {:else}
+                (Just now)
+              {/if}
+            </span>
           </div>
         </div>
       {/if}

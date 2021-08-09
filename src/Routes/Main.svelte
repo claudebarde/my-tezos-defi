@@ -8,6 +8,7 @@
   import Charts from "../lib/Charts/Charts.svelte";
   import Settings from "../lib/Tools/Settings.svelte";
   import Calculator from "../lib/Tools/Calculator.svelte";
+  import LiquidityBaking from "../lib/LiquidityBaking/LiquidityBaking.svelte";
   import { AvailableInvestments } from "../types";
   import { calcTotalShareValueInTez } from "../utils";
 
@@ -19,14 +20,16 @@
   onMount(async () => {
     // gets balance for wXTZ vaults
     if ($localStorageStore.wXtzVaults.length > 0) {
-      const lockedXtz = await Promise.all(
-        $localStorageStore.wXtzVaults.map(vault =>
-          $store.Tezos.tz.getBalance(vault)
-        )
-      );
+      const lockedXtz = (
+        (await Promise.allSettled(
+          $localStorageStore.wXtzVaults.map(vault =>
+            $store.Tezos.tz.getBalance(vault)
+          )
+        )) as any
+      ).filter(res => res.status === "fulfilled");
       if (lockedXtz.length > 0) {
         lockedXtz.forEach((xtz: any) => {
-          wXtzLockedXtz += xtz.toNumber();
+          wXtzLockedXtz += xtz.value.toNumber();
         });
       }
     }
@@ -229,6 +232,11 @@
       <a href="#/profile">
         <span class="material-icons"> account_circle </span>
       </a>
+      {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+        <a href="#/swaps">
+          <span class="material-icons"> swap_horiz </span>
+        </a>
+      {/if}
       <Calculator />
       <Settings />
     </div>
@@ -279,6 +287,9 @@
   <br />
   <br />
 {/if}
+<LiquidityBaking />
+<br />
+<br />
 <LastOperations
   lastOps={$store.lastOperations}
   filterOps={{ opType: "general" }}

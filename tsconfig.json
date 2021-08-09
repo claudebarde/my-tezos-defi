@@ -3,6 +3,6 @@
   "include": ["src/**/*", "src/node_modules/**/*"],
   "exclude": ["node_modules/*", "__sapper__/*", "static/*"],
   "compilerOptions": {
-    "target": "es2019"
+    "target": "es2020"
   }
 }

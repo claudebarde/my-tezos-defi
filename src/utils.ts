@@ -4,6 +4,12 @@ import type {
   Wallet,
   WalletOperationBatch
 } from "@taquito/taquito";
+import {
+  Parser,
+  packData,
+  packDataBytes,
+  unpackDataBytes
+} from "@taquito/michel-codec";
 import BigNumber from "bignumber.js";
 import { findDex, estimateTezInShares } from "@quipuswap/sdk";
 import type {
@@ -19,7 +25,7 @@ import type {
   AvailableInvestments
 } from "./types";
 import { AvailableToken } from "./types";
-import { char2Bytes } from "@taquito/utils";
+import { char2Bytes, bytes2Char } from "@taquito/utils";
 import config from "./config";
 import { get } from "svelte/store";
 import store from "./store";
@@ -116,6 +122,49 @@ export const calculateTrend = (
 export const shortenHash = (hash: string): string =>
   hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
 
+const findTzbtcBalance = async (
+  ledger,
+  userAddress,
+  decimals
+): Promise<number> => {
+  const packedAddress = packDataBytes(
+    { string: userAddress },
+    { prim: "address" }
+  );
+  const ledgerKey: any = {
+    prim: "Pair",
+    args: [
+      { string: "ledger" },
+      { bytes: packedAddress.bytes.slice(12) }
+      //{ bytes: "000015ef21933d3b7a787b833bb94527fdfbd9ad5a56" }
+    ]
+  };
+  const ledgerKeyBytes = packDataBytes(ledgerKey);
+  /*console.log(
+    "05070701000000066c65646765720a00000016000015ef21933d3b7a787b833bb94527fdfbd9ad5a56" ===
+      ledgerKeyBytes.bytes
+  );*/
+  const bigmapVal = await ledger.get(ledgerKeyBytes.bytes);
+  /*console.log({
+    packedAddress: packedAddress.bytes,
+    ledgerKeyBytes: ledgerKeyBytes.bytes,
+    bigmapVal
+  });*/
+  if (bigmapVal) {
+    const bigmapValData = unpackDataBytes({ bytes: bigmapVal });
+    if (
+      bigmapValData.hasOwnProperty("prim") &&
+      (bigmapValData as any).prim === "Pair"
+    ) {
+      return +(bigmapValData as any).args[0].int / 10 ** decimals;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+};
+
 export const searchUserTokens = async ({
   Tezos,
   network,
@@ -132,7 +181,7 @@ export const searchUserTokens = async ({
   try {
     if (!tokens) return null;
     // search for user address in tokens ledgers
-    const balances = await Promise.all(
+    const balances = await Promise.allSettled(
       tokens.map(async (tokenInfo, i) => {
         const [tokenSymbol, token] = tokenInfo;
         const contract = await Tezos.wallet.at(token.address);
@@ -173,9 +222,7 @@ export const searchUserTokens = async ({
           Array.isArray(token.ledgerKey) &&
           token.ledgerKey[1] === "address"
         ) {
-          balance = await ledger.get(
-            char2Bytes(`{ Pair "ledger" "${userAddress}" }`)
-          );
+          balance = await findTzbtcBalance(ledger, userAddress, token.decimals);
         } else {
           balance = undefined;
         }
@@ -185,9 +232,12 @@ export const searchUserTokens = async ({
     );
     // updates token balances
     const newBalances = { ...tokensBalances };
-    balances.forEach(param => {
-      newBalances[param[0]] = param[1];
-    });
+    balances
+      .filter(res => res.status === "fulfilled")
+      .map((res: PromiseFulfilledResult<any>) => res.value)
+      .forEach(param => {
+        newBalances[param[0]] = param[1];
+      });
 
     return newBalances;
   } catch (error) {
@@ -559,7 +609,7 @@ export const getKolibriOvens = async (
     if (response) {
       const data = await response.json();
       const { ovenData } = data;
-      return await Promise.all(
+      const ovens: any = await Promise.allSettled(
         ovenData
           .filter(d => d.ovenOwner === userAddress)
           .map(async d => {
@@ -575,6 +625,10 @@ export const getKolibriOvens = async (
             };
           })
       );
+
+      return ovens
+        .filter(res => res.status === "fulfilled")
+        .map(res => res.value);
     }
   } catch (error) {
     console.log(error);

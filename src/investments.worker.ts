@@ -22,7 +22,7 @@ const loadInvestments = async (param: {
   userAddress = param.userAddress;
   Tezos = new TezosToolkit(rpcUrl);
   Tezos.setPackerProvider(new MichelCodecPacker());
-  const results = await Promise.all(
+  const results = await Promise.allSettled(
     Object.entries(localStore.investments).map(async ([name, details]) => {
       const contract = await Tezos.wallet.at(
         details.address[localStore.network]
