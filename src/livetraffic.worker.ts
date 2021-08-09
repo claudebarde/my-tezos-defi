@@ -11,7 +11,7 @@ async function init() {
   // open connection
   await connection.start();
   // subscribe to account transactions
-  await Promise.all(
+  await Promise.allSettled(
     contractsToWatch.map(address =>
       connection.invoke("SubscribeToOperations", {
         address: address,

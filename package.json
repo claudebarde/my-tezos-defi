@@ -41,6 +41,7 @@
     "@microsoft/signalr": "^5.0.7",
     "@quipuswap/sdk": "^2.0.3",
     "@taquito/beacon-wallet": "^9.2.0",
+    "@taquito/michel-codec": "^9.2.0",
     "@taquito/taquito": "^9.2.0",
     "@taquito/utils": "^9.2.0",
     "chart.js": "^3.3.2",

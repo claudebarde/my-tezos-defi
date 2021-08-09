@@ -21,7 +21,7 @@
   let coinGeckoInterval, tokensDataInterval;
 
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
-    if (msg.data.type === "live-traffic") {
+    if (msg.data.type === "live-traffic" && msg.data.msg) {
       const ops: Operation[] = [];
       /*const testOp = {
         id: "test",

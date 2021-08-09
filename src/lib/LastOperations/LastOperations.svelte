@@ -125,12 +125,13 @@
           <div style="grid-column:1 / span 4;margin:10px 0px;">
             Block level: {op.level}
             <span style="font-size:0.8rem">
-              <!--({moment(op.timestamp).fromNow()})-->
-              {#if +moment(op.timestamp) + 120_000 > Date.now()}
-                ({moment(Date.now()).diff(moment(op.timestamp), "seconds")} seconds
-                ago)
+              {#if index !== 0}
+                ({moment(lastOpsFiltered[index - 1].timestamp).diff(
+                  moment(op.timestamp),
+                  "seconds"
+                )} seconds block time)
               {:else}
-                ({moment(op.timestamp).fromNow()})
+                (Just now)
               {/if}
             </span>
           </div>
