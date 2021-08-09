@@ -122,6 +122,49 @@ export const calculateTrend = (
 export const shortenHash = (hash: string): string =>
   hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
 
+const findTzbtcBalance = async (
+  ledger,
+  userAddress,
+  decimals
+): Promise<number> => {
+  const packedAddress = packDataBytes(
+    { string: userAddress },
+    { prim: "address" }
+  );
+  const ledgerKey: any = {
+    prim: "Pair",
+    args: [
+      { string: "ledger" },
+      { bytes: packedAddress.bytes.slice(12) }
+      //{ bytes: "000015ef21933d3b7a787b833bb94527fdfbd9ad5a56" }
+    ]
+  };
+  const ledgerKeyBytes = packDataBytes(ledgerKey);
+  /*console.log(
+    "05070701000000066c65646765720a00000016000015ef21933d3b7a787b833bb94527fdfbd9ad5a56" ===
+      ledgerKeyBytes.bytes
+  );*/
+  const bigmapVal = await ledger.get(ledgerKeyBytes.bytes);
+  /*console.log({
+    packedAddress: packedAddress.bytes,
+    ledgerKeyBytes: ledgerKeyBytes.bytes,
+    bigmapVal
+  });*/
+  if (bigmapVal) {
+    const bigmapValData = unpackDataBytes({ bytes: bigmapVal });
+    if (
+      bigmapValData.hasOwnProperty("prim") &&
+      (bigmapValData as any).prim === "Pair"
+    ) {
+      return +(bigmapValData as any).args[0].int / 10 ** decimals;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+};
+
 export const searchUserTokens = async ({
   Tezos,
   network,
@@ -179,43 +222,7 @@ export const searchUserTokens = async ({
           Array.isArray(token.ledgerKey) &&
           token.ledgerKey[1] === "address"
         ) {
-          /*balance = await ledger.get(
-            char2Bytes(`{ Pair "ledger" "${userAddress}" }`)
-          );*/
-          const packedAddress = packDataBytes(
-            { string: userAddress },
-            { prim: "address" }
-          );
-          const ledgerKey: any = {
-            prim: "Pair",
-            args: [
-              { string: "ledger" },
-              { bytes: packedAddress.bytes.slice(12) }
-              //{ bytes: "000015ef21933d3b7a787b833bb94527fdfbd9ad5a56" }
-            ]
-          };
-          const ledgerKeyBytes = packDataBytes(ledgerKey);
-          /*console.log(
-            "05070701000000066c65646765720a00000016000015ef21933d3b7a787b833bb94527fdfbd9ad5a56" ===
-              ledgerKeyBytes.bytes
-          );*/
-          balance = 0;
-          const bigmapVal = await ledger.get(ledgerKeyBytes.bytes);
-          /*console.log({
-            packedAddress: packedAddress.bytes,
-            ledgerKeyBytes: ledgerKeyBytes.bytes,
-            bigmapVal
-          });*/
-          if (bigmapVal) {
-            const bigmapValData = unpackDataBytes({ bytes: bigmapVal });
-            if (
-              bigmapValData.hasOwnProperty("prim") &&
-              (bigmapValData as any).prim === "Pair"
-            ) {
-              balance =
-                +(bigmapValData as any).args[0].int / 10 ** token.decimals;
-            }
-          }
+          balance = await findTzbtcBalance(ledger, userAddress, token.decimals);
         } else {
           balance = undefined;
         }
@@ -223,7 +230,6 @@ export const searchUserTokens = async ({
         return [tokenSymbol, balance];
       })
     );
-    console.log({ balances });
     // updates token balances
     const newBalances = { ...tokensBalances };
     balances
