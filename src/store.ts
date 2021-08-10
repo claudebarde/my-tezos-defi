@@ -23,7 +23,7 @@ const settings: State["settings"] = {
       { name: "Blockscale", url: "https://rpc.tzbeta.net/" },
       { name: "LetzBake!", url: "https://teznode.letzbake.com/" }
     ],
-    rpcUrl: "https://mainnet-tezos.giganode.io" // "https://api.tez.ie/rpc/mainnet"
+    rpcUrl: "https://api.tez.ie/rpc/mainnet" // "https://mainnet-tezos.giganode.io"
   }
 };
 
