@@ -2,6 +2,8 @@
   import { onMount, onDestroy } from "svelte";
   import store from "../../store";
   import Trade from "./Trade.svelte";
+  import AddLiquidity from "./AddLiquidity.svelte";
+  import RemoveLiquidity from "./RemoveLiquidity.svelte";
 
   const lbContractAddress = "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5";
   let interval;
@@ -51,6 +53,16 @@
 
       &:not(:first-child) {
         border-top: solid 4px $border-color;
+      }
+
+      .tvl-details {
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+
+        span {
+          font-size: 0.8rem;
+        }
       }
 
       img {
@@ -107,17 +119,26 @@
   <div class="container-lb">
     {#if tokenPool && xtzPool}
       <div class="row tvl">
-        <div>
-          <img src="images/tzBTC.png" alt="tzbtc" />
-          {(+(tokenPool / 10 ** 8).toFixed(5) / 1).toLocaleString("en-US")}
+        <div class="tvl-details">
+          <span>Locked tzBTC</span>
+          <div>
+            <img src="images/tzBTC.png" alt="tzbtc" />
+            {(+(tokenPool / 10 ** 8).toFixed(5) / 1).toLocaleString("en-US")}
+          </div>
         </div>
-        <div>
-          <img src="images/XTZ.png" alt="xtz" />
-          {(+(xtzPool / 10 ** 6).toFixed(5) / 1).toLocaleString("en-US")}
+        <div class="tvl-details">
+          <span>Locked XTZ</span>
+          <div>
+            <img src="images/XTZ.png" alt="xtz" />
+            {(+(xtzPool / 10 ** 6).toFixed(5) / 1).toLocaleString("en-US")}
+          </div>
         </div>
-        <div>
-          <div class="lbt-symbol">LB</div>
-          {(+(lqtTotal / 10 ** 1).toFixed(5) / 1).toLocaleString("en-US")}
+        <div class="tvl-details">
+          <span>LQT total supply</span>
+          <div>
+            <div class="lbt-symbol">LB</div>
+            {(+(lqtTotal / 10 ** 1).toFixed(5) / 1).toLocaleString("en-US")}
+          </div>
         </div>
       </div>
       <div class="row">
@@ -168,9 +189,14 @@
           {#if selectedTab === "trade"}
             <Trade {lbContractAddress} {tokenPool} {xtzPool} />
           {:else if selectedTab === "add-liquidity"}
-            <div>Add liquidity</div>
+            <AddLiquidity
+              {lbContractAddress}
+              {tokenPool}
+              {xtzPool}
+              {lqtTotal}
+            />
           {:else if selectedTab === "remove-liquidity"}
-            <div>Remove liquidity</div>
+            <RemoveLiquidity />
           {/if}
         </div>
       </div>

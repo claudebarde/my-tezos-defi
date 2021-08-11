@@ -12,7 +12,7 @@
   let tzBtcRate = 0;
   let slippage = 0.5;
   let tradeLoading = false;
-  let tradeSucessfull: false | 1 | 2 = false; // false = no data | 1 = successfull | 2 = failed
+  let tradeSuccessfull: false | 1 | 2 = false; // false = no data | 1 = successfull | 2 = failed
 
   const updateTokenAmounts = e => {
     const val = e.target.value;
@@ -25,7 +25,10 @@
 
     if (e.target.id === "input-tzbtc-amount") {
       amountInTzbtc = val;
-      amountInXTZ = (+amountInTzbtc * +tzBtcRate).toString();
+      amountInXTZ = (
+        Math.floor(+amountInTzbtc * +tzBtcRate * 10 ** 6) /
+        10 ** 6
+      ).toString();
     } else {
       amountInXTZ = val;
       amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
@@ -46,7 +49,7 @@
       }
 
       tradeLoading = true;
-      tradeSucessfull = false;
+      tradeSuccessfull = false;
 
       const lbContract = await $store.Tezos.wallet.at(lbContractAddress);
       const deadline = new Date(Date.now() + 60000).toISOString();
@@ -81,10 +84,10 @@
         await batchOp.confirmation();
 
         tradeLoading = false;
-        tradeSucessfull = 1;
+        tradeSuccessfull = 1;
         amountInTzbtc = "";
         amountInXTZ = "";
-        setTimeout(() => (tradeSucessfull = false), 2000);
+        setTimeout(() => (tradeSuccessfull = false), 2000);
       } else {
         // selling xtz for tzbtc => xtzToToken
         const formattedTzbtc = Math.floor(
@@ -100,17 +103,17 @@
         await op.confirmation();
 
         tradeLoading = false;
-        tradeSucessfull = 1;
+        tradeSuccessfull = 1;
         amountInTzbtc = "";
         amountInXTZ = "";
-        setTimeout(() => (tradeSucessfull = false), 2000);
+        setTimeout(() => (tradeSuccessfull = false), 2000);
       }
     } catch (error) {
       console.log(error);
 
       tradeLoading = false;
-      tradeSucessfull = 2;
-      setTimeout(() => (tradeSucessfull = false), 2000);
+      tradeSuccessfull = 2;
+      setTimeout(() => (tradeSuccessfull = false), 2000);
     }
   };
 
@@ -283,7 +286,7 @@
       {/if}
       <span class="material-icons"> sync </span>
     </button>
-  {:else if tradeSucessfull === 1}
+  {:else if tradeSuccessfull === 1}
     <button class="button main success" disabled>
       {#if left === "tzbtc"}
         Sell tzBTC
@@ -292,7 +295,7 @@
       {/if}
       <span class="material-icons"> thumb_up </span>
     </button>
-  {:else if tradeSucessfull === 2}
+  {:else if tradeSuccessfull === 2}
     <button class="button main error" disabled>
       {#if left === "tzbtc"}
         Sell tzBTC
@@ -305,7 +308,7 @@
     <button
       class="button main"
       style={`visibility:${
-        amountInTzbtc && amountInXTZ ? "visible" : "hidden"
+        +amountInTzbtc > 0 && +amountInXTZ > 0 ? "visible" : "hidden"
       }`}
       on:click={trade}
     >
