@@ -11,6 +11,8 @@
   let amountInTzbtc = "";
   let tzBtcRate = 0;
   let slippage = 0.5;
+  let tradeLoading = false;
+  let tradeSucessfull: false | 1 | 2 = false; // false = no data | 1 = successfull | 2 = failed
 
   const updateTokenAmounts = e => {
     const val = e.target.value;
@@ -43,17 +45,23 @@
         throw text;
       }
 
+      tradeLoading = true;
+      tradeSucessfull = false;
+
+      const lbContract = await $store.Tezos.wallet.at(lbContractAddress);
+      const deadline = new Date(Date.now() + 60000).toISOString();
+
       if (left === "tzbtc") {
         // selling tzbtc for xtz => tokenToXTZ
         const tzBtcContract = await $store.Tezos.wallet.at(
           $store.tokens.tzBTC.address
         );
-        const lbContract = await $store.Tezos.wallet.at(lbContractAddress);
         const tokensSold = Math.floor(
           +amountInTzbtc * 10 ** $store.tokens.tzBTC.decimals
         );
-        const minXtzBought =
-          +amountInXTZ * 10 ** 6 - (+amountInXTZ * 10 ** 6 * slippage) / 100;
+        const minXtzBought = Math.floor(
+          +amountInXTZ * 10 ** 6 - (+amountInXTZ * 10 ** 6 * slippage) / 100
+        );
 
         const batchOp = await $store.Tezos.wallet
           .batch()
@@ -62,20 +70,47 @@
             tzBtcContract.methods.approve(lbContractAddress, tokensSold)
           )
           .withContractCall(
-            lbContract.methods.tokenToXTZ(
+            lbContract.methods.tokenToXtz(
               $store.userAddress,
               tokensSold,
               minXtzBought,
-              Date.now() + 60000 * 3
+              deadline
             )
           )
           .send();
         await batchOp.confirmation();
+
+        tradeLoading = false;
+        tradeSucessfull = 1;
+        amountInTzbtc = "";
+        amountInXTZ = "";
+        setTimeout(() => (tradeSucessfull = false), 2000);
       } else {
         // selling xtz for tzbtc => xtzToToken
+        const formattedTzbtc = Math.floor(
+          +amountInTzbtc * 10 ** $store.tokens.tzBTC.decimals
+        );
+        const minTokensBought = Math.floor(
+          +formattedTzbtc - (+formattedTzbtc * slippage) / 100
+        );
+
+        const op = await lbContract.methods
+          .xtzToToken($store.userAddress, minTokensBought, deadline)
+          .send({ amount: +amountInXTZ * 10 ** 6, mutez: true });
+        await op.confirmation();
+
+        tradeLoading = false;
+        tradeSucessfull = 1;
+        amountInTzbtc = "";
+        amountInXTZ = "";
+        setTimeout(() => (tradeSucessfull = false), 2000);
       }
     } catch (error) {
       console.log(error);
+
+      tradeLoading = false;
+      tradeSucessfull = 2;
+      setTimeout(() => (tradeSucessfull = false), 2000);
     }
   };
 
@@ -92,6 +127,10 @@
 </script>
 
 <style lang="scss">
+  .material-icons {
+    vertical-align: bottom;
+  }
+
   .trade-inputs {
     display: flex;
     justify-content: center;
@@ -130,10 +169,13 @@
         type="text"
         value={amountInTzbtc}
         id="input-tzbtc-amount"
+        autocomplete="off"
         on:input={updateTokenAmounts}
       />
       <div class="trade-input-balance">
-        Your balance: {+$store.tokensBalances.tzBTC.toFixed(5) / 1}
+        Your balance: {$store.tokensBalances && $store.tokensBalances.tzBTC
+          ? +$store.tokensBalances.tzBTC.toFixed(5) / 1
+          : "--"}
       </div>
     </div>
     <span
@@ -147,6 +189,7 @@
       <input
         type="text"
         id="input-xtz-amount"
+        autocomplete="off"
         value={amountInXTZ}
         on:input={updateTokenAmounts}
       />
@@ -161,6 +204,7 @@
       <input
         type="text"
         id="input-xtz-amount"
+        autocomplete="off"
         value={amountInXTZ}
         on:input={updateTokenAmounts}
       />
@@ -180,10 +224,13 @@
         type="text"
         value={amountInTzbtc}
         id="input-tzbtc-amount"
+        autocomplete="off"
         on:input={updateTokenAmounts}
       />
       <div class="trade-input-balance">
-        Your balance: {+$store.tokensBalances.tzBTC.toFixed(5) / 1}
+        Your balance: {$store.tokensBalances && $store.tokensBalances.tzBTC
+          ? +$store.tokensBalances.tzBTC.toFixed(5) / 1
+          : "--"}
       </div>
     </div>
     <img src="images/tzBTC.png" alt="tzBTC-logo" />
@@ -227,14 +274,46 @@
 </div>
 <br />
 <div>
-  <button
-    class="button main"
-    style={`visibility:${amountInTzbtc && amountInXTZ ? "visible" : "hidden"}`}
-  >
-    {#if left === "tzbtc"}
-      Sell tzBTC
-    {:else}
-      Sell XTZ
-    {/if}
-  </button>
+  {#if tradeLoading}
+    <button class="button main loading" disabled>
+      {#if left === "tzbtc"}
+        Sell tzBTC
+      {:else}
+        Buy tzBTC
+      {/if}
+      <span class="material-icons"> sync </span>
+    </button>
+  {:else if tradeSucessfull === 1}
+    <button class="button main success" disabled>
+      {#if left === "tzbtc"}
+        Sell tzBTC
+      {:else}
+        Buy tzBTC
+      {/if}
+      <span class="material-icons"> thumb_up </span>
+    </button>
+  {:else if tradeSucessfull === 2}
+    <button class="button main error" disabled>
+      {#if left === "tzbtc"}
+        Sell tzBTC
+      {:else}
+        Buy tzBTC
+      {/if}
+      <span class="material-icons"> report_problem </span>
+    </button>
+  {:else}
+    <button
+      class="button main"
+      style={`visibility:${
+        amountInTzbtc && amountInXTZ ? "visible" : "hidden"
+      }`}
+      on:click={trade}
+    >
+      {#if left === "tzbtc"}
+        Sell tzBTC
+      {:else}
+        Buy tzBTC
+      {/if}
+    </button>
+  {/if}
 </div>
