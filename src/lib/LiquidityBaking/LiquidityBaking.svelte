@@ -6,13 +6,26 @@
   import RemoveLiquidity from "./RemoveLiquidity.svelte";
 
   const lbContractAddress = "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5";
+  const lqtContractAddress = "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo";
   let interval;
   let tokenPool = 0;
   let xtzPool = 0;
   let lqtTotal = 0;
   let tokenAddress = "";
   let lqtAddress = "";
+  let userLqtBalance = 0;
   let selectedTab: "trade" | "add-liquidity" | "remove-liquidity" = "trade";
+
+  const fetchUserLqtBalance = async (userAddress): Promise<number> => {
+    const contract = await $store.Tezos.wallet.at(lqtContractAddress);
+    const storage: any = await contract.storage();
+    const balance = await storage.tokens.get(userAddress);
+    if (balance) {
+      return balance.toNumber();
+    } else {
+      return 0;
+    }
+  };
 
   const fetchData = async () => {
     const contract = await $store.Tezos.wallet.at(lbContractAddress);
@@ -22,6 +35,7 @@
     lqtTotal = storage.lqtTotal;
     tokenAddress = storage.tokenAddress;
     lqtAddress = storage.lqtAddress;
+    userLqtBalance = await fetchUserLqtBalance($store.userAddress);
   };
 
   onMount(async () => {
@@ -62,6 +76,12 @@
 
         span {
           font-size: 0.8rem;
+        }
+
+        .tvl-details-info {
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
       }
 
@@ -121,25 +141,38 @@
       <div class="row tvl">
         <div class="tvl-details">
           <span>Locked tzBTC</span>
-          <div>
+          <div class="tvl-details-info">
             <img src="images/tzBTC.png" alt="tzbtc" />
+            &nbsp;
             {(+(tokenPool / 10 ** 8).toFixed(5) / 1).toLocaleString("en-US")}
           </div>
         </div>
         <div class="tvl-details">
           <span>Locked XTZ</span>
-          <div>
+          <div class="tvl-details-info">
             <img src="images/XTZ.png" alt="xtz" />
+            &nbsp;
             {(+(xtzPool / 10 ** 6).toFixed(5) / 1).toLocaleString("en-US")}
           </div>
         </div>
         <div class="tvl-details">
           <span>LQT total supply</span>
-          <div>
+          <div class="tvl-details-info">
             <div class="lbt-symbol">LB</div>
-            {(+(lqtTotal / 10 ** 1).toFixed(5) / 1).toLocaleString("en-US")}
+            &nbsp;
+            {(+lqtTotal).toLocaleString("en-US")}
           </div>
         </div>
+        {#if userLqtBalance}
+          <div class="tvl-details">
+            <span>Your LQT balance</span>
+            <div class="tvl-details-info">
+              <div class="lbt-symbol">LB</div>
+              &nbsp;
+              {userLqtBalance.toLocaleString("en-US")}
+            </div>
+          </div>
+        {/if}
       </div>
       <div class="row">
         <div class="tabs">
@@ -194,6 +227,7 @@
               {tokenPool}
               {xtzPool}
               {lqtTotal}
+              refreshData={fetchData}
             />
           {:else if selectedTab === "remove-liquidity"}
             <RemoveLiquidity />

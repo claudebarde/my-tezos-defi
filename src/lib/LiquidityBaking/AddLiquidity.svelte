@@ -1,10 +1,11 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
+  import { OpKind } from "@taquito/taquito";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import toastStore from "../Toast/toastStore";
 
-  export let lbContractAddress, tokenPool, xtzPool, lqtTotal;
+  export let lbContractAddress, tokenPool, xtzPool, lqtTotal, refreshData;
 
   let amountInXTZ = "";
   let amountInTzbtc = "";
@@ -15,7 +16,84 @@
   let addLiquiditySuccessfull: false | 1 | 2 = false; // false = no data | 1 = successfull | 2 = failed
 
   const addLiquidity = async () => {
-    console.log("addLiquidity");
+    if (isNaN(+amountInXTZ)) {
+      const text = "XTZ amount must be a number";
+      toastStore.addToast({ type: "error", text, dismissable: true });
+      throw text;
+    }
+    if (isNaN(+amountInTzbtc)) {
+      const text = "tzBTC amount must be a number";
+      toastStore.addToast({ type: "error", text, dismissable: true });
+      throw text;
+    }
+
+    addLiquidityLoading = true;
+    addLiquiditySuccessfull = false;
+
+    try {
+      const lbContract = await $store.Tezos.wallet.at(lbContractAddress);
+      const tzBtcContract = await $store.Tezos.wallet.at(
+        $store.tokens.tzBTC.address
+      );
+      const formattedTzbtc = Math.floor(
+        +amountInTzbtc * 10 ** $store.tokens.tzBTC.decimals
+      );
+      const maxTokensSold = Math.floor(
+        +formattedTzbtc + (+formattedTzbtc * slippage) / 100
+      );
+      const deadline = new Date(Date.now() + 60000).toISOString();
+      const batchOp = await $store.Tezos.wallet
+        .batch([
+          {
+            kind: OpKind.TRANSACTION,
+            ...tzBtcContract.methods
+              .approve(lbContractAddress, 0)
+              .toTransferParams()
+          },
+          {
+            kind: OpKind.TRANSACTION,
+            ...tzBtcContract.methods
+              .approve(lbContractAddress, maxTokensSold)
+              .toTransferParams()
+          },
+          {
+            kind: OpKind.TRANSACTION,
+            ...lbContract.methods
+              .addLiquidity(
+                $store.userAddress,
+                minLqtMinted - 3,
+                maxTokensSold,
+                deadline
+              )
+              .toTransferParams(),
+            amount: +amountInXTZ * 10 ** 6,
+            mutez: true
+          },
+          {
+            kind: OpKind.TRANSACTION,
+            ...tzBtcContract.methods
+              .approve(lbContractAddress, 0)
+              .toTransferParams()
+          }
+        ])
+        .send();
+      await batchOp.confirmation();
+
+      addLiquidityLoading = false;
+      addLiquiditySuccessfull = 1;
+      amountInXTZ = "";
+      amountInTzbtc = "";
+      minLqtMinted = "";
+      setTimeout(() => (addLiquiditySuccessfull = false), 2000);
+      refreshData();
+    } catch (error) {
+      console.log(error);
+      addLiquidityLoading = false;
+      addLiquiditySuccessfull = 2;
+      setTimeout(() => (addLiquiditySuccessfull = false), 2000);
+    } finally {
+      addLiquidityLoading = false;
+    }
   };
 
   const updateTokenAmounts = e => {
@@ -38,7 +116,7 @@
       amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
     }
 
-    minLqtMinted = (+amountInXTZ * 10 ** 6 * lqtTotal) / xtzPool;
+    minLqtMinted = Math.floor((+amountInXTZ * 10 ** 6 * lqtTotal) / xtzPool);
   };
 
   onMount(() => {

@@ -180,8 +180,75 @@ export const searchUserTokens = async ({
 }) => {
   try {
     if (!tokens) return null;
+
+    const newBalances = { ...tokensBalances };
+
+    const url = (contractAddress, ledgerName, userAddress) =>
+      `https://api.tzkt.io/v1/contracts/${contractAddress}/bigmaps/${ledgerName}/keys/${userAddress}`;
+    // tokens with a "balances" bigmap
+    const balancesContracts = await Promise.allSettled(
+      tokens
+        .filter(tk => tk[1].ledgerPath === "balances")
+        .map(tk =>
+          fetch(url(tk[1].address, "balances", userAddress))
+            .then(res => res.json())
+            .then(val => ({ ...val, token: tk[0] }))
+            .catch(err => undefined)
+        )
+    );
+    // tokens with a "ledger" bigmap
+    const ledgerContracts = await Promise.allSettled(
+      tokens
+        .filter(tk => tk[1].ledgerPath.includes("ledger"))
+        .map(tk =>
+          fetch(url(tk[1].address, "ledger", userAddress))
+            .then(res => res.json())
+            .then(val => ({ ...val, token: tk[0] }))
+            .catch(err => undefined)
+        )
+    );
+    // tzBTC
+    if (tokens.find(tk => tk[0] === "tzBTC")) {
+      const token = tokens.find(tk => tk[0] === "tzBTC");
+      const contract = await Tezos.wallet.at(token[1].address);
+      const storage = await contract.storage();
+      newBalances.tzBTC = await findTzbtcBalance(
+        storage["0"],
+        userAddress,
+        token[1].decimals
+      );
+    }
+
+    const aggregatedResults = [...balancesContracts, ...ledgerContracts];
+    if (aggregatedResults) {
+      aggregatedResults
+        .filter(val => val.status === "fulfilled")
+        .forEach((val: PromiseFulfilledResult<any>) => {
+          const token = tokens.find(tk => tk[0] === val.value.token);
+          if (
+            (token[1].type === "fa1.2" || token[1].type === "fa2") &&
+            val.value.value
+          ) {
+            if (!isNaN(+val.value.value)) {
+              newBalances[token[0]] =
+                +val.value.value / 10 ** token[1].decimals;
+            } else if (
+              isNaN(+val.value.value) &&
+              val.value.value.hasOwnProperty("balance")
+            ) {
+              newBalances[token[0]] =
+                +val.value.value.balance / 10 ** token[1].decimals;
+            } else {
+              newBalances[token[0]] = 0;
+            }
+          } else {
+            newBalances[token[0]] = 0;
+          }
+        });
+    }
+
     // search for user address in tokens ledgers
-    const balances = await Promise.allSettled(
+    /*const balances = await Promise.allSettled(
       tokens.map(async (tokenInfo, i) => {
         const [tokenSymbol, token] = tokenInfo;
         const contract = await Tezos.wallet.at(token.address);
@@ -237,7 +304,7 @@ export const searchUserTokens = async ({
       .map((res: PromiseFulfilledResult<any>) => res.value)
       .forEach(param => {
         newBalances[param[0]] = param[1];
-      });
+      });*/
 
     return newBalances;
   } catch (error) {
