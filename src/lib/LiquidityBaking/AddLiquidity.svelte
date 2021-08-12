@@ -83,7 +83,7 @@
       addLiquiditySuccessfull = 1;
       amountInXTZ = "";
       amountInTzbtc = "";
-      minLqtMinted = "";
+      minLqtMinted = 0;
       setTimeout(() => (addLiquiditySuccessfull = false), 2000);
       refreshData();
     } catch (error) {

@@ -230,7 +230,14 @@
               refreshData={fetchData}
             />
           {:else if selectedTab === "remove-liquidity"}
-            <RemoveLiquidity />
+            <RemoveLiquidity
+              {lbContractAddress}
+              {tokenPool}
+              {xtzPool}
+              {lqtTotal}
+              {userLqtBalance}
+              refreshData={fetchData}
+            />
           {/if}
         </div>
       </div>
