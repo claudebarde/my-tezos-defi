@@ -10,7 +10,7 @@
   import Calculator from "../lib/Tools/Calculator.svelte";
   import LiquidityBaking from "../lib/LiquidityBaking/LiquidityBaking.svelte";
   import { AvailableInvestments } from "../types";
-  import { calcTotalShareValueInTez } from "../utils";
+  import { calcTotalShareValueInTez, calculateLqtOutput } from "../utils";
 
   let totalAmounts = { XTZ: undefined, TOKENS: undefined, FIAT: undefined };
   let totalInvestments = { XTZ: undefined, FIAT: undefined };
@@ -131,6 +131,18 @@
 
         // adds amount of XTZ locked in WXTZ vaults
         tempTotalInvestments += wXtzLockedXtz / 10 ** 6;
+
+        // adds amount of LQT converted to equivalent in XTZ and tzBTC
+        if ($store.liquidityBaking) {
+          const lqtOutput = calculateLqtOutput({
+            lqTokens: +$store.liquidityBaking.balance,
+            xtzPool: +$store.liquidityBaking.xtzPool,
+            lqtTotal: +$store.liquidityBaking.lqtTotal,
+            tezToTzbtc: $store.tokensExchangeRates.tzBTC.tezToToken
+          });
+
+          tempTotalInvestments += lqtOutput.xtz * 2;
+        }
 
         totalInvestments = {
           XTZ: tempTotalInvestments,

@@ -4,6 +4,7 @@
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import toastStore from "../Toast/toastStore";
+  import { calculateLqtOutput } from "../../utils";
 
   export let lbContractAddress,
     tokenPool,
@@ -71,8 +72,14 @@
 
     amountInLqt = Math.floor(val).toString();
     // calculates amounts in XTZ and tzBTC for LB tokens
-    xtzOut = (+amountInLqt * (xtzPool / 10 ** 6)) / lqtTotal;
-    tzBtcOut = +xtzOut * $store.tokensExchangeRates.tzBTC.tezToToken;
+    const result = calculateLqtOutput({
+      lqTokens: +amountInLqt,
+      xtzPool,
+      lqtTotal,
+      tezToTzbtc: $store.tokensExchangeRates.tzBTC.tezToToken
+    });
+    xtzOut = result.xtz;
+    tzBtcOut = result.tzbtc;
   };
 
   onMount(() => {
@@ -139,7 +146,11 @@
       autocomplete="off"
       on:input={updateTokenAmounts}
     />
-    <div class="remove-input-balance">
+    <div
+      class="remove-input-balance"
+      on:click={() => (amountInLqt = userLqtBalance)}
+      style="cursor:pointer"
+    >
       Your balance: {userLqtBalance.toLocaleString("en-US")}
     </div>
   </div>

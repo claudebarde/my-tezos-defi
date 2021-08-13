@@ -9,6 +9,8 @@
   let left: "xtz" | "tzbtc" = "tzbtc";
   let amountInXTZ = "";
   let amountInTzbtc = "";
+  let userXtzBalance = 0;
+  let userTzbtcBalance = 0;
   let tzBtcRate = 0;
   let slippage = 0.5;
   let tradeLoading = false;
@@ -16,7 +18,7 @@
 
   const updateTokenAmounts = e => {
     const val = e.target.value;
-    if (isNaN(+val)) {
+    if (isNaN(+val) || val.trim().length === 0) {
       e.target.value = "";
       amountInTzbtc = "";
       amountInXTZ = "";
@@ -126,6 +128,11 @@
 
   afterUpdate(() => {
     tzBtcRate = xtzPool / 10 ** 6 / (tokenPool / 10 ** 8);
+    userXtzBalance = $store.xtzData.balance / 10 ** 6;
+    userTzbtcBalance =
+      $store.tokensBalances && $store.tokensBalances.tzBTC
+        ? +$store.tokensBalances.tzBTC
+        : 0;
   });
 </script>
 
@@ -174,11 +181,20 @@
         id="input-tzbtc-amount"
         autocomplete="off"
         on:input={updateTokenAmounts}
+        class:error={+amountInTzbtc > +userTzbtcBalance}
       />
-      <div class="trade-input-balance">
-        Your balance: {$store.tokensBalances && $store.tokensBalances.tzBTC
-          ? +$store.tokensBalances.tzBTC.toFixed(5) / 1
-          : "--"}
+      <div
+        class="trade-input-balance"
+        style="cursor:pointer"
+        on:click={() => {
+          amountInTzbtc = userTzbtcBalance.toString();
+          amountInXTZ = (
+            Math.floor(+amountInTzbtc * +tzBtcRate * 10 ** 6) /
+            10 ** 6
+          ).toString();
+        }}
+      >
+        Your balance: {+userTzbtcBalance.toFixed(5) / 1}
       </div>
     </div>
     <span
@@ -195,9 +211,17 @@
         autocomplete="off"
         value={amountInXTZ}
         on:input={updateTokenAmounts}
+        class:error={+amountInXTZ > +userXtzBalance}
       />
-      <div class="trade-input-balance">
-        Your balance: {+($store.xtzData.balance / 10 ** 6).toFixed(5) / 1}
+      <div
+        class="trade-input-balance"
+        style="cursor:pointer"
+        on:click={() => {
+          amountInXTZ = userXtzBalance.toString();
+          amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
+        }}
+      >
+        Your balance: {+userXtzBalance.toFixed(5) / 1}
       </div>
     </div>
     <img src="images/XTZ.png" alt="XTZ-logo" />
@@ -210,9 +234,17 @@
         autocomplete="off"
         value={amountInXTZ}
         on:input={updateTokenAmounts}
+        class:error={+amountInXTZ > +userXtzBalance}
       />
-      <div class="trade-input-balance">
-        Your balance: {+($store.xtzData.balance / 10 ** 6).toFixed(5) / 1}
+      <div
+        class="trade-input-balance"
+        style="cursor:pointer"
+        on:click={() => {
+          amountInXTZ = userXtzBalance.toString();
+          amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
+        }}
+      >
+        Your balance: {+userXtzBalance.toFixed(5) / 1}
       </div>
     </div>
     <span
@@ -229,11 +261,20 @@
         id="input-tzbtc-amount"
         autocomplete="off"
         on:input={updateTokenAmounts}
+        class:error={+amountInTzbtc > +userTzbtcBalance}
       />
-      <div class="trade-input-balance">
-        Your balance: {$store.tokensBalances && $store.tokensBalances.tzBTC
-          ? +$store.tokensBalances.tzBTC.toFixed(5) / 1
-          : "--"}
+      <div
+        class="trade-input-balance"
+        style="cursor:pointer"
+        on:click={() => {
+          amountInTzbtc = userTzbtcBalance.toString();
+          amountInXTZ = (
+            Math.floor(+amountInTzbtc * +tzBtcRate * 10 ** 6) /
+            10 ** 6
+          ).toString();
+        }}
+      >
+        Your balance: {+userTzbtcBalance.toFixed(5) / 1}
       </div>
     </div>
     <img src="images/tzBTC.png" alt="tzBTC-logo" />

@@ -200,12 +200,17 @@ export const searchUserTokens = async ({
     const ledgerContracts = await Promise.allSettled(
       tokens
         .filter(tk => tk[1].ledgerPath.includes("ledger"))
-        .map(tk =>
-          fetch(url(tk[1].address, "ledger", userAddress))
+        .map(tk => {
+          let key = userAddress as string;
+          if (Array.isArray(tk[1].ledgerKey) && !isNaN(+tk[1].ledgerKey[1])) {
+            key = `{"address":"${userAddress}","nat":"${tk[1].ledgerKey[1]}"}`;
+          }
+
+          return fetch(url(tk[1].address, "ledger", key))
             .then(res => res.json())
             .then(val => ({ ...val, token: tk[0] }))
-            .catch(err => undefined)
-        )
+            .catch(err => undefined);
+        })
     );
     // tzBTC
     if (tokens.find(tk => tk[0] === "tzBTC")) {
@@ -222,7 +227,7 @@ export const searchUserTokens = async ({
     const aggregatedResults = [...balancesContracts, ...ledgerContracts];
     if (aggregatedResults) {
       aggregatedResults
-        .filter(val => val.status === "fulfilled")
+        .filter(val => val.status === "fulfilled" && val.value)
         .forEach((val: PromiseFulfilledResult<any>) => {
           const token = tokens.find(tk => tk[0] === val.value.token);
           if (
@@ -1037,4 +1042,23 @@ export const getKdaoReward = async (
   } else {
     return result;
   }
+};
+
+export const calculateLqtOutput = ({
+  lqTokens,
+  xtzPool,
+  lqtTotal,
+  tezToTzbtc
+}: {
+  lqTokens: number;
+  xtzPool: number;
+  lqtTotal: number;
+  tezToTzbtc: number;
+}): { xtz: number; tzbtc: number } => {
+  const xtzOut = (+lqTokens * (xtzPool / 10 ** 6)) / lqtTotal;
+
+  return {
+    xtz: xtzOut,
+    tzbtc: +xtzOut * tezToTzbtc
+  };
 };

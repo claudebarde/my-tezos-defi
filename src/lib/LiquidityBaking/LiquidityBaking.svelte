@@ -36,6 +36,13 @@
     tokenAddress = storage.tokenAddress;
     lqtAddress = storage.lqtAddress;
     userLqtBalance = await fetchUserLqtBalance($store.userAddress);
+
+    store.updateLiquitidyBaking({
+      tokenPool,
+      xtzPool,
+      lqtTotal,
+      balance: userLqtBalance
+    });
   };
 
   onMount(async () => {
