@@ -173,6 +173,17 @@
       }
     }
   }
+
+  .lbt-symbol {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    vertical-align: bottom;
+    border: solid 2px white;
+    border-radius: 50%;
+    line-height: 28px;
+    text-align: center;
+  }
 </style>
 
 <div class="row">
@@ -497,6 +508,17 @@
       >
         <span class="material-icons"> settings </span>
       </button>
+    </div>
+  {:else if platform === "lqt"}
+    <div class="lbt-symbol">LB</div>
+    <div>
+      {(+data.balance).toLocaleString("en-US")}
+    </div>
+    <div>
+      {+data.xtz.toFixed(5) / 1}
+    </div>
+    <div>
+      {+data.tzbtc.toFixed(8) / 1}
     </div>
   {/if}
 </div>

@@ -144,6 +144,14 @@ export interface State {
   serviceFee: null | number;
   admin: TezosAccountAddress;
   defiData: string;
+  liquidityBaking:
+    | {
+        tokenPool: number;
+        xtzPool: number;
+        lqtTotal: number;
+        balance: number;
+      }
+    | undefined;
 }
 
 export interface HistoricalDataState {

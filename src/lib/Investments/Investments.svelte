@@ -9,7 +9,8 @@
     getPaulReward,
     getKdaoReward,
     prepareOperation,
-    loadInvestment
+    loadInvestment,
+    calculateLqtOutput
   } from "../../utils";
   import type { KolibriOvenData, AvailableInvestments } from "../../types";
   import { AvailableToken } from "../../types";
@@ -31,6 +32,8 @@
     platform: string;
     amount: number;
   }[] = [];
+  let lqtValToXtz = 0;
+  let lqtValToTzbtc = 0;
 
   const shortenHash = (hash: string): string =>
     hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
@@ -175,6 +178,22 @@
       kolibriOvensChecked = true;
     }
 
+    // calculates LQT values
+    if (
+      $store.liquidityBaking &&
+      $store.liquidityBaking.balance > 0 &&
+      $store.tokensExchangeRates.tzBTC
+    ) {
+      const val = calculateLqtOutput({
+        lqTokens: $store.liquidityBaking.balance,
+        xtzPool: $store.liquidityBaking.xtzPool,
+        lqtTotal: $store.liquidityBaking.lqtTotal,
+        tezToTzbtc: $store.tokensExchangeRates.tzBTC.tezToToken
+      });
+      lqtValToXtz = val.xtz;
+      lqtValToTzbtc = val.tzbtc;
+    }
+
     // calculates available rewards
     if (
       $localStorageStore &&
@@ -245,6 +264,10 @@
   .container-investments {
     padding: 0px;
 
+    h3 {
+      text-align: center;
+    }
+
     .row {
       display: grid;
       grid-template-columns: 10% 25% 20% 17% 17% 11%;
@@ -274,7 +297,9 @@
     {#if $store.investments}
       {#if loading}
         <div class="row">
-          <div style="grid-column:1 / span 2">Loading...</div>
+          <div style="grid-column:1 / span 6">
+            <h3>Loading...</h3>
+          </div>
         </div>
       {:else}
         {#if kolibriOvens.length > 0 && kolibriOvens.filter(oven => !oven.isLiquidated).length > 0}
@@ -316,6 +341,25 @@
           {#each $localStorageStore.wXtzVaults as data}
             <Row {data} platform="wxtz" valueInXtz={true} rewards={undefined} />
           {/each}
+        {/if}
+        <!-- Liquidity Baking Token -->
+        {#if $store.liquidityBaking && $store.liquidityBaking.balance > 0}
+          <div class="row header">
+            <div />
+            <div>LQT balance</div>
+            <div>Value in XTZ</div>
+            <div>Value in tzBTC</div>
+          </div>
+          <Row
+            data={{
+              balance: $store.liquidityBaking.balance,
+              xtz: lqtValToXtz,
+              tzbtc: lqtValToTzbtc
+            }}
+            platform="lqt"
+            valueInXtz={true}
+            rewards={undefined}
+          />
         {/if}
         {#if $localStorageStore.favoriteInvestments.length === 0}
           <div class="row">

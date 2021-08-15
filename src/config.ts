@@ -57,15 +57,19 @@ export default {
   toastColor: {
     green: {
       theme: {
-        '--toastBackground': '#48BB78',
-        '--toastProgressBackground': '#2F855A'
+        "--toastBackground": "#48BB78",
+        "--toastProgressBackground": "#2F855A"
       }
-    }, 
+    },
     red: {
       theme: {
-        '--toastBackground': '#F56565',
-        '--toastProgressBackground': '#C53030'
+        "--toastBackground": "#F56565",
+        "--toastProgressBackground": "#C53030"
       }
     }
-  }
+  },
+  lbContracts: [
+    "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
+    "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
+  ]
 };

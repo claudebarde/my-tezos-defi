@@ -14,6 +14,7 @@
   import localStorageStore from "./localStorage";
   import Toast from "./lib/Toast/Toast.svelte";
   import toastStore from "./lib/Toast/toastStore";
+  import config from "./config";
 
   let appReady = false;
   let liveTrafficWorker;
@@ -387,7 +388,8 @@
         type: "init",
         payload: [
           ...Object.values($store.tokens).map(tk => tk.address),
-          ...Object.values($store.investments).map(inv => inv.address)
+          ...Object.values($store.investments).map(inv => inv.address),
+          ...config.lbContracts
         ]
       });
       liveTrafficWorker.onmessage = handleLiveTrafficWorker;
