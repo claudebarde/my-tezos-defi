@@ -9,7 +9,7 @@ import generalStore from "./store";
 
 let state = null;
 const localStorageItemName = "mtd";
-const version = "3.1.0";
+const version = "3.2.0";
 let initialState: LocalStorageState = {
   preferredFiat: AvailableFiat.USD,
   pushNotifications: false,
