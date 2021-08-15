@@ -105,6 +105,31 @@
         </div>
         <div>Allow contribution</div>
         <FeeDisclaimer />
+        <div>Change RPC node</div>
+        <div>
+          <input
+            type="text"
+            list="rpc-nodes"
+            placeholder={$localStorageStore.favoriteRpcUrl}
+            bind:value={newRpcNode}
+          />
+          <button
+            class="button mini"
+            on:click={() => {
+              $store.Tezos.setRpcProvider(newRpcNode);
+              store.updateTezos($store.Tezos);
+              localStorageStore.updateFavoriteRpcUrl(newRpcNode);
+              openSettings = false;
+            }}
+          >
+            Change
+          </button>
+          <datalist id="rpc-nodes">
+            {#each $store.settings[$store.network].validRpcUrls as item}
+              <option value={item.url}>{item.name}</option>
+            {/each}
+          </datalist>
+        </div>
         {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
           <div>Allow Push Notifications</div>
           <div>
@@ -119,31 +144,6 @@
                 <button class="button mini" style="float:right">Allow</button>
               {/if}
             </div>
-          </div>
-          <div>Change RPC node</div>
-          <div>
-            <input
-              type="text"
-              list="rpc-nodes"
-              placeholder={$localStorageStore.favoriteRpcUrl}
-              bind:value={newRpcNode}
-            />
-            <button
-              class="button mini"
-              on:click={() => {
-                $store.Tezos.setRpcProvider(newRpcNode);
-                store.updateTezos($store.Tezos);
-                localStorageStore.updateFavoriteRpcUrl(newRpcNode);
-                openSettings = false;
-              }}
-            >
-              Change
-            </button>
-            <datalist id="rpc-nodes">
-              {#each $store.settings[$store.network].validRpcUrls as item}
-                <option value={item.url}>{item.name}</option>
-              {/each}
-            </datalist>
           </div>
         {/if}
       </div>
