@@ -324,8 +324,16 @@
                     {shortenHash(oven.address)}
                   </a>
                 </div>
-                <div>{+(+oven.locked / 10 ** 6).toFixed(5) / 1} ꜩ</div>
-                <div>{+(+oven.borrowed / 10 ** 18).toFixed(5) / 1} kUSD</div>
+                <div>
+                  <span class:blurry-text={$store.blurryBalances}>
+                    {+(+oven.locked / 10 ** 6).toFixed(5) / 1}
+                  </span> ꜩ
+                </div>
+                <div>
+                  <span class:blurry-text={$store.blurryBalances}>
+                    {+(+oven.borrowed / 10 ** 18).toFixed(5) / 1}
+                  </span> kUSD
+                </div>
               </div>
             {/if}
           {/each}

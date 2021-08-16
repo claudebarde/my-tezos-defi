@@ -46,7 +46,8 @@ const initialState: State = {
   serviceFee: process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
   defiData: "Qmc3Furj5s62uzeCKHH3KXfWqgYETsyoe7PxXwf4ohY4DP",
-  liquidityBaking: undefined
+  liquidityBaking: undefined,
+  blurryBalances: false
 };
 
 const store = writable(initialState);
@@ -141,7 +142,9 @@ const state = {
   updateServiceFee: (newFee: State["serviceFee"]) =>
     store.update(store => ({ ...store, serviceFee: newFee })),
   updateLiquitidyBaking: (data: State["liquidityBaking"]) =>
-    store.update(store => ({ ...store, liquidityBaking: data }))
+    store.update(store => ({ ...store, liquidityBaking: data })),
+  updateBlurryBalances: (blur: boolean) =>
+    store.update(store => ({ ...store, blurryBalances: blur }))
 };
 
 export default state;

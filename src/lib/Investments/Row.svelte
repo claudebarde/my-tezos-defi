@@ -202,7 +202,11 @@
         {data.alias}
       </a>
     </div>
-    <div>{data.balance / 10 ** data.decimals}</div>
+    <div>
+      <span class:blurry-text={$store.blurryBalances}>
+        {data.balance / 10 ** data.decimals}
+      </span>
+    </div>
   {/if}
   {#if platform === "quipuswap"}
     <div>--</div>
@@ -212,14 +216,14 @@
     {#if data.alias !== "PLENTY-XTZ LP farm" && $store.tokensExchangeRates[data.token]}
       <div>
         {#if valueInXtz}
-          <span>
+          <span class:blurry-text={$store.blurryBalances}>
             {+(
               (data.balance / 10 ** data.decimals) *
               $store.tokensExchangeRates[data.token].tokenToTez
             ).toFixed(5) / 1}
           </span>
         {:else}
-          <span>
+          <span class:blurry-text={$store.blurryBalances}>
             {(
               +(
                 ((data.balance / 10 ** data.decimals) *
@@ -233,7 +237,7 @@
     {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
       <div>
         {#if valueInXtz}
-          <span>
+          <span class:blurry-text={$store.blurryBalances}>
             {+calcTotalShareValueInTez(
               data.balance,
               data.shareValueInTez,
@@ -242,7 +246,7 @@
             ).toFixed(5) / 1}
           </span>
         {:else}
-          <span>
+          <span class:blurry-text={$store.blurryBalances}>
             {(
               +(
                 calcTotalShareValueInTez(
@@ -372,7 +376,9 @@
       {#await $store.Tezos.tz.getBalance(data)}
         <span class="material-icons"> hourglass_empty </span>
       {:then value}
-        {+value / 10 ** 6} ꜩ
+        <span class:blurry-text={$store.blurryBalances}>
+          {+value / 10 ** 6}
+        </span> ꜩ
       {:catch error}
         Error
       {/await}
@@ -393,14 +399,18 @@
       </a>
     </div>
     <div>
-      {+(data.balance / 10 ** data.decimals).toFixed(5) / 1}
+      <span class:blurry-text={$store.blurryBalances}>
+        {+(data.balance / 10 ** data.decimals).toFixed(5) / 1}
+      </span>
     </div>
     <div>
       {#if data.id === "PAUL-PAUL"}
-        {+(
-          ($store.tokensExchangeRates.PAUL.tokenToTez * data.balance) /
-          10 ** data.decimals
-        ).toFixed(5) / 1}
+        <span class:blurry-text={$store.blurryBalances}>
+          {+(
+            ($store.tokensExchangeRates.PAUL.tokenToTez * data.balance) /
+            10 ** data.decimals
+          ).toFixed(5) / 1}
+        </span>
       {:else}
         --
       {/if}
@@ -459,14 +469,18 @@
       </a>
     </div>
     <div>
-      {+(data.balance / 10 ** data.decimals).toFixed(5) / 1}
+      <span class:blurry-text={$store.blurryBalances}>
+        {+(data.balance / 10 ** data.decimals).toFixed(5) / 1}
+      </span>
     </div>
     <div>
       {#if data.id === "KUSD-KDAO"}
-        {+(
-          ($store.tokensExchangeRates.kUSD.tokenToTez * data.balance) /
-          10 ** data.decimals
-        ).toFixed(5) / 1}
+        <span class:blurry-text={$store.blurryBalances}>
+          {+(
+            ($store.tokensExchangeRates.kUSD.tokenToTez * data.balance) /
+            10 ** data.decimals
+          ).toFixed(5) / 1}
+        </span>
       {:else}
         --
       {/if}
@@ -512,13 +526,19 @@
   {:else if platform === "lqt"}
     <div class="lbt-symbol">LB</div>
     <div>
-      {(+data.balance).toLocaleString("en-US")}
+      <span class:blurry-text={$store.blurryBalances}>
+        {(+data.balance).toLocaleString("en-US")}
+      </span>
     </div>
     <div>
-      {+data.xtz.toFixed(5) / 1}
+      <span class:blurry-text={$store.blurryBalances}>
+        {+data.xtz.toFixed(5) / 1}
+      </span>
     </div>
     <div>
-      {+data.tzbtc.toFixed(8) / 1}
+      <span class:blurry-text={$store.blurryBalances}>
+        {+data.tzbtc.toFixed(8) / 1}
+      </span>
     </div>
   {/if}
 </div>
