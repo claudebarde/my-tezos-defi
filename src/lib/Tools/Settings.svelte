@@ -103,6 +103,19 @@
             {/each}
           </datalist>
         </div>
+        <div>Blurry balances</div>
+        <div>
+          <button
+            class="button mini"
+            on:click={() => store.updateBlurryBalances(!$store.blurryBalances)}
+          >
+            {#if $store.blurryBalances}
+              Make visible
+            {:else}
+              Blur balances
+            {/if}
+          </button>
+        </div>
         <div>Allow contribution</div>
         <FeeDisclaimer />
         <div>Change RPC node</div>

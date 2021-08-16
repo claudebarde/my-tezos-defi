@@ -231,11 +231,16 @@
       <!-- TOKENS + XTZ -->
       Tokens value:
       {#if totalAmounts.XTZ}
-        {totalAmounts.XTZ.toFixed(2)} XTZ
+        <span class:blurry-text={$store.blurryBalances}>
+          {totalAmounts.XTZ.toFixed(2)}
+        </span> XTZ
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
-        {totalAmounts.FIAT.toFixed(2)} {$localStorageStore.preferredFiat}
+        <span class:blurry-text={$store.blurryBalances}>
+          {totalAmounts.FIAT.toFixed(2)}
+        </span>
+        {$localStorageStore.preferredFiat}
       {:else}
         N/A
       {/if}
@@ -256,9 +261,13 @@
   <div class="stats">
     <div>
       {#if totalInvestments.XTZ && totalInvestments.FIAT}
-        Investments: {+totalInvestments.XTZ.toFixed(2) / 1} XTZ - {+totalInvestments.FIAT.toFixed(
-          2
-        ) / 1}
+        Investments: <span class:blurry-text={$store.blurryBalances}>
+          {+totalInvestments.XTZ.toFixed(2) / 1}
+        </span>
+        XTZ -
+        <span class:blurry-text={$store.blurryBalances}>
+          {+totalInvestments.FIAT.toFixed(2) / 1}
+        </span>
         {$localStorageStore.preferredFiat}
       {/if}
     </div>
@@ -267,8 +276,13 @@
   <div class="stats">
     <div>
       {#if totalInvestments.XTZ && totalInvestments.FIAT && totalAmounts.XTZ && totalAmounts.FIAT}
-        Total: {+(totalInvestments.XTZ + totalAmounts.XTZ).toFixed(2) / 1} XTZ -
-        {+(totalInvestments.FIAT + totalAmounts.FIAT).toFixed(2) / 1}
+        Total: <span class:blurry-text={$store.blurryBalances}>
+          {+(totalInvestments.XTZ + totalAmounts.XTZ).toFixed(2) / 1}
+        </span>
+        XTZ -
+        <span class:blurry-text={$store.blurryBalances}>
+          {+(totalInvestments.FIAT + totalAmounts.FIAT).toFixed(2) / 1}
+        </span>
         {$localStorageStore.preferredFiat}
       {/if}
     </div>

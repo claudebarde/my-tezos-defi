@@ -152,6 +152,7 @@ export interface State {
         balance: number;
       }
     | undefined;
+  blurryBalances: boolean;
 }
 
 export interface HistoricalDataState {

@@ -351,16 +351,19 @@
     {#if assetsType === "favorite" && token !== "tez" && $store.tokensBalances[token[0]]}
       <div class="info">
         <div>
-          Balance: {+$store.tokensBalances[token[0]].toFixed(5) / 1 ||
-            "> 0.00001"}
+          Balance: <span class:blurry-text={$store.blurryBalances}>
+            {+$store.tokensBalances[token[0]].toFixed(5) / 1 || "> 0.00001"}
+          </span>
         </div>
         {#if $store.tokensExchangeRates[token[0]]}
           <div>
-            {+(
-              $store.tokensBalances[token[0]] *
-              $store.tokensExchangeRates[token[0]].tokenToTez *
-              $store.xtzData.exchangeRate
-            ).toFixed(2) / 1}
+            <span class:blurry-text={$store.blurryBalances}
+              >{+(
+                $store.tokensBalances[token[0]] *
+                $store.tokensExchangeRates[token[0]].tokenToTez *
+                $store.xtzData.exchangeRate
+              ).toFixed(2) / 1}</span
+            >
             {$localStorageStore.preferredFiat}
           </div>
         {:else}
@@ -370,14 +373,18 @@
     {:else if token === "tez" && $store.xtzData.balance}
       <div class="info">
         <div>
-          Balance: {+($store.xtzData.balance / 10 ** 6).toFixed(5) / 1}
+          Balance: <span class:blurry-text={$store.blurryBalances}>
+            {+($store.xtzData.balance / 10 ** 6).toFixed(5) / 1}
+          </span>
         </div>
         {#if $store.xtzData.exchangeRate}
           <div>
-            {+(
-              ($store.xtzData.balance / 10 ** 6) *
-              $store.xtzData.exchangeRate
-            ).toFixed(5) / 1}
+            <span class:blurry-text={$store.blurryBalances}>
+              {+(
+                ($store.xtzData.balance / 10 ** 6) *
+                $store.xtzData.exchangeRate
+              ).toFixed(5) / 1}
+            </span>
             {$localStorageStore.preferredFiat}
           </div>
         {:else}
