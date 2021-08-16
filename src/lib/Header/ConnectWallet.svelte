@@ -253,9 +253,11 @@
     </span>
   </div>
   <div>
-    <a href="#/profile">
-      {username}
-    </a>
+    <span class:blurry-text={$store.blurryBalances}>
+      <a href="#/profile">
+        {username}
+      </a>
+    </span>
   </div>
   <button on:click={disconnect}>Disconnect</button>
 {:else}
