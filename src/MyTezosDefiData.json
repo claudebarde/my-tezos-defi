@@ -256,7 +256,8 @@
       "info": [],
       "alias": "QuipuSwap PLENTY",
       "icons": ["QUIPU", "PLENTY"],
-      "token": null
+      "token": null,
+      "liquidityToken": true
     },
     "QUIPUSWAP-KUSD": {
       "id": "QUIPUSWAP-KUSD",
@@ -266,7 +267,8 @@
       "info": [],
       "alias": "QuipuSwap kUSD",
       "icons": ["QUIPU", "KUSD"],
-      "token": null
+      "token": null,
+      "liquidityToken": true
     },
     "QUIPUSWAP-USDtz": {
       "id": "QUIPUSWAP-USDtz",
@@ -276,7 +278,8 @@
       "info": [],
       "alias": "QuipuSwap USDtz",
       "icons": ["QUIPU", "USDTZ"],
-      "token": null
+      "token": null,
+      "liquidityToken": true
     },
     "QUIPUSWAP-ETHtz": {
       "id": "QUIPUSWAP-ETHtz",
@@ -286,7 +289,8 @@
       "info": [],
       "alias": "QuipuSwap ETHtz",
       "icons": ["QUIPU", "ETHTZ"],
-      "token": null
+      "token": null,
+      "liquidityToken": true
     },
     "QUIPUSWAP-CRUNCH": {
       "id": "QUIPUSWAP-CRUNCH",
@@ -296,7 +300,8 @@
       "info": [],
       "alias": "QuipuSwap CRUNCH",
       "icons": ["QUIPU", "CRUNCH"],
-      "token": null
+      "token": null,
+      "liquidityToken": true
     },
     "PLENTY-XTZ-LP": {
       "id": "PLENTY-XTZ-LP",
@@ -306,7 +311,8 @@
       "info": [],
       "alias": "PLENTY-XTZ LP farm",
       "icons": ["PLENTY", "XTZ"],
-      "token": "PLENTY"
+      "token": "PLENTY",
+      "liquidityToken": true
     },
     "PLENTY-hDAO": {
       "id": "PLENTY-hDAO",
@@ -316,7 +322,8 @@
       "info": [],
       "alias": "Plenty hDAO staking",
       "icons": ["PLENTY", "HDAO"],
-      "token": "hDAO"
+      "token": "hDAO",
+      "liquidityToken": false
     },
     "PLENTY-PLENTY": {
       "id": "PLENTY-PLENTY",
@@ -326,7 +333,8 @@
       "info": [],
       "alias": "Plenty staking",
       "icons": ["PLENTY", "PLENTY"],
-      "token": "PLENTY"
+      "token": "PLENTY",
+      "liquidityToken": false
     },
     "PLENTY-ETHtz": {
       "id": "PLENTY-ETHtz",
@@ -336,7 +344,8 @@
       "info": [],
       "alias": "Plenty ETHtz staking",
       "icons": ["PLENTY", "ETHTZ"],
-      "token": "ETHtz"
+      "token": "ETHtz",
+      "liquidityToken": false
     },
     "PLENTY-USDtz": {
       "id": "PLENTY-USDtz",
@@ -346,7 +355,8 @@
       "info": [],
       "alias": "Plenty USDtz staking",
       "icons": ["PLENTY", "USDTZ"],
-      "token": "USDtz"
+      "token": "USDtz",
+      "liquidityToken": false
     },
     "PLENTY-wLINK": {
       "id": "PLENTY-wLINK",
@@ -356,7 +366,8 @@
       "info": [],
       "alias": "Plenty wLINK staking",
       "icons": ["PLENTY", "wLINK"],
-      "token": "PLENTY"
+      "token": "PLENTY",
+      "liquidityToken": false
     },
     "PLENTY-wMATIC": {
       "id": "PLENTY-wMATIC",
@@ -366,27 +377,41 @@
       "info": [],
       "alias": "Plenty wMATIC staking",
       "icons": ["PLENTY", "wMATIC"],
-      "token": "PLENTY"
+      "token": "PLENTY",
+      "liquidityToken": false
     },
-    "PLENTY-WRAP": {
-      "id": "PLENTY-WRAP",
+    "PLENTY-wBUSD": {
+      "id": "PLENTY-wBUSD",
       "platform": "plenty",
-      "address": "KT18oB3x8SLxMJq2o9hKNupbZZ5ZMsgr2aho",
+      "address": "KT1KJhxkCpZNwAFQURDoJ79hGqQgSC9UaWpG",
       "decimals": 18,
       "info": [],
-      "alias": "Plenty WRAP staking",
-      "icons": ["PLENTY", "WRAP"],
-      "token": "WRAP"
+      "alias": "Plenty wBUSD staking",
+      "icons": ["PLENTY", "wBUSD"],
+      "token": "wBUSD",
+      "liquidityToken": true
     },
-    "WRAP-PLENTY": {
-      "id": "WRAP-PLENTY",
+    "PLENTY-wUSDC": {
+      "id": "PLENTY-wUSDC",
       "platform": "plenty",
-      "address": "KT1GotpjdBaxt2GiMFcQExLEk9GTfYo4UoTa",
-      "decimals": 8,
+      "address": "KT1Kp3KVT4nHFmSuL8bvETkgQzseUYP3LDBy",
+      "decimals": 18,
       "info": [],
-      "alias": "Plenty WRAP pond",
-      "icons": ["WRAP", "PLENTY"],
-      "token": "PLENTY"
+      "alias": "Plenty wUSDC staking",
+      "icons": ["PLENTY", "wUSDC"],
+      "token": "wUSDC",
+      "liquidityToken": true
+    },
+    "PLENTY-wWBTC": {
+      "id": "PLENTY-wWBTC",
+      "platform": "plenty",
+      "address": "KT1M82a7arHVwcwaswnNUUuCnQ45xjjGKNd1",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty wWBTC staking",
+      "icons": ["PLENTY", "wWBTC"],
+      "token": "wWBTC",
+      "liquidityToken": true
     },
     "CRUNCHY-FARMS": {
       "id": "CRUNCHY-FARMS",
@@ -406,7 +431,8 @@
       "info": [],
       "alias": "PAUL farm",
       "icons": ["PAUL"],
-      "token": "PAUL"
+      "token": "PAUL",
+      "liquidityToken": false
     },
     "PAUL-XTZ": {
       "id": "PAUL-XTZ",
@@ -416,7 +442,8 @@
       "info": [],
       "alias": "PAUL/XTZ farm",
       "icons": ["PAUL", "XTZ"],
-      "token": "PAUL"
+      "token": "PAUL",
+      "liquidityToken": false
     },
     "KUSD-QUIPU-LP": {
       "id": "KUSD-QUIPU-LP",
@@ -426,7 +453,8 @@
       "info": [],
       "alias": "kUSD Quipu LP Farm",
       "icons": ["KUSD", "QUIPU"],
-      "token": "kDAO"
+      "token": "kDAO",
+      "liquidityToken": true
     },
     "KUSD-KDAO": {
       "id": "KUSD-KDAO",
@@ -436,7 +464,8 @@
       "info": [],
       "alias": "kUSD Farm",
       "icons": ["KUSD", "KDAO"],
-      "token": "kUSD"
+      "token": "kUSD",
+      "liquidityToken": false
     },
     "KUSD-QL": {
       "id": "KUSD-QL",
@@ -446,7 +475,8 @@
       "info": [],
       "alias": "QL kUSD Farm",
       "icons": ["QUIPU"],
-      "token": "kUSD"
+      "token": "kUSD",
+      "liquidityToken": true
     }
   }
 }

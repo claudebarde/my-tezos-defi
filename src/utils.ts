@@ -1044,6 +1044,20 @@ export const getKdaoReward = async (
   }
 };
 
+export const lqtOutput = ({
+  lqTokens,
+  pool,
+  lqtTotal,
+  decimals
+}: {
+  lqTokens: number;
+  pool: number;
+  lqtTotal: number;
+  decimals: number;
+}): number => {
+  return (+lqTokens * (pool / 10 ** decimals)) / lqtTotal;
+};
+
 export const calculateLqtOutput = ({
   lqTokens,
   xtzPool,
@@ -1055,7 +1069,7 @@ export const calculateLqtOutput = ({
   lqtTotal: number;
   tezToTzbtc: number;
 }): { xtz: number; tzbtc: number } => {
-  const xtzOut = (+lqTokens * (xtzPool / 10 ** 6)) / lqtTotal;
+  const xtzOut = lqtOutput({ lqTokens, pool: xtzPool, lqtTotal, decimals: 6 });
 
   return {
     xtz: xtzOut,
