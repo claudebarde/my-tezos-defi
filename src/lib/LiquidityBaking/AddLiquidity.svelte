@@ -17,6 +17,9 @@
   let addLiquidityLoading = false;
   let addLiquiditySuccessfull: false | 1 | 2 = false; // false = no data | 1 = successfull | 2 = failed
 
+  const calcMinLqtMinted = () =>
+    Math.floor((+amountInXTZ * 10 ** 6 * lqtTotal) / xtzPool);
+
   const addLiquidity = async () => {
     if (isNaN(+amountInXTZ)) {
       const text = "XTZ amount must be a number";
@@ -118,7 +121,7 @@
       amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
     }
 
-    minLqtMinted = Math.floor((+amountInXTZ * 10 ** 6 * lqtTotal) / xtzPool);
+    minLqtMinted = calcMinLqtMinted();
   };
 
   onMount(() => {
@@ -196,6 +199,7 @@
           Math.floor(+amountInTzbtc * +tzBtcRate * 10 ** 6) /
           10 ** 6
         ).toString();
+        minLqtMinted = calcMinLqtMinted();
       }}
     >
       Your balance: {+userTzbtcBalance.toFixed(5) / 1}
@@ -217,6 +221,7 @@
       on:click={() => {
         amountInXTZ = userXtzBalance.toString();
         amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
+        minLqtMinted = calcMinLqtMinted();
       }}
     >
       Your balance: {+userXtzBalance.toFixed(5) / 1}

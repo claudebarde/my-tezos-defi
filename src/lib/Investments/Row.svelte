@@ -204,7 +204,7 @@
     </div>
     <div>
       <span class:blurry-text={$store.blurryBalances}>
-        {data.balance / 10 ** data.decimals}
+        {+(data.balance / 10 ** data.decimals).toFixed(3) / 1}
       </span>
     </div>
   {/if}
@@ -213,7 +213,7 @@
     <div>--</div>
   {:else if platform === "plenty"}
     <!-- PLENTY -->
-    {#if data.alias !== "PLENTY-XTZ LP farm" && $store.tokensExchangeRates[data.token]}
+    {#if !data.liquidityToken && $store.tokensExchangeRates[data.token]}
       <div>
         {#if valueInXtz}
           <span class:blurry-text={$store.blurryBalances}>
@@ -224,13 +224,13 @@
           </span>
         {:else}
           <span class:blurry-text={$store.blurryBalances}>
-            {(
+            {+(
               +(
                 ((data.balance / 10 ** data.decimals) *
                   $store.tokensExchangeRates[data.token].tokenToTez) /
                 1
               ) * $store.xtzData.exchangeRate
-            ).toFixed(5)}
+            ).toFixed(5) / 1}
           </span>
         {/if}
       </div>

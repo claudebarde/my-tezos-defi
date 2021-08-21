@@ -18,7 +18,7 @@ const settings: State["settings"] = {
   mainnet: {
     validRpcUrls: [
       { name: "Tezos Giganode", url: "https://mainnet-tezos.giganode.io" },
-      { name: "ECAD Labs", url: "https://api.tez.ie/rpc/mainnet" },
+      { name: "ECAD Labs", url: "https://mainnet.api.tez.ie" },
       { name: "SmartPy", url: "https://mainnet.smartpy.io/" },
       { name: "Blockscale", url: "https://rpc.tzbeta.net/" },
       { name: "LetzBake!", url: "https://teznode.letzbake.com/" }
@@ -45,7 +45,7 @@ const initialState: State = {
   },
   serviceFee: process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "Qmc3Furj5s62uzeCKHH3KXfWqgYETsyoe7PxXwf4ohY4DP",
+  defiData: "QmQ2QLJxuXZyF7wZRq76qj6sL68vUWtKSKMVHAuc89AmPt",
   liquidityBaking: undefined,
   blurryBalances: false
 };

@@ -10,7 +10,11 @@
   import Calculator from "../lib/Tools/Calculator.svelte";
   import LiquidityBaking from "../lib/LiquidityBaking/LiquidityBaking.svelte";
   import { AvailableInvestments } from "../types";
-  import { calcTotalShareValueInTez, calculateLqtOutput } from "../utils";
+  import {
+    calcTotalShareValueInTez,
+    calculateLqtOutput,
+    lqtOutput
+  } from "../utils";
 
   let totalAmounts = { XTZ: undefined, TOKENS: undefined, FIAT: undefined };
   let totalInvestments = { XTZ: undefined, FIAT: undefined };
@@ -85,12 +89,28 @@
       ) {
         let tempTotalInvestments = 0;
 
-        $localStorageStore.favoriteInvestments.forEach(inv => {
+        // fetches storage data for Plenty LP farms
+        /*const plentyLqtFarms = await Promise.allSettled(
+          $localStorageStore.favoriteInvestments
+            .filter(inv =>
+              ["PLENTY-wBUSD", "PLENTY-wUSDC", "PLENTY-wWBTC"].includes(inv)
+            )
+            .map(inv => [
+              inv,
+              fetch(
+                `https://api.tzkt.io/v1/contracts/${$store.investments[inv].address}/storage`
+              )
+            ])
+        );
+        console.log(plentyLqtFarms);*/
+
+        $localStorageStore.favoriteInvestments.forEach(async inv => {
           // PLENTY
           if ($store.investments[inv].platform === "plenty") {
             if (
               inv !== AvailableInvestments["PLENTY-XTZ-LP"] &&
-              $store.tokensExchangeRates[$store.investments[inv].token]
+              $store.tokensExchangeRates[$store.investments[inv].token] &&
+              !$store.investments[inv].liquidityToken
             ) {
               tempTotalInvestments +=
                 ($store.investments[inv].balance /
@@ -107,6 +127,17 @@
                 $store.tokensExchangeRates.PLENTY.tokenToTez,
                 $store.tokens.PLENTY.decimals
               );
+            } else if ($store.investments[inv].liquidityToken) {
+              /*const storageResponse = await fetch(
+                `https://api.tzkt.io/v1/contracts/${$store.investments[inv].address}/storage`
+              );
+              if (storageResponse) {
+                const storage = await storageResponse.json();
+                console.log(lqtOutput({
+                  lqTokens: $store.investments[inv].balance,
+                  pool: 
+                }));
+              }*/
             }
             // PAUL
           } else if ($store.investments[inv].platform === "paul") {
