@@ -801,7 +801,143 @@ export const prepareOperation = (p: {
   }
 };
 
-export const loadInvestment = async (investment: AvailableInvestments) => {
+export const loadInvestment = async (
+  investment: AvailableInvestments,
+  userAddress: TezosAccountAddress
+) => {
+  const localStore = get(store);
+  if (localStore.investments && localStore.investments[investment]) {
+    const inv = localStore.investments[investment];
+    if (inv.platform === "plenty") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/balances/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          const balance = +userData.value.balance;
+          const info = [];
+          Object.values(userData.value.InvestMap).forEach(val =>
+            info.push(val)
+          );
+
+          if (inv.id === "PLENTY-XTZ-LP") {
+            const dex = await findDex(
+              localStore.Tezos,
+              config.quipuswapFactories,
+              {
+                contract: localStore.tokens.PLENTY.address
+              }
+            );
+            const dexStorage = await dex.contract.storage();
+            const tezInShares = await estimateTezInShares(dexStorage, 1000000);
+
+            return {
+              id: inv.id,
+              balance,
+              info,
+              shareValueInTez: tezInShares.toNumber()
+            };
+          }
+
+          return { id: inv.id, balance, info };
+        } else {
+          return null;
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "quipuswap") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/ledger/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          return {
+            id: inv.id,
+            balance: +userData.value.balance,
+            info: undefined
+          };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "paul") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/account_info/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          return {
+            id: inv.id,
+            balance: +userData.value.amount,
+            info: undefined
+          };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "kdao") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/delegators/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          return {
+            id: inv.id,
+            balance: +userData.value.lpTokenBalance,
+            info: undefined
+          };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+};
+
+/*export const loadInvestment = async (investment: AvailableInvestments) => {
   const localStore = get(store);
   if (localStore.investments && localStore.investments[investment]) {
     const inv = localStore.investments[investment];
@@ -894,7 +1030,7 @@ export const loadInvestment = async (investment: AvailableInvestments) => {
   } else {
     return null;
   }
-};
+};*/
 
 export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
   const localStore = get(store);

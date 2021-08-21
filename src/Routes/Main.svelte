@@ -128,15 +128,37 @@
                 $store.tokens.PLENTY.decimals
               );
             } else if ($store.investments[inv].liquidityToken) {
+              let contractAddress = "";
+              switch (inv) {
+                case "PLENTY-wBUSD":
+                  contractAddress = "KT1XXAavg3tTj12W1ADvd3EEnm1pu6XTmiEF";
+                  break;
+                case "PLENTY-wUSDC":
+                  contractAddress = "KT1PuPNtDFLR6U7e7vDuxunDoKasVT6kMSkz";
+                  break;
+                case "PLENTY-wWBTC":
+                  contractAddress = "KT19Dskaofi6ZTkrw3Tq4pK7fUqHqCz4pTZ3";
+                  break;
+              }
               /*const storageResponse = await fetch(
-                `https://api.tzkt.io/v1/contracts/${$store.investments[inv].address}/storage`
+                `https://api.tzkt.io/v1/contracts/${contractAddress}/storage`
               );
               if (storageResponse) {
                 const storage = await storageResponse.json();
-                console.log(lqtOutput({
-                  lqTokens: $store.investments[inv].balance,
-                  pool: 
-                }));
+                console.log({
+                  lqTokens: +$store.investments[inv].balance,
+                  pool: +storage.token1_pool,
+                  lqtTotal: +storage.totalSupply,
+                  decimals: $store.investments[inv].decimals
+                });
+                console.log(
+                  lqtOutput({
+                    lqTokens: +$store.investments[inv].balance,
+                    pool: +storage.token1_pool,
+                    lqtTotal: +storage.totalSupply,
+                    decimals: $store.investments[inv].decimals
+                  })
+                );
               }*/
             }
             // PAUL
