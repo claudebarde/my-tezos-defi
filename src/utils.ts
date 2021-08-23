@@ -230,7 +230,9 @@ export const searchUserTokens = async ({
         .filter(val => val.status === "fulfilled" && val.value)
         .forEach((val: PromiseFulfilledResult<any>) => {
           const token = tokens.find(tk => tk[0] === val.value.token);
-          if (
+          if (!val.value.active) {
+            newBalances[token[0]] = 0;
+          } else if (
             (token[1].type === "fa1.2" || token[1].type === "fa2") &&
             val.value.value
           ) {
