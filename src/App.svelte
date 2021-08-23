@@ -252,27 +252,6 @@
         investments: any;
       } = await defiDataResponse.json();
       if (defiData.tokens) {
-        // TEST
-        defiData.tokens.wBUSD = {
-          address: "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
-          dexContractAddress: "KT1UMAE2PBskeQayP5f2ZbGiVYF7h8bZ2gyp",
-          decimals: 18,
-          ledgerPath: "assets/ledger",
-          ledgerKey: ["address", 1],
-          type: "fa2",
-          color: "#F6CE13",
-          tokenId: 1
-        };
-        defiData.tokens.wUSDC = {
-          address: "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
-          dexContractAddress: "KT1U2hs5eNdeCpHouAvQXGMzGFGJowbhjqmo",
-          decimals: 6,
-          ledgerPath: "assets/ledger",
-          ledgerKey: ["address", 17],
-          type: "fa2",
-          color: "#F6CE13",
-          tokenId: 17
-        };
         // updates store
         let tokens = [];
         Object.entries(defiData.tokens).map(([tokenSymbol, token]) => {
