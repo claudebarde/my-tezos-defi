@@ -71,5 +71,10 @@ export default {
   lbContracts: [
     "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
     "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
-  ]
+  ],
+  plentyDexAddresses: {
+    "PLENTY-wBUSD": "KT1XXAavg3tTj12W1ADvd3EEnm1pu6XTmiEF",
+    "PLENTY-wUSDC": "KT1PuPNtDFLR6U7e7vDuxunDoKasVT6kMSkz",
+    "PLENTY-wWBTC": "KT19Dskaofi6ZTkrw3Tq4pK7fUqHqCz4pTZ3"
+  }
 };

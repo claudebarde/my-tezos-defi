@@ -13,8 +13,9 @@
   import {
     calcTotalShareValueInTez,
     calculateLqtOutput,
-    lqtOutput
+    getPlentyLqtValue
   } from "../utils";
+  import config from "../config";
 
   let totalAmounts = { XTZ: undefined, TOKENS: undefined, FIAT: undefined };
   let totalInvestments = { XTZ: undefined, FIAT: undefined };
@@ -89,96 +90,82 @@
       ) {
         let tempTotalInvestments = 0;
 
-        // fetches storage data for Plenty LP farms
-        /*const plentyLqtFarms = await Promise.allSettled(
-          $localStorageStore.favoriteInvestments
-            .filter(inv =>
-              ["PLENTY-wBUSD", "PLENTY-wUSDC", "PLENTY-wWBTC"].includes(inv)
-            )
-            .map(inv => [
-              inv,
-              fetch(
-                `https://api.tzkt.io/v1/contracts/${$store.investments[inv].address}/storage`
-              )
-            ])
-        );
-        console.log(plentyLqtFarms);*/
-
-        $localStorageStore.favoriteInvestments.forEach(async inv => {
-          // PLENTY
-          if ($store.investments[inv].platform === "plenty") {
-            if (
-              inv !== AvailableInvestments["PLENTY-XTZ-LP"] &&
-              $store.tokensExchangeRates[$store.investments[inv].token] &&
-              !$store.investments[inv].liquidityToken
-            ) {
-              tempTotalInvestments +=
-                ($store.investments[inv].balance /
-                  10 ** $store.investments[inv].decimals) *
-                $store.tokensExchangeRates[$store.investments[inv].token]
-                  .tokenToTez;
-            } else if (
-              inv === AvailableInvestments["PLENTY-XTZ-LP"] &&
-              $store.tokensExchangeRates.PLENTY
-            ) {
-              tempTotalInvestments += calcTotalShareValueInTez(
-                $store.investments[inv].balance,
-                $store.investments[inv].shareValueInTez,
-                $store.tokensExchangeRates.PLENTY.tokenToTez,
-                $store.tokens.PLENTY.decimals
-              );
-            } else if ($store.investments[inv].liquidityToken) {
-              let contractAddress = "";
-              switch (inv) {
-                case "PLENTY-wBUSD":
-                  contractAddress = "KT1XXAavg3tTj12W1ADvd3EEnm1pu6XTmiEF";
-                  break;
-                case "PLENTY-wUSDC":
-                  contractAddress = "KT1PuPNtDFLR6U7e7vDuxunDoKasVT6kMSkz";
-                  break;
-                case "PLENTY-wWBTC":
-                  contractAddress = "KT19Dskaofi6ZTkrw3Tq4pK7fUqHqCz4pTZ3";
-                  break;
-              }
-              /*const storageResponse = await fetch(
-                `https://api.tzkt.io/v1/contracts/${contractAddress}/storage`
-              );
-              if (storageResponse) {
-                const storage = await storageResponse.json();
-                console.log({
-                  lqTokens: +$store.investments[inv].balance,
-                  pool: +storage.token1_pool,
-                  lqtTotal: +storage.totalSupply,
-                  decimals: $store.investments[inv].decimals
-                });
-                console.log(
-                  lqtOutput({
-                    lqTokens: +$store.investments[inv].balance,
-                    pool: +storage.token1_pool,
-                    lqtTotal: +storage.totalSupply,
-                    decimals: $store.investments[inv].decimals
-                  })
+        let tempTotalInvPromises: any = await Promise.allSettled(
+          $localStorageStore.favoriteInvestments.map(async inv => {
+            // PLENTY
+            if ($store.investments[inv].platform === "plenty") {
+              if (
+                inv !== AvailableInvestments["PLENTY-XTZ-LP"] &&
+                $store.tokensExchangeRates[$store.investments[inv].token] &&
+                !$store.investments[inv].liquidityToken
+              ) {
+                return (
+                  ($store.investments[inv].balance /
+                    10 ** $store.investments[inv].decimals) *
+                  $store.tokensExchangeRates[$store.investments[inv].token]
+                    .tokenToTez
                 );
-              }*/
+              } else if (
+                inv === AvailableInvestments["PLENTY-XTZ-LP"] &&
+                $store.tokensExchangeRates.PLENTY
+              ) {
+                return calcTotalShareValueInTez(
+                  $store.investments[inv].balance,
+                  $store.investments[inv].shareValueInTez,
+                  $store.tokensExchangeRates.PLENTY.tokenToTez,
+                  $store.tokens.PLENTY.decimals
+                );
+              } else if (
+                $store.investments[inv].liquidityToken &&
+                inv !== AvailableInvestments["PLENTY-XTZ-LP"]
+              ) {
+                const pair = $store.investments[inv].id;
+                const tokens = await getPlentyLqtValue(
+                  pair,
+                  config.plentyDexAddresses[pair],
+                  $store.investments[inv].balance,
+                  $store.Tezos
+                );
+                if (tokens) {
+                  const token1AmountInTez =
+                    (tokens.token1Amount /
+                      10 ** $store.tokens.PLENTY.decimals) *
+                    $store.tokensExchangeRates.PLENTY.tokenToTez;
+                  const token2AmountInTez =
+                    (tokens.token2Amount /
+                      10 ** $store.tokens[tokens.token2].decimals) *
+                    $store.tokensExchangeRates[tokens.token2].tokenToTez;
+
+                  return token1AmountInTez + token2AmountInTez;
+                }
+              }
+              // PAUL
+            } else if ($store.investments[inv].platform === "paul") {
+              if (inv === AvailableInvestments["PAUL-PAUL"]) {
+                return (
+                  ($store.investments[inv].balance /
+                    10 ** $store.investments[inv].decimals) *
+                  $store.tokensExchangeRates[$store.investments[inv].token]
+                    .tokenToTez
+                );
+              }
+              // kDAO
+            } else if ($store.investments[inv].platform === "kdao") {
+              if (inv === AvailableInvestments["KUSD-KDAO"]) {
+                return (
+                  ($store.investments[inv].balance /
+                    10 ** $store.investments[inv].decimals) *
+                  $store.tokensExchangeRates[$store.investments[inv].token]
+                    .tokenToTez
+                );
+              }
             }
-            // PAUL
-          } else if ($store.investments[inv].platform === "paul") {
-            if (inv === AvailableInvestments["PAUL-PAUL"]) {
-              tempTotalInvestments +=
-                ($store.investments[inv].balance /
-                  10 ** $store.investments[inv].decimals) *
-                $store.tokensExchangeRates[$store.investments[inv].token]
-                  .tokenToTez;
-            }
-            // kDAO
-          } else if ($store.investments[inv].platform === "kdao") {
-            if (inv === AvailableInvestments["KUSD-KDAO"]) {
-              tempTotalInvestments +=
-                ($store.investments[inv].balance /
-                  10 ** $store.investments[inv].decimals) *
-                $store.tokensExchangeRates[$store.investments[inv].token]
-                  .tokenToTez;
-            }
+          })
+        );
+
+        tempTotalInvPromises.forEach(res => {
+          if (res.status === "fulfilled" && !isNaN(res.value)) {
+            tempTotalInvestments += +res.value;
           }
         });
 
@@ -369,10 +356,10 @@
 <LiquidityBaking />
 <br />
 <br />
+<Charts />
+<br />
+<br />
 <LastOperations
   lastOps={$store.lastOperations}
   filterOps={{ opType: "general" }}
 />
-<br />
-<br />
-<Charts />

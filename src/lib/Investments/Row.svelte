@@ -4,11 +4,13 @@
   import {
     calcTotalShareValueInTez,
     shortenHash,
-    prepareOperation
+    prepareOperation,
+    getPlentyLqtValue
   } from "../../utils";
   import ManagePlenty from "../Modal/ManagePlenty.svelte";
   import { AvailableToken } from "../../types";
   import toastStore from "../Toast/toastStore";
+  import config from "../../config";
 
   export let data, platform, valueInXtz, rewards;
 
@@ -206,6 +208,9 @@
       <span class:blurry-text={$store.blurryBalances}>
         {+(data.balance / 10 ** data.decimals).toFixed(3) / 1}
       </span>
+      <!--
+        <span style="font-size:0.7rem"> (8%) </span>
+      -->
     </div>
   {/if}
   {#if platform === "quipuswap"}
@@ -233,6 +238,42 @@
             ).toFixed(5) / 1}
           </span>
         {/if}
+      </div>
+    {:else if data.liquidityToken && data.alias !== "PLENTY-XTZ LP farm"}
+      <div>
+        {#await getPlentyLqtValue(data.id, config.plentyDexAddresses[data.id], +data.balance, $store.Tezos)}
+          <span class="material-icons"> hourglass_empty </span>
+        {:then tokens}
+          {#if tokens === null}
+            <span>--</span>
+          {:else}
+            <!-- Total value -->
+            {#if valueInXtz}
+              <span class:blurry-text={$store.blurryBalances}>
+                {+(
+                  (tokens.token1Amount / 10 ** $store.tokens.PLENTY.decimals) *
+                    $store.tokensExchangeRates.PLENTY.tokenToTez +
+                  (tokens.token2Amount /
+                    10 ** $store.tokens[tokens.token2].decimals) *
+                    $store.tokensExchangeRates[tokens.token2].tokenToTez
+                ).toFixed(5) / 1}
+              </span>
+            {:else}
+              <span class:blurry-text={$store.blurryBalances}>
+                {+(
+                  ((tokens.token1Amount / 10 ** $store.tokens.PLENTY.decimals) *
+                    $store.tokensExchangeRates.PLENTY.tokenToTez +
+                    (tokens.token2Amount /
+                      10 ** $store.tokens[tokens.token2].decimals) *
+                      $store.tokensExchangeRates[tokens.token2].tokenToTez) *
+                  $store.xtzData.exchangeRate
+                ).toFixed(5) / 1}
+              </span>
+            {/if}
+          {/if}
+        {:catch _}
+          <span>--</span>
+        {/await}
       </div>
     {:else if data.alias === "PLENTY-XTZ LP farm" && $store.tokensExchangeRates.PLENTY}
       <div>
@@ -539,6 +580,12 @@
       <span class:blurry-text={$store.blurryBalances}>
         {+data.tzbtc.toFixed(8) / 1}
       </span>
+    </div>
+    <div>
+      {(
+        ($store.liquidityBaking.balance / $store.liquidityBaking.lqtTotal) *
+        100
+      ).toFixed(5)} %
     </div>
   {/if}
 </div>

@@ -357,6 +357,7 @@
             <div>LQT balance</div>
             <div>Value in XTZ</div>
             <div>Value in tzBTC</div>
+            <div>% of pool</div>
           </div>
           <Row
             data={{

@@ -1212,3 +1212,54 @@ export const calculateLqtOutput = ({
     tzbtc: +xtzOut * tezToTzbtc
   };
 };
+
+const getLPConversion = (
+  token1_pool: number,
+  token2_pool: number,
+  totalSupply: number,
+  lpAmount: number
+) => {
+  const token1Amount = (token1_pool * lpAmount) / totalSupply;
+  const token2Amount = (token2_pool * lpAmount) / totalSupply;
+  return {
+    token1Amount,
+    token2Amount
+  };
+};
+
+export const getPlentyLqtValue = async (
+  exchangePair: AvailableInvestments,
+  exchangeaAddress: string,
+  lpAmount: number,
+  Tezos: TezosToolkit
+) => {
+  try {
+    // formats LP token amount according to exchange
+    let formattedLpAmount;
+    switch (exchangePair) {
+      case "PLENTY-wBUSD":
+        formattedLpAmount = lpAmount;
+        break;
+      case "PLENTY-wUSDC":
+        formattedLpAmount = lpAmount / 10 ** 6;
+        break;
+      case "PLENTY-wWBTC":
+        formattedLpAmount = lpAmount / 10 ** 5;
+        break;
+    }
+
+    const exchangeContract = await Tezos.wallet.at(exchangeaAddress);
+    const exchangeStorage: any = await exchangeContract.storage();
+    const tokenAmounts = getLPConversion(
+      exchangeStorage.token1_pool.toNumber(),
+      exchangeStorage.token2_pool.toNumber(),
+      exchangeStorage.totalSupply.toNumber(),
+      formattedLpAmount
+    );
+
+    return { ...tokenAmounts, token2: exchangePair.split("-")[1] };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};

@@ -16,7 +16,7 @@
 </style>
 
 <div class="container">
-  <div class="title">Charts</div>
+  <div class="title">Stats</div>
   <div class="container-body">
     {#if $store.lastOperations.length > 0}
       <LastOpsTargets />
