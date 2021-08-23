@@ -138,13 +138,35 @@
     },
     "wMATIC": {
       "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
-      "dexContractAddress": "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
+      "dexContractAddress": "KT1RsfuBee5o7GtYrdB7bzQ1M6oVgyBnxY4S",
       "decimals": 18,
       "ledgerPath": "assets/ledger",
       "ledgerKey": ["address", 11],
       "type": "fa2",
       "color": "#F6CE13",
       "tokenId": 11,
+      "whitelisted": true
+    },
+    "wBUSD": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1UMAE2PBskeQayP5f2ZbGiVYF7h8bZ2gyp",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 1],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 1,
+      "whitelisted": true
+    },
+    "wUSDC": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1U2hs5eNdeCpHouAvQXGMzGFGJowbhjqmo",
+      "decimals": 6,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 17],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 17,
       "whitelisted": true
     },
     "crDAO": {

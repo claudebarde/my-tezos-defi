@@ -801,7 +801,143 @@ export const prepareOperation = (p: {
   }
 };
 
-export const loadInvestment = async (investment: AvailableInvestments) => {
+export const loadInvestment = async (
+  investment: AvailableInvestments,
+  userAddress: TezosAccountAddress
+) => {
+  const localStore = get(store);
+  if (localStore.investments && localStore.investments[investment]) {
+    const inv = localStore.investments[investment];
+    if (inv.platform === "plenty") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/balances/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          const balance = +userData.value.balance;
+          const info = [];
+          Object.values(userData.value.InvestMap).forEach(val =>
+            info.push(val)
+          );
+
+          if (inv.id === "PLENTY-XTZ-LP") {
+            const dex = await findDex(
+              localStore.Tezos,
+              config.quipuswapFactories,
+              {
+                contract: localStore.tokens.PLENTY.address
+              }
+            );
+            const dexStorage = await dex.contract.storage();
+            const tezInShares = await estimateTezInShares(dexStorage, 1000000);
+
+            return {
+              id: inv.id,
+              balance,
+              info,
+              shareValueInTez: tezInShares.toNumber()
+            };
+          }
+
+          return { id: inv.id, balance, info };
+        } else {
+          return null;
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "quipuswap") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/ledger/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          return {
+            id: inv.id,
+            balance: +userData.value.balance,
+            info: undefined
+          };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "paul") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/account_info/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          return {
+            id: inv.id,
+            balance: +userData.value.amount,
+            info: undefined
+          };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "kdao") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/delegators/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          return {
+            id: inv.id,
+            balance: +userData.value.lpTokenBalance,
+            info: undefined
+          };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+};
+
+/*export const loadInvestment = async (investment: AvailableInvestments) => {
   const localStore = get(store);
   if (localStore.investments && localStore.investments[investment]) {
     const inv = localStore.investments[investment];
@@ -894,7 +1030,7 @@ export const loadInvestment = async (investment: AvailableInvestments) => {
   } else {
     return null;
   }
-};
+};*/
 
 export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
   const localStore = get(store);
@@ -1075,4 +1211,55 @@ export const calculateLqtOutput = ({
     xtz: xtzOut,
     tzbtc: +xtzOut * tezToTzbtc
   };
+};
+
+const getLPConversion = (
+  token1_pool: number,
+  token2_pool: number,
+  totalSupply: number,
+  lpAmount: number
+) => {
+  const token1Amount = (token1_pool * lpAmount) / totalSupply;
+  const token2Amount = (token2_pool * lpAmount) / totalSupply;
+  return {
+    token1Amount,
+    token2Amount
+  };
+};
+
+export const getPlentyLqtValue = async (
+  exchangePair: AvailableInvestments,
+  exchangeaAddress: string,
+  lpAmount: number,
+  Tezos: TezosToolkit
+) => {
+  try {
+    // formats LP token amount according to exchange
+    let formattedLpAmount;
+    switch (exchangePair) {
+      case "PLENTY-wBUSD":
+        formattedLpAmount = lpAmount;
+        break;
+      case "PLENTY-wUSDC":
+        formattedLpAmount = lpAmount / 10 ** 6;
+        break;
+      case "PLENTY-wWBTC":
+        formattedLpAmount = lpAmount / 10 ** 5;
+        break;
+    }
+
+    const exchangeContract = await Tezos.wallet.at(exchangeaAddress);
+    const exchangeStorage: any = await exchangeContract.storage();
+    const tokenAmounts = getLPConversion(
+      exchangeStorage.token1_pool.toNumber(),
+      exchangeStorage.token2_pool.toNumber(),
+      exchangeStorage.totalSupply.toNumber(),
+      formattedLpAmount
+    );
+
+    return { ...tokenAmounts, token2: exchangePair.split("-")[1] };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
 };

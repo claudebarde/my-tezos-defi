@@ -142,7 +142,7 @@
     const investments = await Promise.all(
       Object.values($store.investments)
         .filter(inv => $localStorageStore.favoriteInvestments.includes(inv.id))
-        .map(inv => loadInvestment(inv.id))
+        .map(inv => loadInvestment(inv.id, $store.userAddress))
     );
     if (investments && investments.length > 0) {
       investments.forEach(inv => {
@@ -357,6 +357,7 @@
             <div>LQT balance</div>
             <div>Value in XTZ</div>
             <div>Value in tzBTC</div>
+            <div>% of pool</div>
           </div>
           <Row
             data={{

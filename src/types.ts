@@ -21,6 +21,8 @@ export enum AvailableToken {
   KALAM = "KALAM",
   wLINK = "wLINK",
   wMATIC = "wMATIC",
+  wUSDC = "wUSDC",
+  wBUSD = "wBUSD",
   PAUL = "PAUL",
   SDAO = "sDAO",
   SMAK = "SMAK",
@@ -134,6 +136,7 @@ export interface State {
           favorite: boolean;
           alias?: string;
           shareValueInTez?: number;
+          totalSupply?: number;
         };
       }
     | undefined;

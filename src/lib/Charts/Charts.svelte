@@ -1,6 +1,7 @@
 <script lang="ts">
   import LastOpsTargets from "./LastOpsTargets.svelte";
   import TransfersValues from "./TransfersValues.svelte";
+  import LqtValue from "./LqtValue.svelte";
   import store from "../../store";
 </script>
 
@@ -15,11 +16,12 @@
 </style>
 
 <div class="container">
-  <div class="title">Charts</div>
+  <div class="title">Stats</div>
   <div class="container-body">
     {#if $store.lastOperations.length > 0}
       <LastOpsTargets />
       <TransfersValues />
+      <LqtValue />
     {:else}
       Waiting for data to display...
     {/if}

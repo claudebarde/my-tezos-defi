@@ -56,7 +56,7 @@
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
     loadingInv = investment;
-    const savedInv = await loadInvestment(investment);
+    const savedInv = await loadInvestment(investment, $store.userAddress);
     if (savedInv) {
       store.updateInvestments({
         ...$store.investments,
