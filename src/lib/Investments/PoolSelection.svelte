@@ -340,10 +340,12 @@
             {#await $store.Tezos.tz.getBalance(vault)}
               Loading {shortenHash(vault)}...
             {:then value}
-              <span class="material-icons" style="vertical-align:sub">
-                inventory_2
-              </span>
-              <span>{shortenHash(vault)}: {+value / 10 ** 6} ꜩ</span>
+              <div>
+                <span class="material-icons" style="vertical-align:sub">
+                  inventory_2
+                </span>
+                <span>{shortenHash(vault)}: {+value / 10 ** 6} ꜩ</span>
+              </div>
             {:catch error}
               Unable to load the vault
             {/await}

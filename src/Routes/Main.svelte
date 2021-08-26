@@ -272,13 +272,13 @@
       Tokens value:
       {#if totalAmounts.XTZ}
         <span class:blurry-text={$store.blurryBalances}>
-          {totalAmounts.XTZ.toFixed(2)}
+          {(+totalAmounts.XTZ.toFixed(2) / 1).toLocaleString("en-US")}
         </span> XTZ
       {:else}
         N/A
       {/if} - {#if totalAmounts.FIAT}
         <span class:blurry-text={$store.blurryBalances}>
-          {totalAmounts.FIAT.toFixed(2)}
+          {(+totalAmounts.FIAT.toFixed(2) / 1).toLocaleString("en-US")}
         </span>
         {$localStorageStore.preferredFiat}
       {:else}
@@ -302,11 +302,11 @@
     <div>
       {#if totalInvestments.XTZ && totalInvestments.FIAT}
         Investments: <span class:blurry-text={$store.blurryBalances}>
-          {+totalInvestments.XTZ.toFixed(2) / 1}
+          {(+totalInvestments.XTZ.toFixed(2) / 1).toLocaleString("en-US")}
         </span>
         XTZ -
         <span class:blurry-text={$store.blurryBalances}>
-          {+totalInvestments.FIAT.toFixed(2) / 1}
+          {(+totalInvestments.FIAT.toFixed(2) / 1).toLocaleString("en-US")}
         </span>
         {$localStorageStore.preferredFiat}
       {/if}
@@ -317,11 +317,15 @@
     <div>
       {#if totalInvestments.XTZ && totalInvestments.FIAT && totalAmounts.XTZ && totalAmounts.FIAT}
         Total: <span class:blurry-text={$store.blurryBalances}>
-          {+(totalInvestments.XTZ + totalAmounts.XTZ).toFixed(2) / 1}
+          {(
+            +(totalInvestments.XTZ + totalAmounts.XTZ).toFixed(2) / 1
+          ).toLocaleString("en-US")}
         </span>
         XTZ -
         <span class:blurry-text={$store.blurryBalances}>
-          {+(totalInvestments.FIAT + totalAmounts.FIAT).toFixed(2) / 1}
+          {(
+            +(totalInvestments.FIAT + totalAmounts.FIAT).toFixed(2) / 1
+          ).toLocaleString("en-US")}
         </span>
         {$localStorageStore.preferredFiat}
       {/if}

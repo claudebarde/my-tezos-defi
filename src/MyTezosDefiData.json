@@ -267,6 +267,17 @@
       "color": "#3FBD93",
       "tokenId": 0,
       "whitelisted": true
+    },
+    "QUIPU": {
+      "address": "KT193D4vozYnhGJQVtw7CoxxqphqUEEwK6Vb",
+      "dexContractAddress": "KT1X3zxdTzPB9DgVzA3ad6dgZe9JEamoaeRy",
+      "decimals": 6,
+      "ledgerPath": "account_info",
+      "ledgerKey": "address",
+      "type": "fa2",
+      "color": "#FC7F03",
+      "tokenId": 0,
+      "whitelisted": true
     }
   },
   "investments": {
@@ -277,7 +288,7 @@
       "decimals": 6,
       "info": [],
       "alias": "QuipuSwap PLENTY",
-      "icons": ["QUIPU", "PLENTY"],
+      "icons": ["QUIPUSWAP", "PLENTY"],
       "token": null,
       "liquidityToken": true
     },
@@ -288,7 +299,7 @@
       "decimals": 6,
       "info": [],
       "alias": "QuipuSwap kUSD",
-      "icons": ["QUIPU", "KUSD"],
+      "icons": ["QUIPUSWAP", "KUSD"],
       "token": null,
       "liquidityToken": true
     },
@@ -299,7 +310,7 @@
       "decimals": 0,
       "info": [],
       "alias": "QuipuSwap USDtz",
-      "icons": ["QUIPU", "USDTZ"],
+      "icons": ["QUIPUSWAP", "USDTZ"],
       "token": null,
       "liquidityToken": true
     },
@@ -310,7 +321,7 @@
       "decimals": 0,
       "info": [],
       "alias": "QuipuSwap ETHtz",
-      "icons": ["QUIPU", "ETHTZ"],
+      "icons": ["QUIPUSWAP", "ETHTZ"],
       "token": null,
       "liquidityToken": true
     },
@@ -321,7 +332,7 @@
       "decimals": 0,
       "info": [],
       "alias": "QuipuSwap CRUNCH",
-      "icons": ["QUIPU", "CRUNCH"],
+      "icons": ["QUIPUSWAP", "CRUNCH"],
       "token": null,
       "liquidityToken": true
     },
@@ -474,7 +485,7 @@
       "decimals": 6,
       "info": [],
       "alias": "kUSD Quipu LP Farm",
-      "icons": ["KUSD", "QUIPU"],
+      "icons": ["KUSD", "QUIPUSWAP"],
       "token": "kDAO",
       "liquidityToken": true
     },
@@ -496,7 +507,7 @@
       "decimals": 36,
       "info": [],
       "alias": "QL kUSD Farm",
-      "icons": ["QUIPU"],
+      "icons": ["QUIPUSWAP"],
       "token": "kUSD",
       "liquidityToken": true
     }

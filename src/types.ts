@@ -28,7 +28,8 @@ export enum AvailableToken {
   SMAK = "SMAK",
   GOT = "GOT",
   HERA = "HERA",
-  KDAO = "kDAO"
+  KDAO = "kDAO",
+  QUIPU = "QUIPU"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -73,7 +74,7 @@ export interface TokenContract {
   favorite: boolean;
 }
 
-export type IconValue = AvailableToken | "XTZ" | "QUIPU" | "crDAO" | "user";
+export type IconValue = AvailableToken | "XTZ" | "QUIPUSWAP" | "crDAO" | "user";
 export type IconSet = IconValue[];
 
 export interface Operation {
