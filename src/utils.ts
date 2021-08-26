@@ -223,6 +223,18 @@ export const searchUserTokens = async ({
         token[1].decimals
       );
     }
+    // QUIPU
+    if (tokens.find(tk => tk[0] === "tzBTC")) {
+      const token = tokens.find(tk => tk[0] === "QUIPU");
+      const balanceResponse = await fetch(
+        url(token[1].address, "account_info", userAddress)
+      );
+      const balance = await balanceResponse.json();
+      const balances: { [p: number]: string } = balance.value.balances;
+      newBalances.QUIPU =
+        +[0, 0, Object.values(balances)].reduce((a, b) => +a + +b) /
+        10 ** token[1].decimals;
+    }
 
     const aggregatedResults = [...balancesContracts, ...ledgerContracts];
     if (aggregatedResults) {
@@ -403,22 +415,22 @@ export const getOpIcons = (
       icons = [AvailableToken.PLENTY, AvailableToken.USDTZ];
       break;
     case "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6":
-      icons = ["QUIPU", AvailableToken.KUSD];
+      icons = ["QUIPUSWAP", AvailableToken.KUSD];
       break;
     case "KT1AxaBxkFLCUi3f8rdDAAxBKHfzY8LfKDRA":
-      icons = ["QUIPU", AvailableToken.KUSD];
+      icons = ["QUIPUSWAP", AvailableToken.KUSD];
       break;
     case "KT1X1LgNkQShpF9nRLYw3Dgdy4qp38MX617z":
-      icons = ["QUIPU", AvailableToken.PLENTY];
+      icons = ["QUIPUSWAP", AvailableToken.PLENTY];
       break;
     case "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb":
-      icons = ["QUIPU", AvailableToken.USDTZ];
+      icons = ["QUIPUSWAP", AvailableToken.USDTZ];
       break;
     case "KT1Evsp2yA19Whm24khvFPcwimK6UaAJu8Zo":
-      icons = ["QUIPU", AvailableToken.ETHTZ];
+      icons = ["QUIPUSWAP", AvailableToken.ETHTZ];
       break;
     case "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4":
-      icons = ["QUIPU", AvailableToken.CRUNCH];
+      icons = ["QUIPUSWAP", AvailableToken.CRUNCH];
       break;
     case "KT1LRboPna9yQY9BrjtQYDS1DVxhKESK4VVd":
       icons = [AvailableToken.WRAP];
