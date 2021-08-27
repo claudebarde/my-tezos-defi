@@ -40,7 +40,7 @@
     }
   });
 
-  afterUpdate(async () => {
+  /*afterUpdate(async () => {
     if (
       !updating &&
       $store.userAddress &&
@@ -194,7 +194,14 @@
           FIAT: tempTotalInvestments * $store.xtzData.exchangeRate
         };
 
-        /*let tempTotalInvestments = 0;
+        
+      }
+
+      updating = false;
+    }
+  });*/
+
+  /*let tempTotalInvestments = 0;
         Object.entries($store.investments).forEach(([contractName, data]) => {
           if ($store.tokensExchangeRates[data.token] === undefined) return;
 
@@ -234,11 +241,6 @@
           XTZ: tempTotalInvestments,
           FIAT: tempTotalInvestments * $store.xtzData.exchangeRate
         };*/
-      }
-
-      updating = false;
-    }
-  });
 </script>
 
 <style lang="scss">
