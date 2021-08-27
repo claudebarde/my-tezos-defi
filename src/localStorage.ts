@@ -9,7 +9,7 @@ import generalStore from "./store";
 
 let state = null;
 const localStorageItemName = "mtd";
-const version = "3.2.0";
+const version = "3.3.0";
 let initialState: LocalStorageState = {
   preferredFiat: AvailableFiat.USD,
   pushNotifications: false,
@@ -30,33 +30,13 @@ const wrapUserState = (
 };
 
 if (globalThis?.window?.localStorage) {
-  /*const localStorage = window.localStorage.getItem(localStorageItemName);
-  if (localStorage) {
-    // gets the local storage
-    const stateFromStorage = JSON.parse(localStorage);
-    if (stateFromStorage.version !== initialState.version) {
-      initialState = { ...initialState, ...stateFromStorage };
-      // updates the local storage
-      window.localStorage.setItem(
-        localStorageItemName,
-        JSON.stringify(initialState)
-      );
-    } else {
-      initialState = { ...stateFromStorage };
-    }
-  } else {
-    // sets up the local storage
-    window.localStorage.setItem(
-      localStorageItemName,
-      JSON.stringify(initialState)
-    );
-  }*/
   const store = writable(undefined);
 
   state = {
     subscribe: store.subscribe,
     init: (userAddress: TezosAccountAddress) => {
-      store.update(store => {
+      console.log("init local storage:", userAddress);
+      store.update(_ => {
         if (!userAddress) {
           return initialState;
         } else {
@@ -65,9 +45,10 @@ if (globalThis?.window?.localStorage) {
           if (localStorage) {
             // gets the local storage
             const stateFromStorage = JSON.parse(localStorage);
-            let newState;
+            /*let newState;
             if (stateFromStorage.version !== version) {
               newState = { ...initialState, ...stateFromStorage[userAddress] };
+              console.log(newState);
               // updates the local storage
               try {
                 window.localStorage.setItem(
@@ -79,9 +60,15 @@ if (globalThis?.window?.localStorage) {
               }
             } else {
               newState = { ...stateFromStorage[userAddress] };
-            }
+            }*/
 
-            return newState;
+            console.log(stateFromStorage);
+
+            if (stateFromStorage.hasOwnProperty(userAddress)) {
+              return stateFromStorage[userAddress];
+            } else {
+              return initialState;
+            }
           } else {
             // sets up the local storage
             try {

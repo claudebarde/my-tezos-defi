@@ -1251,14 +1251,15 @@ export const getPlentyLqtValue = async (
     // formats LP token amount according to exchange
     let formattedLpAmount;
     switch (exchangePair) {
-      case "PLENTY-wBUSD":
-        formattedLpAmount = lpAmount;
-        break;
       case "PLENTY-wUSDC":
+      case "PLENTY-USDtz-LP":
         formattedLpAmount = lpAmount / 10 ** 6;
         break;
       case "PLENTY-wWBTC":
         formattedLpAmount = lpAmount / 10 ** 5;
+        break;
+      default:
+        formattedLpAmount = lpAmount;
         break;
     }
 

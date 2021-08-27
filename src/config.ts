@@ -75,6 +75,9 @@ export default {
   plentyDexAddresses: {
     "PLENTY-wBUSD": "KT1XXAavg3tTj12W1ADvd3EEnm1pu6XTmiEF",
     "PLENTY-wUSDC": "KT1PuPNtDFLR6U7e7vDuxunDoKasVT6kMSkz",
-    "PLENTY-wWBTC": "KT19Dskaofi6ZTkrw3Tq4pK7fUqHqCz4pTZ3"
+    "PLENTY-wWBTC": "KT19Dskaofi6ZTkrw3Tq4pK7fUqHqCz4pTZ3",
+    "PLENTY-USDtz-LP": "KT1D36ZG99YuhoCRZXLL86tQYAbv36bCq9XM",
+    "PLENTY-wMATIC-LP": "KT1VeNQa4mucRj36qAJ9rTzm4DTJKfemVaZT",
+    "PLENTY-wLINK-LP": "KT1XVrXmWY9AdVri6KpxKo4CWxizKajmgzMt"
   }
 };
