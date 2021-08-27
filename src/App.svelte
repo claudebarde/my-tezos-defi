@@ -293,24 +293,6 @@
       }
 
       if (defiData.investments) {
-        // TEST
-        if (
-          window.location.href.includes("localhost") ||
-          window.location.href.includes("staging")
-        ) {
-          defiData.investments["PLENTY-USDtz-LP"] = {
-            id: "PLENTY-USDtz-LP",
-            platform: "plenty",
-            address: "KT1VCrmywPNf8ZHH95HKHvYA4bBQJPa8g2sr",
-            decimals: 18,
-            info: [],
-            alias: "PLENTY-USDtz LP farm",
-            icons: ["PLENTY", "USDtz"],
-            token: "PLENTY",
-            liquidityToken: true
-          };
-        }
-
         Object.keys(defiData.investments).forEach(key => {
           defiData.investments[key].balance = 0;
           defiData.investments[key].favorite =

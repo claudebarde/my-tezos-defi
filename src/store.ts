@@ -45,7 +45,7 @@ const initialState: State = {
   },
   serviceFee: process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "QmbpPruPjKY5mpG9swqudtwoPX1EgsmowY5pd1xyeAniuL",
+  defiData: "QmUppDDEaG1RYJGxYQanFwJHmAdfsPr1QmVzr3qxJQ5EfA",
   liquidityBaking: undefined,
   blurryBalances: false
 };
