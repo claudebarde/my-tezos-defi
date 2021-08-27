@@ -187,7 +187,6 @@ export interface LocalStorageState {
   pushNotifications: boolean;
   favoriteTokens: AvailableToken[];
   favoriteInvestments: AvailableInvestments[];
-  favoriteRpcUrl: string;
   wXtzVaults: TezosContractAddress[];
   lastUpdate: number;
 }

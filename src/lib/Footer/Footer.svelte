@@ -1,3 +1,7 @@
+<script>
+  import config from "../../config";
+</script>
+
 <style lang="scss">
   footer {
     height: 100px;
@@ -59,6 +63,7 @@
       href="https://github.com/claudebarde/my-tezos-defi"
       target="_blank"
       rel="noopener noreferrer nofollow">Github</a
-    > - v3.3.0
+    >
+    - v{config.version}
   </div>
 </footer>

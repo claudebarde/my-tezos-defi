@@ -6,27 +6,29 @@ import type {
 } from "./types";
 import { AvailableFiat, AvailableToken, AvailableInvestments } from "./types";
 import generalStore from "./store";
+import config from "./config";
 
 let state = null;
 const localStorageItemName = "mtd";
-const version = "3.3.0";
+const version = config.version;
+let favoriteRpcUrl = "https://mainnet-tezos.giganode.io";
 let initialState: LocalStorageState = {
   preferredFiat: AvailableFiat.USD,
   pushNotifications: false,
   favoriteTokens: [],
   favoriteInvestments: [],
-  favoriteRpcUrl: "https://mainnet-tezos.giganode.io",
   wXtzVaults: [],
   lastUpdate: Date.now()
 };
 
 const wrapUserState = (
   state: LocalStorageState,
-  userAddress: TezosAccountAddress
+  userAddress: TezosAccountAddress,
+  favoriteRpcUrl: string
 ) => {
   if (!userAddress) throw "No user address";
 
-  return { [userAddress]: state, version };
+  return { [userAddress]: state, version, favoriteRpcUrl };
 };
 
 if (globalThis?.window?.localStorage) {
@@ -35,7 +37,6 @@ if (globalThis?.window?.localStorage) {
   state = {
     subscribe: store.subscribe,
     init: (userAddress: TezosAccountAddress) => {
-      console.log("init local storage:", userAddress);
       store.update(_ => {
         if (!userAddress) {
           return initialState;
@@ -45,36 +46,41 @@ if (globalThis?.window?.localStorage) {
           if (localStorage) {
             // gets the local storage
             const stateFromStorage = JSON.parse(localStorage);
-            /*let newState;
+            // saves favorite RPC URL
+            if (stateFromStorage.hasOwnProperty("favoriteRpcUrl")) {
+              favoriteRpcUrl = stateFromStorage.favoriteRpcUrl;
+            }
+            let newState;
             if (stateFromStorage.version !== version) {
               newState = { ...initialState, ...stateFromStorage[userAddress] };
-              console.log(newState);
+              if (newState.hasOwnProperty("favoriteRpcUrl")) {
+                // THIS CAN BE REMOVED AFTER A FEW UPDATES
+                delete newState.favoriteRpcUrl;
+              }
               // updates the local storage
               try {
                 window.localStorage.setItem(
                   localStorageItemName,
-                  JSON.stringify(wrapUserState(newState, userAddress))
+                  JSON.stringify(
+                    wrapUserState(newState, userAddress, favoriteRpcUrl)
+                  )
                 );
               } catch (error) {
                 console.error(error);
               }
             } else {
               newState = { ...stateFromStorage[userAddress] };
-            }*/
-
-            console.log(stateFromStorage);
-
-            if (stateFromStorage.hasOwnProperty(userAddress)) {
-              return stateFromStorage[userAddress];
-            } else {
-              return initialState;
             }
+
+            return newState;
           } else {
             // sets up the local storage
             try {
               window.localStorage.setItem(
                 localStorageItemName,
-                JSON.stringify(wrapUserState(initialState, userAddress))
+                JSON.stringify(
+                  wrapUserState(initialState, userAddress, favoriteRpcUrl)
+                )
               );
             } catch (error) {
               console.error(error);
@@ -97,13 +103,17 @@ if (globalThis?.window?.localStorage) {
           xtzExchangeRate: exchangeRate,
           lastUpdate: Date.now()
         };
-        try {
-          window.localStorage.setItem(
-            localStorageItemName,
-            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-          );
-        } catch (error) {
-          console.error(error);
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
         }
         return newStore;
       });
@@ -117,13 +127,17 @@ if (globalThis?.window?.localStorage) {
             ? [...store.favoriteTokens, tokenSymbol]
             : store.favoriteTokens
         };
-        try {
-          window.localStorage.setItem(
-            localStorageItemName,
-            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-          );
-        } catch (error) {
-          console.error(error);
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
         }
         return newStore;
       });
@@ -137,13 +151,17 @@ if (globalThis?.window?.localStorage) {
             ...store.favoriteTokens.filter(tk => tk !== tokenSymbol)
           ]
         };
-        try {
-          window.localStorage.setItem(
-            localStorageItemName,
-            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-          );
-        } catch (error) {
-          console.error(error);
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
         }
         return newStore;
       });
@@ -157,13 +175,17 @@ if (globalThis?.window?.localStorage) {
             ? [...store.favoriteInvestments, investment]
             : store.favoriteInvestments
         };
-        try {
-          window.localStorage.setItem(
-            localStorageItemName,
-            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-          );
-        } catch (error) {
-          console.error(error);
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
         }
         return newStore;
       });
@@ -177,13 +199,17 @@ if (globalThis?.window?.localStorage) {
             ...store.favoriteInvestments.filter(inv => inv !== investment)
           ]
         };
-        try {
-          window.localStorage.setItem(
-            localStorageItemName,
-            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-          );
-        } catch (error) {
-          console.error(error);
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
         }
         return newStore;
       });
@@ -197,13 +223,17 @@ if (globalThis?.window?.localStorage) {
             ? [...store.wXtzVaults, vault]
             : store.wXtzVaults
         };
-        try {
-          window.localStorage.setItem(
-            localStorageItemName,
-            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-          );
-        } catch (error) {
-          console.error(error);
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
         }
         return newStore;
       });
@@ -215,13 +245,17 @@ if (globalThis?.window?.localStorage) {
           ...store,
           wXtzVaults: [...store.wXtzVaults.filter(v => v !== vault)]
         };
-        try {
-          window.localStorage.setItem(
-            localStorageItemName,
-            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-          );
-        } catch (error) {
-          console.error(error);
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
         }
         return newStore;
       });
@@ -231,16 +265,19 @@ if (globalThis?.window?.localStorage) {
         const gnrlStore = get(generalStore);
         const newStore = {
           ...store,
-          favoriteRpcUrl: url,
           lastUpdate: Date.now()
         };
-        try {
-          window.localStorage.setItem(
-            localStorageItemName,
-            JSON.stringify(wrapUserState(newStore, gnrlStore.userAddress))
-          );
-        } catch (error) {
-          console.error(error);
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(newStore, gnrlStore.userAddress, url)
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
         }
         return newStore;
       });

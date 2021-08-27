@@ -41,7 +41,12 @@
   });
 
   afterUpdate(async () => {
-    if (!updating && $store.tokensBalances && $store.tokensExchangeRates) {
+    if (
+      !updating &&
+      $store.userAddress &&
+      $store.tokensBalances &&
+      $store.tokensExchangeRates
+    ) {
       updating = true;
 
       let valueInXTZ = 0;
@@ -268,7 +273,6 @@
 {#if $store.userAddress}
   <div class="stats">
     <div>
-      <!-- TOKENS + XTZ -->
       Tokens value:
       {#if totalAmounts.XTZ}
         <span class:blurry-text={$store.blurryBalances}>
