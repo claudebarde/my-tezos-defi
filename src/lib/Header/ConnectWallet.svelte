@@ -192,7 +192,7 @@
         case "https://mainnet-tezos.giganode.io":
           nodeIconLetter = "G";
           break;
-        case "https://api.tez.ie/rpc/mainnet":
+        case "https://mainnet.api.tez.ie":
           nodeIconLetter = "E";
           break;
         case "https://mainnet.smartpy.io/":
@@ -246,12 +246,14 @@
   }
 </style>
 
-{#if $store.userAddress}
+{#if $store.Tezos}
   <div title={`Connected to ${$store.Tezos.rpc.getRpcUrl()}`}>
     <sup>{nodeIconLetter}</sup><span class="material-icons connected-node">
       dns
     </span>
   </div>
+{/if}
+{#if $store.userAddress}
   <div>
     <span class:blurry-text={$store.blurryBalances}>
       <a href="#/profile">

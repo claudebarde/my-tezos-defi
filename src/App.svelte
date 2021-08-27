@@ -239,7 +239,15 @@
   };
 
   onMount(async () => {
-    const Tezos = new TezosToolkit($store.settings[$store.network].rpcUrl);
+    let rpcUrl = $store.settings[$store.network].rpcUrl;
+    if (window.localStorage) {
+      const settingsStorage = window.localStorage.getItem("mtd");
+      if (settingsStorage) {
+        const settings = JSON.parse(settingsStorage);
+        rpcUrl = settings.favoriteRpcUrl;
+      }
+    }
+    const Tezos = new TezosToolkit(rpcUrl);
     Tezos.setPackerProvider(new MichelCodecPacker());
     store.updateTezos(Tezos);
 
@@ -441,7 +449,7 @@
                 rate: price[1]
               }))
             );
-            if ($localStorageStore && $store.userAddress) {
+            if ($localStorageStore) {
               // saves the exchange rate in the local store
               localStorageStore.updateFiat(
                 $localStorageStore.preferredFiat,

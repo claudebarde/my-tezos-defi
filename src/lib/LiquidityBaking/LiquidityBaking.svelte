@@ -181,73 +181,75 @@
           </div>
         {/if}
       </div>
-      <div class="row">
-        <div class="tabs">
-          <label
-            for="lb-interact-trade"
-            class:selected={selectedTab === "trade"}
-          >
-            <input
-              type="radio"
-              name="lb-interact"
-              id="lb-interact-trade"
-              bind:group={selectedTab}
-              value="trade"
-            />
-            Trade
-          </label>
-          <label
-            for="lb-interact-add-liquidity"
-            class:selected={selectedTab === "add-liquidity"}
-          >
-            <input
-              type="radio"
-              name="lb-interact"
-              id="lb-interact-add-liquidity"
-              bind:group={selectedTab}
-              value="add-liquidity"
-            />
-            Add liquidity
-          </label>
-          <label
-            for="lb-interact-remove-liquidity"
-            class:selected={selectedTab === "remove-liquidity"}
-          >
-            <input
-              type="radio"
-              name="lb-interact"
-              id="lb-interact-remove-liquidity"
-              bind:group={selectedTab}
-              value="remove-liquidity"
-            />
-            Remove liquidity
-          </label>
+      {#if $store.userAddress}
+        <div class="row">
+          <div class="tabs">
+            <label
+              for="lb-interact-trade"
+              class:selected={selectedTab === "trade"}
+            >
+              <input
+                type="radio"
+                name="lb-interact"
+                id="lb-interact-trade"
+                bind:group={selectedTab}
+                value="trade"
+              />
+              Trade
+            </label>
+            <label
+              for="lb-interact-add-liquidity"
+              class:selected={selectedTab === "add-liquidity"}
+            >
+              <input
+                type="radio"
+                name="lb-interact"
+                id="lb-interact-add-liquidity"
+                bind:group={selectedTab}
+                value="add-liquidity"
+              />
+              Add liquidity
+            </label>
+            <label
+              for="lb-interact-remove-liquidity"
+              class:selected={selectedTab === "remove-liquidity"}
+            >
+              <input
+                type="radio"
+                name="lb-interact"
+                id="lb-interact-remove-liquidity"
+                bind:group={selectedTab}
+                value="remove-liquidity"
+              />
+              Remove liquidity
+            </label>
+          </div>
+          <br />
+          <br />
+          <div class="interact">
+            {#if selectedTab === "trade"}
+              <Trade {lbContractAddress} {tokenPool} {xtzPool} />
+            {:else if selectedTab === "add-liquidity"}
+              <AddLiquidity
+                {lbContractAddress}
+                {tokenPool}
+                {xtzPool}
+                {lqtTotal}
+                refreshData={fetchData}
+              />
+            {:else if selectedTab === "remove-liquidity"}
+              <RemoveLiquidity
+                {lbContractAddress}
+                {tokenPool}
+                {xtzPool}
+                {lqtTotal}
+                {userLqtBalance}
+                refreshData={fetchData}
+              />
+            {/if}
+          </div>
         </div>
-        <br />
-        <br />
-        <div class="interact">
-          {#if selectedTab === "trade"}
-            <Trade {lbContractAddress} {tokenPool} {xtzPool} />
-          {:else if selectedTab === "add-liquidity"}
-            <AddLiquidity
-              {lbContractAddress}
-              {tokenPool}
-              {xtzPool}
-              {lqtTotal}
-              refreshData={fetchData}
-            />
-          {:else if selectedTab === "remove-liquidity"}
-            <RemoveLiquidity
-              {lbContractAddress}
-              {tokenPool}
-              {xtzPool}
-              {lqtTotal}
-              {userLqtBalance}
-              refreshData={fetchData}
-            />
-          {/if}
-        </div>
-      </div>
+      {/if}
     {:else}
       <h3>Loading...</h3>
     {/if}

@@ -123,7 +123,7 @@
           <input
             type="text"
             list="rpc-nodes"
-            placeholder={$localStorageStore.favoriteRpcUrl}
+            placeholder={$store.Tezos.rpc.getRpcUrl()}
             bind:value={newRpcNode}
           />
           <button
