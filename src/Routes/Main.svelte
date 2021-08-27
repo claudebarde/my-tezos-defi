@@ -40,7 +40,7 @@
     }
   });
 
-  /*afterUpdate(async () => {
+  afterUpdate(async () => {
     if (
       !updating &&
       $store.userAddress &&
@@ -91,7 +91,9 @@
       if (
         $store.xtzData.exchangeRate &&
         $store.investments &&
-        localStorageStore
+        $localStorageStore &&
+        $localStorageStore.hasOwnProperty("favoriteInvestments") &&
+        $localStorageStore.favoriteInvestments.length > 0
       ) {
         let tempTotalInvestments = 0;
 
@@ -193,13 +195,11 @@
           XTZ: tempTotalInvestments,
           FIAT: tempTotalInvestments * $store.xtzData.exchangeRate
         };
-
-        
       }
 
       updating = false;
     }
-  });*/
+  });
 
   /*let tempTotalInvestments = 0;
         Object.entries($store.investments).forEach(([contractName, data]) => {
