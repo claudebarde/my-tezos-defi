@@ -446,6 +446,39 @@
       "token": "wWBTC",
       "liquidityToken": true
     },
+    "PLENTY-USDtz-LP": {
+      "id": "PLENTY-USDtz-LP",
+      "platform": "plenty",
+      "address": "KT1VCrmywPNf8ZHH95HKHvYA4bBQJPa8g2sr",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-USDtz LP farm",
+      "icons": ["PLENTY", "USDtz"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-wMATIC-LP": {
+      "id": "PLENTY-wMATIC-LP",
+      "platform": "plenty",
+      "address": "KT1UP9XHQigWMqNXYp9YXaCS1hV9jJkCF4h4",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-wMATIC LP farm",
+      "icons": ["PLENTY", "wMATIC"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-wLINK-LP": {
+      "id": "PLENTY-wLINK-LP",
+      "platform": "plenty",
+      "address": "KT1UqnQ6b1EwQgYiKss4mDL7aktAHnkdctTQ",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-wLINK LP farm",
+      "icons": ["PLENTY", "wLINK"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
     "CRUNCHY-FARMS": {
       "id": "CRUNCHY-FARMS",
       "platform": "crunchy",

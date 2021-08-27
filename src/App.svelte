@@ -20,6 +20,7 @@
   let liveTrafficWorker;
   let lastAppVisibility = 0;
   let coinGeckoInterval, tokensDataInterval;
+  let fetchedCoinGeckPrice = false;
 
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic" && msg.data.msg) {
@@ -284,6 +285,24 @@
       }
 
       if (defiData.investments) {
+        // TEST
+        if (
+          window.location.href.includes("localhost") ||
+          window.location.href.includes("staging")
+        ) {
+          defiData.investments["PLENTY-USDtz-LP"] = {
+            id: "PLENTY-USDtz-LP",
+            platform: "plenty",
+            address: "KT1VCrmywPNf8ZHH95HKHvYA4bBQJPa8g2sr",
+            decimals: 18,
+            info: [],
+            alias: "PLENTY-USDtz LP farm",
+            icons: ["PLENTY", "USDtz"],
+            token: "PLENTY",
+            liquidityToken: true
+          };
+        }
+
         Object.keys(defiData.investments).forEach(key => {
           defiData.investments[key].balance = 0;
           defiData.investments[key].favorite =
@@ -395,13 +414,14 @@
       liveTrafficWorker.onmessage = handleLiveTrafficWorker;
     }
 
-    /*if (!$localStorageStore && $store.userAddress) {
-      // inits local storage
-      localStorageStore.init($store.userAddress);
-    }*/
-
-    if (!$store.xtzData.exchangeRate && $localStorageStore) {
+    if (
+      !$store.xtzData.exchangeRate &&
+      $localStorageStore &&
+      !fetchedCoinGeckPrice
+    ) {
       // fetches XTZ exchange rate
+      fetchedCoinGeckPrice = true;
+
       try {
         if (!$localStorageStore.preferredFiat) {
           throw "Unknown preferred fiat value";
