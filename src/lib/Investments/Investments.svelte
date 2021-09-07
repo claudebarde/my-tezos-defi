@@ -198,6 +198,7 @@
     if (
       $localStorageStore &&
       $store.investments &&
+      $store.lastOperations.length > 0 &&
       lastRewardsCheck + 6000 < Date.now()
     ) {
       lastRewardsCheck = Date.now();

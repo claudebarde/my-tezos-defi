@@ -9,6 +9,7 @@
   import { createNewOpEntry, getKolibriOvens } from "../utils";
   import KolibriOven from "../lib/Tools/KolibriOven.svelte";
   import SendToken from "../lib/Tools/SendToken.svelte";
+  import PlentyExchange from "../lib/Tools/PlentyExchange.svelte";
 
   export let params;
 
@@ -246,13 +247,13 @@
       {:else}
         <div>No data</div>
       {/if}
-      {#if $store.tokensBalances[tokenSymbol]}
+      {#if $store.tokensBalances && $store.tokensBalances[tokenSymbol]}
         <br />
         <div>
           Balance: {+$store.tokensBalances[tokenSymbol].toFixed(5) / 1}
           {tokenSymbol}
         </div>
-        {#if $store.tokensExchangeRates[tokenSymbol]}
+        {#if $store.tokensExchangeRates && $store.tokensExchangeRates[tokenSymbol]}
           <br />
           <div>
             Total in XTZ: {+(
@@ -359,6 +360,16 @@
             <KolibriOven {oven} />
           {/if}
         {/each}
+      </div>
+    </div>
+    <br />
+    <br />
+  {/if}
+  {#if tokenSymbol === "PLENTY"}
+    <div class="container">
+      <div class="title">Exchange rates</div>
+      <div class="container-body">
+        <PlentyExchange />
       </div>
     </div>
     <br />

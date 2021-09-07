@@ -34,36 +34,55 @@
     Created by <a
       href="https://tzkt.io/tz1Me1MGhK7taay748h4gPnX2cXvbgL6xsYL/operations/"
       target="_blank"
-      rel="noopener noreferrer nofollow">Claude Barde</a
+      rel="noopener noreferrer nofollow"
     >
+      Claude Barde
+    </a>
     with
     <a
       href="https://tezostaquito.io/"
       target="_blank"
-      rel="noopener noreferrer nofollow">Taquito</a
-    >,
+      rel="noopener noreferrer nofollow"
+    >
+      Taquito
+    </a>,
     <a
       href="https://quipuswap.com/"
       target="_blank"
-      rel="noopener noreferrer nofollow">QuipuSwap</a
-    >,
+      rel="noopener noreferrer nofollow"
+    >
+      QuipuSwap
+    </a>,
     <a
       href="https://tzkt.io/"
       target="_blank"
-      rel="noopener noreferrer nofollow">TzKT.io</a
+      rel="noopener noreferrer nofollow"
     >
+      TzKT.io
+    </a>,
+    <a
+      href="https://teztools.io/"
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+    >
+      TezTools
+    </a>
     and
     <a
       href="https://www.coingecko.com/en/api"
       target="_blank"
-      rel="noopener noreferrer nofollow">CoinGecko</a
+      rel="noopener noreferrer nofollow"
     >
+      CoinGecko
+    </a>
     -
     <a
       href="https://github.com/claudebarde/my-tezos-defi"
       target="_blank"
-      rel="noopener noreferrer nofollow">Github</a
+      rel="noopener noreferrer nofollow"
     >
+      Github
+    </a>
     - v{config.version}
   </div>
 </footer>

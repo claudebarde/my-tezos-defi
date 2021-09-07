@@ -1,8 +1,11 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { onMount, afterUpdate, createEventDispatcher } from "svelte";
   import { slide } from "svelte/transition";
+  import type { IconValue } from "../../types";
 
-  export let options;
+  export let options: { icons: IconValue[]; name: string }[],
+    selected: string,
+    displaySelection: boolean;
 
   let openOptions = false;
   let hoveredOption = 0;
@@ -22,6 +25,18 @@
       sortByChars = val;
     }
   };
+
+  onMount(() => {
+    if (selected) {
+      selection = selected;
+    }
+  });
+
+  afterUpdate(() => {
+    if (selected && selected !== selection) {
+      selection = selected;
+    }
+  });
 </script>
 
 <style lang="scss">
@@ -70,8 +85,9 @@
       border-bottom-left-radius: 5px;
       border-top-right-radius: 0px;
       border-bottom-right-radius: 0px;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      padding: 5px;
 
       img {
         width: 25px;
@@ -89,6 +105,7 @@
     overflow: auto;
     color: $container-bg-color;
     width: $button-width + $input-width + $button-width;
+    z-index: 10;
 
     div {
       text-align: left;
@@ -192,7 +209,9 @@
 <div class="select-box">
   <div class="token-icon">
     {#if selection}
-      <img src={`images/${selection}.png`} alt={selection + "-token"} />
+      {#each options.find(opt => opt.name === selection).icons as icon}
+        <img src={`images/${icon}.png`} alt={icon + "-token"} />
+      {/each}
     {/if}
   </div>
   <input
@@ -206,10 +225,10 @@
   </button>
   {#if openOptions}
     <div class="select-box-options" transition:slide={{ duration: 300 }}>
-      {#each options.sort((a, b) => a
+      {#each options.sort((a, b) => a.name
           .toLowerCase()
-          .localeCompare(b.toLowerCase())) as option, index}
-        {#if !sortByChars || (sortByChars && option
+          .localeCompare(b.name.toLowerCase())) as option, index}
+        {#if !sortByChars || (sortByChars && option.name
               .toLowerCase()
               .includes(sortByChars.toLowerCase()))}
           <div
@@ -225,21 +244,25 @@
               hoveredOption = newHoveredOption;
             }}
             on:click={() => {
-              selection = option;
               openOptions = false;
-              dispatch("new-selection", option);
+              dispatch("new-selection", option.name);
+              if (displaySelection) {
+                selection = option.name;
+              }
             }}
           >
-            <img
-              class:slide-in-top={mouseDirection === "down" &&
-                hoveredOption === index + 1}
-              class:slide-in-bottom={mouseDirection === "up" &&
-                hoveredOption === index + 1}
-              src={`images/${option}.png`}
-              alt={option + "-token"}
-            />
+            {#each option.icons as icon}
+              <img
+                class:slide-in-top={mouseDirection === "down" &&
+                  hoveredOption === index + 1}
+                class:slide-in-bottom={mouseDirection === "up" &&
+                  hoveredOption === index + 1}
+                src={`images/${icon}.png`}
+                alt={icon + "-token"}
+              />
+            {/each}
             &nbsp;
-            {option}
+            {option.name}
           </div>
         {/if}
       {/each}

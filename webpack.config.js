@@ -49,7 +49,14 @@ module.exports = {
             },
             emitCss: prod,
             hotReload: !prod,
-            preprocess: sveltePreprocess({ sourceMap: !prod })
+            preprocess: sveltePreprocess({ sourceMap: !prod }),
+            onwarn: function (warning, handleWarning) {
+              if (warning.code === "a11y-no-onchange") {
+                return;
+              }
+              // process as usual
+              handleWarning(warning);
+            }
           }
         }
       },

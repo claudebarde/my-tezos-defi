@@ -278,6 +278,28 @@
       "color": "#FC7F03",
       "tokenId": 0,
       "whitelisted": true
+    },
+    "uUSD": {
+      "address": "KT1XRPEPXbZK25r3Htzp2o1x7xdMMmfocKNW",
+      "dexContractAddress": "KT1EtjRRCBC2exyCRXz8UfV7jz7svnkqi7di",
+      "decimals": 12,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#143A3A",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "YOU": {
+      "address": "KT1Xobej4mc6XgEjDoJoHtTKgbD1ELMvcQuL",
+      "dexContractAddress": "KT1PL1YciLdwMbydt21Ax85iZXXyGSrKT2BE",
+      "decimals": 12,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#143A3A",
+      "tokenId": 0,
+      "whitelisted": true
     }
   },
   "investments": {
@@ -347,72 +369,6 @@
       "token": "PLENTY",
       "liquidityToken": true
     },
-    "PLENTY-hDAO": {
-      "id": "PLENTY-hDAO",
-      "platform": "plenty",
-      "address": "KT1Ga15wxGR5oWK1vBG2GXbjYM6WqPgpfRSP",
-      "decimals": 18,
-      "info": [],
-      "alias": "Plenty hDAO staking",
-      "icons": ["PLENTY", "HDAO"],
-      "token": "hDAO",
-      "liquidityToken": false
-    },
-    "PLENTY-PLENTY": {
-      "id": "PLENTY-PLENTY",
-      "platform": "plenty",
-      "address": "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE",
-      "decimals": 18,
-      "info": [],
-      "alias": "Plenty staking",
-      "icons": ["PLENTY", "PLENTY"],
-      "token": "PLENTY",
-      "liquidityToken": false
-    },
-    "PLENTY-ETHtz": {
-      "id": "PLENTY-ETHtz",
-      "platform": "plenty",
-      "address": "KT19asUVzBNidHgTHp8MP31YSphooMb3piWR",
-      "decimals": 18,
-      "info": [],
-      "alias": "Plenty ETHtz staking",
-      "icons": ["PLENTY", "ETHTZ"],
-      "token": "ETHtz",
-      "liquidityToken": false
-    },
-    "PLENTY-USDtz": {
-      "id": "PLENTY-USDtz",
-      "platform": "plenty",
-      "address": "KT1MBqc3GHpApBXaBZyvY63LF6eoFyTWtySn",
-      "decimals": 18,
-      "info": [],
-      "alias": "Plenty USDtz staking",
-      "icons": ["PLENTY", "USDTZ"],
-      "token": "USDtz",
-      "liquidityToken": false
-    },
-    "PLENTY-wLINK": {
-      "id": "PLENTY-wLINK",
-      "platform": "plenty",
-      "address": "KT1KyxPitU1xNbTriondmAFtPEcFhjSLV1hz",
-      "decimals": 18,
-      "info": [],
-      "alias": "Plenty wLINK staking",
-      "icons": ["PLENTY", "wLINK"],
-      "token": "PLENTY",
-      "liquidityToken": false
-    },
-    "PLENTY-wMATIC": {
-      "id": "PLENTY-wMATIC",
-      "platform": "plenty",
-      "address": "KT1XherecVvrE6X4PV5RTwdEKNzA294ZE9T9",
-      "decimals": 18,
-      "info": [],
-      "alias": "Plenty wMATIC staking",
-      "icons": ["PLENTY", "wMATIC"],
-      "token": "PLENTY",
-      "liquidityToken": false
-    },
     "PLENTY-wBUSD": {
       "id": "PLENTY-wBUSD",
       "platform": "plenty",
@@ -476,6 +432,61 @@
       "info": [],
       "alias": "PLENTY-wLINK LP farm",
       "icons": ["PLENTY", "wLINK"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-hDAO-LP": {
+      "id": "PLENTY-hDAO-LP",
+      "platform": "plenty",
+      "address": "KT1W3DtcPXbD7MMmtUdk3F352G6CYFSpwUUS",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-hDAO LP farm",
+      "icons": ["PLENTY", "hDAO"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-ETHtz-LP": {
+      "id": "PLENTY-ETHtz-LP",
+      "platform": "plenty",
+      "address": "KT1EVfYFoSpte3PnE4tPoWuj1DhNPVQwrW5Y",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-ETHtz LP farm",
+      "icons": ["PLENTY", "ETHtz"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-wWETH-LP": {
+      "id": "PLENTY-wWETH-LP",
+      "platform": "plenty",
+      "address": "KT1CBh8BKFV6xAH42hEdyhkijbwzYSKW2ZZC",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-wWETH LP farm",
+      "icons": ["PLENTY", "wWETH"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-kUSD-LP": {
+      "id": "PLENTY-kUSD-LP",
+      "platform": "plenty",
+      "address": "KT1MmAy4mSbZZVzPoYbK3M4z3GWUo54UTiQR",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-kUSD LP farm",
+      "icons": ["PLENTY", "kUSD"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-QUIPU-LP": {
+      "id": "PLENTY-QUIPU-LP",
+      "platform": "plenty",
+      "address": "KT1FsMiweyRTog9GGNC22hiMTFVRPrGs3eto",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-QUIPU LP farm",
+      "icons": ["PLENTY", "QUIPU"],
       "token": "PLENTY",
       "liquidityToken": true
     },
