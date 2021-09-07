@@ -97,7 +97,7 @@
   }
 </style>
 
-{#if $store.tokensBalances[tokenSymbol]}
+{#if $store.tokensBalances && $store.tokensBalances[tokenSymbol]}
   <div class="send-token">
     Send <input
       type="text"

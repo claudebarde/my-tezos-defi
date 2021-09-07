@@ -1243,16 +1243,20 @@ const getLPConversion = (
 
 export const getPlentyLqtValue = async (
   exchangePair: AvailableInvestments,
-  exchangeaAddress: string,
+  exchangeAddress: string,
   lpAmount: number,
   Tezos: TezosToolkit
 ) => {
   try {
+    if (!exchangeAddress) throw "No exchange address";
+
     // formats LP token amount according to exchange
     let formattedLpAmount;
     switch (exchangePair) {
       case "PLENTY-wUSDC":
       case "PLENTY-USDtz-LP":
+      case "PLENTY-QUIPU-LP":
+      case "PLENTY-hDAO-LP":
         formattedLpAmount = lpAmount / 10 ** 6;
         break;
       case "PLENTY-wWBTC":
@@ -1263,7 +1267,7 @@ export const getPlentyLqtValue = async (
         break;
     }
 
-    const exchangeContract = await Tezos.wallet.at(exchangeaAddress);
+    const exchangeContract = await Tezos.wallet.at(exchangeAddress);
     const exchangeStorage: any = await exchangeContract.storage();
     const tokenAmounts = getLPConversion(
       exchangeStorage.token1_pool.toNumber(),

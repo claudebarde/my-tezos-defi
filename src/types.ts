@@ -1,4 +1,4 @@
-import type { TezosToolkit } from "@taquito/taquito";
+import type { TezosToolkit, WalletOperation } from "@taquito/taquito";
 import type { BeaconWallet } from "@taquito/beacon-wallet";
 
 export type TezosContractAddress = `KT1${string}`;
@@ -29,7 +29,9 @@ export enum AvailableToken {
   GOT = "GOT",
   HERA = "HERA",
   KDAO = "kDAO",
-  QUIPU = "QUIPU"
+  QUIPU = "QUIPU",
+  uUSD = "uUSD",
+  YOU = "YOU"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -41,18 +43,17 @@ export enum AvailableFiat {
 }
 export enum AvailableInvestments {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
-  "PLENTY-hDAO" = "PLENTY-hDAO",
-  "PLENTY-PLENTY" = "PLENTY-PLENTY",
-  "PLENTY-ETHtz" = "PLENTY-ETHtz",
-  "PLENTY-USDtz" = "PLENTY-USDtz",
-  "PLENTY-wLINK" = "PLENTY-wLINK",
-  "PLENTY-wMATIC" = "PLENTY-wMATIC",
+  "PLENTY-hDAO-LP" = "PLENTY-hDAO-LP",
+  "PLENTY-ETHtz-LP" = "PLENTY-ETHtz-LP",
   "PLENTY-wBUSD" = "PLENTY-wBUSD",
   "PLENTY-wUSDC" = "PLENTY-wUSDC",
   "PLENTY-wWBTC" = "PLENTY-wWBTC",
   "PLENTY-USDtz-LP" = "PLENTY-USDtz-LP",
   "PLENTY-wMATIC-LP" = "PLENTY-wMATIC-LP",
   "PLENTY-wLINK-LP" = "PLENTY-wLINK-LP",
+  "PLENTY-QUIPU-LP" = "PLENTY-QUIPU-LP",
+  "PLENTY-kUSD-LP" = "PLENTY-kUSD-LP",
+  "PLENTY-wWETH-LP" = "PLENTY-wWETH-LP",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
@@ -64,6 +65,13 @@ export enum AvailableInvestments {
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO"
 }
+
+export type InvestmentPlatform =
+  | "plenty"
+  | "quipuswap"
+  | "crunchy"
+  | "paul"
+  | "kdao";
 
 export interface TokenContract {
   address: TezosContractAddress;
@@ -130,7 +138,7 @@ export interface State {
     | {
         [p in AvailableInvestments]: {
           id: AvailableInvestments;
-          platform: "plenty" | "quipuswap" | "crunchy" | "paul" | "kdao";
+          platform: InvestmentPlatform;
           address: TezosContractAddress;
           balance: number | undefined;
           decimals: number;
@@ -189,4 +197,12 @@ export interface LocalStorageState {
   favoriteInvestments: AvailableInvestments[];
   wXtzVaults: TezosContractAddress[];
   lastUpdate: number;
+}
+
+export interface ComplexBatchedOp {
+  id: string;
+  type: "harvest" | "transfer" | "exchange" | "stake";
+  origin: string;
+  platform: InvestmentPlatform | undefined;
+  op: WalletOperation | null;
 }
