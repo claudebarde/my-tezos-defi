@@ -4,12 +4,7 @@ import type {
   Wallet,
   WalletOperationBatch
 } from "@taquito/taquito";
-import {
-  Parser,
-  packData,
-  packDataBytes,
-  unpackDataBytes
-} from "@taquito/michel-codec";
+import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
 import BigNumber from "bignumber.js";
 import { findDex, estimateTezInShares } from "@quipuswap/sdk";
 import type {
@@ -133,23 +128,10 @@ const findTzbtcBalance = async (
   );
   const ledgerKey: any = {
     prim: "Pair",
-    args: [
-      { string: "ledger" },
-      { bytes: packedAddress.bytes.slice(12) }
-      //{ bytes: "000015ef21933d3b7a787b833bb94527fdfbd9ad5a56" }
-    ]
+    args: [{ string: "ledger" }, { bytes: packedAddress.bytes.slice(12) }]
   };
   const ledgerKeyBytes = packDataBytes(ledgerKey);
-  /*console.log(
-    "05070701000000066c65646765720a00000016000015ef21933d3b7a787b833bb94527fdfbd9ad5a56" ===
-      ledgerKeyBytes.bytes
-  );*/
   const bigmapVal = await ledger.get(ledgerKeyBytes.bytes);
-  /*console.log({
-    packedAddress: packedAddress.bytes,
-    ledgerKeyBytes: ledgerKeyBytes.bytes,
-    bigmapVal
-  });*/
   if (bigmapVal) {
     const bigmapValData = unpackDataBytes({ bytes: bigmapVal });
     if (
@@ -224,7 +206,7 @@ export const searchUserTokens = async ({
       );
     }
     // QUIPU
-    if (tokens.find(tk => tk[0] === "tzBTC")) {
+    if (tokens.find(tk => tk[0] === "QUIPU")) {
       const token = tokens.find(tk => tk[0] === "QUIPU");
       const balanceResponse = await fetch(
         url(token[1].address, "account_info", userAddress)
@@ -265,65 +247,6 @@ export const searchUserTokens = async ({
           }
         });
     }
-
-    // search for user address in tokens ledgers
-    /*const balances = await Promise.allSettled(
-      tokens.map(async (tokenInfo, i) => {
-        const [tokenSymbol, token] = tokenInfo;
-        const contract = await Tezos.wallet.at(token.address);
-        const storage = await contract.storage();
-        // finds ledger in storage
-        const ledgerPath = token.ledgerPath.split("/");
-        const ledger =
-          ledgerPath.length === 1
-            ? storage[ledgerPath[0]]
-            : [storage, ...ledgerPath].reduce(
-                (storage: any, sub: any) => storage[sub]
-              );
-        //return [Object.keys($store.tokens)[i], ledger];
-        let balance;
-        if (
-          token.ledgerKey === "address" &&
-          (token.type == "fa1.2" || token.type == "fa2")
-        ) {
-          const user = await ledger.get(userAddress);
-          if (user) {
-            if (user.hasOwnProperty("balance")) {
-              balance = user.balance.toNumber() / 10 ** token.decimals;
-            } else {
-              balance = user.toNumber() / 10 ** token.decimals;
-            }
-          } else {
-            balance = undefined;
-          }
-        } else if (
-          Array.isArray(token.ledgerKey) &&
-          token.ledgerKey[0] === "address"
-        ) {
-          balance = await ledger.get({ 0: userAddress, 1: token.ledgerKey[1] });
-          if (balance) {
-            balance = balance.toNumber() / 10 ** token.decimals;
-          }
-        } else if (
-          Array.isArray(token.ledgerKey) &&
-          token.ledgerKey[1] === "address"
-        ) {
-          balance = await findTzbtcBalance(ledger, userAddress, token.decimals);
-        } else {
-          balance = undefined;
-        }
-
-        return [tokenSymbol, balance];
-      })
-    );
-    // updates token balances
-    const newBalances = { ...tokensBalances };
-    balances
-      .filter(res => res.status === "fulfilled")
-      .map((res: PromiseFulfilledResult<any>) => res.value)
-      .forEach(param => {
-        newBalances[param[0]] = param[1];
-      });*/
 
     return newBalances;
   } catch (error) {
@@ -1260,7 +1183,16 @@ export const getPlentyLqtValue = async (
         formattedLpAmount = lpAmount / 10 ** 6;
         break;
       case "PLENTY-wWBTC":
+      case "PLENTY-tzBTC-LP":
+      case "PLENTY-WRAP-LP":
+      case "PLENTY-UNO-LP":
         formattedLpAmount = lpAmount / 10 ** 5;
+        break;
+      case "PLENTY-SMAK-LP":
+        formattedLpAmount = lpAmount / 10 ** 8;
+        break;
+      case "PLENTY-KALAM-LP":
+        formattedLpAmount = lpAmount / 10 ** 4;
         break;
       default:
         formattedLpAmount = lpAmount;

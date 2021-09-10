@@ -4,7 +4,11 @@
   import toastStore from "../Toast/toastStore";
   import config from "../../config";
   import { AvailableToken } from "../../types";
-  import { getPlentyReward, prepareOperation } from "../../utils";
+  import {
+    getPlentyReward,
+    prepareOperation,
+    getPlentyLqtValue
+  } from "../../utils";
 
   export let contractAddress, alias, id;
 
@@ -278,9 +282,17 @@
         stakeTokenPriceInUsd =
           $store.tokensExchangeRates[inv.token].realPriceInTez *
           $store.xtzData.exchangeRate;
+
+        const result = await getPlentyLqtValue(
+          inv.id,
+          config.plentyDexAddresses[inv.id],
+          +inv.balance,
+          $store.Tezos
+        );
+        console.log(result);
       }
       const apr =
-        ((storage.rewardRate.toNumber() * 525600 * tokenPriceInUsd) /
+        ((storage.rewardRate.toNumber() * 525600 * 2 * tokenPriceInUsd) /
           (storage.totalSupply.toNumber() * stakeTokenPriceInUsd)) *
         100;
       body = [...body, `APR: ${apr.toFixed(2)} %`];
@@ -374,10 +386,12 @@
         <div>Loading...</div>
       {:else}
         {#if balance && token}
-          <div>Total staked: {balance} {token}</div>
           <div>
-            Available rewards: {rewards}
-            {id === "PLENTY-KALAM" ? "KALAM" : "PLENTY"}
+            Total staked: {balance}
+            {id}-LP
+          </div>
+          <div>
+            Available rewards: {rewards} PLENTY
           </div>
           <br />
         {/if}

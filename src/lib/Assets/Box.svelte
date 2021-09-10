@@ -328,7 +328,7 @@
         </div>
         <div>
           1 {$localStorageStore.preferredFiat} = {+(
-            $store.xtzData.exchangeRate / 10
+            1 / $store.xtzData.exchangeRate
           ).toFixed(5) / 1} XTZ
         </div>
       {:else if token === "tez" && !$store.xtzData.exchangeRate}

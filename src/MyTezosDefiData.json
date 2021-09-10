@@ -375,7 +375,7 @@
       "address": "KT1KJhxkCpZNwAFQURDoJ79hGqQgSC9UaWpG",
       "decimals": 18,
       "info": [],
-      "alias": "Plenty wBUSD staking",
+      "alias": "Plenty-wBUSD LP farm",
       "icons": ["PLENTY", "wBUSD"],
       "token": "wBUSD",
       "liquidityToken": true
@@ -386,7 +386,7 @@
       "address": "KT1Kp3KVT4nHFmSuL8bvETkgQzseUYP3LDBy",
       "decimals": 18,
       "info": [],
-      "alias": "Plenty wUSDC staking",
+      "alias": "Plenty-wUSDC LP farm",
       "icons": ["PLENTY", "wUSDC"],
       "token": "wUSDC",
       "liquidityToken": true
@@ -397,7 +397,7 @@
       "address": "KT1M82a7arHVwcwaswnNUUuCnQ45xjjGKNd1",
       "decimals": 18,
       "info": [],
-      "alias": "Plenty wWBTC staking",
+      "alias": "Plenty-wWBTC LP farm",
       "icons": ["PLENTY", "wWBTC"],
       "token": "wWBTC",
       "liquidityToken": true
@@ -487,6 +487,61 @@
       "info": [],
       "alias": "PLENTY-QUIPU LP farm",
       "icons": ["PLENTY", "QUIPU"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-tzBTC-LP": {
+      "id": "PLENTY-tzBTC-LP",
+      "platform": "plenty",
+      "address": "KT1RwFV1xQU2E9TsXe1qzkdwAgFWaKk8bfAa",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-tzBTC LP farm",
+      "icons": ["PLENTY", "tzBTC"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-WRAP-LP": {
+      "id": "PLENTY-WRAP-LP",
+      "platform": "plenty",
+      "address": "KT1K9kLuhq9AJjDAgbJdKGBiP9927WsRnjP6",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-WRAP LP farm",
+      "icons": ["PLENTY", "WRAP"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-UNO-LP": {
+      "id": "PLENTY-UNO-LP",
+      "platform": "plenty",
+      "address": "KT1CWNVmHs6RRbLzwA3P19h7Wa9smnDrAgpS",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-UNO LP farm",
+      "icons": ["PLENTY", "UNO"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-SMAK-LP": {
+      "id": "PLENTY-SMAK-LP",
+      "platform": "plenty",
+      "address": "KT1VwZPZ4bcPQYS1C4yRvmU4giQDXhEV81WD",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-SMAK LP farm",
+      "icons": ["PLENTY", "SMAK"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-KALAM-LP": {
+      "id": "PLENTY-KALAM-LP",
+      "platform": "plenty",
+      "address": "KT1UTvMuyRggQe9q1hrh7YLh7vxffX2egtS6",
+      "decimals": 18,
+      "info": [],
+      "alias": "PLENTY-KALAM LP farm",
+      "icons": ["PLENTY", "KALAM"],
       "token": "PLENTY",
       "liquidityToken": true
     },

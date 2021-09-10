@@ -11,8 +11,6 @@
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import toastStore from "../Toast/toastStore";
-  //import InvestmentsWorker from "worker-loader!../../investments.worker";
-  //import { handleInvestmentsWorker } from "../../workersHandlers";
   import { searchUserTokens } from "../../utils";
 
   const walletOptions = {
@@ -34,7 +32,6 @@
   };
   const tezosDomainContract = "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS";
   let username = "";
-  let investmentsWorker;
   let nodeIconLetter = "";
 
   const connect = async () => {
@@ -52,17 +49,6 @@
       $store.Tezos.setWalletProvider(wallet);
       // inits local storage
       localStorageStore.init($store.userAddress);
-
-      // listens to investments worker
-      /*investmentsWorker = new InvestmentsWorker();
-      investmentsWorker.onmessage = handleInvestmentsWorker;
-      investmentsWorker.postMessage({
-        type: "init",
-        payload: {
-          rpcUrl: $store.settings[$store.network].rpcUrl,
-          userAddress: $store.userAddress
-        }
-      });*/
 
       username = await fetchTezosDomain(userAddress);
 
@@ -143,17 +129,6 @@
       store.updateWallet(wallet);
       $store.Tezos.setWalletProvider(wallet);
       localStorageStore.init(userAddress);
-
-      // listens to investments worker
-      /*investmentsWorker = new InvestmentsWorker();
-      investmentsWorker.onmessage = handleInvestmentsWorker;
-      investmentsWorker.postMessage({
-        type: "init",
-        payload: {
-          rpcUrl: $store.settings[$store.network].rpcUrl,
-          userAddress: $store.userAddress
-        }
-      });*/
 
       username = await fetchTezosDomain(userAddress);
 

@@ -24,15 +24,14 @@
   .modal {
     min-height: 35%;
     max-height: 60%;
-    overflow: auto;
     width: 45%;
     border: solid 4px $border-color;
     border-radius: 10px;
     z-index: 110;
     padding: 30px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    display: grid;
+    grid-template-rows: 10% 80% 10%;
+    grid-template-columns: 1fr;
     background-color: $container-bg-color;
 
     &.graph {
@@ -41,15 +40,15 @@
 
     .modal-title {
       font-size: 1.5rem;
-      margin-bottom: 20px;
       position: relative;
     }
 
     .modal-body {
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      height: 100%;
+      overflow: auto;
 
       canvas {
         background-color: white;
@@ -61,8 +60,6 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 20px;
-      min-height: 50px;
     }
   }
 }
