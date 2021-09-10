@@ -54,6 +54,11 @@ export enum AvailableInvestments {
   "PLENTY-QUIPU-LP" = "PLENTY-QUIPU-LP",
   "PLENTY-kUSD-LP" = "PLENTY-kUSD-LP",
   "PLENTY-wWETH-LP" = "PLENTY-wWETH-LP",
+  "PLENTY-tzBTC-LP" = "PLENTY-tzBTC-LP",
+  "PLENTY-WRAP-LP" = "PLENTY-WRAP-LP",
+  "PLENTY-UNO-LP" = "PLENTY-UNO-LP",
+  "PLENTY-SMAK-LP" = "PLENTY-SMAK-LP",
+  "PLENTY-KALAM-LP" = "PLENTY-KALAM-LP",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
@@ -114,6 +119,7 @@ export interface ExchangeRateData {
 
 export interface State {
   network: "testnet" | "mainnet";
+  currentLevel: number;
   Tezos: TezosToolkit;
   wallet: BeaconWallet;
   userAddress: TezosAccountAddress;

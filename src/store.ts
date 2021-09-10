@@ -29,6 +29,7 @@ const settings: State["settings"] = {
 
 const initialState: State = {
   network: "mainnet",
+  currentLevel: 0,
   Tezos: undefined,
   wallet: undefined,
   userAddress: undefined,
@@ -45,7 +46,7 @@ const initialState: State = {
   },
   serviceFee: process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "Qmbfu8wPryRAjeC6voB5ehFKNDwZaZy4f6wMmCjeKxUPQY",
+  defiData: "QmPMD3HSLPeqeBr5QNEnnUZXWGqWN2Yvrsvx7C69f5uvT4",
   liquidityBaking: undefined,
   blurryBalances: false
 };
@@ -56,6 +57,8 @@ const state = {
   subscribe: store.subscribe,
   updateTezos: (tezos: TezosToolkit) =>
     store.update(store => ({ ...store, Tezos: tezos })),
+  updateCurrentLevel: (level: number) =>
+    store.update(store => ({ ...store, currentLevel: level })),
   updateWallet: (wallet: BeaconWallet) =>
     store.update(store => ({ ...store, wallet })),
   updateUserAddress: (address: TezosAccountAddress) => {

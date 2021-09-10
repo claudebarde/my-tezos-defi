@@ -8,6 +8,7 @@
   import Header from "./lib/Header/Header.svelte";
   import Footer from "./lib/Footer/Footer.svelte";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
+  import InvestmentsWorker from "worker-loader!./investments.worker";
   import type { Operation, State } from "./types";
   import { AvailableToken } from "./types";
   import { createNewOpEntry } from "./utils";
@@ -212,6 +213,7 @@
         }
       });
       store.updateLastOperations(ops);
+      store.updateCurrentLevel(ops[0].level);
 
       if ($store.userAddress) {
         const balance = await $store.Tezos.tz.getBalance($store.userAddress);
@@ -228,6 +230,7 @@
         ops.push(newOp);
       });
       store.updateLastOperations(ops);
+      store.updateCurrentLevel(ops[0].level);
 
       if ($store.userAddress) {
         const balance = await $store.Tezos.tz.getBalance($store.userAddress);
@@ -236,6 +239,10 @@
         }
       }
     }
+  };
+
+  const handleInvestmentsWorker = msg => {
+    console.log(msg);
   };
 
   onMount(async () => {
@@ -372,6 +379,20 @@
     ) {
       store.updateServiceFee(null);
     }
+
+    // sets up investments worker
+    const investmentsWorker = new InvestmentsWorker();
+    investmentsWorker.postMessage({
+      type: "init",
+      payload: [
+        ...Object.values($store.investments).map(inv => ({
+          id: inv.id,
+          platform: inv.platform,
+          address: inv.address
+        }))
+      ]
+    });
+    investmentsWorker.onmessage = handleInvestmentsWorker;
 
     // reloads some data when user comes back to the page
     /*lastAppVisibility = Date.now();
