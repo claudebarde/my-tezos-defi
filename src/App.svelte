@@ -8,7 +8,7 @@
   import Header from "./lib/Header/Header.svelte";
   import Footer from "./lib/Footer/Footer.svelte";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
-  import InvestmentsWorker from "worker-loader!./investments.worker";
+  import PlentyWorker from "worker-loader!./plenty.worker";
   import type { Operation, State } from "./types";
   import { AvailableToken } from "./types";
   import { createNewOpEntry } from "./utils";
@@ -26,31 +26,6 @@
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic" && msg.data.msg) {
       const ops: Operation[] = [];
-      /*const testOp = {
-        id: "test",
-        hash: "123456",
-        level: 12355,
-        timestamp: new Date().toISOString(),
-        parameter: {
-          entrypoint: "transfer",
-          value: {
-            from: "tz1Q9ZuET5i4Yuitu35m1WX5GA27ZpR5siFk",
-            to: "tz1Me1MGhK7taay748h4gPnX2cXvbgL6xsYL",
-            value: "2516000000000000000"
-          }
-        },
-        sender: {
-          address: "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE",
-          alias: "PLENTY staking"
-        },
-        target: {
-          address: "KT1GRSvLoikDsXujKgZPsGLX8k8VvR2Tq95b",
-          alias: "PLENTY"
-        },
-        amount: 0,
-        status: "applied"
-      };
-      msg.data.msg.push(testOp);*/
       msg.data.msg.forEach(op => {
         if (!$store.tokens) return;
         //console.log("Operation:", op);
@@ -241,7 +216,7 @@
     }
   };
 
-  const handleInvestmentsWorker = msg => {
+  const handlePlentyWorker = msg => {
     console.log(msg);
   };
 
@@ -381,18 +356,12 @@
     }
 
     // sets up investments worker
-    const investmentsWorker = new InvestmentsWorker();
-    investmentsWorker.postMessage({
+    const plentyWorker = new PlentyWorker();
+    plentyWorker.postMessage({
       type: "init",
-      payload: [
-        ...Object.values($store.investments).map(inv => ({
-          id: inv.id,
-          platform: inv.platform,
-          address: inv.address
-        }))
-      ]
+      payload: [...Object.entries(config.plentyDexAddresses)]
     });
-    investmentsWorker.onmessage = handleInvestmentsWorker;
+    plentyWorker.onmessage = handlePlentyWorker;
 
     // reloads some data when user comes back to the page
     /*lastAppVisibility = Date.now();

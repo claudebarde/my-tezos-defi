@@ -187,6 +187,9 @@ export const searchUserTokens = async ({
           if (Array.isArray(tk[1].ledgerKey) && !isNaN(+tk[1].ledgerKey[1])) {
             key = `{"address":"${userAddress}","nat":"${tk[1].ledgerKey[1]}"}`;
           }
+          if (tk[0] === "uUSD" || tk[0] === "YOU") {
+            key = `{"owner":"${userAddress}","token_id":"${tk[1].ledgerKey[1]}"}`;
+          }
 
           return fetch(url(tk[1].address, "ledger", key))
             .then(res => res.json())
