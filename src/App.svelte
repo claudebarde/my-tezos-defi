@@ -359,7 +359,7 @@
     const plentyWorker = new PlentyWorker();
     plentyWorker.postMessage({
       type: "init",
-      payload: [...Object.entries(config.plentyDexAddresses)]
+      payload: { favoriteFarms: [...$localStorageStore.favoriteInvestments] }
     });
     plentyWorker.onmessage = handlePlentyWorker;
 
