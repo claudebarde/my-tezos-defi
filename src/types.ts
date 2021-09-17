@@ -206,6 +206,8 @@ export interface LocalStorageState {
   favoriteTokens: AvailableToken[];
   favoriteInvestments: AvailableInvestments[];
   wXtzVaults: TezosContractAddress[];
+  kUsdVaults: TezosContractAddress[];
+  uUsdVaults: TezosContractAddress[];
   lastUpdate: number;
 }
 

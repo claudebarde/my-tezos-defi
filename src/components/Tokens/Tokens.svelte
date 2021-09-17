@@ -123,8 +123,7 @@
         transform: translateX(-50%);
         display: flex;
         flex-wrap: wrap;
-        box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px,
-          rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+        box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
         background-color: white;
 
         .token-to-select {

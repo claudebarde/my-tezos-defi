@@ -355,8 +355,6 @@
     }
   });
 
-  // test
-
   afterUpdate(async () => {
     if (!liveTrafficWorker && $store.tokens && $store.investments) {
       // inits live traffic worker
