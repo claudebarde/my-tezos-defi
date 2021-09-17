@@ -202,17 +202,6 @@
       "tokenId": 0,
       "whitelisted": true
     },
-    "sDAO": {
-      "address": "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA",
-      "dexContractAddress": "KT1PrRTVNgxkRgyqqNQvwTiVhd55dqyxXJ6n",
-      "decimals": 0,
-      "ledgerPath": "assets/ledger",
-      "ledgerKey": ["address", 1],
-      "type": "fa2",
-      "color": "#000000",
-      "tokenId": 1,
-      "whitelisted": false
-    },
     "PAUL": {
       "address": "KT19DUSZw7mfeEATrbWVPHRrWNVbNnmfFAE6",
       "dexContractAddress": "KT1K8A8DLUTVuHaDBCZiG6AJdvKJbtH8dqmN",

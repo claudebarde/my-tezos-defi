@@ -1153,7 +1153,31 @@ export const calculateLqtOutput = ({
   };
 };
 
-const getLPConversion = (
+export const formatPlentyLpAmount = (
+  lpAmount: number,
+  exchangePair: string
+): number => {
+  switch (exchangePair) {
+    case "PLENTY-wUSDC":
+    case "PLENTY-USDtz-LP":
+    case "PLENTY-QUIPU-LP":
+    case "PLENTY-hDAO-LP":
+      return lpAmount / 10 ** 6;
+    case "PLENTY-wWBTC":
+    case "PLENTY-tzBTC-LP":
+    case "PLENTY-WRAP-LP":
+    case "PLENTY-UNO-LP":
+      return lpAmount / 10 ** 5;
+    case "PLENTY-SMAK-LP":
+      return lpAmount / 10 ** 8;
+    case "PLENTY-KALAM-LP":
+      return lpAmount / 10 ** 4;
+    default:
+      return lpAmount;
+  }
+};
+
+export const getLPConversion = (
   token1_pool: number,
   token2_pool: number,
   totalSupply: number,
@@ -1177,30 +1201,7 @@ export const getPlentyLqtValue = async (
     if (!exchangeAddress) throw "No exchange address";
 
     // formats LP token amount according to exchange
-    let formattedLpAmount;
-    switch (exchangePair) {
-      case "PLENTY-wUSDC":
-      case "PLENTY-USDtz-LP":
-      case "PLENTY-QUIPU-LP":
-      case "PLENTY-hDAO-LP":
-        formattedLpAmount = lpAmount / 10 ** 6;
-        break;
-      case "PLENTY-wWBTC":
-      case "PLENTY-tzBTC-LP":
-      case "PLENTY-WRAP-LP":
-      case "PLENTY-UNO-LP":
-        formattedLpAmount = lpAmount / 10 ** 5;
-        break;
-      case "PLENTY-SMAK-LP":
-        formattedLpAmount = lpAmount / 10 ** 8;
-        break;
-      case "PLENTY-KALAM-LP":
-        formattedLpAmount = lpAmount / 10 ** 4;
-        break;
-      default:
-        formattedLpAmount = lpAmount;
-        break;
-    }
+    const formattedLpAmount = formatPlentyLpAmount(lpAmount, exchangePair);
 
     const exchangeContract = await Tezos.wallet.at(exchangeAddress);
     const exchangeStorage: any = await exchangeContract.storage();

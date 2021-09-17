@@ -357,9 +357,18 @@
 
     // sets up investments worker
     const plentyWorker = new PlentyWorker();
+
+    let tokenDecimals = {};
+    Object.entries($store.tokens).forEach(token => {
+      tokenDecimals[token[0]] = token[1].decimals;
+    });
+
     plentyWorker.postMessage({
       type: "init",
-      payload: { favoriteFarms: [...$localStorageStore.favoriteInvestments] }
+      payload: {
+        favoriteFarms: [...$localStorageStore.favoriteInvestments],
+        tokenDecimals
+      }
     });
     plentyWorker.onmessage = handlePlentyWorker;
 
