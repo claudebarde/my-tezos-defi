@@ -61,7 +61,7 @@ const state = {
     store.update(store => ({ ...store, currentLevel: level })),
   updateWallet: (wallet: BeaconWallet) =>
     store.update(store => ({ ...store, wallet })),
-  updateUserAddress: (address: TezosAccountAddress) => {
+  updateUserAddress: (address: TezosAccountAddress | undefined) => {
     store.update(store => ({
       ...store,
       userAddress: address

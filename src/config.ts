@@ -1,7 +1,7 @@
 import { AvailableFiat } from "./types";
 
 export default {
-  version: "3.5.1",
+  version: "4.0.0",
   wrapTokenIds: {
     0: { name: "wAAVE", decimals: 18 },
     1: { name: "wBUSD", decimals: 18 },
@@ -53,7 +53,7 @@ export default {
     { code: AvailableFiat.CAD, name: "Canadian Dollar", symbol: "CA$" },
     { code: AvailableFiat.GBP, name: "British pound", symbol: "£" },
     { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
-    { code: AvailableFiat.KRW, name: "South Korea won", symbol: "₩" }
+    { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" }
   ],
   toastColor: {
     green: {
