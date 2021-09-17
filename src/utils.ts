@@ -6,7 +6,6 @@ import type {
 } from "@taquito/taquito";
 import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
 import BigNumber from "bignumber.js";
-import { findDex, estimateTezInShares } from "@quipuswap/sdk";
 import type {
   HistoricalDataState,
   TokenContract,
@@ -117,6 +116,9 @@ export const calculateTrend = (
 export const shortenHash = (hash: string): string =>
   hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
 
+export const formatTokenAmount = (amount: number): number =>
+  +amount.toFixed(5) / 1;
+
 const findTzbtcBalance = async (
   ledger,
   userAddress,
@@ -151,19 +153,17 @@ export const searchUserTokens = async ({
   Tezos,
   network,
   userAddress,
-  tokens,
-  tokensBalances
+  tokens
 }: {
   Tezos: TezosToolkit;
   network: State["network"];
   userAddress: TezosAccountAddress;
   tokens: [AvailableToken | string, TokenContract][];
-  tokensBalances: Partial<State["tokensBalances"]>;
 }) => {
   try {
     if (!tokens) return null;
 
-    const newBalances = { ...tokensBalances };
+    const newBalances: Partial<State["tokensBalances"]> = {};
 
     const url = (contractAddress, ledgerName, userAddress) =>
       `https://api.tzkt.io/v1/contracts/${contractAddress}/bigmaps/${ledgerName}/keys/${userAddress}`;
@@ -365,9 +365,6 @@ export const getOpIcons = (
       icons = tokenIds
         ? tokenIds.map(tokenId => config.wrapTokenIds[tokenId].name)
         : [AvailableToken.WRAP];
-      break;
-    case "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA":
-      icons = [AvailableToken.SDAO];
       break;
     case "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3":
       icons = ["crDAO"];
@@ -722,7 +719,7 @@ export const prepareOperation = (p: {
   const { contractCalls, amount, tokenSymbol } = p;
   // calculates fee
   const amountToSendInXtz =
-    +amount * +localStore.tokensExchangeRates[tokenSymbol].realPriceInTez;
+    +amount * +localStore.tokens[tokenSymbol].exchangeRate;
   let fee = 0;
   if (localStore.serviceFee !== null) {
     fee = (amountToSendInXtz * localStore.serviceFee) / 100;
@@ -762,7 +759,10 @@ export const loadInvestment = async (
           );
 
           if (inv.id === "PLENTY-XTZ-LP") {
-            const dex = await findDex(
+            console.error(
+              "UPDATE loadInvestment FOR PLENTY-XTZ-LP IN utils.ts"
+            );
+            /*const dex = await findDex(
               localStore.Tezos,
               config.quipuswapFactories,
               {
@@ -777,7 +777,7 @@ export const loadInvestment = async (
               balance,
               info,
               shareValueInTez: tezInShares.toNumber()
-            };
+            };*/
           }
 
           return { id: inv.id, balance, info };
@@ -1153,7 +1153,31 @@ export const calculateLqtOutput = ({
   };
 };
 
-const getLPConversion = (
+export const formatPlentyLpAmount = (
+  lpAmount: number,
+  exchangePair: string
+): number => {
+  switch (exchangePair) {
+    case "PLENTY-wUSDC":
+    case "PLENTY-USDtz-LP":
+    case "PLENTY-QUIPU-LP":
+    case "PLENTY-hDAO-LP":
+      return lpAmount / 10 ** 6;
+    case "PLENTY-wWBTC":
+    case "PLENTY-tzBTC-LP":
+    case "PLENTY-WRAP-LP":
+    case "PLENTY-UNO-LP":
+      return lpAmount / 10 ** 5;
+    case "PLENTY-SMAK-LP":
+      return lpAmount / 10 ** 8;
+    case "PLENTY-KALAM-LP":
+      return lpAmount / 10 ** 4;
+    default:
+      return lpAmount;
+  }
+};
+
+export const getLPConversion = (
   token1_pool: number,
   token2_pool: number,
   totalSupply: number,
@@ -1177,30 +1201,7 @@ export const getPlentyLqtValue = async (
     if (!exchangeAddress) throw "No exchange address";
 
     // formats LP token amount according to exchange
-    let formattedLpAmount;
-    switch (exchangePair) {
-      case "PLENTY-wUSDC":
-      case "PLENTY-USDtz-LP":
-      case "PLENTY-QUIPU-LP":
-      case "PLENTY-hDAO-LP":
-        formattedLpAmount = lpAmount / 10 ** 6;
-        break;
-      case "PLENTY-wWBTC":
-      case "PLENTY-tzBTC-LP":
-      case "PLENTY-WRAP-LP":
-      case "PLENTY-UNO-LP":
-        formattedLpAmount = lpAmount / 10 ** 5;
-        break;
-      case "PLENTY-SMAK-LP":
-        formattedLpAmount = lpAmount / 10 ** 8;
-        break;
-      case "PLENTY-KALAM-LP":
-        formattedLpAmount = lpAmount / 10 ** 4;
-        break;
-      default:
-        formattedLpAmount = lpAmount;
-        break;
-    }
+    const formattedLpAmount = formatPlentyLpAmount(lpAmount, exchangePair);
 
     const exchangeContract = await Tezos.wallet.at(exchangeAddress);
     const exchangeStorage: any = await exchangeContract.storage();
