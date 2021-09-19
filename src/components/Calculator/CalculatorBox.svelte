@@ -88,7 +88,7 @@
           dispatch("update", {
             val: e.target.value,
             token:
-              Object.keys(AvailableToken).includes(tokenSymbol) ||
+              Object.values(AvailableToken).includes(tokenSymbol) ||
               tokenSymbol === "XTZ"
                 ? tokenSymbol
                 : "FIAT"
