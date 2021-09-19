@@ -8,6 +8,7 @@ import Settings from "./components/Settings/Settings.svelte";
 import Traffic from "./components/Traffic/Traffic.svelte";
 import Vaults from "./components/Vaults/Vaults.svelte";
 import Exchange from "./components/Exchange/Exchange.svelte";
+import LiquidityBaking from "./components/LiquidityBaking/LiquidityBaking.svelte";
 
 export default {
   "/": Landing,
@@ -23,5 +24,6 @@ export default {
     }
   }),
   "/vaults": Vaults,
-  "/exchange": Exchange
+  "/exchange": Exchange,
+  "/liquidity-baking": LiquidityBaking
 };

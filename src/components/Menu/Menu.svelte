@@ -75,6 +75,13 @@
         &nbsp; My vaults
       </a>
     {/if}
+    <a
+      href="#/liquidity-baking"
+      class:selected={$location === "/liquidity-baking"}
+    >
+      <span class="material-icons"> bakery_dining </span>
+      &nbsp; LB DEX
+    </a>
     <a href="#/exchange" class:selected={$location === "/exchange"}>
       <span class="material-icons"> swap_horiz </span>
       &nbsp; Exchange
