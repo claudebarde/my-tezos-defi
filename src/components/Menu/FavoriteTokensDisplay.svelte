@@ -2,6 +2,7 @@
   import { onMount, afterUpdate, onDestroy } from "svelte";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
+  import { formatTokenAmount } from "../../utils";
 
   let favoriteTokens = [];
   let counter = 0;
@@ -62,7 +63,15 @@
     />
     <span>{favoriteTokens[counter]}</span>
     <span>
-      ꜩ {+$store.tokens[favoriteTokens[counter]].exchangeRate.toFixed(3) / 1}
+      <span>
+        {$store.tokensBalances && $store.tokensBalances[favoriteTokens[counter]]
+          ? formatTokenAmount($store.tokensBalances[favoriteTokens[counter]])
+          : 0}
+      </span>
+      <br />
+      <span>
+        ꜩ {+$store.tokens[favoriteTokens[counter]].exchangeRate.toFixed(3) / 1}
+      </span>
       <br />
       {#if $store.xtzData.exchangeRate}
         {(

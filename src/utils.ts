@@ -117,7 +117,7 @@ export const shortenHash = (hash: string): string =>
   hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
 
 export const formatTokenAmount = (amount: number): number =>
-  +amount.toFixed(5) / 1;
+  amount ? +amount.toFixed(5) / 1 : 0;
 
 const findTzbtcBalance = async (
   ledger,
@@ -1171,6 +1171,7 @@ export const formatPlentyLpAmount = (
     case "PLENTY-SMAK-LP":
       return lpAmount / 10 ** 8;
     case "PLENTY-KALAM-LP":
+    case "PLENTY-uUSD-LP":
       return lpAmount / 10 ** 4;
     default:
       return lpAmount;

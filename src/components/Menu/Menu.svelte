@@ -10,7 +10,7 @@
   section {
     border-right: solid 2px $border-color;
     display: grid;
-    grid-template-rows: 10% 85% 5%;
+    grid-template-rows: 10% 80% 10%;
     position: relative;
 
     .logo {
@@ -75,6 +75,10 @@
         &nbsp; My vaults
       </a>
     {/if}
+    <a href="#/exchange" class:selected={$location === "/exchange"}>
+      <span class="material-icons"> swap_horiz </span>
+      &nbsp; Exchange
+    </a>
     <a href="#/stats" class:selected={$location === "/stats"}>
       <span class="material-icons"> insights </span>
       &nbsp; Stats

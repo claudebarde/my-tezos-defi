@@ -26,9 +26,9 @@
     {#if $store.lastOperations.length > 0}
       <LastOpsTargets />
       <br />
-      <TransfersValues />
-      <br />
       <LqtValue />
+      <br />
+      <TransfersValues />
     {:else}
       Waiting for data to display...
     {/if}

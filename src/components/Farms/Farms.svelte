@@ -134,13 +134,26 @@
     ];
   };
 
+  /*onMount(() => {
+    // refreshes rewards
+    document.addEventListener("visibilitychange", async () => {
+      if (
+        document.visibilityState === "visible" &&
+        Date.now() > lastRewardsCheck + 10_000
+      ) {
+        console.log("recheck rewards");
+        lastRewardsCheck = Date.now();
+      }
+    });
+  });*/
+
   afterUpdate(async () => {
     // calculates available rewards
     if (
       $localStorageStore &&
       $store.investments &&
       $store.lastOperations.length > 0 &&
-      lastRewardsCheck + 6000 < Date.now()
+      lastRewardsCheck + 10_000 < Date.now()
     ) {
       lastRewardsCheck = Date.now();
 
@@ -252,7 +265,7 @@
         .select-paul-farms {
           z-index: 100;
           width: 440px;
-          min-height: 200px;
+          min-height: 100px;
           border: none;
           border-radius: 10px;
           position: absolute;
@@ -275,7 +288,7 @@
         .select-kdao-farms {
           z-index: 100;
           width: 440px;
-          min-height: 200px;
+          min-height: 100px;
           border: none;
           border-radius: 10px;
           position: absolute;

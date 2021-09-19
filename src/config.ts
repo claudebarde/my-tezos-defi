@@ -89,6 +89,7 @@ export default {
     "PLENTY-hDAO-LP": "KT1XutoFJ9dXvWxT7ttG86N2tSTUEpatFVTm",
     "PLENTY-ETHtz-LP": "KT1AbuUaPQmYLsB8n8FdSzBrxvrsm8ctwW1V",
     "PLENTY-wWETH-LP": "KT1HUnqM6xFJa51PM2xHfLs7s6ARvXungtyq",
-    "PLENTY-kUSD-LP": "KT1UNBvCJXiwJY6tmHM7CJUVwNPew53XkSfh"
+    "PLENTY-kUSD-LP": "KT1UNBvCJXiwJY6tmHM7CJUVwNPew53XkSfh",
+    "PLENTY-uUSD-LP": "KT1Cba383ZJpEearqnUyUKUMsgu5Z3TXBgeH"
   }
 };

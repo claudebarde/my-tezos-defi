@@ -26,7 +26,6 @@
       allVaults.length !== localVaultAddresses.length
     ) {
       // fetches all the balances of the vaults
-      console.log("fetch vaults balances");
       localVaultAddresses = allVaults;
       const balancesPromise = await Promise.all(
         allVaults.map(vault => $store.Tezos.tz.getBalance(vault))
@@ -161,7 +160,7 @@
     <div class="total-value">
       <div>Total value locked in vaults</div>
       <div>
-        ꜩ {(+(totalLocked / 10 ** 6).toFixed(3)).toLocaleString("en-US")}
+        {(+(totalLocked / 10 ** 6).toFixed(3)).toLocaleString("en-US")} ꜩ
       </div>
       <div>
         {(

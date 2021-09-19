@@ -258,13 +258,25 @@
         }
 
         if (defiData.investments) {
-          Object.keys(defiData.investments).forEach(key => {
-            defiData.investments[key].balance = 0;
-            defiData.investments[key].favorite =
-              $localStorageStore &&
-              $localStorageStore.favoriteInvestments &&
-              $localStorageStore.favoriteInvestments.includes(key);
-          });
+          // TO REMOVE LATER
+          (defiData.investments["PLENTY-uUSD-LP"] = {
+            id: "PLENTY-uUSD-LP",
+            platform: "plenty",
+            address: "KT1HSYQ9NLTQufuvNUwMhLY7B9TX8LDUfgsr",
+            decimals: 18,
+            info: [],
+            alias: "Plenty-uUSD LP farm",
+            icons: ["PLENTY", "uUSD"],
+            token: "PLENTY",
+            liquidityToken: true
+          }),
+            Object.keys(defiData.investments).forEach(key => {
+              defiData.investments[key].balance = 0;
+              defiData.investments[key].favorite =
+                $localStorageStore &&
+                $localStorageStore.favoriteInvestments &&
+                $localStorageStore.favoriteInvestments.includes(key);
+            });
           store.updateInvestments({
             ...defiData.investments
           });

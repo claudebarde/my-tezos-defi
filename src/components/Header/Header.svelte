@@ -14,6 +14,7 @@
   import { AvailableFiat } from "../../types";
   import { shortenHash } from "../../utils";
   import config from "../../config";
+  import Calculator from "../Calculator/Calculator.svelte";
 
   const walletOptions = {
     name: "My Tezos DeFi",
@@ -208,6 +209,7 @@
     {/if}
   </div>
   <div style="display:flex">
+    <Calculator />
     <div id="change-fiat">
       {#if $localStorageStore}
         <button

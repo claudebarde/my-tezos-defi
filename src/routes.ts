@@ -7,6 +7,7 @@ import Profile from "./components/Profile/Profile.svelte";
 import Settings from "./components/Settings/Settings.svelte";
 import Traffic from "./components/Traffic/Traffic.svelte";
 import Vaults from "./components/Vaults/Vaults.svelte";
+import Exchange from "./components/Exchange/Exchange.svelte";
 
 export default {
   "/": Landing,
@@ -21,5 +22,6 @@ export default {
       filterOps: { opType: "general" }
     }
   }),
-  "/vaults": Vaults
+  "/vaults": Vaults,
+  "/exchange": Exchange
 };
