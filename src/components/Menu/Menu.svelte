@@ -82,10 +82,10 @@
       <span class="material-icons"> bakery_dining </span>
       &nbsp; LB DEX
     </a>
-    <a href="#/exchange" class:selected={$location === "/exchange"}>
+    <!--<a href="#/exchange" class:selected={$location === "/exchange"}>
       <span class="material-icons"> swap_horiz </span>
       &nbsp; Exchange
-    </a>
+    </a>-->
     <a href="#/stats" class:selected={$location === "/stats"}>
       <span class="material-icons"> insights </span>
       &nbsp; Stats
@@ -94,10 +94,10 @@
       <span class="material-icons"> traffic </span>
       &nbsp; Traffic
     </a>
-    <a href="#/profile" class:selected={$location === "/profile"}>
+    <!--<a href="#/profile" class:selected={$location === "/profile"}>
       <span class="material-icons"> account_circle </span>
       &nbsp; Profile
-    </a>
+    </a>-->
     <a href="#/settings" class:selected={$location === "/settings"}>
       <span class="material-icons"> settings </span>
       &nbsp; Settings

@@ -202,6 +202,7 @@
       <button class="primary" on:click={disconnect}>
         <img
           src={`https://services.tzkt.io/v1/avatars/${$store.userAddress}`}
+          style="width: 30px;height:30px"
           alt="user-avatar"
         />
         &nbsp; {username}
