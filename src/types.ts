@@ -24,7 +24,6 @@ export enum AvailableToken {
   wUSDC = "wUSDC",
   wBUSD = "wBUSD",
   PAUL = "PAUL",
-  SDAO = "sDAO",
   SMAK = "SMAK",
   GOT = "GOT",
   HERA = "HERA",
@@ -39,7 +38,7 @@ export enum AvailableFiat {
   CAD = "CAD",
   GBP = "GBP",
   SGD = "SGD",
-  KRW = "KRW"
+  RUB = "RUB"
 }
 export enum AvailableInvestments {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
@@ -86,8 +85,26 @@ export interface TokenContract {
   ledgerKey: "address" | ["address", number] | [string, "address"];
   type: "fa1.2" | "fa2";
   color: string;
-  tokenId?: number; // only for fa2 contracts
+  exchangeRate: null | number; // token to XTZ
+  tokenId?: number; // only for fa2 contracts;
+  thumbnail?: string;
+  websiteLink?: string;
+}
+
+export interface InvestmentData {
+  id: AvailableInvestments;
+  platform: InvestmentPlatform;
+  address: TezosContractAddress;
+  balance: number | undefined;
+  decimals: number;
+  info: any;
+  icons: IconSet;
+  token: undefined | AvailableToken;
   favorite: boolean;
+  liquidityToken: boolean;
+  alias?: string;
+  shareValueInTez?: number;
+  totalSupply?: number;
 }
 
 export type IconValue = AvailableToken | "XTZ" | "QUIPUSWAP" | "crDAO" | "user";
@@ -142,20 +159,7 @@ export interface State {
     | undefined;
   investments:
     | {
-        [p in AvailableInvestments]: {
-          id: AvailableInvestments;
-          platform: InvestmentPlatform;
-          address: TezosContractAddress;
-          balance: number | undefined;
-          decimals: number;
-          info: any;
-          icons: IconSet;
-          token: undefined | AvailableToken;
-          favorite: boolean;
-          alias?: string;
-          shareValueInTez?: number;
-          totalSupply?: number;
-        };
+        [p in AvailableInvestments]: InvestmentData;
       }
     | undefined;
   lastOperations: Operation[];
@@ -202,6 +206,8 @@ export interface LocalStorageState {
   favoriteTokens: AvailableToken[];
   favoriteInvestments: AvailableInvestments[];
   wXtzVaults: TezosContractAddress[];
+  kUsdVaults: TezosContractAddress[];
+  uUsdVaults: TezosContractAddress[];
   lastUpdate: number;
 }
 

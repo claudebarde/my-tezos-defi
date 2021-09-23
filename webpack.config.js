@@ -49,14 +49,7 @@ module.exports = {
             },
             emitCss: prod,
             hotReload: !prod,
-            preprocess: sveltePreprocess({ sourceMap: !prod }),
-            onwarn: function (warning, handleWarning) {
-              if (warning.code === "a11y-no-onchange") {
-                return;
-              }
-              // process as usual
-              handleWarning(warning);
-            }
+            preprocess: sveltePreprocess({ sourceMap: !prod })
           }
         }
       },
@@ -78,10 +71,6 @@ module.exports = {
       {
         test: /\.jpg$/,
         loader: "file-loader"
-      },
-      {
-        test: /\.worker\.js$/,
-        use: { loader: "worker-loader" }
       }
     ]
   },
@@ -97,6 +86,6 @@ module.exports = {
   devtool: prod ? false : "source-map",
   devServer: {
     hot: true,
-    port: 8080
+    port: 8085
   }
 };

@@ -6,7 +6,6 @@ import type {
 } from "@taquito/taquito";
 import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
 import BigNumber from "bignumber.js";
-import { findDex, estimateTezInShares } from "@quipuswap/sdk";
 import type {
   HistoricalDataState,
   TokenContract,
@@ -117,6 +116,9 @@ export const calculateTrend = (
 export const shortenHash = (hash: string): string =>
   hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
 
+export const formatTokenAmount = (amount: number): number =>
+  amount ? +amount.toFixed(5) / 1 : 0;
+
 const findTzbtcBalance = async (
   ledger,
   userAddress,
@@ -151,19 +153,17 @@ export const searchUserTokens = async ({
   Tezos,
   network,
   userAddress,
-  tokens,
-  tokensBalances
+  tokens
 }: {
   Tezos: TezosToolkit;
   network: State["network"];
   userAddress: TezosAccountAddress;
   tokens: [AvailableToken | string, TokenContract][];
-  tokensBalances: Partial<State["tokensBalances"]>;
 }) => {
   try {
     if (!tokens) return null;
 
-    const newBalances = { ...tokensBalances };
+    const newBalances: Partial<State["tokensBalances"]> = {};
 
     const url = (contractAddress, ledgerName, userAddress) =>
       `https://api.tzkt.io/v1/contracts/${contractAddress}/bigmaps/${ledgerName}/keys/${userAddress}`;
@@ -324,79 +324,83 @@ export const getOpIcons = (
 
   const tokenIds = getTokenIds(param);
   let icons: IconSet = [];
-  switch (target.address) {
-    case "KT1JQAZqShNMakSNXc2cgTzdAWZFemGcU6n1":
-      icons = [AvailableToken.PLENTY, "XTZ"];
-      break;
-    case "KT1Ga15wxGR5oWK1vBG2GXbjYM6WqPgpfRSP":
-      icons = [AvailableToken.PLENTY, AvailableToken.HDAO];
-      break;
-    case "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE":
-      icons = [AvailableToken.PLENTY, AvailableToken.PLENTY];
-      break;
-    case "KT19asUVzBNidHgTHp8MP31YSphooMb3piWR":
-      icons = [AvailableToken.PLENTY, AvailableToken.ETHTZ];
-      break;
-    case "KT1MBqc3GHpApBXaBZyvY63LF6eoFyTWtySn":
-      icons = [AvailableToken.PLENTY, AvailableToken.USDTZ];
-      break;
-    case "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6":
-      icons = ["QUIPUSWAP", AvailableToken.KUSD];
-      break;
-    case "KT1AxaBxkFLCUi3f8rdDAAxBKHfzY8LfKDRA":
-      icons = ["QUIPUSWAP", AvailableToken.KUSD];
-      break;
-    case "KT1X1LgNkQShpF9nRLYw3Dgdy4qp38MX617z":
-      icons = ["QUIPUSWAP", AvailableToken.PLENTY];
-      break;
-    case "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb":
-      icons = ["QUIPUSWAP", AvailableToken.USDTZ];
-      break;
-    case "KT1Evsp2yA19Whm24khvFPcwimK6UaAJu8Zo":
-      icons = ["QUIPUSWAP", AvailableToken.ETHTZ];
-      break;
-    case "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4":
-      icons = ["QUIPUSWAP", AvailableToken.CRUNCH];
-      break;
-    case "KT1LRboPna9yQY9BrjtQYDS1DVxhKESK4VVd":
-      icons = [AvailableToken.WRAP];
-      break;
-    case "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ":
-      icons = tokenIds
-        ? tokenIds.map(tokenId => config.wrapTokenIds[tokenId].name)
-        : [AvailableToken.WRAP];
-      break;
-    case "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA":
-      icons = [AvailableToken.SDAO];
-      break;
-    case "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3":
-      icons = ["crDAO"];
-      break;
-    case "KT1DMCGGiHT2dgjjXHG7qh1C1maFchrLNphx":
-    case "KT1WfbRVLuJUEizo6FSTFq5tsi3rsUHLY7vg":
-    case "KT1CjrJzk4S66uqv2M3DQHwBAzjD7MVm1jYs":
-      icons = [AvailableToken.PAUL];
-      break;
-    default:
-      if (
-        target.alias &&
-        Object.keys(localStore.tokens).includes(target.alias)
-      ) {
-        icons = [target.alias.trim() as IconValue];
-      } else if (
-        Object.values(localStore.tokens).filter(
-          tk => tk.address === target.address
-        ).length === 1
-      ) {
-        icons = [
-          Object.entries(localStore.tokens).filter(
-            tk => tk[1].address === target.address
-          )[0][0] as IconValue
-        ];
-      } else {
-        icons = ["user"];
-      }
-      break;
+  const maybeInvestment = Object.values(localStore.investments).find(
+    inv => inv.address === target.address
+  );
+  if (maybeInvestment) {
+    icons = [...maybeInvestment.icons];
+  } else {
+    switch (target.address) {
+      case "KT1JQAZqShNMakSNXc2cgTzdAWZFemGcU6n1":
+        icons = [AvailableToken.PLENTY, "XTZ"];
+        break;
+      case "KT1Ga15wxGR5oWK1vBG2GXbjYM6WqPgpfRSP":
+        icons = [AvailableToken.PLENTY, AvailableToken.HDAO];
+        break;
+      case "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE":
+        icons = [AvailableToken.PLENTY, AvailableToken.PLENTY];
+        break;
+      case "KT19asUVzBNidHgTHp8MP31YSphooMb3piWR":
+        icons = [AvailableToken.PLENTY, AvailableToken.ETHTZ];
+        break;
+      case "KT1MBqc3GHpApBXaBZyvY63LF6eoFyTWtySn":
+        icons = [AvailableToken.PLENTY, AvailableToken.USDTZ];
+        break;
+      case "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6":
+        icons = ["QUIPUSWAP", AvailableToken.KUSD];
+        break;
+      case "KT1AxaBxkFLCUi3f8rdDAAxBKHfzY8LfKDRA":
+        icons = ["QUIPUSWAP", AvailableToken.KUSD];
+        break;
+      case "KT1X1LgNkQShpF9nRLYw3Dgdy4qp38MX617z":
+        icons = ["QUIPUSWAP", AvailableToken.PLENTY];
+        break;
+      case "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb":
+        icons = ["QUIPUSWAP", AvailableToken.USDTZ];
+        break;
+      case "KT1Evsp2yA19Whm24khvFPcwimK6UaAJu8Zo":
+        icons = ["QUIPUSWAP", AvailableToken.ETHTZ];
+        break;
+      case "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4":
+        icons = ["QUIPUSWAP", AvailableToken.CRUNCH];
+        break;
+      case "KT1LRboPna9yQY9BrjtQYDS1DVxhKESK4VVd":
+        icons = [AvailableToken.WRAP];
+        break;
+      case "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ":
+        icons = tokenIds
+          ? tokenIds.map(tokenId => config.wrapTokenIds[tokenId].name)
+          : [AvailableToken.WRAP];
+        break;
+      case "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3":
+        icons = ["crDAO"];
+        break;
+      case "KT1DMCGGiHT2dgjjXHG7qh1C1maFchrLNphx":
+      case "KT1WfbRVLuJUEizo6FSTFq5tsi3rsUHLY7vg":
+      case "KT1CjrJzk4S66uqv2M3DQHwBAzjD7MVm1jYs":
+        icons = [AvailableToken.PAUL];
+        break;
+      default:
+        if (
+          target.alias &&
+          Object.keys(localStore.tokens).includes(target.alias)
+        ) {
+          icons = [target.alias.trim() as IconValue];
+        } else if (
+          Object.values(localStore.tokens).filter(
+            tk => tk.address === target.address
+          ).length === 1
+        ) {
+          icons = [
+            Object.entries(localStore.tokens).filter(
+              tk => tk[1].address === target.address
+            )[0][0] as IconValue
+          ];
+        } else {
+          icons = ["user"];
+        }
+        break;
+    }
   }
 
   return icons;
@@ -722,7 +726,7 @@ export const prepareOperation = (p: {
   const { contractCalls, amount, tokenSymbol } = p;
   // calculates fee
   const amountToSendInXtz =
-    +amount * +localStore.tokensExchangeRates[tokenSymbol].realPriceInTez;
+    +amount * +localStore.tokens[tokenSymbol].exchangeRate;
   let fee = 0;
   if (localStore.serviceFee !== null) {
     fee = (amountToSendInXtz * localStore.serviceFee) / 100;
@@ -762,7 +766,10 @@ export const loadInvestment = async (
           );
 
           if (inv.id === "PLENTY-XTZ-LP") {
-            const dex = await findDex(
+            console.error(
+              "UPDATE loadInvestment FOR PLENTY-XTZ-LP IN utils.ts"
+            );
+            /*const dex = await findDex(
               localStore.Tezos,
               config.quipuswapFactories,
               {
@@ -777,7 +784,7 @@ export const loadInvestment = async (
               balance,
               info,
               shareValueInTez: tezInShares.toNumber()
-            };
+            };*/
           }
 
           return { id: inv.id, balance, info };
@@ -1170,7 +1177,7 @@ export const formatPlentyLpAmount = (
       return lpAmount / 10 ** 5;
     case "PLENTY-SMAK-LP":
       return lpAmount / 10 ** 8;
-    case "PLENTY-KALAM-LP":
+    case "PLENTY-uUSD-LP":
       return lpAmount / 10 ** 4;
     default:
       return lpAmount;

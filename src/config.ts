@@ -1,7 +1,7 @@
 import { AvailableFiat } from "./types";
 
 export default {
-  version: "3.5.1",
+  version: "4.0.0",
   wrapTokenIds: {
     0: { name: "wAAVE", decimals: 18 },
     1: { name: "wBUSD", decimals: 18 },
@@ -53,7 +53,7 @@ export default {
     { code: AvailableFiat.CAD, name: "Canadian Dollar", symbol: "CA$" },
     { code: AvailableFiat.GBP, name: "British pound", symbol: "£" },
     { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
-    { code: AvailableFiat.KRW, name: "South Korea won", symbol: "₩" }
+    { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" }
   ],
   toastColor: {
     green: {
@@ -89,6 +89,7 @@ export default {
     "PLENTY-hDAO-LP": "KT1XutoFJ9dXvWxT7ttG86N2tSTUEpatFVTm",
     "PLENTY-ETHtz-LP": "KT1AbuUaPQmYLsB8n8FdSzBrxvrsm8ctwW1V",
     "PLENTY-wWETH-LP": "KT1HUnqM6xFJa51PM2xHfLs7s6ARvXungtyq",
-    "PLENTY-kUSD-LP": "KT1UNBvCJXiwJY6tmHM7CJUVwNPew53XkSfh"
+    "PLENTY-kUSD-LP": "KT1UNBvCJXiwJY6tmHM7CJUVwNPew53XkSfh",
+    "PLENTY-uUSD-LP": "KT1Cba383ZJpEearqnUyUKUMsgu5Z3TXBgeH"
   }
 };
