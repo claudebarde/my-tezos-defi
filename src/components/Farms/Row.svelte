@@ -45,7 +45,10 @@
     exchangeRate: number;
   }): Promise<number> => {
     if (!isPlentyLpToken) {
-      return +((balance / 10 ** decimals) * exchangeRate).toFixed(5) / 1;
+      const stakeInXtz =
+        +((balance / 10 ** decimals) * exchangeRate).toFixed(5) / 1;
+      dispatch("update-farm-value", [invName, stakeInXtz]);
+      return stakeInXtz;
     } else {
       const tokens = await getPlentyLqtValue(
         id,
@@ -208,6 +211,13 @@
           balance: invDetails.balance,
           info: invDetails.info
         }
+      });
+      stakeInXtz = await calcStakeInXtz({
+        isPlentyLpToken: invData.platform === "plenty",
+        id: invData.id,
+        balance: invData.balance,
+        decimals: invData.decimals,
+        exchangeRate: $store.tokens[invData.token].exchangeRate
       });
     }
     loading = false;

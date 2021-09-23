@@ -210,6 +210,14 @@
     {/if}
   </div>
   <div style="display:flex">
+    <div>
+      {#if $store.xtzData.exchangeRate}
+        <button class="primary" disabled>
+          {+$store.xtzData.exchangeRate.toFixed(3) / 1}
+          {$localStorageStore.preferredFiat}
+        </button>
+      {/if}
+    </div>
     <Calculator />
     <div id="change-fiat">
       {#if $localStorageStore}

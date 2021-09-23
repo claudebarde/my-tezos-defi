@@ -124,6 +124,7 @@
         <div>Value in tokens</div>
       </div>
     {/if}
+    <br /><br />
     {#each lastOpsFiltered as op, index (op.entryId)}
       {#if index === 0 || op.level !== lastOpsFiltered[index - 1].level}
         <div class="row">
@@ -153,8 +154,8 @@
               <img
                 src={$store.tokens[icon]?.hasOwnProperty("thumbnail")
                   ? $store.tokens[icon].thumbnail
-                  : `images/${icon}.png`}
-                alt="user"
+                  : `images/${icon.toLowerCase()}.png`}
+                alt={icon}
               />
             {/each}
           </a>

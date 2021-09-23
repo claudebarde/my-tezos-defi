@@ -13,6 +13,7 @@
   import type { AvailableInvestments } from "../../types";
   import { AvailableToken } from "../../types";
   import Row from "./Row.svelte";
+  import InvestmentSpread from "./InvestmentSpread.svelte";
 
   let showPlentyFarms = false;
   let showPaulFarms = false;
@@ -607,5 +608,9 @@
         on:reset-rewards={event => resetRewards(event.detail)}
       />
     {/each}
+  </div>
+  <br />
+  <div>
+    <InvestmentSpread {totalValueInFarms} />
   </div>
 </section>

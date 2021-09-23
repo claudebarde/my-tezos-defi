@@ -350,7 +350,7 @@
         };
 
         await coinGeckoFetch();
-        coinGeckoInterval = setInterval(coinGeckoFetch, 600_000);
+        coinGeckoInterval = setInterval(coinGeckoFetch, 120_000);
 
         // updates service fee for test version
         if (
