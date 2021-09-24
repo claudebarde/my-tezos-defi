@@ -15,7 +15,7 @@
       tooltipText: [],
       datasets: [
         {
-          label: "Investment Spread",
+          label: "Investment Spread (farms with over 1%)",
           data: [],
           backgroundColor: [],
           hoverOffset: 4
@@ -26,13 +26,15 @@
     totalValueInFarms
       .sort((a, b) => b[1] - a[1])
       .forEach(inv => {
-        data.labels.push($store.investments[inv[0]].alias);
-        data.tooltipText.push("test");
-        data.datasets[0].data.push(inv[1]);
-        if ($store.investments[inv[0]].platform === "plenty") {
-          data.datasets[0].backgroundColor.push(
-            $store.tokens[$store.investments[inv[0]].icons[1]].color
-          );
+        let percent = (+inv[1] / totalValue) * 100;
+        if (percent > 1) {
+          data.labels.push($store.investments[inv[0]].alias);
+          data.datasets[0].data.push(inv[1]);
+          if ($store.investments[inv[0]].platform === "plenty") {
+            data.datasets[0].backgroundColor.push(
+              $store.tokens[$store.investments[inv[0]].icons[1]].color
+            );
+          }
         }
       });
 
@@ -52,7 +54,7 @@
           plugins: {
             title: {
               display: true,
-              text: `Investment Spread`
+              text: `Investment Spread (farms with over 1%)`
             },
             legend: { display: false },
             tooltip: {

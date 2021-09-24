@@ -151,12 +151,7 @@
             rel="noopener noreferrer nofollow"
           >
             {#each op.icons as icon}
-              <img
-                src={$store.tokens[icon]?.hasOwnProperty("thumbnail")
-                  ? $store.tokens[icon].thumbnail
-                  : `images/${icon.toLowerCase()}.png`}
-                alt={icon}
-              />
+              <img src={`images/${icon}.png`} alt={icon} />
             {/each}
           </a>
         </div>

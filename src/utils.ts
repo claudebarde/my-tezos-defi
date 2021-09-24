@@ -1179,6 +1179,7 @@ export const formatPlentyLpAmount = (
     case "PLENTY-SMAK-LP":
       return lpAmount / 10 ** 8;
     case "PLENTY-uUSD-LP":
+    case "PLENTY-KALAM-LP":
       return lpAmount / 10 ** 4;
     default:
       return lpAmount;
