@@ -194,6 +194,35 @@
         })
       );
       readyToHarvest = 0;
+      /*(
+        [
+          {
+            id: "PLENTY-wBUSD-LP",
+            platform: "plenty",
+            amount: { status: true, totalRewards: 0.00029 }
+          },
+          {
+            id: "PLENTY-USDtz-LP",
+            platform: "plenty",
+            amount: { status: true, totalRewards: 0.05023 }
+          },
+          {
+            id: "PLENTY-ETHtz-LP",
+            platform: "plenty",
+            amount: { status: true, totalRewards: 0.06842 }
+          },
+          {
+            id: "PLENTY-kUSD-LP",
+            platform: "plenty",
+            amount: { status: true, totalRewards: 0.10851 }
+          },
+          {
+            id: "PLENTY-hDAO-LP",
+            platform: "plenty",
+            amount: { status: true, totalRewards: 0 }
+          }
+        ] as any
+        ).forEach(rw => {*/
       rewards.forEach(rw => {
         let tempRw = { ...rw };
         if (rw.platform === "plenty") {

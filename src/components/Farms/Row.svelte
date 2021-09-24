@@ -44,6 +44,8 @@
     decimals: number;
     exchangeRate: number;
   }): Promise<number> => {
+    if (!balance) return 0;
+
     if (!isPlentyLpToken) {
       const stakeInXtz =
         +((balance / 10 ** decimals) * exchangeRate).toFixed(5) / 1;
@@ -275,12 +277,7 @@
     {#if invData.platform === "plenty"}
       <div class="icon">
         {#each invData.icons as icon}
-          <img
-            src={$store.tokens[icon]
-              ? $store.tokens[icon].thumbnail
-              : `images/${icon}.png`}
-            alt="token-icon"
-          />
+          <img src={`images/${icon}.png`} alt="token-icon" />
         {/each}
       </div>
       <div>
@@ -325,7 +322,7 @@
           <div>
             {#if valueInXtz}
               <span class:blurry-text={$store.blurryBalances}>
-                {#if stakeInXtz}
+                {#if stakeInXtz || stakeInXtz === 0}
                   {stakeInXtz}
                 {:else}
                   <span class="material-icons"> hourglass_empty </span>
@@ -333,7 +330,7 @@
               </span>
             {:else}
               <span class:blurry-text={$store.blurryBalances}>
-                {#if stakeInXtz}
+                {#if stakeInXtz || stakeInXtz === 0}
                   {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(5) / 1}
                 {:else}
                   <span class="material-icons"> hourglass_empty </span>
@@ -342,7 +339,7 @@
             {/if}
           </div>
         {:else if invData.alias === "PLENTY-XTZ LP farm" && $store.tokens.PLENTY}
-          <div>TODO</div>
+          <div>--</div>
         {:else}
           <div>--</div>
         {/if}

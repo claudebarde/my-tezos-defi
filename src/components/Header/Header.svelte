@@ -211,7 +211,9 @@
   </div>
   <div style="display:flex">
     <div>
-      {#if $store.xtzData.exchangeRate}
+      {#if $store.xtzData.exchangeRate && Object.values(config.validFiats)
+          .map(fiat => fiat.code)
+          .includes($localStorageStore.preferredFiat)}
         <button class="primary" disabled>
           {+$store.xtzData.exchangeRate.toFixed(3) / 1}
           {$localStorageStore.preferredFiat}
@@ -225,12 +227,20 @@
           class="primary"
           on:click={() => (showAvailableFiats = !showAvailableFiats)}
         >
-          <img
-            src={`images/transferwise-currency-flags/${$localStorageStore.preferredFiat}.png`}
-            alt={$localStorageStore.preferredFiat}
-          />
-          &nbsp; {$localStorageStore.preferredFiat}
-          <span class="material-icons"> arrow_drop_down </span>
+          {#if Object.values(config.validFiats)
+            .map(fiat => fiat.code)
+            .includes($localStorageStore.preferredFiat)}
+            <img
+              src={`images/transferwise-currency-flags/${$localStorageStore.preferredFiat}.png`}
+              alt={$localStorageStore.preferredFiat}
+            />
+            &nbsp; {$localStorageStore.preferredFiat}
+            <span class="material-icons"> arrow_drop_down </span>
+          {:else}
+            <img src={`images/transferwise-currency-flags/usd.png`} alt="USD" />
+            &nbsp; USD
+            <span class="material-icons"> arrow_drop_down </span>
+          {/if}
         </button>
         {#if showAvailableFiats}
           <div id="select-fiat" transition:fly={{ duration: 400, y: 100 }}>

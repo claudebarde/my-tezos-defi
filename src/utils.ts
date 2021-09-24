@@ -992,20 +992,21 @@ export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
     }
 
     if (
-      !localStore.tokensExchangeRates[a[0]] ||
-      !localStore.tokensExchangeRates[b[0]]
+      !localStore.tokens ||
+      !localStore.tokens[a[0]].exchangeRate ||
+      !localStore.tokens[b[0]].exchangeRate
     ) {
       return 0;
     }
 
     return (
       balanceB *
-        (localStore.tokensExchangeRates[b[0]]
-          ? localStore.tokensExchangeRates[b[0]].tokenToTez
+        (localStore.tokens[b[0]].exchangeRate
+          ? localStore.tokens[b[0]].exchangeRate
           : 0) -
       balanceA *
-        (localStore.tokensExchangeRates[a[0]]
-          ? localStore.tokensExchangeRates[a[0]].tokenToTez
+        (localStore.tokens[a[0]].exchangeRate
+          ? localStore.tokens[a[0]].exchangeRate
           : 0)
     );
   });

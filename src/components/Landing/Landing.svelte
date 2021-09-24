@@ -40,7 +40,7 @@
         .toLowerCase()
         .localeCompare(b[0].toLowerCase())) as [tokenSymbol, tokenData]}
       <div class="available-token">
-        <img src={tokenData.thumbnail} alt={`${tokenSymbol}-logo`} />
+        <img src={`images/${tokenSymbol}.png`} alt={`${tokenSymbol}-logo`} />
         <span>{tokenSymbol}</span>
         <span style="font-size:0.9rem">
           ꜩ {+tokenData.exchangeRate.toFixed(3) / 1}

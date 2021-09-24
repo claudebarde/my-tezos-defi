@@ -4,7 +4,11 @@
   import { push } from "svelte-spa-router";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
-  import { searchUserTokens, formatTokenAmount } from "../../utils";
+  import {
+    searchUserTokens,
+    formatTokenAmount,
+    sortTokensByBalance
+  } from "../../utils";
   import type { State } from "../../types";
 
   let showSelectTokens = false;
@@ -221,7 +225,10 @@
               }
             }}
           >
-            <img src={tokenData.thumbnail} alt={`${tokenSymbol}-logo`} />
+            <img
+              src={`images/${tokenSymbol}.png`}
+              alt={`${tokenSymbol}-logo`}
+            />
             &nbsp; {tokenSymbol}
           </div>
         {/each}
@@ -246,9 +253,10 @@
         </div>
       </div>
     {/if}
-    {#each $localStorageStore.favoriteTokens as token}
+
+    {#each $store.tokensBalances ? sortTokensByBalance($localStorageStore.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map(tk => tk[0]) : [] as token (token)}
       <div class="favorite-token">
-        <img src={$store.tokens[token].thumbnail} alt={`${token}-logo`} />
+        <img src={`images/${token}.png`} alt={`${token}-logo`} />
         <div>{token}</div>
         <div>
           {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}

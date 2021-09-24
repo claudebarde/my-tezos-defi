@@ -20,14 +20,17 @@
 
   .calculator-token {
     display: grid;
-    grid-template-columns: 20% 70%;
+    grid-template-columns: 30% 70%;
     justify-items: center;
     align-items: center;
+    column-gap: 10px;
     padding: 10px;
+    overflow-x: hidden;
 
     img {
       width: 40px;
       height: 40px;
+      padding: 10px;
     }
 
     span.fiat-symbol {
@@ -71,12 +74,7 @@
           {config.validFiats.find(fiat => fiat.code === tokenSymbol).symbol}
         </span>
       {:else}
-        <img
-          src={$store.tokens[tokenSymbol]?.thumbnail
-            ? $store.tokens[tokenSymbol].thumbnail
-            : `images/${tokenSymbol}.png`}
-          alt={tokenSymbol}
-        />
+        <img src={`images/${tokenSymbol}.png`} alt={tokenSymbol} />
       {/if}
     </div>
     <div>
