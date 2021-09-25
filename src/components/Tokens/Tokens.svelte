@@ -161,7 +161,7 @@
     .favorite-tokens {
       display: flex;
       justify-content: center;
-      align-items: flex-start;
+      align-items: stretch;
       flex-wrap: wrap;
       gap: 20px;
 
@@ -258,21 +258,44 @@
       <div class="favorite-token">
         <img src={`images/${token}.png`} alt={`${token}-logo`} />
         <div>{token}</div>
-        <div>
-          {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}
-            <div>
-              {formatTokenAmount($store.tokensBalances[token])}
-            </div>
-            <div>
-              ꜩ {+(
-                $store.tokensBalances[token] * $store.tokens[token].exchangeRate
-              ).toFixed(3) / 1}
-            </div>
-          {:else}
-            <div>---</div>
-            <div>---</div>
-          {/if}
-        </div>
+        {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[token]) === 0}
+          <div>0</div>
+        {:else}
+          <div>
+            {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}
+              <div>
+                {formatTokenAmount($store.tokensBalances[token])}
+              </div>
+              <div>
+                {+(
+                  $store.tokensBalances[token] *
+                  $store.tokens[token].exchangeRate
+                ).toFixed(3) / 1} ꜩ
+              </div>
+              {#if $localStorageStore}
+                <div>
+                  {+(
+                    $store.tokensBalances[token] *
+                    $store.tokens[token].exchangeRate *
+                    $store.xtzData.exchangeRate
+                  ).toFixed(3) / 1}
+                  {$localStorageStore.preferredFiat}
+                </div>
+              {:else}
+                <div>
+                  {+(
+                    $store.tokensBalances[token] *
+                    $store.tokens[token].exchangeRate *
+                    $store.xtzData.exchangeRate
+                  ).toFixed(3) / 1} USD
+                </div>
+              {/if}
+            {:else}
+              <div>---</div>
+              <div>---</div>
+            {/if}
+          </div>
+        {/if}
       </div>
     {:else}
       No favorite token yet
