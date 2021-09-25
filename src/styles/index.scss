@@ -25,3 +25,18 @@ body {
     margin: 0 auto;
   }
 }
+
+.blurry-text {
+  color: transparent;
+  text-shadow: 0 0 7px rgba(30, 58, 138, 0.5);
+  position: relative;
+
+  &:after {
+    content: "XXXXXXXXXX";
+    visibility: visible;
+    display: block;
+    position: absolute;
+    top: 2px;
+    width: 100%;
+  }
+}
