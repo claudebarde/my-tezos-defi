@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
-  import { fly } from "svelte/transition";
+  import { slide } from "svelte/transition";
   import { push } from "svelte-spa-router";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
@@ -208,7 +208,7 @@
       <span class="material-icons"> arrow_drop_down </span>
     </button>
     {#if showSelectTokens}
-      <div class="select-tokens" transition:fly={{ duration: 400, y: 100 }}>
+      <div class="select-tokens" transition:slide={{ duration: 200 }}>
         {#each Object.entries($store.tokens).sort((a, b) => a[0]
             .toLowerCase()
             .localeCompare(b[0].toLowerCase())) as [tokenSymbol, tokenData]}

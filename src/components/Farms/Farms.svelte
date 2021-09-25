@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { afterUpdate } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import { fly } from "svelte/transition";
+  import { push } from "svelte-spa-router";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import {
@@ -8,12 +9,14 @@
     getPlentyReward,
     getPaulReward,
     getKdaoReward,
-    prepareOperation
+    prepareOperation,
+    formatPlentyLpAmount
   } from "../../utils";
   import type { AvailableInvestments } from "../../types";
   import { AvailableToken } from "../../types";
   import Row from "./Row.svelte";
   import InvestmentSpread from "./InvestmentSpread.svelte";
+  import config from "../../config";
 
   let showPlentyFarms = false;
   let showPaulFarms = false;
@@ -31,6 +34,7 @@
   let totalValueInFarms: [AvailableInvestments, number][] = [];
   let harvestingAll = false;
   let harvestingAllSuccess = undefined;
+  let unstakedLpTokens: [AvailableInvestments, string, number][] = [];
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -135,9 +139,41 @@
     ];
   };
 
-  /*onMount(() => {
+  onMount(async () => {
+    if (!$store.userAddress) push("/");
+
+    // looks for unstaked LP tokens
+    if ($store.Tezos && $store.userAddress && $localStorageStore) {
+      // PLENTY
+      const plentyLptAddresses = $localStorageStore.favoriteInvestments
+        .map(inv => config.plentyLptAddresses[inv.replace("-LP", "") + "-LP"])
+        .filter(el => el);
+      const accountPromises = await Promise.all(
+        plentyLptAddresses.map(async addr => {
+          const contract = await $store.Tezos.wallet.at(addr);
+          const storage: any = await contract.storage();
+          return await storage.balances.get($store.userAddress);
+        })
+      );
+      if (accountPromises && accountPromises.length > 0) {
+        const lptAddresses = Object.entries(config.plentyLptAddresses);
+        unstakedLpTokens = accountPromises
+          .map((acc: any) => acc.balance.toNumber())
+          .map((balance, i) => [
+            ...lptAddresses.find(val => val[1] === plentyLptAddresses[i]),
+            balance
+          ])
+          .filter(item => +item[2] > 0)
+          .map(item => [
+            item[0],
+            item[1],
+            formatPlentyLpAmount(item[2], item[0])
+          ]);
+      }
+    }
+
     // refreshes rewards
-    document.addEventListener("visibilitychange", async () => {
+    /*document.addEventListener("visibilitychange", async () => {
       if (
         document.visibilityState === "visible" &&
         Date.now() > lastRewardsCheck + 10_000
@@ -145,8 +181,8 @@
         console.log("recheck rewards");
         lastRewardsCheck = Date.now();
       }
-    });
-  });*/
+    });*/
+  });
 
   afterUpdate(async () => {
     // calculates available rewards
@@ -194,35 +230,6 @@
         })
       );
       readyToHarvest = 0;
-      /*(
-        [
-          {
-            id: "PLENTY-wBUSD-LP",
-            platform: "plenty",
-            amount: { status: true, totalRewards: 0.00029 }
-          },
-          {
-            id: "PLENTY-USDtz-LP",
-            platform: "plenty",
-            amount: { status: true, totalRewards: 0.05023 }
-          },
-          {
-            id: "PLENTY-ETHtz-LP",
-            platform: "plenty",
-            amount: { status: true, totalRewards: 0.06842 }
-          },
-          {
-            id: "PLENTY-kUSD-LP",
-            platform: "plenty",
-            amount: { status: true, totalRewards: 0.10851 }
-          },
-          {
-            id: "PLENTY-hDAO-LP",
-            platform: "plenty",
-            amount: { status: true, totalRewards: 0 }
-          }
-        ] as any
-        ).forEach(rw => {*/
       rewards.forEach(rw => {
         let tempRw = { ...rw };
         if (rw.platform === "plenty") {
@@ -363,6 +370,34 @@
     }
     .row-header {
       background-color: darken($container-bg-color, 3);
+    }
+
+    .unstaked-token {
+      display: grid;
+      grid-template-columns: 10% 25% 65%;
+      padding: 10px;
+      align-items: center;
+      transition: 0.3s;
+
+      &:hover {
+        background-color: lighten($container-bg-color, 65);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .icon {
+        img {
+          width: 25px;
+          height: 25px;
+        }
+      }
     }
   }
 </style>
@@ -641,5 +676,30 @@
   <br />
   <div>
     <InvestmentSpread {totalValueInFarms} />
+  </div>
+  <br />
+  <div style="font-size:1.4rem">Information</div>
+  <div>
+    {#each unstakedLpTokens as item}
+      <div class="unstaked-token">
+        <div>
+          <div class="icon">
+            {#each $store.investments[item[0]].icons as icon}
+              <img src={`images/${icon}.png`} alt="token-icon" />
+            {/each}
+          </div>
+        </div>
+        <div>
+          <a
+            href={`https://better-call.dev/mainnet/${item[1]}/operations`}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+          >
+            {item[0]}
+          </a>
+        </div>
+        <div>{item[2]} unstaked tokens</div>
+      </div>
+    {/each}
   </div>
 </section>
