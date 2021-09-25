@@ -679,6 +679,8 @@
   </div>
   <br />
   <div style="font-size:1.4rem">Information</div>
+  <br />
+  <div style="font-size:1.1rem">Unstaked LP tokens</div>
   <div>
     {#each unstakedLpTokens as item}
       <div class="unstaked-token">
@@ -698,7 +700,7 @@
             {item[0]}
           </a>
         </div>
-        <div>{item[2]} unstaked tokens</div>
+        <div>{item[2]} tokens</div>
       </div>
     {/each}
   </div>
