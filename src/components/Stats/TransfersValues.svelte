@@ -6,11 +6,11 @@
   import type { AvailableToken } from "../../types";
 
   let chart;
-  let showCanvas = false;
+  let showCanvas = true;
 
   afterUpdate(() => {
+    showCanvas = true;
     if ($store.tokens && $store.lastOperations.length > 1) {
-      showCanvas = true;
       let data = {
         labels: [],
         datasets: [
@@ -140,8 +140,6 @@
           }
         });
       }
-    } else {
-      showCanvas = false;
     }
   });
 </script>
