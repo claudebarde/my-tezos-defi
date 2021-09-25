@@ -35,6 +35,7 @@
   let harvestingAll = false;
   let harvestingAllSuccess = undefined;
   let unstakedLpTokens: [AvailableInvestments, string, number][] = [];
+  let lastVisit = 0;
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -172,16 +173,17 @@
       }
     }
 
-    // refreshes rewards
-    /*document.addEventListener("visibilitychange", async () => {
+    lastVisit = Date.now();
+
+    // refreshes data
+    document.addEventListener("visibilitychange", async () => {
       if (
         document.visibilityState === "visible" &&
-        Date.now() > lastRewardsCheck + 10_000
+        Date.now() > lastVisit + 60_000 * 10
       ) {
-        console.log("recheck rewards");
-        lastRewardsCheck = Date.now();
+        console.log("refreshes data");
       }
-    });*/
+    });
   });
 
   afterUpdate(async () => {

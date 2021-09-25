@@ -1,13 +1,19 @@
 <script lang="ts">
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
+  import tippy from "tippy.js";
+  import "tippy.js/dist/tippy.css";
   import store from "../../store";
-  import localStorageStore from "../../localStorage";
-  import type { AvailableInvestments, InvestmentData } from "../../types";
+  import type {
+    AvailableInvestments,
+    InvestmentData,
+    IconValue
+  } from "../../types";
   import { AvailableToken } from "../../types";
   import {
     loadInvestment,
     getPlentyLqtValue,
-    prepareOperation
+    prepareOperation,
+    formatTokenAmount
   } from "../../utils";
   import config from "../../config";
 
@@ -222,6 +228,25 @@
         exchangeRate: $store.tokens[invData.token].exchangeRate
       });
     }
+
+    const createTooltipContent = (icons: [IconValue, IconValue]): string => {
+      const token1 = icons[0];
+      const token2 = icons[1];
+      const exchangeRate1 = $store.tokens[invData.icons[0]]
+        ? formatTokenAmount($store.tokens[invData.icons[0]].exchangeRate)
+        : "0";
+      const exchangeRate2 = $store.tokens[invData.icons[1]]
+        ? formatTokenAmount($store.tokens[invData.icons[1]].exchangeRate)
+        : "0";
+
+      return `<div>${token1}: ${exchangeRate1} ꜩ<br />${token2}: ${exchangeRate2} ꜩ</div>`;
+    };
+
+    tippy(`#farm-${invData.id}`, {
+      content: createTooltipContent(invData.icons as [IconValue, IconValue]),
+      allowHTML: true
+    });
+
     loading = false;
   });
 
@@ -275,10 +300,12 @@
   <div class="row">
     <!-- PLENTY FARMS -->
     {#if invData.platform === "plenty"}
-      <div class="icon">
-        {#each invData.icons as icon}
-          <img src={`images/${icon}.png`} alt="token-icon" />
-        {/each}
+      <div style="display:flex">
+        <div class="icon" id={`farm-${invData.id}`}>
+          {#each invData.icons as icon}
+            <img src={`images/${icon}.png`} alt="token-icon" />
+          {/each}
+        </div>
       </div>
       <div>
         <a
