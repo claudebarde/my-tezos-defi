@@ -231,16 +231,17 @@ if (globalThis?.window?.localStorage) {
             vaultsToUpdate = "kUsdVaults";
             break;
           case "uusd":
-            vaultsToUpdate = "uUSdVaults";
+            vaultsToUpdate = "uUsdVaults";
             break;
         }
 
-        const newStore = {
-          ...store,
-          [vaultsToUpdate]: !store[vaultsToUpdate].includes(vault)
-            ? [...store[vaultsToUpdate], vault]
-            : store[vaultsToUpdate]
-        };
+        const newStore = { ...store };
+        if (!store.hasOwnProperty(vaultsToUpdate)) {
+          newStore[vaultsToUpdate] = [vault];
+        } else if (!store[vaultsToUpdate].includes(vault)) {
+          newStore[vaultsToUpdate] = [...store[vaultsToUpdate], vault];
+        }
+
         if (gnrlStore.userAddress) {
           try {
             window.localStorage.setItem(

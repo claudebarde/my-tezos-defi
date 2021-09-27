@@ -40,7 +40,6 @@
           }
         })
       ].reduce((a, b) => a + b);
-      console.log(totalLocked);
     }
   });
 </script>
@@ -293,7 +292,7 @@
     <div>No vault or oven</div>
   {/if}
   <!-- wXTZ -->
-  {#if $localStorageStore.wXtzVaults.length > 0}
+  {#if $localStorageStore?.wXtzVaults.length > 0}
     <div class="row-header">
       <div />
       <div>Vault</div>
@@ -305,7 +304,7 @@
   {/if}
   <br />
   <!-- kUSD -->
-  {#if $localStorageStore.kUsdVaults.length > 0}
+  {#if $localStorageStore?.kUsdVaults.length > 0}
     <div class="row-header">
       <div />
       <div>Oven</div>
@@ -317,7 +316,7 @@
   {/if}
   <br />
   <!-- uUSD -->
-  {#if $localStorageStore.uUsdVaults.length > 0}
+  {#if $localStorageStore?.uUsdVaults.length > 0}
     <div class="row-header">
       <div />
       <div>Vault</div>

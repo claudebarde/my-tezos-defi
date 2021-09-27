@@ -705,7 +705,7 @@
             target="_blank"
             rel="noopener noreferrer nofollow"
           >
-            {item[0]}
+            {$store.investments[item[0]].alias}
           </a>
         </div>
         <div>{item[2]} tokens</div>
