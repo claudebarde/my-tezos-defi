@@ -59,16 +59,16 @@
           }
         ]
       };
+      let totalPlentyRewards = 0;
       plentyRewards.forEach((rw: any) => {
-        data.labels.push(rw.alias);
-        data.datasets[0].data.push(
-          formatTokenAmount(
-            [0, 0, ...rw.operations.map(op => op.value)].reduce(
-              (a, b) => a + b
-            ) /
-              10 ** $store.tokens.PLENTY.decimals
-          )
+        const totalValue = formatTokenAmount(
+          [0, 0, ...rw.operations.map(op => op.value)].reduce((a, b) => a + b) /
+            10 ** $store.tokens.PLENTY.decimals
         );
+        totalPlentyRewards += totalValue;
+
+        data.labels.push(rw.alias);
+        data.datasets[0].data.push(totalValue);
         data.datasets[0].backgroundColor.push($store.tokens[rw.icons[1]].color);
       });
       const canvas = document.getElementById(
@@ -93,7 +93,9 @@
             plugins: {
               title: {
                 display: true,
-                text: `Total rewards withdrawn from Plenty farms in the last 30 days`
+                text: `Total rewards withdrawn from Plenty farms in the last 30 days (${(
+                  +totalPlentyRewards.toFixed(2) / 1
+                ).toLocaleString("en-US")} PLENTY)`
               },
               legend: { position: "left" },
               tooltip: {
