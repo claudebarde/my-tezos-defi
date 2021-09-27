@@ -65,11 +65,15 @@
           [0, 0, ...rw.operations.map(op => op.value)].reduce((a, b) => a + b) /
             10 ** $store.tokens.PLENTY.decimals
         );
-        totalPlentyRewards += totalValue;
-
-        data.labels.push(rw.alias);
-        data.datasets[0].data.push(totalValue);
-        data.datasets[0].backgroundColor.push($store.tokens[rw.icons[1]].color);
+        if (totalValue > 0) {
+          totalPlentyRewards += totalValue;
+          data.labels.push(rw.alias);
+          data.datasets[0].data.push(totalValue);
+          data.datasets[0].backgroundColor.push(
+            $store.tokens[rw.id === "PLENTY-XTZ-LP" ? "PLENTY" : rw.icons[1]]
+              .color
+          );
+        }
       });
       const canvas = document.getElementById(
         "plenty-total-rewards-chart"

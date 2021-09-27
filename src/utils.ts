@@ -765,11 +765,11 @@ export const loadInvestment = async (
             info.push(val)
           );
 
-          if (inv.id === "PLENTY-XTZ-LP") {
+          /*if (inv.id === "PLENTY-XTZ-LP") {
             console.error(
               "UPDATE loadInvestment FOR PLENTY-XTZ-LP IN utils.ts"
             );
-            /*const dex = await findDex(
+            const dex = await findDex(
               localStore.Tezos,
               config.quipuswapFactories,
               {
@@ -784,8 +784,8 @@ export const loadInvestment = async (
               balance,
               info,
               shareValueInTez: tezInShares.toNumber()
-            };*/
-          }
+            };
+          }*/
 
           return { id: inv.id, balance, info };
         } else {
@@ -861,6 +861,32 @@ export const loadInvestment = async (
             id: inv.id,
             balance: +userData.value.lpTokenBalance,
             info: undefined
+          };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "wrap") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/delegators/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          return {
+            id: inv.id,
+            balance: +userData.value.balance,
+            info: userData.stakes
           };
         } else {
           return {

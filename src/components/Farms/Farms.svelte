@@ -22,9 +22,11 @@
   let showPlentyFarms = false;
   let showPaulFarms = false;
   let showKdaoFarms = false;
+  let showWrapFarms = false;
   let plentyValueInXtz = true;
   let kdaoValueInXtz = true;
   let paulValueInXtz = true;
+  let wrapValueInXtz = true;
   let readyToHarvest = 0;
   let availableRewards: {
     id: AvailableInvestments;
@@ -290,7 +292,7 @@
           border-radius: 10px;
           position: absolute;
           top: 70px;
-          left: -80px;
+          left: -50px;
           display: flex;
           flex-wrap: wrap;
           box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
@@ -334,7 +336,29 @@
           border-radius: 10px;
           position: absolute;
           top: 70px;
-          right: -80px;
+          right: -100px;
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+          background-color: white;
+          padding: 5px;
+        }
+      }
+
+      #wrap-farms {
+        position: relative;
+        height: 60px;
+
+        .select-wrap-farms {
+          z-index: 100;
+          width: 440px;
+          min-height: 100px;
+          border: none;
+          border-radius: 10px;
+          position: absolute;
+          top: 70px;
+          right: -50px;
           display: flex;
           align-items: center;
           flex-wrap: wrap;
@@ -456,6 +480,7 @@
           showPlentyFarms = !showPlentyFarms;
           showPaulFarms = false;
           showKdaoFarms = false;
+          showWrapFarms = false;
         }}
       >
         <img src={$store.tokens.PLENTY.thumbnail} alt="Plenty" />
@@ -498,6 +523,7 @@
           showPaulFarms = !showPaulFarms;
           showPlentyFarms = false;
           showKdaoFarms = false;
+          showWrapFarms = false;
         }}
       >
         <img src={$store.tokens.PAUL.thumbnail} alt="Paul" />
@@ -540,6 +566,7 @@
           showKdaoFarms = !showKdaoFarms;
           showPlentyFarms = false;
           showPaulFarms = false;
+          showWrapFarms = false;
         }}
       >
         <img src={$store.tokens.kDAO.thumbnail} alt="kDAO" />
@@ -553,6 +580,49 @@
         >
           {#each Object.entries($store.investments)
             .filter(inv => inv[1].platform === "kdao")
+            .sort((a, b) => a[0]
+                .toLowerCase()
+                .localeCompare(b[0].toLowerCase())) as inv}
+            <div
+              class="farm-to-select"
+              class:favorite={$localStorageStore.favoriteInvestments.includes(
+                inv[0]
+              )}
+              on:click={async () => {
+                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
+                  removeFavoriteInvestment(inv[0]);
+                } else {
+                  addFavoriteInvestment(inv[0]);
+                }
+              }}
+            >
+              {inv[1].alias}
+            </div>
+          {/each}
+        </div>
+      {/if}
+    </div>
+    <div id="wrap-farms">
+      <button
+        class="primary"
+        on:click={() => {
+          showWrapFarms = !showWrapFarms;
+          showPlentyFarms = false;
+          showPaulFarms = false;
+          showKdaoFarms = false;
+        }}
+      >
+        <img src={$store.tokens.WRAP.thumbnail} alt="WRAP" />
+        &nbsp; WRAP
+        <span class="material-icons"> arrow_drop_down </span>
+      </button>
+      {#if showWrapFarms}
+        <div
+          class="select-wrap-farms"
+          transition:fly={{ duration: 400, y: 100 }}
+        >
+          {#each Object.entries($store.investments)
+            .filter(inv => inv[1].platform === "wrap")
             .sort((a, b) => a[0]
                 .toLowerCase()
                 .localeCompare(b[0].toLowerCase())) as inv}
@@ -664,6 +734,31 @@
       </div>
     {/if}
     {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul") as [invName, invData]}
+      <Row
+        investment={[invName, invData]}
+        valueInXtz={true}
+        rewards={availableRewards.find(rw => rw.id === invData.id)}
+        on:update-farm-value={event =>
+          (totalValueInFarms = [
+            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+            event.detail
+          ])}
+        on:reset-rewards={event => resetRewards(event.detail)}
+      />
+    {/each}
+    <!-- WRAP FARMS -->
+    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap").length > 0}
+      <div class="row-header">
+        <div />
+        <div>Contract</div>
+        <div>Stake</div>
+        <div>
+          Stake in {wrapValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
+        </div>
+        <div>Reward</div>
+      </div>
+    {/if}
+    {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap") as [invName, invData]}
       <Row
         investment={[invName, invData]}
         valueInXtz={true}

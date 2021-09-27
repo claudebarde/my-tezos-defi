@@ -75,7 +75,8 @@ export type InvestmentPlatform =
   | "quipuswap"
   | "crunchy"
   | "paul"
-  | "kdao";
+  | "kdao"
+  | "wrap";
 
 export interface TokenContract {
   address: TezosContractAddress;

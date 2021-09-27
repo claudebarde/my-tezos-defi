@@ -259,7 +259,7 @@
 
         if (defiData.investments) {
           // TO REMOVE LATER
-          (defiData.investments["PLENTY-uUSD-LP"] = {
+          defiData.investments["PLENTY-uUSD-LP"] = {
             id: "PLENTY-uUSD-LP",
             platform: "plenty",
             address: "KT1HSYQ9NLTQufuvNUwMhLY7B9TX8LDUfgsr",
@@ -269,14 +269,25 @@
             icons: ["PLENTY", "uUSD"],
             token: "PLENTY",
             liquidityToken: true
-          }),
-            Object.keys(defiData.investments).forEach(key => {
-              defiData.investments[key].balance = 0;
-              defiData.investments[key].favorite =
-                $localStorageStore &&
-                $localStorageStore.favoriteInvestments &&
-                $localStorageStore.favoriteInvestments.includes(key);
-            });
+          };
+          defiData.investments["WRAP-STACKING"] = {
+            id: "WRAP-STACKING",
+            platform: "wrap",
+            address: "KT1EVn7eG9jZVpm8y9uRAwTocdwJzF6g2iKy",
+            decimals: 8,
+            info: [],
+            alias: "Wrap Stacking",
+            icons: ["WRAP"],
+            token: "WRAP",
+            liquidityToken: false
+          };
+          Object.keys(defiData.investments).forEach(key => {
+            defiData.investments[key].balance = 0;
+            defiData.investments[key].favorite =
+              $localStorageStore &&
+              $localStorageStore.favoriteInvestments &&
+              $localStorageStore.favoriteInvestments.includes(key);
+          });
           store.updateInvestments({
             ...defiData.investments
           });

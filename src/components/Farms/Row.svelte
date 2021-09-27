@@ -38,6 +38,8 @@
   let harvestingPlentySuccess = undefined;
   let harvestingKdao = false;
   let harvestingKdaoSuccess = undefined;
+  let harvestingWrap = false;
+  let harvestingWrapSuccess = undefined;
 
   const calcStakeInXtz = async ({
     isPlentyLpToken,
@@ -206,6 +208,10 @@
     } finally {
       harvestingPaul = false;
     }
+  };
+
+  const harvestWrap = async () => {
+    console.log("harvest wrap");
   };
 
   onMount(async () => {
@@ -512,12 +518,7 @@
     {:else if invData.platform === "kdao"}
       <div class="icon">
         {#each invData.icons as icon}
-          <img
-            src={$store.tokens[icon]
-              ? $store.tokens[icon].thumbnail
-              : `images/${icon}.png`}
-            alt="token-icon"
-          />
+          <img src={`images/${icon}.png`} alt="token-icon" />
         {/each}
       </div>
       <div>
@@ -566,6 +567,58 @@
           <button class="mini error" on:click={harvestKdao}> Retry </button>
         {:else}
           <button class="mini" on:click={harvestKdao}>
+            <span class="material-icons"> agriculture </span>
+          </button>
+        {/if}
+      </div>
+    {:else if invData.platform === "wrap"}
+      <div class="icon">
+        {#each invData.icons as icon}
+          <img src={`images/${icon}.png`} alt="token-icon" />
+        {/each}
+      </div>
+      <div>
+        <a
+          href={`https://better-call.dev/mainnet/${invData.address}/operations`}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
+          {invData.alias}
+        </a>
+      </div>
+      <div>
+        <span class:blurry-text={$store.blurryBalances}>
+          {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1}
+        </span>
+      </div>
+      <div>
+        <span class:blurry-text={$store.blurryBalances}>
+          {+(
+            ($store.tokens[invData.token].exchangeRate * invData.balance) /
+            10 ** invData.decimals
+          ).toFixed(5) / 1}
+        </span>
+      </div>
+      <div>
+        {#if !rewards}
+          <span class="material-icons"> hourglass_empty </span>
+        {:else}
+          {+rewards.amount.toFixed(5) / 1}
+        {/if}
+      </div>
+      <div>
+        {#if harvestingWrap}
+          <button class="mini loading">
+            <span class="material-icons"> sync </span>
+          </button>
+        {:else if harvestingWrapSuccess === true}
+          <button class="mini success">
+            <span class="material-icons"> thumb_up </span>
+          </button>
+        {:else if harvestingWrapSuccess === false}
+          <button class="mini error" on:click={harvestWrap}> Retry </button>
+        {:else}
+          <button class="mini" on:click={harvestWrap}>
             <span class="material-icons"> agriculture </span>
           </button>
         {/if}
