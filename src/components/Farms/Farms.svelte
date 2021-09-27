@@ -16,6 +16,7 @@
   import { AvailableToken } from "../../types";
   import Row from "./Row.svelte";
   import InvestmentSpread from "./InvestmentSpread.svelte";
+  import PlentyTotalRewards from "./PlentyTotalRewards.svelte";
   import config from "../../config";
 
   let showPlentyFarms = false;
@@ -181,6 +182,7 @@
         document.visibilityState === "visible" &&
         Date.now() > lastVisit + 60_000 * 10
       ) {
+        lastVisit = Date.now();
         console.log("refreshes data");
       }
     });
@@ -678,6 +680,10 @@
   <br />
   <div>
     <InvestmentSpread {totalValueInFarms} />
+  </div>
+  <br />
+  <div>
+    <PlentyTotalRewards />
   </div>
   <br />
   <div style="font-size:1.4rem">Information</div>

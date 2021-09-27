@@ -2,7 +2,9 @@
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
+  import "tippy.js/themes/light-border.css";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import type {
     AvailableInvestments,
     InvestmentData,
@@ -247,6 +249,19 @@
       allowHTML: true
     });
 
+    const settingsDropdown = document.getElementById(
+      `settings-dropdown-${invData.id}`
+    );
+    if (settingsDropdown) {
+      tippy(`#settings-${invData.id}`, {
+        content: settingsDropdown.innerHTML,
+        trigger: "click",
+        placement: "left",
+        allowHTML: true,
+        theme: "light-border"
+      });
+    }
+
     loading = false;
   });
 
@@ -259,6 +274,21 @@
         balance: invData.balance,
         decimals: invData.decimals,
         exchangeRate: $store.tokens[invData.token].exchangeRate
+      });
+    }
+
+    if (rewards && rewards.amount && invData.platform === "plenty") {
+      tippy(`#rewards-${invData.id}`, {
+        content: `<div>${
+          +(rewards.amount * $store.tokens.PLENTY.exchangeRate).toFixed(5) / 1
+        } ꜩ<br />${
+          +(
+            rewards.amount *
+            $store.tokens.PLENTY.exchangeRate *
+            $store.xtzData.exchangeRate
+          ).toFixed(5) / 1
+        } ${$localStorageStore.preferredFiat || "USD"}</div>`,
+        allowHTML: true
       });
     }
   });
@@ -291,6 +321,20 @@
       img {
         width: 25px;
         height: 25px;
+      }
+    }
+  }
+
+  .settings-dropdown {
+    & > div {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.7rem;
+
+      .material-icons {
+        font-size: 0.9rem;
+        vertical-align: middle;
       }
     }
   }
@@ -375,10 +419,12 @@
         {#if !rewards}
           <span class="material-icons"> hourglass_empty </span>
         {:else}
-          {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
+          <span id={`rewards-${invData.id}`}>
+            {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
+          </span>
         {/if}
       </div>
-      <div>
+      <div class="buttons">
         {#if harvestingPlenty}
           <button class="mini loading">
             <span class="material-icons"> sync </span>
@@ -394,16 +440,23 @@
             <span class="material-icons"> agriculture </span>
           </button>
         {/if}
+        <div id={`settings-dropdown-${invData.id}`} style="display:none">
+          <div class="settings-dropdown">
+            <div>Settings</div>
+            <hr />
+            <div>
+              Remove <span class="material-icons"> delete </span>
+            </div>
+          </div>
+        </div>
+        <button class="mini" id={`settings-${invData.id}`}>
+          <span class="material-icons"> settings </span>
+        </button>
       </div>
     {:else if invData.platform === "paul"}
       <div class="icon">
         {#each invData.icons as icon}
-          <img
-            src={$store.tokens[icon]
-              ? $store.tokens[icon].thumbnail
-              : `images/${icon}.png`}
-            alt="token-icon"
-          />
+          <img src={`images/${icon}.png`} alt="token-icon" />
         {/each}
       </div>
       <div>

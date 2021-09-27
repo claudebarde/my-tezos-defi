@@ -1,5 +1,12 @@
 @import "./settings.scss";
 
+.buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
 button {
   border-radius: 10px;
   font-size: 1rem;
