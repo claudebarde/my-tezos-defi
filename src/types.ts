@@ -67,7 +67,8 @@ export enum AvailableInvestments {
   "PAUL-PAUL" = "PAUL-PAUL",
   "PAUL-XTZ" = "PAUL-XTZ",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
-  "KUSD-KDAO" = "KUSD-KDAO"
+  "KUSD-KDAO" = "KUSD-KDAO",
+  "WRAP-STACKING" = "WRAP-STACKING"
 }
 
 export type InvestmentPlatform =

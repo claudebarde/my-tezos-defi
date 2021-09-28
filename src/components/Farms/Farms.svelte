@@ -9,11 +9,11 @@
     getPlentyReward,
     getPaulReward,
     getKdaoReward,
+    getWrapReward,
     prepareOperation,
     formatPlentyLpAmount
   } from "../../utils";
-  import type { AvailableInvestments } from "../../types";
-  import { AvailableToken } from "../../types";
+  import { AvailableToken, AvailableInvestments } from "../../types";
   import Row from "./Row.svelte";
   import InvestmentSpread from "./InvestmentSpread.svelte";
   import PlentyTotalRewards from "./PlentyTotalRewards.svelte";
@@ -206,7 +206,8 @@
           inv =>
             inv.platform === "plenty" ||
             inv.platform === "paul" ||
-            inv.platform === "kdao"
+            inv.platform === "kdao" ||
+            inv.platform === "wrap"
         );
       const rewards: any = await Promise.all(
         investmentData.map(async inv => {
@@ -225,6 +226,12 @@
               inv.address,
               $store.userAddress,
               $store.lastOperations[0].level
+            );
+          } else if (inv.platform === "wrap") {
+            rewards = await getWrapReward(
+              inv.id,
+              inv.address,
+              $store.userAddress
             );
           }
 
@@ -247,6 +254,13 @@
         } else if (rw.platform === "kdao") {
           tempRw.amount =
             tempRw.amount.toNumber() / 10 ** $store.tokens.kDAO.decimals;
+        } else if (rw.platform === "wrap") {
+          if (rw.id === AvailableInvestments["WRAP-STACKING"]) {
+            tempRw.amount =
+              tempRw.amount.toNumber() / 10 ** $store.tokens.WRAP.decimals;
+          } else {
+            tempRw.amount = tempRw.amount.toNumber();
+          }
         }
 
         availableRewards = [

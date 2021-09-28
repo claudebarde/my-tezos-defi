@@ -5,6 +5,7 @@ import type {
   WalletOperationBatch
 } from "@taquito/taquito";
 import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
+import { tzip16 } from "@taquito/tzip16";
 import BigNumber from "bignumber.js";
 import type {
   HistoricalDataState,
@@ -15,10 +16,9 @@ import type {
   Operation,
   IconValue,
   IconSet,
-  KolibriOvenData,
-  AvailableInvestments
+  KolibriOvenData
 } from "./types";
-import { AvailableToken } from "./types";
+import { AvailableToken, AvailableInvestments } from "./types";
 import { char2Bytes, bytes2Char } from "@taquito/utils";
 import config from "./config";
 import { get } from "svelte/store";
@@ -1151,6 +1151,29 @@ export const getKdaoReward = async (
     return new BigNumber(0);
   } else {
     return result;
+  }
+};
+
+export const getWrapReward = async (
+  farmId: AvailableInvestments,
+  farmAddress: TezosContractAddress,
+  userAddress: TezosAccountAddress
+): Promise<null | BigNumber> => {
+  if (!farmAddress || !userAddress || !farmId) return null;
+
+  const localStore = get(store);
+
+  if (farmId === AvailableInvestments["WRAP-STACKING"]) {
+    const contract = await localStore.Tezos.wallet.at(farmAddress, tzip16);
+    const views = await contract.tzip16().metadataViews();
+    const reward = await views.get_earned().executeView(userAddress);
+    if (reward) {
+      return reward;
+    } else {
+      return new BigNumber(0);
+    }
+  } else {
+    return new BigNumber(0);
   }
 };
 

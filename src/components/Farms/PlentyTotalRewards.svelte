@@ -97,7 +97,7 @@
             plugins: {
               title: {
                 display: true,
-                text: `Total rewards withdrawn from Plenty farms in the last 30 days (${(
+                text: `Total rewards withdrawn from favorite Plenty farms in the last 30 days (${(
                   +totalPlentyRewards.toFixed(2) / 1
                 ).toLocaleString("en-US")} PLENTY)`
               },

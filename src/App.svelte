@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
   import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
+  import { Tzip16Module } from "@taquito/tzip16";
   import store from "./store";
   import localStorageStore from "./localStorage";
   import { AvailableToken } from "./types";
@@ -224,6 +225,7 @@
 
     Tezos = new TezosToolkit(rpcUrl);
     Tezos.setPackerProvider(new MichelCodecPacker());
+    Tezos.addExtension(new Tzip16Module());
     store.updateTezos(Tezos);
 
     let tokens: [AvailableToken, TokenContract][] = [];
