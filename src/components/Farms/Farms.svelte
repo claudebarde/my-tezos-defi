@@ -685,6 +685,7 @@
             event.detail
           ])}
         on:reset-rewards={event => resetRewards(event.detail)}
+        on:remove-investment={event => removeFavoriteInvestment(event.detail)}
       />
     {/each}
     <div class="row-footer">

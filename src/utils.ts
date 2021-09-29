@@ -1164,12 +1164,17 @@ export const getWrapReward = async (
   const localStore = get(store);
 
   if (farmId === AvailableInvestments["WRAP-STACKING"]) {
-    const contract = await localStore.Tezos.wallet.at(farmAddress, tzip16);
-    const views = await contract.tzip16().metadataViews();
-    const reward = await views.get_earned().executeView(userAddress);
-    if (reward) {
-      return reward;
-    } else {
+    try {
+      const contract = await localStore.Tezos.wallet.at(farmAddress, tzip16);
+      const views = await contract.tzip16().metadataViews();
+      const reward = await views.get_earned().executeView(userAddress);
+      if (reward) {
+        return reward;
+      } else {
+        return new BigNumber(0);
+      }
+    } catch (error) {
+      console.error(error);
       return new BigNumber(0);
     }
   } else {

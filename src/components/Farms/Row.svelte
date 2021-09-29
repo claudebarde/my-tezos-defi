@@ -255,19 +255,6 @@
       allowHTML: true
     });
 
-    const settingsDropdown = document.getElementById(
-      `settings-dropdown-${invData.id}`
-    );
-    if (settingsDropdown) {
-      tippy(`#settings-${invData.id}`, {
-        content: settingsDropdown.innerHTML,
-        trigger: "click",
-        placement: "left",
-        allowHTML: true,
-        theme: "light-border"
-      });
-    }
-
     loading = false;
   });
 
@@ -283,14 +270,27 @@
       });
     }
 
-    if (rewards && rewards.amount && invData.platform === "plenty") {
+    if (
+      rewards &&
+      rewards.amount &&
+      (invData.platform === "plenty" || invData.platform === "wrap")
+    ) {
+      let token: AvailableToken;
+      if (invData.platform === "plenty") {
+        token = AvailableToken.PLENTY;
+      } else if (invData.platform === "wrap") {
+        token = AvailableToken.WRAP;
+      } else {
+        return;
+      }
+
       tippy(`#rewards-${invData.id}`, {
         content: `<div>${
-          +(rewards.amount * $store.tokens.PLENTY.exchangeRate).toFixed(5) / 1
+          +(rewards.amount * $store.tokens[token].exchangeRate).toFixed(5) / 1
         } ꜩ<br />${
           +(
             rewards.amount *
-            $store.tokens.PLENTY.exchangeRate *
+            $store.tokens[token].exchangeRate *
             $store.xtzData.exchangeRate
           ).toFixed(5) / 1
         } ${$localStorageStore.preferredFiat || "USD"}</div>`,
@@ -327,20 +327,6 @@
       img {
         width: 25px;
         height: 25px;
-      }
-    }
-  }
-
-  .settings-dropdown {
-    & > div {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 0.7rem;
-
-      .material-icons {
-        font-size: 0.9rem;
-        vertical-align: middle;
       }
     }
   }
@@ -446,16 +432,13 @@
             <span class="material-icons"> agriculture </span>
           </button>
         {/if}
-        <div id={`settings-dropdown-${invData.id}`} style="display:none">
-          <div class="settings-dropdown">
-            <div>Settings</div>
-            <hr />
-            <div>
-              Remove <span class="material-icons"> delete </span>
-            </div>
-          </div>
-        </div>
-        <button class="mini" id={`settings-${invData.id}`}>
+        <button
+          class="mini"
+          on:click={() => dispatch("remove-investment", invData.id)}
+        >
+          <span class="material-icons"> delete </span>
+        </button>
+        <button class="mini">
           <span class="material-icons"> settings </span>
         </button>
       </div>
@@ -603,7 +586,9 @@
         {#if !rewards}
           <span class="material-icons"> hourglass_empty </span>
         {:else}
-          {+rewards.amount.toFixed(5) / 1}
+          <span id={`rewards-${invData.id}`}>
+            {+rewards.amount.toFixed(5) / 1}
+          </span>
         {/if}
       </div>
       <div>

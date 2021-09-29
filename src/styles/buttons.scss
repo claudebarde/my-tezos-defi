@@ -39,10 +39,15 @@ button {
     background-color: lighten($container-bg-color, 60);
     border: none;
     transition: 0.3s;
+    font-size: 1rem;
 
     &:hover {
       color: white;
       background-color: $container-bg-color;
+    }
+
+    .material-icons {
+      font-size: 1rem;
     }
   }
 
