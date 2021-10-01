@@ -117,7 +117,7 @@
 
       .select-tokens {
         z-index: 100;
-        width: 440px;
+        width: 70%;
         min-height: 200px;
         border: none;
         border-radius: 10px;
@@ -258,14 +258,20 @@
       <div class="favorite-token">
         <img src={`images/${token}.png`} alt={`${token}-logo`} />
         <div>{token}</div>
-        {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[token]) === 0}
-          <div>0</div>
-        {:else}
-          <div>
-            {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}
-              <div>
+        <div>
+          {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}
+            <div>
+              {#if formatTokenAmount($store.tokensBalances[token]) === 0}
+                No token
+              {:else}
                 {formatTokenAmount($store.tokensBalances[token])}
+              {/if}
+            </div>
+            {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[token]) === 0}
+              <div>
+                {+$store.tokens[token].exchangeRate.toFixed(3) / 1} ꜩ
               </div>
+            {:else}
               <div>
                 {+(
                   $store.tokensBalances[token] *
@@ -290,12 +296,12 @@
                   ).toFixed(3) / 1} USD
                 </div>
               {/if}
-            {:else}
-              <div>---</div>
-              <div>---</div>
             {/if}
-          </div>
-        {/if}
+          {:else}
+            <div>---</div>
+            <div>---</div>
+          {/if}
+        </div>
       </div>
     {:else}
       No favorite token yet
