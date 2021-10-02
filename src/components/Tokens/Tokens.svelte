@@ -73,13 +73,24 @@
       $store.tokensBalances &&
       Object.values($store.tokensBalances).length > 0
     ) {
-      totalHoldingInXtz = [
+      /*totalHoldingInXtz = [
         0,
         0,
         ...Object.entries($store.tokensBalances).map(
           ([tokenSymbol, balance]) =>
             balance * $store.tokens[tokenSymbol].exchangeRate
         )
+      ].reduce((a, b) => a + b);*/
+      totalHoldingInXtz = [
+        0,
+        0,
+        ...$localStorageStore.favoriteTokens.map(tk => {
+          if ($store.tokens[tk] && $store.tokensBalances[tk]) {
+            return $store.tokensBalances[tk] * $store.tokens[tk].exchangeRate;
+          } else {
+            return 0;
+          }
+        })
       ].reduce((a, b) => a + b);
       // adds XTZ balance
       if ($store.xtzData.balance) {
