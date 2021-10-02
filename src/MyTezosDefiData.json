@@ -731,6 +731,17 @@
       "token": "WRAP",
       "liquidityToken": false
     },
+    "WRAP-XTZ-LM": {
+      "id": "WRAP-XTZ-LM",
+      "platform": "wrap",
+      "address": "KT1QY4siBbWg9qpj52fEzrWdWfkbFcwwjfoA",
+      "decimals": 6,
+      "info": [],
+      "alias": "Wrap-XTZ LM",
+      "icons": ["WRAP", "XTZ"],
+      "token": "WRAP",
+      "liquidityToken": true
+    },
     "CRUNCHY-FARMS": {
       "id": "CRUNCHY-FARMS",
       "platform": "crunchy",

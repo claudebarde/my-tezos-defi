@@ -271,6 +271,10 @@
             ...defiData.investments
           });
         }
+      } else {
+        console.error(
+          "Unable to load tokens and investments data from the IPFS"
+        );
       }
       // fetches data from TezTools
       const tezToolsDataRes = await fetch(`https://api.teztools.io/v1/prices`);

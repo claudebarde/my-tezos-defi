@@ -179,8 +179,10 @@
         img {
           height: 2.4rem;
           position: absolute;
-          top: -1.3rem;
+          top: -1.4rem;
           left: 10px;
+          background-color: white;
+          padding: 0px 3px;
         }
       }
     }
