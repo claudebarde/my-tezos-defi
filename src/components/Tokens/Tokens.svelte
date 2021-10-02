@@ -163,7 +163,7 @@
       justify-content: center;
       align-items: stretch;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 30px;
 
       .favorite-token {
         display: flex;
@@ -172,12 +172,15 @@
         width: 250px;
         border: solid 1px $bg-color;
         border-radius: 10px;
-        padding: 10px;
+        padding: 1rem 10px;
         position: relative;
         z-index: 10;
 
         img {
-          height: 2rem;
+          height: 2.4rem;
+          position: absolute;
+          top: -1.3rem;
+          left: 10px;
         }
       }
     }
@@ -236,6 +239,7 @@
     {/if}
   </div>
   <br />
+  <br />
   <div class="favorite-tokens">
     {#if $store.xtzData.balance}
       <div class="favorite-token">
@@ -257,7 +261,12 @@
     {#each $store.tokensBalances ? sortTokensByBalance($localStorageStore.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map(tk => tk[0]) : [] as token (token)}
       <div class="favorite-token">
         <img src={`images/${token}.png`} alt={`${token}-logo`} />
-        <div>{token}</div>
+        <div>
+          <div>{token}</div>
+          <div style="font-size:0.8rem">
+            {formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ
+          </div>
+        </div>
         <div>
           {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}
             <div>
@@ -268,9 +277,9 @@
               {/if}
             </div>
             {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[token]) === 0}
-              <div>
-                {+$store.tokens[token].exchangeRate.toFixed(3) / 1} ꜩ
-              </div>
+              <div />
+              <div />
+              <div />
             {:else}
               <div>
                 {+(
