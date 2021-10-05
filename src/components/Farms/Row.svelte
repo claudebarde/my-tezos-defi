@@ -243,11 +243,22 @@
       const exchangeRate1 = $store.tokens[invData.icons[0]]
         ? formatTokenAmount($store.tokens[invData.icons[0]].exchangeRate)
         : "0";
-      const exchangeRate2 = $store.tokens[invData.icons[1]]
-        ? formatTokenAmount($store.tokens[invData.icons[1]].exchangeRate)
-        : "0";
 
-      return `<div>${token1}: ${exchangeRate1} ꜩ<br />${token2}: ${exchangeRate2} ꜩ</div>`;
+      if (token2 && token2 !== "XTZ") {
+        const exchangeRate2 = $store.tokens[invData.icons[1]]
+          ? formatTokenAmount($store.tokens[invData.icons[1]].exchangeRate)
+          : "0";
+
+        return `<div>${token1}: ${exchangeRate1} ꜩ<br />${token2}: ${exchangeRate2} ꜩ</div>`;
+      } else {
+        if (token2) {
+          return `<div>${token1}: ${exchangeRate1} ꜩ<br />${token2}: ${formatTokenAmount(
+            $store.xtzData.exchangeRate
+          )} ${$localStorageStore.preferredFiat}</div>`;
+        } else {
+          return `<div>${token1}: ${exchangeRate1} ꜩ`;
+        }
+      }
     };
 
     tippy(`#farm-${invData.id}`, {
@@ -273,13 +284,17 @@
     if (
       rewards &&
       rewards.amount &&
-      (invData.platform === "plenty" || invData.platform === "wrap")
+      (invData.platform === "plenty" ||
+        invData.platform === "wrap" ||
+        invData.platform === "paul")
     ) {
       let token: AvailableToken;
       if (invData.platform === "plenty") {
         token = AvailableToken.PLENTY;
       } else if (invData.platform === "wrap") {
         token = AvailableToken.WRAP;
+      } else if (invData.platform === "paul") {
+        token = AvailableToken.PAUL;
       } else {
         return;
       }
@@ -443,7 +458,7 @@
         </button>
       </div>
     {:else if invData.platform === "paul"}
-      <div class="icon">
+      <div class="icon" id={`farm-${invData.id}`}>
         {#each invData.icons as icon}
           <img src={`images/${icon}.png`} alt="token-icon" />
         {/each}
@@ -478,7 +493,9 @@
         {#if !rewards}
           <span class="material-icons"> hourglass_empty </span>
         {:else}
-          {+rewards.amount.toFixed(5) / 1}
+          <span id={`rewards-${invData.id}`}>
+            {+rewards.amount.toFixed(5) / 1}
+          </span>
         {/if}
       </div>
       <div>
@@ -555,7 +572,7 @@
         {/if}
       </div>
     {:else if invData.platform === "wrap"}
-      <div class="icon">
+      <div class="icon" id={`farm-${invData.id}`}>
         {#each invData.icons as icon}
           <img src={`images/${icon}.png`} alt="token-icon" />
         {/each}

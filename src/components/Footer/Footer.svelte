@@ -13,7 +13,7 @@
     align-items: center;
     background-color: white;
     position: relative;
-    z-index: 100;
+    z-index: 99;
 
     a {
       color: #d97706;

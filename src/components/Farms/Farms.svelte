@@ -13,10 +13,15 @@
     prepareOperation,
     formatPlentyLpAmount
   } from "../../utils";
-  import { AvailableToken, AvailableInvestments } from "../../types";
+  import {
+    AvailableToken,
+    AvailableInvestments,
+    InvestmentPlatform
+  } from "../../types";
   import Row from "./Row.svelte";
   import InvestmentSpread from "./InvestmentSpread.svelte";
   import PlentyTotalRewards from "./PlentyTotalRewards.svelte";
+  import Modal from "../Modal/Modal.svelte";
   import config from "../../config";
 
   let showPlentyFarms = false;
@@ -39,6 +44,7 @@
   let harvestingAllSuccess = undefined;
   let unstakedLpTokens: [AvailableInvestments, string, number][] = [];
   let lastVisit = 0;
+  let selectFarmModal: null | InvestmentPlatform = null;
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -291,114 +297,9 @@
 
     .farm-selection {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-around;
       align-items: center;
-
-      #plenty-farms {
-        position: relative;
-        height: 60px;
-
-        .select-plenty-farms {
-          z-index: 100;
-          width: 440px;
-          min-height: 200px;
-          border: none;
-          border-radius: 10px;
-          position: absolute;
-          top: 70px;
-          left: -50px;
-          display: flex;
-          flex-wrap: wrap;
-          box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-          background-color: white;
-          padding: 5px;
-        }
-      }
-
-      #paul-farms {
-        position: relative;
-        height: 60px;
-
-        .select-paul-farms {
-          z-index: 100;
-          width: 440px;
-          min-height: 100px;
-          border: none;
-          border-radius: 10px;
-          position: absolute;
-          top: 70px;
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-          background-color: white;
-          padding: 5px;
-        }
-      }
-
-      #kdao-farms {
-        position: relative;
-        height: 60px;
-
-        .select-kdao-farms {
-          z-index: 100;
-          width: 440px;
-          min-height: 100px;
-          border: none;
-          border-radius: 10px;
-          position: absolute;
-          top: 70px;
-          right: -100px;
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-          background-color: white;
-          padding: 5px;
-        }
-      }
-
-      #wrap-farms {
-        position: relative;
-        height: 60px;
-
-        .select-wrap-farms {
-          z-index: 100;
-          width: 440px;
-          min-height: 100px;
-          border: none;
-          border-radius: 10px;
-          position: absolute;
-          top: 70px;
-          right: -50px;
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-          background-color: white;
-          padding: 5px;
-        }
-      }
-    }
-
-    .farm-to-select {
-      padding: 5px;
-      margin: 5px;
-      font-size: 0.9rem;
-      transition: 0.3s;
-      border: solid 2px transparent;
-      border-radius: 10px;
-      cursor: pointer;
-
-      &:hover {
-        background-color: lighten($container-bg-color, 60);
-      }
-
-      &.favorite {
-        border-color: lighten($container-bg-color, 60);
-      }
     }
 
     .row-header,
@@ -439,6 +340,32 @@
           width: 25px;
           height: 25px;
         }
+      }
+    }
+  }
+
+  .farm-selection-modal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+    height: 100%;
+
+    .farm-to-select {
+      padding: 5px;
+      margin: 5px;
+      font-size: 0.9rem;
+      transition: 0.3s;
+      border: solid 2px transparent;
+      border-radius: 10px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: lighten($container-bg-color, 60);
+      }
+
+      &.favorite {
+        border-color: lighten($container-bg-color, 60);
       }
     }
   }
@@ -491,173 +418,49 @@
       <button
         class="primary"
         on:click={() => {
-          showPlentyFarms = !showPlentyFarms;
-          showPaulFarms = false;
-          showKdaoFarms = false;
-          showWrapFarms = false;
+          selectFarmModal = "plenty";
         }}
       >
         <img src={$store.tokens.PLENTY.thumbnail} alt="Plenty" />
         &nbsp; Plenty
         <span class="material-icons"> arrow_drop_down </span>
       </button>
-      {#if showPlentyFarms}
-        <div
-          class="select-plenty-farms"
-          transition:fly={{ duration: 400, y: 100 }}
-        >
-          {#each Object.entries($store.investments)
-            .filter(inv => inv[1].platform === "plenty")
-            .sort((a, b) => a[0]
-                .toLowerCase()
-                .localeCompare(b[0].toLowerCase())) as inv}
-            <div
-              class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments.includes(
-                inv[0]
-              )}
-              on:click={async () => {
-                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
-            >
-              {inv[1].alias}
-            </div>
-          {/each}
-        </div>
-      {/if}
-    </div>
-    <div id="paul-farms">
-      <button
-        class="primary"
-        on:click={() => {
-          showPaulFarms = !showPaulFarms;
-          showPlentyFarms = false;
-          showKdaoFarms = false;
-          showWrapFarms = false;
-        }}
-      >
-        <img src={$store.tokens.PAUL.thumbnail} alt="Paul" />
-        &nbsp; Paul
-        <span class="material-icons"> arrow_drop_down </span>
-      </button>
-      {#if showPaulFarms}
-        <div
-          class="select-paul-farms"
-          transition:fly={{ duration: 400, y: 100 }}
-        >
-          {#each Object.entries($store.investments)
-            .filter(inv => inv[1].platform === "paul")
-            .sort((a, b) => a[0]
-                .toLowerCase()
-                .localeCompare(b[0].toLowerCase())) as inv}
-            <div
-              class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments.includes(
-                inv[0]
-              )}
-              on:click={async () => {
-                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
-            >
-              {inv[1].alias}
-            </div>
-          {/each}
-        </div>
-      {/if}
-    </div>
-    <div id="kdao-farms">
-      <button
-        class="primary"
-        on:click={() => {
-          showKdaoFarms = !showKdaoFarms;
-          showPlentyFarms = false;
-          showPaulFarms = false;
-          showWrapFarms = false;
-        }}
-      >
-        <img src={$store.tokens.kDAO.thumbnail} alt="kDAO" />
-        &nbsp; kDAO
-        <span class="material-icons"> arrow_drop_down </span>
-      </button>
-      {#if showKdaoFarms}
-        <div
-          class="select-kdao-farms"
-          transition:fly={{ duration: 400, y: 100 }}
-        >
-          {#each Object.entries($store.investments)
-            .filter(inv => inv[1].platform === "kdao")
-            .sort((a, b) => a[0]
-                .toLowerCase()
-                .localeCompare(b[0].toLowerCase())) as inv}
-            <div
-              class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments.includes(
-                inv[0]
-              )}
-              on:click={async () => {
-                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
-            >
-              {inv[1].alias}
-            </div>
-          {/each}
-        </div>
-      {/if}
     </div>
     <div id="wrap-farms">
       <button
         class="primary"
         on:click={() => {
-          showWrapFarms = !showWrapFarms;
-          showPlentyFarms = false;
-          showPaulFarms = false;
-          showKdaoFarms = false;
+          selectFarmModal = "wrap";
         }}
       >
         <img src={$store.tokens.WRAP.thumbnail} alt="WRAP" />
         &nbsp; WRAP
         <span class="material-icons"> arrow_drop_down </span>
       </button>
-      {#if showWrapFarms}
-        <div
-          class="select-wrap-farms"
-          transition:fly={{ duration: 400, y: 100 }}
-        >
-          {#each Object.entries($store.investments)
-            .filter(inv => inv[1].platform === "wrap")
-            .sort((a, b) => a[0]
-                .toLowerCase()
-                .localeCompare(b[0].toLowerCase())) as inv}
-            <div
-              class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments.includes(
-                inv[0]
-              )}
-              on:click={async () => {
-                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
-            >
-              {inv[1].alias}
-            </div>
-          {/each}
-        </div>
-      {/if}
+    </div>
+    <div id="paul-farms">
+      <button
+        class="primary"
+        on:click={() => {
+          selectFarmModal = "paul";
+        }}
+      >
+        <img src={$store.tokens.PAUL.thumbnail} alt="Paul" />
+        &nbsp; Paul
+        <span class="material-icons"> arrow_drop_down </span>
+      </button>
+    </div>
+    <div id="kdao-farms">
+      <button
+        class="primary"
+        on:click={() => {
+          selectFarmModal = "kdao";
+        }}
+      >
+        <img src={$store.tokens.kDAO.thumbnail} alt="kDAO" />
+        &nbsp; kDAO
+        <span class="material-icons"> arrow_drop_down </span>
+      </button>
     </div>
   </div>
   <br />
@@ -711,6 +514,31 @@
       </div>
       <div />
     </div>
+    <!-- WRAP FARMS -->
+    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap").length > 0}
+      <div class="row-header">
+        <div />
+        <div>Contract</div>
+        <div>Stake</div>
+        <div>
+          Stake in {wrapValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
+        </div>
+        <div>Reward</div>
+      </div>
+    {/if}
+    {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap") as [invName, invData]}
+      <Row
+        investment={[invName, invData]}
+        valueInXtz={true}
+        rewards={availableRewards.find(rw => rw.id === invData.id)}
+        on:update-farm-value={event =>
+          (totalValueInFarms = [
+            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+            event.detail
+          ])}
+        on:reset-rewards={event => resetRewards(event.detail)}
+      />
+    {/each}
     <!-- KDAO FARMS -->
     {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao").length > 0}
       <div class="row-header">
@@ -761,31 +589,6 @@
         on:reset-rewards={event => resetRewards(event.detail)}
       />
     {/each}
-    <!-- WRAP FARMS -->
-    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap").length > 0}
-      <div class="row-header">
-        <div />
-        <div>Contract</div>
-        <div>Stake</div>
-        <div>
-          Stake in {wrapValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-        </div>
-        <div>Reward</div>
-      </div>
-    {/if}
-    {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap") as [invName, invData]}
-      <Row
-        investment={[invName, invData]}
-        valueInXtz={true}
-        rewards={availableRewards.find(rw => rw.id === invData.id)}
-        on:update-farm-value={event =>
-          (totalValueInFarms = [
-            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
-            event.detail
-          ])}
-        on:reset-rewards={event => resetRewards(event.detail)}
-      />
-    {/each}
   </div>
   <br />
   <div>
@@ -823,3 +626,84 @@
     {/each}
   </div>
 </section>
+{#if selectFarmModal}
+  <Modal type="default" on:close={() => (selectFarmModal = null)}>
+    <div slot="modal-title" class="modal-title">
+      {#if selectFarmModal === "plenty"}
+        Plenty farms
+      {:else if selectFarmModal === "wrap"}
+        Wrap farms
+      {:else if selectFarmModal === "paul"}
+        Paul farms
+      {:else if selectFarmModal === "kdao"}
+        kDAO farms
+      {/if}
+    </div>
+    <div slot="modal-body" class="modal-body">
+      {#if selectFarmModal}
+        <div class="farm-selection-modal">
+          <!-- favorite farms -->
+          {#each Object.entries($store.investments)
+            .filter(inv => inv[1].platform === selectFarmModal)
+            .filter( inv => $localStorageStore.favoriteInvestments.includes(inv[1].id) )
+            .sort((a, b) => a[0]
+                .toLowerCase()
+                .localeCompare(b[0].toLowerCase())) as inv}
+            <div
+              class="farm-to-select"
+              class:favorite={$localStorageStore.favoriteInvestments.includes(
+                inv[0]
+              )}
+              on:click={async () => {
+                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
+                  removeFavoriteInvestment(inv[0]);
+                } else {
+                  addFavoriteInvestment(inv[0]);
+                }
+              }}
+            >
+              {inv[1].alias}
+            </div>
+          {/each}
+        </div>
+        <br />
+        <div class="farm-selection-modal">
+          <!-- other farms -->
+          {#each Object.entries($store.investments)
+            .filter(inv => inv[1].platform === selectFarmModal)
+            .filter(inv => !$localStorageStore.favoriteInvestments.includes(inv[1].id))
+            .sort((a, b) => a[0]
+                .toLowerCase()
+                .localeCompare(b[0].toLowerCase())) as inv}
+            <div
+              class="farm-to-select"
+              class:favorite={$localStorageStore.favoriteInvestments.includes(
+                inv[0]
+              )}
+              on:click={async () => {
+                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
+                  removeFavoriteInvestment(inv[0]);
+                } else {
+                  addFavoriteInvestment(inv[0]);
+                }
+              }}
+            >
+              {inv[1].alias}
+            </div>
+          {/each}
+        </div>
+      {/if}
+    </div>
+    <div slot="modal-footer" class="modal-footer">
+      <div />
+      <button
+        class="primary"
+        on:click={() => {
+          selectFarmModal = null;
+        }}
+      >
+        Close
+      </button>
+    </div>
+  </Modal>
+{/if}

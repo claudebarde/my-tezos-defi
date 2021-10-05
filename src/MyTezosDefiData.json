@@ -737,7 +737,7 @@
       "address": "KT1QY4siBbWg9qpj52fEzrWdWfkbFcwwjfoA",
       "decimals": 6,
       "info": [],
-      "alias": "Wrap-XTZ LM",
+      "alias": "Wrap-XTZ LM pool",
       "icons": ["WRAP", "XTZ"],
       "token": "WRAP",
       "liquidityToken": true
