@@ -7,6 +7,7 @@ export enum AvailableToken {
   KUSD = "kUSD",
   HDAO = "hDAO",
   PLENTY = "PLENTY",
+  xPLENTY = "xPLENTY",
   WXTZ = "wXTZ",
   STKR = "STKR",
   TZBTC = "tzBTC",
@@ -14,17 +15,31 @@ export enum AvailableToken {
   ETHTZ = "ETHtz",
   CRUNCH = "CRUNCH",
   WRAP = "WRAP",
+  wAAVE = "wAAVE",
+  wBUSD = "wBUSD",
+  wCEL = "wCEL",
+  wCOMP = "wCOMP",
+  wCRO = "wCRO",
   WDAI = "wDAI",
+  wFTT = "wFTT",
+  wHT = "wHT",
+  wHUSD = "wHUSD",
+  wLEO = "wLEO",
+  wLINK = "wLINK",
+  wMATIC = "wMATIC",
+  wMKR = "wMKR",
+  wOKB = "wOKB",
+  wPAX = "wPAX",
+  wSUSHI = "wSUSHI",
+  wUNI = "wUNI",
+  wUSDC = "wUSDC",
+  wUSDT = "wUSDT",
   WWBTC = "wWBTC",
+  wWETH = "wWETH",
   CRDAO = "crDAO",
   FLAME = "FLAME",
   KALAM = "KALAM",
-  wLINK = "wLINK",
-  wMATIC = "wMATIC",
-  wUSDC = "wUSDC",
-  wBUSD = "wBUSD",
   PAUL = "PAUL",
-  SDAO = "sDAO",
   SMAK = "SMAK",
   GOT = "GOT",
   HERA = "HERA",
@@ -39,7 +54,7 @@ export enum AvailableFiat {
   CAD = "CAD",
   GBP = "GBP",
   SGD = "SGD",
-  KRW = "KRW"
+  RUB = "RUB"
 }
 export enum AvailableInvestments {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
@@ -68,7 +83,8 @@ export enum AvailableInvestments {
   "PAUL-PAUL" = "PAUL-PAUL",
   "PAUL-XTZ" = "PAUL-XTZ",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
-  "KUSD-KDAO" = "KUSD-KDAO"
+  "KUSD-KDAO" = "KUSD-KDAO",
+  "WRAP-STACKING" = "WRAP-STACKING"
 }
 
 export type InvestmentPlatform =
@@ -76,7 +92,8 @@ export type InvestmentPlatform =
   | "quipuswap"
   | "crunchy"
   | "paul"
-  | "kdao";
+  | "kdao"
+  | "wrap";
 
 export interface TokenContract {
   address: TezosContractAddress;
@@ -86,8 +103,26 @@ export interface TokenContract {
   ledgerKey: "address" | ["address", number] | [string, "address"];
   type: "fa1.2" | "fa2";
   color: string;
-  tokenId?: number; // only for fa2 contracts
+  exchangeRate: null | number; // token to XTZ
+  tokenId?: number; // only for fa2 contracts;
+  thumbnail?: string;
+  websiteLink?: string;
+}
+
+export interface InvestmentData {
+  id: AvailableInvestments;
+  platform: InvestmentPlatform;
+  address: TezosContractAddress;
+  balance: number | undefined;
+  decimals: number;
+  info: any;
+  icons: IconSet;
+  token: undefined | AvailableToken;
   favorite: boolean;
+  liquidityToken: boolean;
+  alias?: string;
+  shareValueInTez?: number;
+  totalSupply?: number;
 }
 
 export type IconValue = AvailableToken | "XTZ" | "QUIPUSWAP" | "crDAO" | "user";
@@ -142,20 +177,7 @@ export interface State {
     | undefined;
   investments:
     | {
-        [p in AvailableInvestments]: {
-          id: AvailableInvestments;
-          platform: InvestmentPlatform;
-          address: TezosContractAddress;
-          balance: number | undefined;
-          decimals: number;
-          info: any;
-          icons: IconSet;
-          token: undefined | AvailableToken;
-          favorite: boolean;
-          alias?: string;
-          shareValueInTez?: number;
-          totalSupply?: number;
-        };
+        [p in AvailableInvestments]: InvestmentData;
       }
     | undefined;
   lastOperations: Operation[];
@@ -202,6 +224,8 @@ export interface LocalStorageState {
   favoriteTokens: AvailableToken[];
   favoriteInvestments: AvailableInvestments[];
   wXtzVaults: TezosContractAddress[];
+  kUsdVaults: TezosContractAddress[];
+  uUsdVaults: TezosContractAddress[];
   lastUpdate: number;
 }
 

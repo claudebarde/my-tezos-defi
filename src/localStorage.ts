@@ -17,7 +17,9 @@ let initialState: LocalStorageState = {
   pushNotifications: false,
   favoriteTokens: [],
   favoriteInvestments: [],
+  kUsdVaults: [],
   wXtzVaults: [],
+  uUsdVaults: [],
   lastUpdate: Date.now()
 };
 
@@ -214,15 +216,32 @@ if (globalThis?.window?.localStorage) {
         return newStore;
       });
     },
-    addWxtzVault: (vault: TezosContractAddress) => {
+    addVault: (
+      platform: "wxtz" | "kusd" | "uusd",
+      vault: TezosContractAddress
+    ) => {
       store.update(store => {
         const gnrlStore = get(generalStore);
-        const newStore = {
-          ...store,
-          wXtzVaults: !store.wXtzVaults.includes(vault)
-            ? [...store.wXtzVaults, vault]
-            : store.wXtzVaults
-        };
+        let vaultsToUpdate;
+        switch (platform) {
+          case "wxtz":
+            vaultsToUpdate = "wXtzVaults";
+            break;
+          case "kusd":
+            vaultsToUpdate = "kUsdVaults";
+            break;
+          case "uusd":
+            vaultsToUpdate = "uUsdVaults";
+            break;
+        }
+
+        const newStore = { ...store };
+        if (!store.hasOwnProperty(vaultsToUpdate)) {
+          newStore[vaultsToUpdate] = [vault];
+        } else if (!store[vaultsToUpdate].includes(vault)) {
+          newStore[vaultsToUpdate] = [...store[vaultsToUpdate], vault];
+        }
+
         if (gnrlStore.userAddress) {
           try {
             window.localStorage.setItem(
@@ -238,12 +257,28 @@ if (globalThis?.window?.localStorage) {
         return newStore;
       });
     },
-    removeWxtzVault: (vault: TezosContractAddress) => {
+    removeVault: (
+      platform: "wxtz" | "kusd" | "uusd",
+      vault: TezosContractAddress
+    ) => {
       store.update(store => {
         const gnrlStore = get(generalStore);
+        let vaultsToUpdate;
+        switch (platform) {
+          case "wxtz":
+            vaultsToUpdate = "wXtzVaults";
+            break;
+          case "kusd":
+            vaultsToUpdate = "kUsdVaults";
+            break;
+          case "uusd":
+            vaultsToUpdate = "uUSdVaults";
+            break;
+        }
+
         const newStore = {
           ...store,
-          wXtzVaults: [...store.wXtzVaults.filter(v => v !== vault)]
+          [vaultsToUpdate]: [...store[vaultsToUpdate].filter(v => v !== vault)]
         };
         if (gnrlStore.userAddress) {
           try {

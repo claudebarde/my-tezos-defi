@@ -1,64 +1,53 @@
 @import "./settings.scss";
 
-.button {
-  appearance: none;
+.buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+button {
   border-radius: 10px;
-  padding: 5px 10px;
   font-size: 1rem;
   cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0px 5px;
 
-  .material-icons {
-    vertical-align: middle !important;
-  }
-
-  &.main {
-    border: solid 2px white;
-    background-color: transparent;
-    color: white;
-  }
-
-  &.secondary {
+  &.primary {
+    padding: 10px 15px;
+    color: $container-bg-color;
+    background-color: lighten($container-bg-color, 60);
     border: none;
-    border-bottom: solid 2px white;
-    border-radius: 0px;
-    background-color: transparent;
-    color: white;
-    margin: 0px 5px;
+    transition: 0.3s;
+
+    img {
+      height: 1rem;
+    }
+
+    &:hover {
+      color: white;
+      background-color: $container-bg-color;
+    }
   }
 
   &.mini {
+    padding: 5px 10px;
+    color: $container-bg-color;
+    background-color: lighten($container-bg-color, 60);
     border: none;
-    color: white;
-    background-color: #3b82f6;
-    margin: 0px 5px;
-    font-size: 0.9rem;
-    border: solid 2px transparent;
-
-    .material-icons {
-      font-size: 0.9rem;
-      transition: 0.5s;
-    }
-
-    &:hover span.material-icons.hover {
-      transform: rotate(330deg) translate(5px, -1px);
-    }
-  }
-
-  &.investments {
-    border: solid 2px $bg-color;
-    background-color: $bg-color;
-    color: white;
-  }
-
-  &.kusd {
-    border: solid 3px $kolibri-color;
-    background-color: white;
-    color: $kolibri-color;
-    transition: 0.4s;
+    transition: 0.3s;
+    font-size: 1rem;
 
     &:hover {
-      background-color: $kolibri-color;
       color: white;
+      background-color: $container-bg-color;
+    }
+
+    .material-icons {
+      font-size: 1rem;
     }
   }
 

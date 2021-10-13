@@ -1,27 +1,26 @@
 <script lang="ts">
-  import { onMount, afterUpdate, onDestroy } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
-  import Router from "svelte-spa-router";
-  import routes from "./Routes/routes";
+  import { Tzip16Module } from "@taquito/tzip16";
   import store from "./store";
-  import historicDataStore from "./historicDataStore";
-  import Header from "./lib/Header/Header.svelte";
-  import Footer from "./lib/Footer/Footer.svelte";
-  import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
-  import PlentyWorker from "worker-loader!./plenty.worker";
-  import type { Operation, State } from "./types";
-  import { AvailableToken } from "./types";
-  import { createNewOpEntry } from "./utils";
   import localStorageStore from "./localStorage";
-  import Toast from "./lib/Toast/Toast.svelte";
-  import toastStore from "./lib/Toast/toastStore";
+  import { AvailableToken } from "./types";
+  import type { State, TokenContract, Operation } from "./types";
+  import Router from "svelte-spa-router";
+  import routes from "./routes";
+  import Menu from "./components/Menu/Menu.svelte";
+  import Footer from "./components/Footer/Footer.svelte";
+  import Header from "./components/Header/Header.svelte";
+  import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
   import config from "./config";
+  import { createNewOpEntry, formatTokenAmount } from "./utils";
+  import Toast from "./components/Toast/Toast.svelte";
+  import toastStore from "./components/Toast/toastStore";
 
-  let appReady = false;
+  let Tezos: TezosToolkit;
+  let coinGeckoInterval;
   let liveTrafficWorker;
-  let lastAppVisibility = 0;
-  let coinGeckoInterval, tokensDataInterval;
-  let fetchedCoinGeckPrice = false;
+  let appReady = false;
 
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic" && msg.data.msg) {
@@ -60,12 +59,24 @@
                 );
               } else {
                 // token transfer to the user
+                let totalTokens = 0;
                 op.txs.forEach(tx => {
                   if (tx.to_ === $store.userAddress) {
                     console.log("FA2 operation to user account:", op);
+                    totalTokens += +tx.amount;
                     userBalance += +tx.amount / 10 ** token[1].decimals;
                   }
                 });
+                // only displays transactions involving the user
+                if (totalTokens > 0) {
+                  toastStore.addToast({
+                    type: "info",
+                    text: `Incoming ${token[0]} tokens: ${formatTokenAmount(
+                      totalTokens / 10 ** token[1].decimals
+                    )}`,
+                    dismissable: true
+                  });
+                }
               }
             });
           } else if (
@@ -79,9 +90,15 @@
               // token transfer from the user
               userBalance -= +paramValue.value / 10 ** token[1].decimals;
             } else if (paramValue.to === $store.userAddress) {
+              const totalTokens = +paramValue.value / 10 ** token[1].decimals;
               console.log("FA1.2 operation to user account:", op);
+              toastStore.addToast({
+                type: "info",
+                text: `Incoming ${token[0]} tokens: ${totalTokens}`,
+                dismissable: true
+              });
               // token transfer to the user
-              userBalance += +paramValue.value / 10 ** token[1].decimals;
+              userBalance += totalTokens;
             }
           }
           // updates balance
@@ -113,13 +130,13 @@
                 }
               };
               store.updateInvestments(newInvestments);
-              toastStore.addToast({
+              /*toastStore.addToast({
                 type: "info",
                 text: `Staked ${
                   +(value / investment[1].decimals).toFixed(2) / 1
                 } tokens on ${investment[1].alias}`,
                 dismissable: false
-              });
+              });*/
             } else if (
               op?.parameter?.entrypoint === "unstake" &&
               op.sender.address === $store.userAddress
@@ -142,13 +159,13 @@
                 }
               };
               store.updateInvestments(newInvestments);
-              toastStore.addToast({
+              /*toastStore.addToast({
                 type: "info",
                 text: `Staked ${
                   +(value / investment[1].decimals).toFixed(2) / 1
                 } tokens on ${investment[1].alias}`,
                 dismissable: false
-              });
+              });*/
             } else if (
               op?.parameter?.entrypoint === "quit" &&
               op.sender.address === $store.userAddress
@@ -171,13 +188,13 @@
                 }
               };
               store.updateInvestments(newInvestments);
-              toastStore.addToast({
+              /*toastStore.addToast({
                 type: "info",
                 text: `Staked ${
                   +(value / investment[1].decimals).toFixed(2) / 1
                 } tokens on ${investment[1].alias}`,
                 dismissable: false
-              });
+              });*/
             } else if (
               op?.parameter?.entrypoint === "withdraw" &&
               op.sender.address === $store.userAddress
@@ -216,10 +233,6 @@
     }
   };
 
-  const handlePlentyWorker = msg => {
-    console.log(msg);
-  };
-
   onMount(async () => {
     let rpcUrl = $store.settings[$store.network].rpcUrl;
     if (window.localStorage) {
@@ -229,184 +242,101 @@
         rpcUrl = settings.favoriteRpcUrl;
       }
     }
-    const Tezos = new TezosToolkit(rpcUrl);
+
+    Tezos = new TezosToolkit(rpcUrl);
     Tezos.setPackerProvider(new MichelCodecPacker());
+    Tezos.addExtension(new Tzip16Module());
     store.updateTezos(Tezos);
 
-    // fetches data from the IPFS
-    const defiDataResponse = await fetch(
-      `https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
-    );
-    if (defiDataResponse) {
-      const defiData: {
-        tokens: Omit<State["tokens"], "favorite">;
-        investments: any;
-      } = await defiDataResponse.json();
-      if (defiData.tokens) {
-        // updates store
-        let tokens = [];
-        Object.entries(defiData.tokens).map(([tokenSymbol, token]) => {
-          tokens.push([
-            tokenSymbol,
-            {
-              ...token,
-              favorite:
-                $localStorageStore &&
-                $localStorageStore.favoriteTokens &&
-                $localStorageStore.favoriteTokens.includes(tokenSymbol)
-            }
-          ]);
-        });
-        store.updateTokens(tokens);
-        // exchange rates
-        let exchangeRatesDefault = {};
-        Object.keys(defiData.tokens).forEach(
-          tk => (exchangeRatesDefault[tk] = undefined)
-        );
-        store.updateTokensExchangeRates(
-          exchangeRatesDefault as State["tokensExchangeRates"]
-        );
-        // available investments
-        store.updateInvestments(defiData.investments);
-        // init historical data store
-        historicDataStore.initTokens(
-          Object.keys(defiData.tokens) as AvailableToken[]
-        );
-      }
-
-      if (defiData.investments) {
-        Object.keys(defiData.investments).forEach(key => {
-          defiData.investments[key].balance = 0;
-          defiData.investments[key].favorite =
-            $localStorageStore &&
-            $localStorageStore.favoriteInvestments &&
-            $localStorageStore.favoriteInvestments.includes(key);
-        });
-        store.updateInvestments({
-          ...defiData.investments
-        });
-      }
-    } else {
-      toastStore.addToast({
-        type: "error",
-        text: "Unable to fetch dapp data",
-        dismissable: false
-      });
-    }
-
-    // fetches token data from TezTools
-    const fetchTokensData = async () => {
-      const tokensDataResponse = await fetch(
-        `https://api.teztools.io/token/prices`
+    let tokens: [AvailableToken, TokenContract][] = [];
+    try {
+      // fetches data from the IPFS
+      const defiDataResponse = await fetch(
+        `https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
       );
-      if (tokensDataResponse) {
-        const tokensData = await tokensDataResponse.json();
-        const availableTokenAddresses = Object.values($store.tokens).map(
-          tk => tk.address
-        );
-        let exchangesRates = {};
-        let availableTokenSymbols = Object.values(AvailableToken);
-        tokensData.contracts
-          .filter(tk => availableTokenAddresses.includes(tk.tokenAddress))
-          .forEach(tk => {
-            if (availableTokenSymbols.includes(tk.symbol)) {
-              const tokenToTez = +tk.currentPrice.toFixed(5) / 1;
-              const tezToToken = +(1 / tk.currentPrice).toFixed(5) / 1;
-
-              exchangesRates[tk.symbol] = {
-                tokenToTez: tokenToTez,
-                tezToToken: tezToToken,
-                realPriceInTez: tokenToTez,
-                realPriceInToken: tezToToken
-              };
-              historicDataStore.updateToken(tk.symbol, {
-                tokenToTez,
-                tezToToken
-              });
+      if (defiDataResponse) {
+        const defiData: {
+          tokens: Omit<
+            State["tokens"],
+            "exchangeRate" | "thumbnail" | "websiteLink"
+          >;
+          investments: any;
+        } = await defiDataResponse.json();
+        if (defiData.tokens) {
+          // stores tokens info
+          Object.entries(defiData.tokens).forEach(([tokenSymbol, token]) => {
+            if (tokenSymbol !== "sDAO") {
+              tokens.push([
+                tokenSymbol as AvailableToken,
+                {
+                  ...token,
+                  exchangeRate: null,
+                  thumbnail: undefined,
+                  websiteLink: undefined
+                }
+              ]);
             }
           });
-        store.updateTokensExchangeRates(
-          exchangesRates as State["tokensExchangeRates"]
-        );
-        // saves the data into the session storage
-        if (window.sessionStorage) {
-          window.sessionStorage.setItem(
-            "tez-tools-prices",
-            JSON.stringify(tokensData)
-          );
+        }
+
+        if (defiData.investments) {
+          Object.keys(defiData.investments).forEach(key => {
+            defiData.investments[key].balance = 0;
+            defiData.investments[key].favorite =
+              $localStorageStore &&
+              $localStorageStore.favoriteInvestments &&
+              $localStorageStore.favoriteInvestments.includes(key);
+          });
+          store.updateInvestments({
+            ...defiData.investments
+          });
         }
       } else {
-        toastStore.addToast({
-          type: "error",
-          text: "Unable to fetch tokens data",
-          dismissable: false
+        console.error(
+          "Unable to load tokens and investments data from the IPFS"
+        );
+      }
+      // fetches data from TezTools
+      const tezToolsDataRes = await fetch(`https://api.teztools.io/v1/prices`);
+      if (tezToolsDataRes && tezToolsDataRes.status === 200) {
+        const tezToolsData = await tezToolsDataRes.json();
+        // selects whitelisted tokens
+        const availableTokens = Object.values(AvailableToken);
+        const tezToolsTokens = tezToolsData.contracts.filter(contract =>
+          availableTokens.includes(contract.symbol)
+        );
+        tokens = tokens.map(([tokenSymbol, tokenData]) => {
+          let tezToolToken = tezToolsTokens.find(
+            tk => tk.symbol === tokenSymbol
+          );
+          if (tezToolToken) {
+            let tokenThumbnail = tezToolToken.thumbnailUri;
+            if (tokenThumbnail && tokenThumbnail.includes("ipfs")) {
+              tokenThumbnail = `https://cloudflare-ipfs.com/ipfs/${tezToolToken.thumbnailUri.replace(
+                "ipfs://",
+                ""
+              )}`;
+            } else if (tokenSymbol === "kUSD") {
+              tokenThumbnail =
+                "https://img.templewallet.com/insecure/fit/64/64/ce/0/plain/https://kolibri-data.s3.amazonaws.com/logo.png";
+            }
+
+            return [
+              tokenSymbol,
+              {
+                ...tokenData,
+                exchangeRate: tezToolToken.currentPrice,
+                thumbnail: tokenThumbnail,
+                websiteLink: tezToolToken.websiteLink
+              }
+            ];
+          } else {
+            return [tokenSymbol, tokenData];
+          }
         });
-      }
-    };
+        store.updateTokens(tokens);
 
-    await fetchTokensData();
-    tokensDataInterval = setInterval(fetchTokensData, 600_000);
-
-    // updates service fee for test version
-    if (
-      window.location.href.includes("localhost") ||
-      window.location.href.includes("staging")
-    ) {
-      store.updateServiceFee(null);
-    }
-
-    // sets up investments worker
-    const plentyWorker = new PlentyWorker();
-    plentyWorker.postMessage({
-      type: "init",
-      payload: { favoriteFarms: [...$localStorageStore.favoriteInvestments] }
-    });
-    plentyWorker.onmessage = handlePlentyWorker;
-
-    // reloads some data when user comes back to the page
-    /*lastAppVisibility = Date.now();
-    document.addEventListener("visibilitychange", async () => {
-      if (
-        document.visibilityState === "visible" &&
-        Date.now() > lastAppVisibility + 3 * 60 * 1000
-      ) {
-        //console.log("app visibility:", lastAppVisibility);
-        lastAppVisibility = Date.now();
-      } else if (document.visibilityState === "visible") {
-        lastAppVisibility = Date.now();
-      }
-    });*/
-    appReady = true;
-  });
-
-  afterUpdate(async () => {
-    if (!liveTrafficWorker && $store.tokens && $store.investments) {
-      // inits live traffic worker
-      liveTrafficWorker = new LiveTrafficWorker();
-      liveTrafficWorker.postMessage({
-        type: "init",
-        payload: [
-          ...Object.values($store.tokens).map(tk => tk.address),
-          ...Object.values($store.investments).map(inv => inv.address),
-          ...config.lbContracts
-        ]
-      });
-      liveTrafficWorker.onmessage = handleLiveTrafficWorker;
-    }
-
-    if (
-      !$store.xtzData.exchangeRate &&
-      $localStorageStore &&
-      !fetchedCoinGeckPrice
-    ) {
-      // fetches XTZ exchange rate
-      fetchedCoinGeckPrice = true;
-
-      try {
-        if (!$localStorageStore.preferredFiat) {
-          throw "Unknown preferred fiat value";
-        }
-
+        // fetches fiat exchange rate
         const coinGeckoFetch = async () => {
           const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${$localStorageStore.preferredFiat.toLowerCase()}&days=2`;
           const coinGeckoResponse = await fetch(url);
@@ -434,75 +364,58 @@
         };
 
         await coinGeckoFetch();
-        coinGeckoInterval = setInterval(coinGeckoFetch, 600_000);
-      } catch (error) {
-        console.log(error);
-        toastStore.addToast({
-          type: "error",
-          text: "Unable to fetch CoinGecko data",
-          dismissable: false
-        });
-        return;
+        coinGeckoInterval = setInterval(coinGeckoFetch, 120_000);
+
+        // updates service fee for test version
+        if (
+          window.location.href.includes("localhost") ||
+          window.location.href.includes("staging")
+        ) {
+          store.updateServiceFee(null);
+        }
+
+        appReady = true;
       }
+    } catch (error) {
+      console.error(error);
     }
   });
 
-  onDestroy(() => {
-    clearInterval(coinGeckoInterval);
-    clearInterval(tokensDataInterval);
+  afterUpdate(async () => {
+    if (!liveTrafficWorker && $store.tokens && $store.investments) {
+      // inits live traffic worker
+      liveTrafficWorker = new LiveTrafficWorker();
+      liveTrafficWorker.postMessage({
+        type: "init",
+        payload: [
+          ...Object.values($store.tokens).map(tk => tk.address),
+          ...Object.values($store.investments).map(inv => inv.address),
+          ...config.lbContracts
+        ]
+      });
+      liveTrafficWorker.onmessage = handleLiveTrafficWorker;
+    }
   });
 </script>
 
 <style lang="scss">
-  @import "./styles/settings.scss";
-
-  :root {
-    --toastContainerTop: auto;
-    --toastContainerRight: auto;
-    --toastContainerBottom: 8rem;
-    --toastContainerLeft: calc(50vw - 8rem);
-  }
-
-  #under-construction {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    font-size: 0.5rem;
-    text-align: center;
-    padding: 15px;
-    border: solid 1px #f9fafb;
-    border-radius: 50%;
-  }
-
-  main {
-    width: 70%;
-    margin: 0 auto;
-    min-height: 100%;
-    margin-bottom: -100px;
-  }
-
-  @media only screen and (max-width: $mobile-break-point) {
-    main {
-      width: 100%;
-    }
-
-    #under-construction {
-      display: none;
-    }
+  .general-container {
+    display: grid;
+    grid-template-rows: 10% 85% 5%;
+    overflow: hidden;
   }
 </style>
 
-<Header />
-<div id="under-construction">
-  <span class="material-icons"> construction </span><br />
-  <span>Under <br /> construction</span>
-</div>
 <main>
-  {#if appReady}
-    <Router {routes} />
-  {:else}
-    <div>Loading...</div>
-  {/if}
+  <Menu />
+  <div class="general-container">
+    <Header />
+    {#if appReady}
+      <Router {routes} />
+    {:else}
+      Loading...
+    {/if}
+    <Footer />
+  </div>
 </main>
-<Footer />
 <Toast />

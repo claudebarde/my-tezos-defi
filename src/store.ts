@@ -44,9 +44,9 @@ const initialState: State = {
     balance: 0,
     historic: []
   },
-  serviceFee: process.env.NODE_ENV === "development" ? null : 3,
+  serviceFee: null, //process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "QmPMD3HSLPeqeBr5QNEnnUZXWGqWN2Yvrsvx7C69f5uvT4",
+  defiData: "QmUHVenfKLo1EccvUaMpCM2cgRJqF6C8ucCabmogvsotJS",
   liquidityBaking: undefined,
   blurryBalances: false
 };
@@ -61,7 +61,7 @@ const state = {
     store.update(store => ({ ...store, currentLevel: level })),
   updateWallet: (wallet: BeaconWallet) =>
     store.update(store => ({ ...store, wallet })),
-  updateUserAddress: (address: TezosAccountAddress) => {
+  updateUserAddress: (address: TezosAccountAddress | undefined) => {
     store.update(store => ({
       ...store,
       userAddress: address

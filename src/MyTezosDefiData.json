@@ -31,6 +31,16 @@
       "color": "#5D0FAE",
       "whitelisted": true
     },
+    "xPLENTY": {
+      "address": "KT1Rpviewjg82JgjGfAKFneSupjAR1kUhbza",
+      "dexContractAddress": "",
+      "decimals": 18,
+      "ledgerPath": "balances",
+      "ledgerKey": "address",
+      "type": "fa1.2",
+      "color": "#5D0FAE",
+      "whitelisted": true
+    },
     "wXTZ": {
       "address": "KT1VYsVfmobT7rsMVivvZ4J8i3bPiqz12NaH",
       "dexContractAddress": "KT1W3VGRUjvS869r4ror8kdaxqJAZUbPyjMT",
@@ -103,6 +113,61 @@
       "tokenId": 0,
       "whitelisted": true
     },
+    "wAAVE": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1Lvtxpg4MiT2Bs38XGxwh3LGi5MkCENp4v",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "wBUSD": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1UMAE2PBskeQayP5f2ZbGiVYF7h8bZ2gyp",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 1],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 1,
+      "whitelisted": true
+    },
+    "wCEL": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1KuV43iebbbrkBMGov2QMgAbsnAksx6ncW",
+      "decimals": 4,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 2],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 2,
+      "whitelisted": true
+    },
+    "wCOMP": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1DA8NH6UqCiSZhEg5KboxosMqLghwwvmTe",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 3],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 3,
+      "whitelisted": true
+    },
+    "wCRO": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1GSjkSg6MFmEMnTJSk6uyYpWXaEYFahrS4",
+      "decimals": 8,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 4],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 4,
+      "whitelisted": true
+    },
     "wDAI": {
       "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
       "dexContractAddress": "KT1PQ8TMzGMfViRq4tCMFKD2QF5zwJnY67Xn",
@@ -114,15 +179,48 @@
       "tokenId": 5,
       "whitelisted": true
     },
-    "wWBTC": {
+    "wFTT": {
       "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
-      "dexContractAddress": "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
-      "decimals": 8,
+      "dexContractAddress": "KT1SzCtZYesqXt57qHymr3Hj37zPQT47JN6x",
+      "decimals": 18,
       "ledgerPath": "assets/ledger",
-      "ledgerKey": ["address", 19],
+      "ledgerKey": ["address", 6],
       "type": "fa2",
       "color": "#F6CE13",
-      "tokenId": 19,
+      "tokenId": 6,
+      "whitelisted": true
+    },
+    "wHT": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1GsTjbWkTgtsWenM6oWuTuft3Qb46p2x4c",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 7],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 7,
+      "whitelisted": true
+    },
+    "wHUSD": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1AN7BBmeSUN5eDDQLEhWmXv1gn4exc5k8R",
+      "decimals": 8,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 8],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 8,
+      "whitelisted": true
+    },
+    "wLEO": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1MpRQvn2VRR26VJFPYUGcB8qqxBbXgk5xe",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 9],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 9,
       "whitelisted": true
     },
     "wLINK": {
@@ -147,15 +245,59 @@
       "tokenId": 11,
       "whitelisted": true
     },
-    "wBUSD": {
+    "wMKR": {
       "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
-      "dexContractAddress": "KT1UMAE2PBskeQayP5f2ZbGiVYF7h8bZ2gyp",
+      "dexContractAddress": "KT1MaefGJRtu57DiVhQNEjYgTYok3X71iEDj",
       "decimals": 18,
       "ledgerPath": "assets/ledger",
-      "ledgerKey": ["address", 1],
+      "ledgerKey": ["address", 12],
       "type": "fa2",
       "color": "#F6CE13",
-      "tokenId": 1,
+      "tokenId": 12,
+      "whitelisted": true
+    },
+    "wOKB": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1NQyNPXmjYktNBDhYkBKyTGYcJSkNbYXuh",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 13],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 13,
+      "whitelisted": true
+    },
+    "wPAX": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1Ca5FGSeFLH3ugstc5p56gJDMPeraBcDqE",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 14],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 14,
+      "whitelisted": true
+    },
+    "wSUSHI": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1Lotcahh85kp878JCEc1TjetZ2EgqB24vA",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 15],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 15,
+      "whitelisted": true
+    },
+    "wUNI": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1Ti3nJT85vNn81Dy5VyNzgufkAorUoZ96q",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 16],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 16,
       "whitelisted": true
     },
     "wUSDC": {
@@ -167,6 +309,39 @@
       "type": "fa2",
       "color": "#F6CE13",
       "tokenId": 17,
+      "whitelisted": true
+    },
+    "wUSDT": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1T4pfr6NL8dUiz8ibesjEvH2Ne3k6AuXgn",
+      "decimals": 6,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 18],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 18,
+      "whitelisted": true
+    },
+    "wWBTC": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
+      "decimals": 8,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 19],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 19,
+      "whitelisted": true
+    },
+    "wWETH": {
+      "address": "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ",
+      "dexContractAddress": "KT1DuYujxrmgepwSDHtADthhKBje9BosUs1w",
+      "decimals": 18,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 20],
+      "type": "fa2",
+      "color": "#F6CE13",
+      "tokenId": 20,
       "whitelisted": true
     },
     "crDAO": {
@@ -201,17 +376,6 @@
       "color": "#00B7AC",
       "tokenId": 0,
       "whitelisted": true
-    },
-    "sDAO": {
-      "address": "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA",
-      "dexContractAddress": "KT1PrRTVNgxkRgyqqNQvwTiVhd55dqyxXJ6n",
-      "decimals": 0,
-      "ledgerPath": "assets/ledger",
-      "ledgerKey": ["address", 1],
-      "type": "fa2",
-      "color": "#000000",
-      "tokenId": 1,
-      "whitelisted": false
     },
     "PAUL": {
       "address": "KT19DUSZw7mfeEATrbWVPHRrWNVbNnmfFAE6",
@@ -543,6 +707,39 @@
       "alias": "PLENTY-KALAM LP farm",
       "icons": ["PLENTY", "KALAM"],
       "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-uUSD-LP": {
+      "id": "PLENTY-uUSD-LP",
+      "platform": "plenty",
+      "address": "KT1HSYQ9NLTQufuvNUwMhLY7B9TX8LDUfgsr",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty-uUSD LP farm",
+      "icons": ["PLENTY", "uUSD"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "WRAP-STACKING": {
+      "id": "WRAP-STACKING",
+      "platform": "wrap",
+      "address": "KT1EVn7eG9jZVpm8y9uRAwTocdwJzF6g2iKy",
+      "decimals": 8,
+      "info": [],
+      "alias": "Wrap Stacking",
+      "icons": ["WRAP"],
+      "token": "WRAP",
+      "liquidityToken": false
+    },
+    "WRAP-XTZ-LM": {
+      "id": "WRAP-XTZ-LM",
+      "platform": "wrap",
+      "address": "KT1QY4siBbWg9qpj52fEzrWdWfkbFcwwjfoA",
+      "decimals": 6,
+      "info": [],
+      "alias": "Wrap-XTZ LM pool",
+      "icons": ["WRAP", "XTZ"],
+      "token": "WRAP",
       "liquidityToken": true
     },
     "CRUNCHY-FARMS": {

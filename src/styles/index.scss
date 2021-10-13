@@ -1,98 +1,44 @@
 @import url("https://fonts.googleapis.com/css2?family=Signika:wght@400;700&display=swap");
 @import "./settings.scss";
-@import "./modal.scss";
 @import "./buttons.scss";
+@import "./modal.scss";
+@import "./farms.scss";
 
 html,
 body {
   height: 100vh;
-  background-color: $bg-color;
-  color: #f9fafb;
+  width: 100vw;
+  padding: 0px;
+  margin: 0px;
+  color: $container-bg-color;
   font-family: "Signika", sans-serif;
   font-size: 1.1rem;
-  position: relative;
+  letter-spacing: 1px;
 }
 
-.container {
-  border: solid 4px $border-color;
-  border-radius: 20px;
-  margin: 0 auto;
-  background-color: $container-bg-color;
-  position: relative;
-  padding: 0px;
-
-  $title-height: 15px;
-
-  .title,
-  .expand {
-    height: $title-height;
-    font-size: $title-height;
-    background-color: $border-color;
-    position: absolute;
-    top: calc(calc(#{$title-height} * -1) - 5px);
-    padding: 5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 5px;
-  }
-
-  .title {
-    left: $title-height;
-  }
-
-  .expand {
-    right: $title-height;
-
-    button {
-      appearance: none;
-      border: none;
-      background-color: transparent;
-      color: inherit;
-      cursor: pointer;
-      margin-top: 4px;
-    }
-  }
-}
-
-input[type="text"] {
-  margin: 0px 8px;
-  padding: 5px 8px;
-  border-radius: 10px;
-  border: none;
-  outline: none;
-  color: $container-bg-color;
-  background-color: white;
-  font-size: 1rem;
-
-  &.amount {
-    width: 120px;
-  }
-
-  &.error {
-    background-color: #fecaca;
+body {
+  main {
+    display: grid;
+    grid-template-columns: 20% 80%;
+    gap: 20px;
+    padding: 10px;
+    width: 90%;
+    height: calc(100% - 20px);
+    margin: 0 auto;
   }
 }
 
 .blurry-text {
   color: transparent;
-  text-shadow: 0 0 7px rgba(255, 255, 255, 0.5);
-}
+  text-shadow: 0 0 7px rgba(30, 58, 138, 0.5);
+  position: relative;
 
-@media only screen and (max-width: $mobile-break-point) {
-  html,
-  body {
-    font-size: 1rem;
-  }
-
-  .container {
-    .row {
-      display: flex;
-      flex-direction: column;
-
-      .info {
-        margin: 10px 0px;
-      }
-    }
+  &:after {
+    content: "XXXXXXXXXX";
+    visibility: visible;
+    display: block;
+    position: absolute;
+    top: 2px;
+    width: 100%;
   }
 }

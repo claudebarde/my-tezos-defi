@@ -25,14 +25,14 @@
     min-height: 35%;
     max-height: 60%;
     width: 45%;
-    border: solid 4px $border-color;
     border-radius: 10px;
     z-index: 110;
     padding: 30px;
     display: grid;
     grid-template-rows: 10% 80% 10%;
     grid-template-columns: 1fr;
-    background-color: $container-bg-color;
+    background-color: white;
+    color: $container-bg-color;
 
     &.graph {
       width: 75%;

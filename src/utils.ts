@@ -5,8 +5,8 @@ import type {
   WalletOperationBatch
 } from "@taquito/taquito";
 import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
+import { tzip16 } from "@taquito/tzip16";
 import BigNumber from "bignumber.js";
-import { findDex, estimateTezInShares } from "@quipuswap/sdk";
 import type {
   HistoricalDataState,
   TokenContract,
@@ -16,10 +16,9 @@ import type {
   Operation,
   IconValue,
   IconSet,
-  KolibriOvenData,
-  AvailableInvestments
+  KolibriOvenData
 } from "./types";
-import { AvailableToken } from "./types";
+import { AvailableToken, AvailableInvestments } from "./types";
 import { char2Bytes, bytes2Char } from "@taquito/utils";
 import config from "./config";
 import { get } from "svelte/store";
@@ -117,6 +116,9 @@ export const calculateTrend = (
 export const shortenHash = (hash: string): string =>
   hash ? hash.slice(0, 7) + "..." + hash.slice(-7) : "";
 
+export const formatTokenAmount = (amount: number): number =>
+  amount ? +amount.toFixed(5) / 1 : 0;
+
 const findTzbtcBalance = async (
   ledger,
   userAddress,
@@ -151,19 +153,17 @@ export const searchUserTokens = async ({
   Tezos,
   network,
   userAddress,
-  tokens,
-  tokensBalances
+  tokens
 }: {
   Tezos: TezosToolkit;
   network: State["network"];
   userAddress: TezosAccountAddress;
   tokens: [AvailableToken | string, TokenContract][];
-  tokensBalances: Partial<State["tokensBalances"]>;
 }) => {
   try {
     if (!tokens) return null;
 
-    const newBalances = { ...tokensBalances };
+    const newBalances: Partial<State["tokensBalances"]> = {};
 
     const url = (contractAddress, ledgerName, userAddress) =>
       `https://api.tzkt.io/v1/contracts/${contractAddress}/bigmaps/${ledgerName}/keys/${userAddress}`;
@@ -324,79 +324,83 @@ export const getOpIcons = (
 
   const tokenIds = getTokenIds(param);
   let icons: IconSet = [];
-  switch (target.address) {
-    case "KT1JQAZqShNMakSNXc2cgTzdAWZFemGcU6n1":
-      icons = [AvailableToken.PLENTY, "XTZ"];
-      break;
-    case "KT1Ga15wxGR5oWK1vBG2GXbjYM6WqPgpfRSP":
-      icons = [AvailableToken.PLENTY, AvailableToken.HDAO];
-      break;
-    case "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE":
-      icons = [AvailableToken.PLENTY, AvailableToken.PLENTY];
-      break;
-    case "KT19asUVzBNidHgTHp8MP31YSphooMb3piWR":
-      icons = [AvailableToken.PLENTY, AvailableToken.ETHTZ];
-      break;
-    case "KT1MBqc3GHpApBXaBZyvY63LF6eoFyTWtySn":
-      icons = [AvailableToken.PLENTY, AvailableToken.USDTZ];
-      break;
-    case "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6":
-      icons = ["QUIPUSWAP", AvailableToken.KUSD];
-      break;
-    case "KT1AxaBxkFLCUi3f8rdDAAxBKHfzY8LfKDRA":
-      icons = ["QUIPUSWAP", AvailableToken.KUSD];
-      break;
-    case "KT1X1LgNkQShpF9nRLYw3Dgdy4qp38MX617z":
-      icons = ["QUIPUSWAP", AvailableToken.PLENTY];
-      break;
-    case "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb":
-      icons = ["QUIPUSWAP", AvailableToken.USDTZ];
-      break;
-    case "KT1Evsp2yA19Whm24khvFPcwimK6UaAJu8Zo":
-      icons = ["QUIPUSWAP", AvailableToken.ETHTZ];
-      break;
-    case "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4":
-      icons = ["QUIPUSWAP", AvailableToken.CRUNCH];
-      break;
-    case "KT1LRboPna9yQY9BrjtQYDS1DVxhKESK4VVd":
-      icons = [AvailableToken.WRAP];
-      break;
-    case "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ":
-      icons = tokenIds
-        ? tokenIds.map(tokenId => config.wrapTokenIds[tokenId].name)
-        : [AvailableToken.WRAP];
-      break;
-    case "KT19ovJhcsUn4YU8Q5L3BGovKSixfbWcecEA":
-      icons = [AvailableToken.SDAO];
-      break;
-    case "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3":
-      icons = ["crDAO"];
-      break;
-    case "KT1DMCGGiHT2dgjjXHG7qh1C1maFchrLNphx":
-    case "KT1WfbRVLuJUEizo6FSTFq5tsi3rsUHLY7vg":
-    case "KT1CjrJzk4S66uqv2M3DQHwBAzjD7MVm1jYs":
-      icons = [AvailableToken.PAUL];
-      break;
-    default:
-      if (
-        target.alias &&
-        Object.keys(localStore.tokens).includes(target.alias)
-      ) {
-        icons = [target.alias.trim() as IconValue];
-      } else if (
-        Object.values(localStore.tokens).filter(
-          tk => tk.address === target.address
-        ).length === 1
-      ) {
-        icons = [
-          Object.entries(localStore.tokens).filter(
-            tk => tk[1].address === target.address
-          )[0][0] as IconValue
-        ];
-      } else {
-        icons = ["user"];
-      }
-      break;
+  const maybeInvestment = Object.values(localStore.investments).find(
+    inv => inv.address === target.address
+  );
+  if (maybeInvestment) {
+    icons = [...maybeInvestment.icons];
+  } else {
+    switch (target.address) {
+      case "KT1JQAZqShNMakSNXc2cgTzdAWZFemGcU6n1":
+        icons = [AvailableToken.PLENTY, "XTZ"];
+        break;
+      case "KT1Ga15wxGR5oWK1vBG2GXbjYM6WqPgpfRSP":
+        icons = [AvailableToken.PLENTY, AvailableToken.HDAO];
+        break;
+      case "KT1QqjR4Fj9YegB37PQEqXUPHmFbhz6VJtwE":
+        icons = [AvailableToken.PLENTY, AvailableToken.PLENTY];
+        break;
+      case "KT19asUVzBNidHgTHp8MP31YSphooMb3piWR":
+        icons = [AvailableToken.PLENTY, AvailableToken.ETHTZ];
+        break;
+      case "KT1MBqc3GHpApBXaBZyvY63LF6eoFyTWtySn":
+        icons = [AvailableToken.PLENTY, AvailableToken.USDTZ];
+        break;
+      case "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6":
+        icons = ["QUIPUSWAP", AvailableToken.KUSD];
+        break;
+      case "KT1AxaBxkFLCUi3f8rdDAAxBKHfzY8LfKDRA":
+        icons = ["QUIPUSWAP", AvailableToken.KUSD];
+        break;
+      case "KT1X1LgNkQShpF9nRLYw3Dgdy4qp38MX617z":
+        icons = ["QUIPUSWAP", AvailableToken.PLENTY];
+        break;
+      case "KT1WxgZ1ZSfMgmsSDDcUn8Xn577HwnQ7e1Lb":
+        icons = ["QUIPUSWAP", AvailableToken.USDTZ];
+        break;
+      case "KT1Evsp2yA19Whm24khvFPcwimK6UaAJu8Zo":
+        icons = ["QUIPUSWAP", AvailableToken.ETHTZ];
+        break;
+      case "KT1RRgK6eXvCWCiEGWhRZCSVGzhDzwXEEjS4":
+        icons = ["QUIPUSWAP", AvailableToken.CRUNCH];
+        break;
+      case "KT1LRboPna9yQY9BrjtQYDS1DVxhKESK4VVd":
+        icons = [AvailableToken.WRAP];
+        break;
+      case "KT18fp5rcTW7mbWDmzFwjLDUhs5MeJmagDSZ":
+        icons = tokenIds
+          ? tokenIds.map(tokenId => config.wrapTokenIds[tokenId].name)
+          : [AvailableToken.WRAP];
+        break;
+      case "KT1KnuE87q1EKjPozJ5sRAjQA24FPsP57CE3":
+        icons = ["crDAO"];
+        break;
+      case "KT1DMCGGiHT2dgjjXHG7qh1C1maFchrLNphx":
+      case "KT1WfbRVLuJUEizo6FSTFq5tsi3rsUHLY7vg":
+      case "KT1CjrJzk4S66uqv2M3DQHwBAzjD7MVm1jYs":
+        icons = [AvailableToken.PAUL];
+        break;
+      default:
+        if (
+          target.alias &&
+          Object.keys(localStore.tokens).includes(target.alias)
+        ) {
+          icons = [target.alias.trim() as IconValue];
+        } else if (
+          Object.values(localStore.tokens).filter(
+            tk => tk.address === target.address
+          ).length === 1
+        ) {
+          icons = [
+            Object.entries(localStore.tokens).filter(
+              tk => tk[1].address === target.address
+            )[0][0] as IconValue
+          ];
+        } else {
+          icons = ["user"];
+        }
+        break;
+    }
   }
 
   return icons;
@@ -722,7 +726,7 @@ export const prepareOperation = (p: {
   const { contractCalls, amount, tokenSymbol } = p;
   // calculates fee
   const amountToSendInXtz =
-    +amount * +localStore.tokensExchangeRates[tokenSymbol].realPriceInTez;
+    +amount * +localStore.tokens[tokenSymbol].exchangeRate;
   let fee = 0;
   if (localStore.serviceFee !== null) {
     fee = (amountToSendInXtz * localStore.serviceFee) / 100;
@@ -761,7 +765,10 @@ export const loadInvestment = async (
             info.push(val)
           );
 
-          if (inv.id === "PLENTY-XTZ-LP") {
+          /*if (inv.id === "PLENTY-XTZ-LP") {
+            console.error(
+              "UPDATE loadInvestment FOR PLENTY-XTZ-LP IN utils.ts"
+            );
             const dex = await findDex(
               localStore.Tezos,
               config.quipuswapFactories,
@@ -778,7 +785,7 @@ export const loadInvestment = async (
               info,
               shareValueInTez: tezInShares.toNumber()
             };
-          }
+          }*/
 
           return { id: inv.id, balance, info };
         } else {
@@ -855,6 +862,46 @@ export const loadInvestment = async (
             balance: +userData.value.lpTokenBalance,
             info: undefined
           };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "wrap") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/delegators/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          if (userData.value.hasOwnProperty("balance")) {
+            return {
+              id: inv.id,
+              balance: +userData.value.balance,
+              info: userData.stakes
+            };
+          } else if (userData.value.hasOwnProperty("lpTokenBalance")) {
+            return {
+              id: inv.id,
+              balance: +userData.value.lpTokenBalance,
+              info: undefined
+            };
+          } else {
+            return {
+              id: inv.id,
+              balance: 0,
+              info: undefined
+            };
+          }
         } else {
           return {
             id: inv.id,
@@ -985,20 +1032,21 @@ export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
     }
 
     if (
-      !localStore.tokensExchangeRates[a[0]] ||
-      !localStore.tokensExchangeRates[b[0]]
+      !localStore.tokens ||
+      !localStore.tokens[a[0]].exchangeRate ||
+      !localStore.tokens[b[0]].exchangeRate
     ) {
       return 0;
     }
 
     return (
       balanceB *
-        (localStore.tokensExchangeRates[b[0]]
-          ? localStore.tokensExchangeRates[b[0]].tokenToTez
+        (localStore.tokens[b[0]].exchangeRate
+          ? localStore.tokens[b[0]].exchangeRate
           : 0) -
       balanceA *
-        (localStore.tokensExchangeRates[a[0]]
-          ? localStore.tokensExchangeRates[a[0]].tokenToTez
+        (localStore.tokens[a[0]].exchangeRate
+          ? localStore.tokens[a[0]].exchangeRate
           : 0)
     );
   });
@@ -1120,6 +1168,43 @@ export const getKdaoReward = async (
   }
 };
 
+export const getWrapReward = async (
+  farmId: AvailableInvestments,
+  farmAddress: TezosContractAddress,
+  userAddress: TezosAccountAddress
+): Promise<null | BigNumber> => {
+  if (!farmAddress || !userAddress || !farmId) return null;
+
+  const localStore = get(store);
+
+  if (farmId === AvailableInvestments["WRAP-STACKING"]) {
+    try {
+      const contract = await localStore.Tezos.wallet.at(farmAddress, tzip16);
+      const views = await contract.tzip16().metadataViews();
+      const reward = await views.get_earned().executeView(userAddress);
+      if (reward) {
+        return reward;
+      } else {
+        return new BigNumber(0);
+      }
+    } catch (error) {
+      console.error(error);
+      return new BigNumber(0);
+    }
+  } else if (farmId.slice(-3) === "-LM") {
+    // liquidity mining pools
+    const reward = await calcWrapLiquidityMiningReward(
+      farmAddress,
+      userAddress,
+      localStore.currentLevel
+    );
+
+    return reward;
+  } else {
+    return new BigNumber(0);
+  }
+};
+
 export const lqtOutput = ({
   lqTokens,
   pool,
@@ -1153,7 +1238,32 @@ export const calculateLqtOutput = ({
   };
 };
 
-const getLPConversion = (
+export const formatPlentyLpAmount = (
+  lpAmount: number,
+  exchangePair: string
+): number => {
+  switch (exchangePair) {
+    case "PLENTY-wUSDC":
+    case "PLENTY-USDtz-LP":
+    case "PLENTY-QUIPU-LP":
+    case "PLENTY-hDAO-LP":
+      return lpAmount / 10 ** 6;
+    case "PLENTY-wWBTC":
+    case "PLENTY-tzBTC-LP":
+    case "PLENTY-WRAP-LP":
+    case "PLENTY-UNO-LP":
+      return lpAmount / 10 ** 5;
+    case "PLENTY-SMAK-LP":
+      return lpAmount / 10 ** 8;
+    case "PLENTY-uUSD-LP":
+    case "PLENTY-KALAM-LP":
+      return lpAmount / 10 ** 4;
+    default:
+      return lpAmount;
+  }
+};
+
+export const getLPConversion = (
   token1_pool: number,
   token2_pool: number,
   totalSupply: number,
@@ -1177,30 +1287,7 @@ export const getPlentyLqtValue = async (
     if (!exchangeAddress) throw "No exchange address";
 
     // formats LP token amount according to exchange
-    let formattedLpAmount;
-    switch (exchangePair) {
-      case "PLENTY-wUSDC":
-      case "PLENTY-USDtz-LP":
-      case "PLENTY-QUIPU-LP":
-      case "PLENTY-hDAO-LP":
-        formattedLpAmount = lpAmount / 10 ** 6;
-        break;
-      case "PLENTY-wWBTC":
-      case "PLENTY-tzBTC-LP":
-      case "PLENTY-WRAP-LP":
-      case "PLENTY-UNO-LP":
-        formattedLpAmount = lpAmount / 10 ** 5;
-        break;
-      case "PLENTY-SMAK-LP":
-        formattedLpAmount = lpAmount / 10 ** 8;
-        break;
-      case "PLENTY-KALAM-LP":
-        formattedLpAmount = lpAmount / 10 ** 4;
-        break;
-      default:
-        formattedLpAmount = lpAmount;
-        break;
-    }
+    const formattedLpAmount = formatPlentyLpAmount(lpAmount, exchangePair);
 
     const exchangeContract = await Tezos.wallet.at(exchangeAddress);
     const exchangeStorage: any = await exchangeContract.storage();
@@ -1215,5 +1302,86 @@ export const getPlentyLqtValue = async (
   } catch (error) {
     console.error(error);
     return null;
+  }
+};
+
+const updateWrapLiquidityMiningPool = (
+  currentLevel: number,
+  farm: any,
+  farmLpTokenBalance: number
+) => {
+  const lastBlockUpdate = new BigNumber(farm["lastBlockUpdate"]);
+  const multiplier = new BigNumber(currentLevel).minus(lastBlockUpdate);
+
+  const outstandingReward = multiplier.multipliedBy(
+    new BigNumber(farm["plannedRewards"]["rewardPerBlock"])
+  );
+
+  const claimedRewards = new BigNumber(farm["claimedRewards"]["paid"]).plus(
+    farm["claimedRewards"]["unpaid"]
+  );
+  const totalRewards = outstandingReward.plus(claimedRewards);
+  const plannedRewards = new BigNumber(
+    farm["plannedRewards"]["rewardPerBlock"]
+  ).multipliedBy(new BigNumber(farm["plannedRewards"]["totalBlocks"]));
+  const totalRewardsExhausted = totalRewards.isGreaterThan(plannedRewards);
+
+  const reward = totalRewardsExhausted
+    ? plannedRewards.minus(claimedRewards)
+    : outstandingReward;
+
+  return new BigNumber(farm["accumulatedRewardPerShare"]).plus(
+    reward.multipliedBy(1000000).div(farmLpTokenBalance)
+  );
+};
+
+export const calcWrapLiquidityMiningReward = async (
+  poolAddress: string,
+  owner: TezosAccountAddress,
+  currentLevel: number
+) => {
+  //const delegatorRecord = await storage['delegators'].get(owner);
+  try {
+    // fetches the storage
+    const storageRes = await fetch(
+      `https://api.tzkt.io/v1/contracts/${poolAddress}/storage`
+    );
+    if (storageRes) {
+      const storage = await storageRes.json();
+      const { farm, farmLpTokenBalance } = storage;
+      // fetches delegator's data
+      const delegatorDataRes = await fetch(
+        `https://api.tzkt.io/v1/contracts/${poolAddress}/bigmaps/delegators/keys/${owner}`
+      );
+      if (delegatorDataRes) {
+        const delegatorRecord = await delegatorDataRes.json();
+        const accRewardPerShareStart = new BigNumber(
+          delegatorRecord.value.accumulatedRewardPerShareStart
+        );
+        const accRewardPerShareEnd = updateWrapLiquidityMiningPool(
+          currentLevel,
+          farm,
+          farmLpTokenBalance
+        );
+        const accumulatedRewardPerShare = accRewardPerShareEnd.minus(
+          accRewardPerShareStart
+        );
+        const delegatorReward = accumulatedRewardPerShare.multipliedBy(
+          delegatorRecord.value.lpTokenBalance
+        );
+        // remove precision
+        return delegatorReward
+          .div(1000000)
+          .integerValue()
+          .div(10 ** 8);
+      } else {
+        return new BigNumber(0);
+      }
+    } else {
+      throw `calcWrapLiquidityMiningReward: No storage returned for ${poolAddress}`;
+    }
+  } catch (err) {
+    console.error(err);
+    return new BigNumber(0);
   }
 };

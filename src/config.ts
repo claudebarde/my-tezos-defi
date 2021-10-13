@@ -1,7 +1,7 @@
 import { AvailableFiat } from "./types";
 
 export default {
-  version: "3.5.1",
+  version: "4.0.0",
   wrapTokenIds: {
     0: { name: "wAAVE", decimals: 18 },
     1: { name: "wBUSD", decimals: 18 },
@@ -53,7 +53,7 @@ export default {
     { code: AvailableFiat.CAD, name: "Canadian Dollar", symbol: "CA$" },
     { code: AvailableFiat.GBP, name: "British pound", symbol: "£" },
     { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
-    { code: AvailableFiat.KRW, name: "South Korea won", symbol: "₩" }
+    { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" }
   ],
   toastColor: {
     green: {
@@ -89,6 +89,29 @@ export default {
     "PLENTY-hDAO-LP": "KT1XutoFJ9dXvWxT7ttG86N2tSTUEpatFVTm",
     "PLENTY-ETHtz-LP": "KT1AbuUaPQmYLsB8n8FdSzBrxvrsm8ctwW1V",
     "PLENTY-wWETH-LP": "KT1HUnqM6xFJa51PM2xHfLs7s6ARvXungtyq",
-    "PLENTY-kUSD-LP": "KT1UNBvCJXiwJY6tmHM7CJUVwNPew53XkSfh"
+    "PLENTY-kUSD-LP": "KT1UNBvCJXiwJY6tmHM7CJUVwNPew53XkSfh",
+    "PLENTY-uUSD-LP": "KT1Cba383ZJpEearqnUyUKUMsgu5Z3TXBgeH"
+  },
+  plentyLptAddresses: {
+    "PLENTY-wBUSD-LP": "KT1UC3vcVZ4K9b39uQxaMNA2N1RuJXKLCnoA",
+    "PLENTY-wUSDC-LP": "KT1Gz1mx1jm7JHqU7GuMVWF6soB9RjsfLN3o",
+    "PLENTY-wWBTC-LP": "KT1La1qZiJtDRcd9ek8w5KYD47i9MQqAQHmP",
+    "PLENTY-wMATIC-LP": "KT1WCGPFvy97wwGxewKfvTr1QYPvpEgUKToS",
+    "PLENTY-wLINK-LP": "KT1Brqb3JvXNKzwjW82F8pUAxQ7ipCfApWki",
+    "PLENTY-USDtz-LP": "KT18qSo4Ch2Mfq4jP3eME7SWHB8B8EDTtVBu",
+    "PLENTY-hDAO-LP": "KT1B2SzTBtb7PgTePbDLV5BmUZQ2PC1sdSHZ",
+    "PLENTY-ETHtz-LP": "KT1VvcbAjMWHVUbhLENpiVBejbzXYDt3PusE",
+    "PLENTY-wWETH-LP": "KT1SULRhejhoBWUmMnU53YHJrQZ3rxqsamdm",
+    "PLENTY-kUSD-LP": "KT1XTpd8JPexGxBL2dAmU9h2o9fcd9LEUG2t",
+    "PLENTY-QUIPU-LP": "KT1VDSyTqS95wkB4tRGy6saMa4izRKwrEg26",
+    "PLENTY-tzBTC-LP": "KT1SqQimKz3RbQbckpSHhn4nanUmDuRqkFH3",
+    "PLENTY-WRAP-LP": "KT1AHndbp9xVpaJrfTHfYzSXKHDVHMdKxcW2",
+    "PLENTY-UNO-LP": "KT1B6ALzWXQp5wUavuo2VTMNjRdTGm8wx37w",
+    "PLENTY-KALAM-LP": "KT1G3QTnrpWNhZr9x3Prprw3GH6gAMqV113D",
+    "PLENTY-SMAK-LP": "KT1NLZah1MKeWuveQvdsCqAUCjksKw8J296z",
+    "PLENTY-uUSD-LP": "KT1E8CrG6uznYAG9vZVGtApMJwwTScxPEUKq",
+    "kUSD-USDtz-LP": "KT1HEdGi7rq1zgZ68dhAtKMZYKeD3EM5vYdf",
+    "wUSDC-USDtz-LP": "KT1FaoPYSyT4itmgTncvdshV7SeqqXk9RJXd",
+    "wWETH-ETHtz-LP": "KT1GubVxQVJucUJfJvysvAJKWpLwj3LKuWHn"
   }
 };
