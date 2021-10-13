@@ -75,13 +75,23 @@
     <img src={iconPath} alt="token-icon" />
   </div>
   <div>
-    <a
-      href={`https://better-call.dev/mainnet/${address}/operations`}
-      target="_blank"
-      rel="noopener noreferrer nofollow"
-    >
-      {shortenHash(address)}
-    </a>
+    {#if platform === "uusd"}
+      <a
+        href={`https://app.youves.com/uusd/detail/${address}`}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        {shortenHash(address)}
+      </a>
+    {:else}
+      <a
+        href={`https://better-call.dev/mainnet/${address}/operations`}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        {shortenHash(address)}
+      </a>
+    {/if}
   </div>
   <div>
     {#if valueInXtz}

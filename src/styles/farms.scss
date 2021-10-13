@@ -1,0 +1,29 @@
+@import "./settings.scss";
+
+.farm-row {
+  display: grid;
+  grid-template-columns: 10% 25% 20% 17% 16% 12%;
+  padding: 10px;
+  align-items: center;
+  transition: 0.3s;
+
+  &:hover {
+    background-color: lighten($container-bg-color, 65);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .icon {
+    img {
+      width: 25px;
+      height: 25px;
+    }
+  }
+}

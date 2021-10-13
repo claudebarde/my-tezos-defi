@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
-  import { fly } from "svelte/transition";
   import { push } from "svelte-spa-router";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
@@ -11,23 +10,24 @@
     getKdaoReward,
     getWrapReward,
     prepareOperation,
-    formatPlentyLpAmount
+    formatPlentyLpAmount,
+    formatTokenAmount
   } from "../../utils";
   import {
     AvailableToken,
     AvailableInvestments,
-    InvestmentPlatform
+    InvestmentPlatform,
+    InvestmentData
   } from "../../types";
-  import Row from "./Row.svelte";
+  import PlentyRow from "./Row/PlentyRow.svelte";
+  import WrapRow from "./Row/WrapRow.svelte";
+  import PaulRow from "./Row/PaulRow.svelte";
+  import KdaoRow from "./Row/KdaoRow.svelte";
   import InvestmentSpread from "./InvestmentSpread.svelte";
   import PlentyTotalRewards from "./PlentyTotalRewards.svelte";
   import Modal from "../Modal/Modal.svelte";
   import config from "../../config";
 
-  let showPlentyFarms = false;
-  let showPaulFarms = false;
-  let showKdaoFarms = false;
-  let showWrapFarms = false;
   let plentyValueInXtz = true;
   let kdaoValueInXtz = true;
   let paulValueInXtz = true;
@@ -147,6 +147,30 @@
         }
       })
     ];
+  };
+
+  const createTooltipContent = (invData: InvestmentData): string => {
+    const token1 = invData.icons[0];
+    const token2 = invData.icons[1];
+    const exchangeRate1 = $store.tokens[token1]
+      ? formatTokenAmount($store.tokens[token1].exchangeRate)
+      : "0";
+
+    if (token2 && token2 !== "XTZ") {
+      const exchangeRate2 = $store.tokens[token2]
+        ? formatTokenAmount($store.tokens[token2].exchangeRate)
+        : "0";
+
+      return `<div>${token1}: ${exchangeRate1} ꜩ<br />${token2}: ${exchangeRate2} ꜩ</div>`;
+    } else {
+      if (token2) {
+        return `<div>${token1}: ${exchangeRate1} ꜩ<br />${token2}: ${formatTokenAmount(
+          $store.xtzData.exchangeRate
+        )} ${$localStorageStore.preferredFiat}</div>`;
+      } else {
+        return `<div>${token1}: ${exchangeRate1} ꜩ`;
+      }
+    }
   };
 
   onMount(async () => {
@@ -426,18 +450,20 @@
         <span class="material-icons"> arrow_drop_down </span>
       </button>
     </div>
-    <div id="wrap-farms">
-      <button
-        class="primary"
-        on:click={() => {
-          selectFarmModal = "wrap";
-        }}
-      >
-        <img src={$store.tokens.WRAP.thumbnail} alt="WRAP" />
-        &nbsp; WRAP
-        <span class="material-icons"> arrow_drop_down </span>
-      </button>
-    </div>
+    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+      <div id="wrap-farms">
+        <button
+          class="primary"
+          on:click={() => {
+            selectFarmModal = "wrap";
+          }}
+        >
+          <img src={$store.tokens.WRAP.thumbnail} alt="WRAP" />
+          &nbsp; WRAP
+          <span class="material-icons"> arrow_drop_down </span>
+        </button>
+      </div>
+    {/if}
     <div id="paul-farms">
       <button
         class="primary"
@@ -478,17 +504,18 @@
       </div>
     {/if}
     {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty") as [invName, invData]}
-      <Row
-        investment={[invName, invData]}
-        valueInXtz={true}
+      <PlentyRow
         rewards={availableRewards.find(rw => rw.id === invData.id)}
+        {invName}
+        {invData}
+        valueInXtz={true}
+        {createTooltipContent}
         on:update-farm-value={event =>
           (totalValueInFarms = [
             ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
             event.detail
           ])}
         on:reset-rewards={event => resetRewards(event.detail)}
-        on:remove-investment={event => removeFavoriteInvestment(event.detail)}
       />
     {/each}
     <div class="row-footer">
@@ -527,16 +554,24 @@
       </div>
     {/if}
     {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap") as [invName, invData]}
-      <Row
-        investment={[invName, invData]}
-        valueInXtz={true}
+      <WrapRow
         rewards={availableRewards.find(rw => rw.id === invData.id)}
+        {invName}
+        {invData}
+        valueInXtz={true}
+        {createTooltipContent}
         on:update-farm-value={event =>
           (totalValueInFarms = [
             ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
             event.detail
           ])}
         on:reset-rewards={event => resetRewards(event.detail)}
+        on:update-stake={event => {
+          const { id, balance } = event.detail;
+          const newInvestments = { ...$store.investments };
+          newInvestments[id].balance = balance;
+          store.updateInvestments(newInvestments);
+        }}
       />
     {/each}
     <!-- KDAO FARMS -->
@@ -552,10 +587,12 @@
       </div>
     {/if}
     {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao") as [invName, invData]}
-      <Row
-        investment={[invName, invData]}
-        valueInXtz={true}
+      <KdaoRow
         rewards={availableRewards.find(rw => rw.id === invData.id)}
+        {invName}
+        {invData}
+        valueInXtz={true}
+        {createTooltipContent}
         on:update-farm-value={event =>
           (totalValueInFarms = [
             ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
@@ -577,10 +614,12 @@
       </div>
     {/if}
     {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul") as [invName, invData]}
-      <Row
-        investment={[invName, invData]}
-        valueInXtz={true}
+      <PaulRow
         rewards={availableRewards.find(rw => rw.id === invData.id)}
+        {invName}
+        {invData}
+        valueInXtz={true}
+        {createTooltipContent}
         on:update-farm-value={event =>
           (totalValueInFarms = [
             ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
@@ -604,25 +643,29 @@
   <div style="font-size:1.1rem">Unstaked LP tokens</div>
   <div>
     {#each unstakedLpTokens as item}
-      <div class="unstaked-token">
-        <div>
-          <div class="icon">
-            {#each $store.investments[item[0]].icons as icon}
-              <img src={`images/${icon}.png`} alt="token-icon" />
-            {/each}
+      {#if $store.investments.hasOwnProperty(item[0])}
+        <div class="unstaked-token">
+          <div>
+            <div class="icon">
+              {#each $store.investments[item[0]].icons as icon}
+                <img src={`images/${icon}.png`} alt="token-icon" />
+              {/each}
+            </div>
           </div>
+          <div>
+            <a
+              href={`https://better-call.dev/mainnet/${item[1]}/operations`}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+            >
+              {$store.investments[item[0]].alias}
+            </a>
+          </div>
+          <div>{item[2]} tokens</div>
         </div>
-        <div>
-          <a
-            href={`https://better-call.dev/mainnet/${item[1]}/operations`}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-          >
-            {$store.investments[item[0]].alias}
-          </a>
-        </div>
-        <div>{item[2]} tokens</div>
-      </div>
+      {/if}
+    {:else}
+      No token found
     {/each}
   </div>
 </section>
