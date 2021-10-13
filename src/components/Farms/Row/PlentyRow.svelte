@@ -13,6 +13,7 @@
     loadInvestment
   } from "../../../utils";
   import config from "../../../config";
+  import toastStore from "../../Toast/toastStore";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -83,30 +84,30 @@
       });
       const op = await batch.send();
       await op.confirmation();
-      const receipt = await op.receipt();
       harvesting = false;
-      if (!receipt) {
-        harvestingSuccess = false;
-        throw `Operation failed: ${receipt}`;
-      } else {
+      const opStatus = await op.status();
+      if (opStatus === "applied") {
         harvestingSuccess = true;
         dispatch("reset-rewards", invData.id);
-        /*toastStore.addToast({
-        type: "success",
-        text: `Successfully harvested ${rewardsToHarvest} PLENTY!`,
-        dismissable: false
-      });*/
+        toastStore.addToast({
+          type: "success",
+          text: `Successfully harvested ${rewardsToHarvest} PLENTY!`,
+          dismissable: false
+        });
         setTimeout(() => {
           harvestingSuccess = undefined;
         }, 2000);
+      } else {
+        harvestingSuccess = false;
+        throw `Error when applying operation: _${opStatus}_`;
       }
     } catch (error) {
       console.log(error);
-      /*toastStore.addToast({
-      type: "error",
-      text: "Couldn't harvest PLENTY tokens",
-      dismissable: false
-    });*/
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't harvest PLENTY tokens",
+        dismissable: false
+      });
     } finally {
       harvesting = false;
     }
@@ -266,8 +267,10 @@
     >
       <span class="material-icons"> delete </span>
     </button>
-    <button class="mini">
-      <span class="material-icons"> settings </span>
-    </button>
+    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+      <button class="mini">
+        <span class="material-icons"> settings </span>
+      </button>
+    {/if}
   </div>
 </div>

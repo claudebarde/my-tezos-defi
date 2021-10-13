@@ -71,31 +71,11 @@
 </style>
 
 <section>
-  <!--<div class="available-tokens">
-    {#each Object.entries($store.tokens).sort((a, b) => a[0]
-        .toLowerCase()
-        .localeCompare(b[0].toLowerCase())) as [tokenSymbol, tokenData]}
-      <div class="available-token">
-        <img src={`images/${tokenSymbol}.png`} alt={`${tokenSymbol}-logo`} />
-        <span>{tokenSymbol}</span>
-        <span style="font-size:0.9rem">
-          ꜩ {+tokenData.exchangeRate.toFixed(3) / 1}
-          <br />
-          {#if $store.xtzData.exchangeRate}
-            {(tokenData.exchangeRate * $store.xtzData.exchangeRate).toFixed(2)}
-            {$localStorageStore.preferredFiat}
-          {:else}
-            ---
-          {/if}
-        </span>
-      </div>
-    {/each}
-  </div>-->
   <div class="hero" in:fade={{ delay: 2000, duration: 3000 }}>
     <h1>Welcome to My Tezos Defi!</h1>
     <div>
-      Track your tokens and investments across multiple platforms on the Tezos
-      blockchain
+      Track your tokens and investments across multiple DeFi platforms on the
+      Tezos blockchain
     </div>
   </div>
   <div class="available-tokens" id="tokens-animation-container">

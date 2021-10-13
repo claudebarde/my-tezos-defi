@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
   import tippy from "tippy.js";
-  import { InvestmentData, AvailableInvestments } from "../../../types";
+  import type { InvestmentData, AvailableInvestments } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
-  import { loadInvestment } from "../../../utils";
+  import { loadInvestment, prepareOperation } from "../../../utils";
+  import toastStore from "../../Toast/toastStore";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -23,7 +24,44 @@
   const dispatch = createEventDispatcher();
 
   const harvest = async () => {
-    console.log("harvest kdao");
+    harvesting = true;
+    try {
+      const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
+      const contract = await $store.Tezos.wallet.at(invData.address);
+      const batch = prepareOperation({
+        contractCalls: [contract.methods.claim([["unit"]])],
+        amount: +rewards.amount,
+        tokenSymbol: AvailableToken.KDAO
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      harvesting = false;
+      const opStatus = await op.status();
+      if (opStatus === "applied") {
+        harvestingSuccess = true;
+        dispatch("reset-rewards", invData.id);
+        toastStore.addToast({
+          type: "success",
+          text: `Successfully harvested ${rewardsToHarvest} kDAO!`,
+          dismissable: false
+        });
+        setTimeout(() => {
+          harvestingSuccess = undefined;
+        }, 2000);
+      } else {
+        harvestingSuccess = false;
+        throw `Error when applying operation: _${opStatus}_`;
+      }
+    } catch (error) {
+      console.log(error);
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't harvest PLENTY tokens",
+        dismissable: false
+      });
+    } finally {
+      harvesting = false;
+    }
   };
 
   onMount(async () => {
@@ -136,8 +174,10 @@
         <span class="material-icons"> agriculture </span>
       </button>
     {/if}
-    <button class="mini">
-      <span class="material-icons"> settings </span>
-    </button>
+    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+      <button class="mini">
+        <span class="material-icons"> settings </span>
+      </button>
+    {/if}
   </div>
 </div>

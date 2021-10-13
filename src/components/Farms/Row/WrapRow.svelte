@@ -5,7 +5,8 @@
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
-  import { loadInvestment } from "../../../utils";
+  import { loadInvestment, prepareOperation } from "../../../utils";
+  import toastStore from "../../Toast/toastStore";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -27,13 +28,25 @@
   const harvest = async () => {
     harvesting = true;
     try {
+      const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
       const contract = await $store.Tezos.wallet.at(invData.address);
-      const op = await contract.methods.claim([["unit"]]).send();
+      const batch = prepareOperation({
+        contractCalls: [contract.methods.claim([["unit"]])],
+        amount: +rewards.amount,
+        tokenSymbol: AvailableToken.WRAP
+      });
+      const op = await batch.send();
       await op.confirmation();
+      harvesting = false;
       const opStatus = await op.status();
       if (opStatus === "applied") {
         harvestingSuccess = true;
         dispatch("reset-rewards", invData.id);
+        toastStore.addToast({
+          type: "success",
+          text: `Successfully harvested ${rewardsToHarvest} WRAP!`,
+          dismissable: false
+        });
         setTimeout(() => {
           harvestingSuccess = undefined;
         }, 2000);
@@ -43,6 +56,11 @@
       }
     } catch (error) {
       console.log(error);
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't harvest WRAP tokens",
+        dismissable: false
+      });
     } finally {
       harvesting = false;
     }
@@ -51,16 +69,18 @@
   const compound = async () => {
     compounding = true;
     try {
-      const tokensToCompound =
-        rewards.amount * 10 ** $store.tokens.WRAP.decimals;
+      const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
+      const tokensToCompound = Math.floor(
+        rewards.amount * 10 ** $store.tokens.WRAP.decimals
+      );
       const contract = await $store.Tezos.wallet.at(invData.address);
       const wrapTokenContract = await $store.Tezos.wallet.at(
         $store.tokens.WRAP.address
       );
-      const batch = $store.Tezos.wallet
-        .batch()
-        .withContractCall(contract.methods.claim([["unit"]]))
-        .withContractCall(
+
+      const batch = prepareOperation({
+        contractCalls: [
+          contract.methods.claim([["unit"]]),
           wrapTokenContract.methods.update_operators([
             {
               add_operator: {
@@ -69,10 +89,8 @@
                 token_id: 0
               }
             }
-          ])
-        )
-        .withContractCall(contract.methods.stake(tokensToCompound))
-        .withContractCall(
+          ]),
+          contract.methods.stake(tokensToCompound),
           wrapTokenContract.methods.update_operators([
             {
               remove_operator: {
@@ -82,7 +100,10 @@
               }
             }
           ])
-        );
+        ],
+        amount: +rewards.amount,
+        tokenSymbol: AvailableToken.WRAP
+      });
       const batchOp = await batch.send();
       await batchOp.confirmation();
       const opStatus = await batchOp.status();
@@ -93,6 +114,11 @@
           id: invData.id,
           balance: +invData.balance + +tokensToCompound
         });
+        toastStore.addToast({
+          type: "success",
+          text: `Successfully harvested and restaked ${rewardsToHarvest} WRAP!`,
+          dismissable: false
+        });
         setTimeout(() => {
           compoundingSuccess = undefined;
         }, 2000);
@@ -102,6 +128,11 @@
       }
     } catch (error) {
       console.log(error);
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't harvest WRAP tokens",
+        dismissable: false
+      });
     } finally {
       compounding = false;
     }
@@ -248,8 +279,10 @@
         </button>
       {/if}
     {/if}
-    <button class="mini">
-      <span class="material-icons"> settings </span>
-    </button>
+    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+      <button class="mini">
+        <span class="material-icons"> settings </span>
+      </button>
+    {/if}
   </div>
 </div>

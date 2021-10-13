@@ -13,7 +13,9 @@
   import Header from "./components/Header/Header.svelte";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
   import config from "./config";
-  import { createNewOpEntry } from "./utils";
+  import { createNewOpEntry, formatTokenAmount } from "./utils";
+  import Toast from "./components/Toast/Toast.svelte";
+  import toastStore from "./components/Toast/toastStore";
 
   let Tezos: TezosToolkit;
   let coinGeckoInterval;
@@ -57,12 +59,24 @@
                 );
               } else {
                 // token transfer to the user
+                let totalTokens = 0;
                 op.txs.forEach(tx => {
                   if (tx.to_ === $store.userAddress) {
                     console.log("FA2 operation to user account:", op);
+                    totalTokens += +tx.amount;
                     userBalance += +tx.amount / 10 ** token[1].decimals;
                   }
                 });
+                // only displays transactions involving the user
+                if (totalTokens > 0) {
+                  toastStore.addToast({
+                    type: "info",
+                    text: `Incoming ${token[0]} tokens: ${formatTokenAmount(
+                      totalTokens / 10 ** token[1].decimals
+                    )}`,
+                    dismissable: true
+                  });
+                }
               }
             });
           } else if (
@@ -76,9 +90,15 @@
               // token transfer from the user
               userBalance -= +paramValue.value / 10 ** token[1].decimals;
             } else if (paramValue.to === $store.userAddress) {
+              const totalTokens = +paramValue.value / 10 ** token[1].decimals;
               console.log("FA1.2 operation to user account:", op);
+              toastStore.addToast({
+                type: "info",
+                text: `Incoming ${token[0]} tokens: ${totalTokens}`,
+                dismissable: true
+              });
               // token transfer to the user
-              userBalance += +paramValue.value / 10 ** token[1].decimals;
+              userBalance += totalTokens;
             }
           }
           // updates balance
@@ -382,6 +402,7 @@
   .general-container {
     display: grid;
     grid-template-rows: 10% 85% 5%;
+    overflow: hidden;
   }
 </style>
 
@@ -397,3 +418,4 @@
     <Footer />
   </div>
 </main>
+<Toast />

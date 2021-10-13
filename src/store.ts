@@ -44,7 +44,7 @@ const initialState: State = {
     balance: 0,
     historic: []
   },
-  serviceFee: process.env.NODE_ENV === "development" ? null : 3,
+  serviceFee: null, //process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
   defiData: "QmUHVenfKLo1EccvUaMpCM2cgRJqF6C8ucCabmogvsotJS",
   liquidityBaking: undefined,

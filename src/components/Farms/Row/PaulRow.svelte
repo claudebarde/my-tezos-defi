@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
   import tippy from "tippy.js";
-  import { InvestmentData, AvailableInvestments } from "../../../types";
+  import type { InvestmentData, AvailableInvestments } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
-  import { loadInvestment } from "../../../utils";
+  import { loadInvestment, prepareOperation } from "../../../utils";
+  import toastStore from "../../Toast/toastStore";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -23,7 +24,48 @@
   const dispatch = createEventDispatcher();
 
   const harvest = async () => {
-    console.log("harvest paul");
+    harvesting = true;
+    try {
+      const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
+      const contract = await $store.Tezos.wallet.at(invData.address);
+      const batch = prepareOperation({
+        contractCalls: [
+          invData.id === "PAUL-PAUL"
+            ? contract.methods.earn($store.userAddress, false)
+            : contract.methods.earn($store.userAddress)
+        ],
+        amount: +rewards.amount,
+        tokenSymbol: AvailableToken.PAUL
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      harvesting = false;
+      const opStatus = await op.status();
+      if (opStatus === "applied") {
+        harvestingSuccess = true;
+        dispatch("reset-rewards", invData.id);
+        toastStore.addToast({
+          type: "success",
+          text: `Successfully harvested ${rewardsToHarvest} PAUL!`,
+          dismissable: false
+        });
+        setTimeout(() => {
+          harvestingSuccess = undefined;
+        }, 2000);
+      } else {
+        harvestingSuccess = false;
+        throw `Error when applying operation: _${opStatus}_`;
+      }
+    } catch (error) {
+      console.log(error);
+      toastStore.addToast({
+        type: "error",
+        text: "Couldn't harvest PAUL tokens",
+        dismissable: false
+      });
+    } finally {
+      harvesting = false;
+    }
   };
 
   const compound = async () => {
@@ -140,13 +182,15 @@
         <span class="material-icons"> agriculture </span>
       </button>
     {/if}
-    {#if invData.id === AvailableInvestments["PAUL-PAUL"]}
+    <!--{#if invData.id === AvailableInvestments["PAUL-PAUL"]}
       <button class="mini" on:click={compound}>
         <span class="material-icons"> save_alt </span>
       </button>
+    {/if}-->
+    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+      <button class="mini">
+        <span class="material-icons"> settings </span>
+      </button>
     {/if}
-    <button class="mini">
-      <span class="material-icons"> settings </span>
-    </button>
   </div>
 </div>

@@ -638,36 +638,38 @@
     <PlentyTotalRewards />
   </div>
   <br />
-  <div style="font-size:1.4rem">Information</div>
-  <br />
-  <div style="font-size:1.1rem">Unstaked LP tokens</div>
-  <div>
-    {#each unstakedLpTokens as item}
-      {#if $store.investments.hasOwnProperty(item[0])}
-        <div class="unstaked-token">
-          <div>
-            <div class="icon">
-              {#each $store.investments[item[0]].icons as icon}
-                <img src={`images/${icon}.png`} alt="token-icon" />
-              {/each}
+  {#if unstakedLpTokens.length > 0}
+    <div style="font-size:1.4rem">Information</div>
+    <br />
+    <div style="font-size:1.1rem">Unstaked LP tokens</div>
+    <div>
+      {#each unstakedLpTokens as item}
+        {#if $store.investments.hasOwnProperty(item[0])}
+          <div class="unstaked-token">
+            <div>
+              <div class="icon">
+                {#each $store.investments[item[0]].icons as icon}
+                  <img src={`images/${icon}.png`} alt="token-icon" />
+                {/each}
+              </div>
             </div>
+            <div>
+              <a
+                href={`https://better-call.dev/mainnet/${item[1]}/operations`}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+              >
+                {$store.investments[item[0]].alias}
+              </a>
+            </div>
+            <div>{item[2]} tokens</div>
           </div>
-          <div>
-            <a
-              href={`https://better-call.dev/mainnet/${item[1]}/operations`}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-            >
-              {$store.investments[item[0]].alias}
-            </a>
-          </div>
-          <div>{item[2]} tokens</div>
-        </div>
-      {/if}
-    {:else}
-      No token found
-    {/each}
-  </div>
+        {/if}
+      {:else}
+        No token found
+      {/each}
+    </div>
+  {/if}
 </section>
 {#if selectFarmModal}
   <Modal type="default" on:close={() => (selectFarmModal = null)}>
