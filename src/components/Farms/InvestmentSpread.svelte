@@ -2,6 +2,7 @@
   import { onMount, afterUpdate } from "svelte";
   import Chart from "chart.js/auto";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import type { AvailableInvestments } from "../../types";
 
   export let totalValueInFarms: [AvailableInvestments, number][];
@@ -80,7 +81,7 @@
   };
 
   afterUpdate(() => {
-    if ($store.tokens && totalValueInFarms.length > 0) {
+    if ($store.tokens && totalValueInFarms.length > 1) {
       const value = [0, ...totalValueInFarms.map(([_, val]) => val)].reduce(
         (a, b) => a + b
       );

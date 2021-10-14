@@ -1,7 +1,7 @@
 import { AvailableFiat } from "./types";
 
 export default {
-  version: "4.0.0",
+  version: "4.1.0",
   wrapTokenIds: {
     0: { name: "wAAVE", decimals: 18 },
     1: { name: "wBUSD", decimals: 18 },
@@ -90,7 +90,8 @@ export default {
     "PLENTY-ETHtz-LP": "KT1AbuUaPQmYLsB8n8FdSzBrxvrsm8ctwW1V",
     "PLENTY-wWETH-LP": "KT1HUnqM6xFJa51PM2xHfLs7s6ARvXungtyq",
     "PLENTY-kUSD-LP": "KT1UNBvCJXiwJY6tmHM7CJUVwNPew53XkSfh",
-    "PLENTY-uUSD-LP": "KT1Cba383ZJpEearqnUyUKUMsgu5Z3TXBgeH"
+    "PLENTY-uUSD-LP": "KT1Cba383ZJpEearqnUyUKUMsgu5Z3TXBgeH",
+    "PLENTY-wDAI-LP": "KT1KDmpYSDogNtEtEnEaHQLaySuqLr8aEfJW"
   },
   plentyLptAddresses: {
     "PLENTY-wBUSD-LP": "KT1UC3vcVZ4K9b39uQxaMNA2N1RuJXKLCnoA",

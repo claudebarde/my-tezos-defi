@@ -148,6 +148,10 @@
       content: "Harvest"
     });
 
+    tippy(`#remove-${invData.id}`, {
+      content: "Remove"
+    });
+
     if (invData.id === AvailableInvestments["WRAP-STACKING"]) {
       tippy(`#harvest-restake-${invData.id}`, {
         content: "Harvest and restake"

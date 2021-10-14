@@ -112,6 +112,7 @@ export interface TokenContract {
 export interface InvestmentData {
   id: AvailableInvestments;
   platform: InvestmentPlatform;
+  type: string;
   address: TezosContractAddress;
   balance: number | undefined;
   decimals: number;

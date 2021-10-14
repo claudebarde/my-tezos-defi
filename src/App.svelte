@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
   import { TezosToolkit, MichelCodecPacker } from "@taquito/taquito";
+  import { RpcClient, RpcClientCache } from "@taquito/rpc";
   import { Tzip16Module } from "@taquito/tzip16";
   import store from "./store";
   import localStorageStore from "./localStorage";
@@ -243,7 +244,8 @@
       }
     }
 
-    Tezos = new TezosToolkit(rpcUrl);
+    const rpcClient = new RpcClient(rpcUrl);
+    Tezos = new TezosToolkit(new RpcClientCache(rpcClient));
     Tezos.setPackerProvider(new MichelCodecPacker());
     Tezos.addExtension(new Tzip16Module());
     store.updateTezos(Tezos);

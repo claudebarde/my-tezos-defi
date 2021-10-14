@@ -877,22 +877,61 @@ export const loadInvestment = async (
         };
       }
     } else if (inv.platform === "wrap") {
-      try {
-        const userDataResponse = await fetch(
-          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/delegators/keys/${userAddress}`
-        );
-        if (userDataResponse) {
-          const userData = await userDataResponse.json();
-          if (userData.value.hasOwnProperty("balance")) {
+      if (
+        inv.id === AvailableInvestments["WRAP-STACKING"] ||
+        inv.id.slice(-3) === "-LM"
+      ) {
+        // liquidity mining
+        try {
+          const userDataResponse = await fetch(
+            `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/delegators/keys/${userAddress}`
+          );
+          if (userDataResponse) {
+            const userData = await userDataResponse.json();
+            if (userData.value.hasOwnProperty("balance")) {
+              return {
+                id: inv.id,
+                balance: +userData.value.balance,
+                info: userData.stakes
+              };
+            } else if (userData.value.hasOwnProperty("lpTokenBalance")) {
+              return {
+                id: inv.id,
+                balance: +userData.value.lpTokenBalance,
+                info: undefined
+              };
+            } else {
+              return {
+                id: inv.id,
+                balance: 0,
+                info: undefined
+              };
+            }
+          } else {
             return {
               id: inv.id,
-              balance: +userData.value.balance,
-              info: userData.stakes
+              balance: 0,
+              info: undefined
             };
-          } else if (userData.value.hasOwnProperty("lpTokenBalance")) {
+          }
+        } catch (error) {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } else if (inv.id.slice(-3) === "-FM") {
+        // fee mining
+        try {
+          const balanceResponse = await fetch(
+            `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/balances/keys/${userAddress}`
+          );
+          if (balanceResponse) {
+            const balance = await balanceResponse.json();
             return {
               id: inv.id,
-              balance: +userData.value.lpTokenBalance,
+              balance: +balance.value,
               info: undefined
             };
           } else {
@@ -902,14 +941,14 @@ export const loadInvestment = async (
               info: undefined
             };
           }
-        } else {
+        } catch (error) {
           return {
             id: inv.id,
             balance: 0,
             info: undefined
           };
         }
-      } catch (error) {
+      } else {
         return {
           id: inv.id,
           balance: 0,
@@ -1171,7 +1210,8 @@ export const getKdaoReward = async (
 export const getWrapReward = async (
   farmId: AvailableInvestments,
   farmAddress: TezosContractAddress,
-  userAddress: TezosAccountAddress
+  userAddress: TezosAccountAddress,
+  userBalance: number
 ): Promise<null | BigNumber> => {
   if (!farmAddress || !userAddress || !farmId) return null;
 
@@ -1200,6 +1240,9 @@ export const getWrapReward = async (
     );
 
     return reward;
+  } else if (farmId.slice(-3) === "-FM") {
+    // fee mining pools
+    return await calcWrapFeeMiningReward(farmAddress, userAddress, userBalance);
   } else {
     return new BigNumber(0);
   }
@@ -1335,7 +1378,7 @@ const updateWrapLiquidityMiningPool = (
   );
 };
 
-export const calcWrapLiquidityMiningReward = async (
+const calcWrapLiquidityMiningReward = async (
   poolAddress: string,
   owner: TezosAccountAddress,
   currentLevel: number
@@ -1382,6 +1425,49 @@ export const calcWrapLiquidityMiningReward = async (
     }
   } catch (err) {
     console.error(err);
+    return new BigNumber(0);
+  }
+};
+
+const calcWrapFeeMiningReward = async (
+  poolAddress: string,
+  owner: TezosAccountAddress,
+  balance: number
+) => {
+  try {
+    // fetches the storage
+    const storageRes = await fetch(
+      `https://api.tzkt.io/v1/contracts/${poolAddress}/storage`
+    );
+    if (storageRes) {
+      const { reward } = await storageRes.json();
+      // fetches the delegator data
+      const delegatorRes = await fetch(
+        `https://api.tzkt.io/v1/contracts/${poolAddress}/bigmaps/delegators/keys/${owner}`
+      );
+      if (delegatorRes) {
+        const delegatorData = await delegatorRes.json();
+        const delegator = delegatorData.value;
+        // calculates standing rewards
+        let userReward =
+          +balance *
+          (+reward.accumulated_reward_per_token -
+            +delegator.reward_per_token_paid);
+        userReward += +delegator.unpaid;
+
+        if (!isNaN(userReward)) {
+          return new BigNumber(formatTokenAmount(userReward / 10 ** 24));
+        } else {
+          return new BigNumber(0);
+        }
+      } else {
+        throw `Unable to fetch delegators bigmap for ${poolAddress}`;
+      }
+    } else {
+      throw `Unable to fetch storage for ${poolAddress}`;
+    }
+  } catch (error) {
+    console.error(error);
     return new BigNumber(0);
   }
 };

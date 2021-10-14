@@ -142,6 +142,10 @@
     tippy(`#harvest-${invData.id}`, {
       content: "Harvest"
     });
+
+    tippy(`#remove-${invData.id}`, {
+      content: "Remove"
+    });
   });
 
   afterUpdate(() => {
@@ -264,6 +268,7 @@
     <button
       class="mini"
       on:click={() => dispatch("remove-investment", invData.id)}
+      id={`remove-${invData.id}`}
     >
       <span class="material-icons"> delete </span>
     </button>
