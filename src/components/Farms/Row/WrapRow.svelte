@@ -169,13 +169,20 @@
         }
       });
       invData.balance = invDetails.balance;
-      stakeInXtz =
-        +(
-          (invData.balance / 10 ** invData.decimals) *
-          $store.tokens[invData.token].exchangeRate
-        ).toFixed(5) / 1;
+      if (invData.type === "fee-farming") {
+        stakeInXtz =
+          +(
+            (invData.balance / 10 ** invData.decimals) *
+            $store.tokens.WRAP.exchangeRate
+          ).toFixed(5) / 1;
+      } else {
+        stakeInXtz =
+          +(
+            (invData.balance / 10 ** invData.decimals) *
+            $store.tokens[invData.token].exchangeRate
+          ).toFixed(5) / 1;
+      }
       dispatch("update-farm-value", [invName, stakeInXtz]);
-      return stakeInXtz;
     }
   });
 
@@ -222,18 +229,11 @@
   <div>
     {#if valueInXtz}
       <span class:blurry-text={$store.blurryBalances}>
-        {+(
-          ($store.tokens[invData.token].exchangeRate * invData.balance) /
-          10 ** invData.decimals
-        ).toFixed(5) / 1}
+        {stakeInXtz}
       </span>
     {:else}
       <span class:blurry-text={$store.blurryBalances}>
-        {+(
-          (($store.tokens[invData.token].exchangeRate * invData.balance) /
-            10 ** invData.decimals) *
-          $store.xtzData.exchangeRate
-        ).toFixed(2) / 1}
+        {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(2) / 1}
       </span>
     {/if}
   </div>

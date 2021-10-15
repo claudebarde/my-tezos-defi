@@ -55,6 +55,7 @@ export default {
     { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
     { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" }
   ],
+  stablecoins: ["kUSD", "USDtz", "uUSD", "wUSDC", "wDAI", "wUSDT"],
   toastColor: {
     green: {
       theme: {

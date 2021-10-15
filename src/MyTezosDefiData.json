@@ -767,6 +767,18 @@
       "token": "wUSDC",
       "liquidityToken": false
     },
+    "WRAP-WBTC-FM": {
+      "id": "WRAP-WBTC-FM",
+      "platform": "wrap",
+      "type": "fee-farming",
+      "address": "KT1C27Kz1maYphYZ5SLv821iumNQbgn95bRa",
+      "decimals": 8,
+      "info": [],
+      "alias": "wWBTC Fee Farming",
+      "icons": ["WRAP", "wWBTC"],
+      "token": "wWBTC",
+      "liquidityToken": false
+    },
     "CRUNCHY-FARMS": {
       "id": "CRUNCHY-FARMS",
       "platform": "crunchy",
