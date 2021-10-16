@@ -720,9 +720,43 @@
       "token": "PLENTY",
       "liquidityToken": true
     },
+    "PLENTY-wUSDT-LP": {
+      "id": "PLENTY-wUSDT-LP",
+      "platform": "plenty",
+      "address": "KT1S4XjwGtk55TmsMqSdazEMrH4pGA3NMXhz",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty-wUSDT LP farm",
+      "icons": ["PLENTY", "wUSDT"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-wDAI-LP": {
+      "id": "PLENTY-wDAI-LP",
+      "platform": "plenty",
+      "address": "KT1FJzDx9AwbuNHjhzQuUxxKUMA9BQ7DVfGn",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty-wDAI LP farm",
+      "icons": ["PLENTY", "wDAI"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-YOU-LP": {
+      "id": "PLENTY-YOU-LP",
+      "platform": "plenty",
+      "address": "KT1MkXtVBuCKtxqSh7APrg2d7ThGBmEf4hnw",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty-YOU LP farm",
+      "icons": ["PLENTY", "YOU"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
     "WRAP-STACKING": {
       "id": "WRAP-STACKING",
       "platform": "wrap",
+      "type": "stacking",
       "address": "KT1EVn7eG9jZVpm8y9uRAwTocdwJzF6g2iKy",
       "decimals": 8,
       "info": [],
@@ -734,6 +768,7 @@
     "WRAP-XTZ-LM": {
       "id": "WRAP-XTZ-LM",
       "platform": "wrap",
+      "type": "staking",
       "address": "KT1QY4siBbWg9qpj52fEzrWdWfkbFcwwjfoA",
       "decimals": 6,
       "info": [],
@@ -741,6 +776,30 @@
       "icons": ["WRAP", "XTZ"],
       "token": "WRAP",
       "liquidityToken": true
+    },
+    "WRAP-USDC-FM": {
+      "id": "WRAP-USDC-FM",
+      "platform": "wrap",
+      "type": "fee-farming",
+      "address": "KT1Q2FUYTWBJhz5oJPhWMmdk9AW5GmybYibx",
+      "decimals": 8,
+      "info": [],
+      "alias": "wUSDC Fee Farming",
+      "icons": ["WRAP", "wUSDC"],
+      "token": "wUSDC",
+      "liquidityToken": false
+    },
+    "WRAP-WBTC-FM": {
+      "id": "WRAP-WBTC-FM",
+      "platform": "wrap",
+      "type": "fee-farming",
+      "address": "KT1C27Kz1maYphYZ5SLv821iumNQbgn95bRa",
+      "decimals": 8,
+      "info": [],
+      "alias": "wWBTC Fee Farming",
+      "icons": ["WRAP", "wWBTC"],
+      "token": "wWBTC",
+      "liquidityToken": false
     },
     "CRUNCHY-FARMS": {
       "id": "CRUNCHY-FARMS",

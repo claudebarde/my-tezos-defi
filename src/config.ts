@@ -1,7 +1,7 @@
 import { AvailableFiat } from "./types";
 
 export default {
-  version: "4.0.0",
+  version: "4.1.0",
   wrapTokenIds: {
     0: { name: "wAAVE", decimals: 18 },
     1: { name: "wBUSD", decimals: 18 },
@@ -55,6 +55,7 @@ export default {
     { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
     { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" }
   ],
+  stablecoins: ["kUSD", "USDtz", "uUSD", "wUSDC", "wDAI", "wUSDT"],
   toastColor: {
     green: {
       theme: {
@@ -90,7 +91,10 @@ export default {
     "PLENTY-ETHtz-LP": "KT1AbuUaPQmYLsB8n8FdSzBrxvrsm8ctwW1V",
     "PLENTY-wWETH-LP": "KT1HUnqM6xFJa51PM2xHfLs7s6ARvXungtyq",
     "PLENTY-kUSD-LP": "KT1UNBvCJXiwJY6tmHM7CJUVwNPew53XkSfh",
-    "PLENTY-uUSD-LP": "KT1Cba383ZJpEearqnUyUKUMsgu5Z3TXBgeH"
+    "PLENTY-uUSD-LP": "KT1Cba383ZJpEearqnUyUKUMsgu5Z3TXBgeH",
+    "PLENTY-wUSDT": "KT1Bi4yoALg6tuP4PKaFNDtSsDdpGLrDiGAS",
+    "PLENTY-wDAI-LP": "KT1KDmpYSDogNtEtEnEaHQLaySuqLr8aEfJW",
+    "PLENTY-YOU": "KT1EM6NjJdJXmz3Pj13pfu3MWVDwXEQnoH3N"
   },
   plentyLptAddresses: {
     "PLENTY-wBUSD-LP": "KT1UC3vcVZ4K9b39uQxaMNA2N1RuJXKLCnoA",
@@ -110,6 +114,9 @@ export default {
     "PLENTY-KALAM-LP": "KT1G3QTnrpWNhZr9x3Prprw3GH6gAMqV113D",
     "PLENTY-SMAK-LP": "KT1NLZah1MKeWuveQvdsCqAUCjksKw8J296z",
     "PLENTY-uUSD-LP": "KT1E8CrG6uznYAG9vZVGtApMJwwTScxPEUKq",
+    "PLENTY-wUSDT-LP": "KT1PcM1LUqgVdkXqKvZ4CeC9aiwLgYYCEHMH",
+    "PLENTY-wDAI-LP": "KT19vdNapeT6MALXvkvW745KiVKGXmD4AZq5",
+    "PLENTY-YOU-LP": "KT1UaU5fbSYqYeFmhmsjLkqQXZ1ZG54Qs2vh",
     "kUSD-USDtz-LP": "KT1HEdGi7rq1zgZ68dhAtKMZYKeD3EM5vYdf",
     "wUSDC-USDtz-LP": "KT1FaoPYSyT4itmgTncvdshV7SeqqXk9RJXd",
     "wWETH-ETHtz-LP": "KT1GubVxQVJucUJfJvysvAJKWpLwj3LKuWHn"

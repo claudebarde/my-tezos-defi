@@ -136,11 +136,16 @@
 
     tippy(`#farm-${invData.id}`, {
       content: createTooltipContent(invData),
-      allowHTML: true
+      allowHTML: true,
+      placement: "left"
     });
 
     tippy(`#harvest-${invData.id}`, {
       content: "Harvest"
+    });
+
+    tippy(`#remove-${invData.id}`, {
+      content: "Remove"
     });
   });
 
@@ -264,6 +269,7 @@
     <button
       class="mini"
       on:click={() => dispatch("remove-investment", invData.id)}
+      id={`remove-${invData.id}`}
     >
       <span class="material-icons"> delete </span>
     </button>

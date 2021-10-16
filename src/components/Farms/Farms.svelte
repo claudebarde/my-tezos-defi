@@ -173,6 +173,36 @@
     }
   };
 
+  const sortFarmsPerRewards = (
+    token1Data: InvestmentData,
+    token2Data: InvestmentData
+  ): number => {
+    if (
+      availableRewards.length > 0 &&
+      availableRewards.find(rw => rw.id === token1Data.id) &&
+      availableRewards.find(rw => rw.id === token2Data.id)
+    ) {
+      //console.log(availableRewards.find(rw => rw.id === a[1].id).amount, availableRewards.find(rw => rw.id === b[1].id).amount);
+      const token1Amount = availableRewards.find(
+        rw => rw.id === token1Data.id
+      ).amount;
+      const token2Amount = availableRewards.find(
+        rw => rw.id === token2Data.id
+      ).amount;
+      if (!token1Amount || !token2Amount) {
+        return 0;
+      } else if (token1Amount > token2Amount) {
+        return -1;
+      } else if (token1Amount < token2Amount) {
+        return 1;
+      } else {
+        return 0;
+      }
+    } else {
+      return 0;
+    }
+  };
+
   onMount(async () => {
     if (!$store.userAddress) push("/");
 
@@ -261,8 +291,10 @@
             rewards = await getWrapReward(
               inv.id,
               inv.address,
-              $store.userAddress
+              $store.userAddress,
+              inv.balance
             );
+            //console.log(inv.id, rewards.toNumber());
           }
 
           return {
@@ -329,14 +361,17 @@
     .row-header,
     .row-footer {
       display: grid;
-      grid-template-columns: 10% 25% 20% 17% 16% 12%;
+      grid-template-columns: 10% 25% 16% 17% 14% 18%;
       padding: 5px 10px;
       align-items: center;
-      color: white;
       padding: 10px;
     }
     .row-header {
       background-color: darken($container-bg-color, 3);
+      color: white;
+    }
+    .row-footer {
+      color: $container-bg-color;
     }
 
     .unstaked-token {
@@ -365,6 +400,11 @@
           height: 25px;
         }
       }
+    }
+
+    .farm-title {
+      font-size: 0.8rem;
+      padding: 5px 0px 0px 30px;
     }
   }
 
@@ -503,7 +543,40 @@
         <div>Reward</div>
       </div>
     {/if}
-    {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty") as [invName, invData]}
+    <!-- PLENTY FARMS WITH STABLECOINS -->
+    {#if Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
+      .filter(inv => config.stablecoins.includes(inv[1].icons[1])).length > 0}
+      <div class="farm-title">Stablecoins</div>
+    {/if}
+    {#each Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
+      .filter(inv => config.stablecoins.includes(inv[1].icons[1]))
+      .sort((a, b) => sortFarmsPerRewards(a[1], b[1])) as [invName, invData]}
+      <PlentyRow
+        rewards={availableRewards.find(rw => rw.id === invData.id)}
+        {invName}
+        {invData}
+        valueInXtz={true}
+        {createTooltipContent}
+        on:update-farm-value={event =>
+          (totalValueInFarms = [
+            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+            event.detail
+          ])}
+        on:reset-rewards={event => resetRewards(event.detail)}
+      />
+    {/each}
+    <!-- PLENTY FARMS WITH STABLECOINS -->
+    {#if Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
+      .filter(inv => !config.stablecoins.includes(inv[1].icons[1])).length > 0}
+      <div class="farm-title">Other tokens</div>
+    {/if}
+    {#each Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
+      .filter(inv => !config.stablecoins.includes(inv[1].icons[1]))
+      .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
       <PlentyRow
         rewards={availableRewards.find(rw => rw.id === invData.id)}
         {invName}
@@ -523,7 +596,26 @@
       <div />
       <div />
       <div />
-      <div>
+      {#if availableRewards.length > 0}
+        <div class="total-rewards">
+          <span class="material-icons" style="vertical-align:middle">
+            point_of_sale
+          </span>
+          {formatTokenAmount(
+            [
+              0,
+              0,
+              ...availableRewards
+                .filter(rw => rw.platform === "plenty")
+                .map(rw => +rw.amount)
+            ].reduce((a, b) => a + b),
+            2
+          )}
+        </div>
+      {:else}
+        <div />
+      {/if}
+      <div style="display:flex;justify-content:center">
         {#if harvestingAll}
           <button class="mini loading">
             Harvesting <span class="material-icons"> sync </span>
@@ -535,11 +627,13 @@
           {:else if harvestingAllSuccess === false}
             <button class="mini error" on:click={harvestAll}> Retry </button>
           {:else}
-            <button class="mini" on:click={harvestAll}> Harvest all </button>
+            <button class="mini" on:click={harvestAll}>
+              <span class="material-icons"> agriculture </span>&nbsp; Harvest
+              all
+            </button>
           {/if}
         {/if}
       </div>
-      <div />
     </div>
     <!-- WRAP FARMS -->
     {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap").length > 0}
@@ -553,7 +647,73 @@
         <div>Reward</div>
       </div>
     {/if}
-    {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap") as [invName, invData]}
+    <!-- WRAP STACKING -->
+    {#if Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+      .find(inv => inv[1].type === "stacking")}
+      <div class="farm-title">WRAP Stacking</div>
+    {/if}
+    {#each Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+      .filter(inv => inv[1].type === "stacking") as [invName, invData]}
+      <WrapRow
+        rewards={availableRewards.find(rw => rw.id === invData.id)}
+        {invName}
+        {invData}
+        valueInXtz={true}
+        {createTooltipContent}
+        on:update-farm-value={event =>
+          (totalValueInFarms = [
+            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+            event.detail
+          ])}
+        on:reset-rewards={event => resetRewards(event.detail)}
+        on:update-stake={event => {
+          const { id, balance } = event.detail;
+          const newInvestments = { ...$store.investments };
+          newInvestments[id].balance = balance;
+          store.updateInvestments(newInvestments);
+        }}
+      />
+    {/each}
+    <!-- LIQUIDITY MINING -->
+    {#if Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+      .find(inv => inv[1].type === "staking")}
+      <div class="farm-title">Liquidity Mining</div>
+    {/if}
+    {#each Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+      .filter(inv => inv[1].type === "staking") as [invName, invData]}
+      <WrapRow
+        rewards={availableRewards.find(rw => rw.id === invData.id)}
+        {invName}
+        {invData}
+        valueInXtz={true}
+        {createTooltipContent}
+        on:update-farm-value={event =>
+          (totalValueInFarms = [
+            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+            event.detail
+          ])}
+        on:reset-rewards={event => resetRewards(event.detail)}
+        on:update-stake={event => {
+          const { id, balance } = event.detail;
+          const newInvestments = { ...$store.investments };
+          newInvestments[id].balance = balance;
+          store.updateInvestments(newInvestments);
+        }}
+      />
+    {/each}
+    <!-- FEE FARMING -->
+    {#if Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+      .find(inv => inv[1].type === "fee-farming")}
+      <div class="farm-title">Fee Farming</div>
+    {/if}
+    {#each Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+      .filter(inv => inv[1].type === "fee-farming") as [invName, invData]}
       <WrapRow
         rewards={availableRewards.find(rw => rw.id === invData.id)}
         {invName}

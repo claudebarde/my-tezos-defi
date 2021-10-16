@@ -321,7 +321,7 @@
 <br />
 <div>
   {#if tradeLoading}
-    <button class="button main loading" disabled>
+    <button class="primary loading" disabled>
       {#if left === "tzbtc"}
         Sell tzBTC
       {:else}
@@ -330,7 +330,7 @@
       <span class="material-icons"> sync </span>
     </button>
   {:else if tradeSuccessfull === 1}
-    <button class="button main success" disabled>
+    <button class="primary success" disabled>
       {#if left === "tzbtc"}
         Sell tzBTC
       {:else}
@@ -339,7 +339,7 @@
       <span class="material-icons"> thumb_up </span>
     </button>
   {:else if tradeSuccessfull === 2}
-    <button class="button main error" disabled>
+    <button class="primary error" disabled>
       {#if left === "tzbtc"}
         Sell tzBTC
       {:else}
@@ -349,7 +349,7 @@
     </button>
   {:else}
     <button
-      class="button main"
+      class="primary"
       style={`visibility:${
         +amountInTzbtc > 0 && +amountInXTZ > 0 ? "visible" : "hidden"
       }`}

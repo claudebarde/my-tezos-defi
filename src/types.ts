@@ -84,7 +84,10 @@ export enum AvailableInvestments {
   "PAUL-XTZ" = "PAUL-XTZ",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
-  "WRAP-STACKING" = "WRAP-STACKING"
+  "WRAP-STACKING" = "WRAP-STACKING",
+  "WRAP-XTZ-LM" = "WRAP-XTZ-LM",
+  "WRAP-USDC-FM" = "WRAP-USDC-FM",
+  "WRAP-WBTC-FM" = "WRAP-WBTC-FM"
 }
 
 export type InvestmentPlatform =
@@ -112,6 +115,7 @@ export interface TokenContract {
 export interface InvestmentData {
   id: AvailableInvestments;
   platform: InvestmentPlatform;
+  type: string;
   address: TezosContractAddress;
   balance: number | undefined;
   decimals: number;
