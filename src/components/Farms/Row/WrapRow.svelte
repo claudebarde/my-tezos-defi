@@ -141,7 +141,8 @@
   onMount(async () => {
     tippy(`#farm-${invData.id}`, {
       content: createTooltipContent(invData),
-      allowHTML: true
+      allowHTML: true,
+      placement: "left"
     });
 
     tippy(`#harvest-${invData.id}`, {

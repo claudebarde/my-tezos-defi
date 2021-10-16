@@ -720,6 +720,17 @@
       "token": "PLENTY",
       "liquidityToken": true
     },
+    "PLENTY-wUSDT-LP": {
+      "id": "PLENTY-wUSDT-LP",
+      "platform": "plenty",
+      "address": "KT1S4XjwGtk55TmsMqSdazEMrH4pGA3NMXhz",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty-wUSDT LP farm",
+      "icons": ["PLENTY", "wUSDT"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
     "PLENTY-wDAI-LP": {
       "id": "PLENTY-wDAI-LP",
       "platform": "plenty",
@@ -728,6 +739,17 @@
       "info": [],
       "alias": "Plenty-wDAI LP farm",
       "icons": ["PLENTY", "wDAI"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-YOU-LP": {
+      "id": "PLENTY-YOU-LP",
+      "platform": "plenty",
+      "address": "KT1MkXtVBuCKtxqSh7APrg2d7ThGBmEf4hnw",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty-YOU LP farm",
+      "icons": ["PLENTY", "YOU"],
       "token": "PLENTY",
       "liquidityToken": true
     },

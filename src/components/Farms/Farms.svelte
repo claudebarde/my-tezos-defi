@@ -173,6 +173,36 @@
     }
   };
 
+  const sortFarmsPerRewards = (
+    token1Data: InvestmentData,
+    token2Data: InvestmentData
+  ): number => {
+    if (
+      availableRewards.length > 0 &&
+      availableRewards.find(rw => rw.id === token1Data.id) &&
+      availableRewards.find(rw => rw.id === token2Data.id)
+    ) {
+      //console.log(availableRewards.find(rw => rw.id === a[1].id).amount, availableRewards.find(rw => rw.id === b[1].id).amount);
+      const token1Amount = availableRewards.find(
+        rw => rw.id === token1Data.id
+      ).amount;
+      const token2Amount = availableRewards.find(
+        rw => rw.id === token2Data.id
+      ).amount;
+      if (!token1Amount || !token2Amount) {
+        return 0;
+      } else if (token1Amount > token2Amount) {
+        return -1;
+      } else if (token1Amount < token2Amount) {
+        return 1;
+      } else {
+        return 0;
+      }
+    } else {
+      return 0;
+    }
+  };
+
   onMount(async () => {
     if (!$store.userAddress) push("/");
 
@@ -521,7 +551,8 @@
     {/if}
     {#each Object.entries($store.investments)
       .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
-      .filter( inv => config.stablecoins.includes(inv[1].icons[1]) ) as [invName, invData]}
+      .filter(inv => config.stablecoins.includes(inv[1].icons[1]))
+      .sort((a, b) => sortFarmsPerRewards(a[1], b[1])) as [invName, invData]}
       <PlentyRow
         rewards={availableRewards.find(rw => rw.id === invData.id)}
         {invName}
@@ -545,13 +576,7 @@
     {#each Object.entries($store.investments)
       .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
       .filter(inv => !config.stablecoins.includes(inv[1].icons[1]))
-      .sort((a, b) => {
-        if (availableRewards.length > 0) {
-          return availableRewards.find(rw => rw.id === b[1].id).amount - availableRewards.find(rw => rw.id === a[1].id).amount;
-        } else {
-          return a[1].alias > b[1].alias ? 1 : b[1].alias > a[1].alias ? -1 : 0;
-        }
-      }) as [invName, invData] (invData.id)}
+      .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
       <PlentyRow
         rewards={availableRewards.find(rw => rw.id === invData.id)}
         {invName}
