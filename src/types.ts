@@ -174,11 +174,6 @@ export interface State {
   };
   tokens: { [p in AvailableToken]: TokenContract } | undefined;
   tokensBalances: { [p in AvailableToken]: number } | undefined;
-  tokensExchangeRates:
-    | {
-        [p in AvailableToken]: ExchangeRateData | undefined;
-      }
-    | undefined;
   investments:
     | {
         [p in AvailableInvestments]: InvestmentData;

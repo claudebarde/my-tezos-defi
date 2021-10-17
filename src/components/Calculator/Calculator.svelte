@@ -26,7 +26,7 @@
     } else if (token === "XTZ") {
       xtzVal = val;
       // updates fiat price
-      fiatVal = +(xtzVal * $store.xtzData.exchangeRate).toFixed(5) / 1;
+      fiatVal = +(1 / (xtzVal * $store.xtzData.exchangeRate)).toFixed(5);
     } else if (token === "FIAT") {
       fiatVal = val;
       xtzVal = +(fiatVal / $store.xtzData.exchangeRate).toFixed(5) / 1;
