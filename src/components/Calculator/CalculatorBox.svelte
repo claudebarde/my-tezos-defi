@@ -98,7 +98,7 @@
             .includes(tokenSymbol)) && $store.xtzData.exchangeRate}
           <div>
             1 {$localStorageStore.preferredFiat} = {+(
-              $store.xtzData.exchangeRate / 10
+              1 / $store.xtzData.exchangeRate
             ).toFixed(5) / 1} XTZ
           </div>
           <div>
@@ -113,7 +113,8 @@
             XTZ
           </div>
           <div>
-            1 XTZ = {+$store.tokens[tokenSymbol].exchangeRate.toFixed(5) / 1}
+            1 XTZ = {+(1 / $store.tokens[tokenSymbol].exchangeRate).toFixed(5) /
+              1}
             {tokenSymbol}
           </div>
         {/if}

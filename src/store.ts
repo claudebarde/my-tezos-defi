@@ -36,7 +36,6 @@ const initialState: State = {
   settings,
   tokens: undefined,
   tokensBalances: undefined,
-  tokensExchangeRates: undefined,
   investments: undefined,
   lastOperations: [],
   xtzData: {
@@ -90,32 +89,6 @@ const state = {
       return {
         ...store,
         tokensBalances: newBalances
-      };
-    });
-  },
-  updateTokensExchangeRates: (
-    newExchangeRates: State["tokensExchangeRates"]
-  ) => {
-    store.update(store => {
-      if (
-        store.tokensBalances &&
-        !Object.values(store.tokensBalances).every(entry => entry === undefined)
-      ) {
-        let newTokens = { ...store.tokens };
-        const sortedBalances = sortTokensByBalance(
-          Object.entries(store.tokensBalances) as [AvailableToken, number][]
-        );
-        sortedBalances.forEach(tk => (newTokens[tk[0]] = store.tokens[tk[0]]));
-        return {
-          ...store,
-          tokens: newTokens,
-          tokensExchangeRates: newExchangeRates
-        };
-      }
-
-      return {
-        ...store,
-        tokensExchangeRates: newExchangeRates
       };
     });
   },
