@@ -423,13 +423,17 @@
       border: solid 2px transparent;
       border-radius: 10px;
       cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
 
       &:hover {
-        background-color: lighten($container-bg-color, 60);
+        border-color: lighten($container-bg-color, 60);
       }
 
       &.favorite {
         border-color: lighten($container-bg-color, 60);
+        background-color: lighten($container-bg-color, 60);
       }
     }
   }
@@ -867,6 +871,11 @@
                 }
               }}
             >
+              <div class="small-icons">
+                {#each inv[1].icons as icon}
+                  <img src={`images/${icon}.png`} alt={`${icon}-token`} />
+                {/each}
+              </div>
               {inv[1].alias}
             </div>
           {/each}
@@ -893,6 +902,11 @@
                 }
               }}
             >
+              <div class="small-icons">
+                {#each inv[1].icons as icon}
+                  <img src={`images/${icon}.png`} alt={`${icon}-token`} />
+                {/each}
+              </div>
               {inv[1].alias}
             </div>
           {/each}

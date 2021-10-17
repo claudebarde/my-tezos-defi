@@ -61,5 +61,14 @@
       justify-content: space-between;
       align-items: center;
     }
+
+    .small-icons {
+      padding-right: 10px;
+
+      img {
+        width: 18px;
+        height: 18px;
+      }
+    }
   }
 }
