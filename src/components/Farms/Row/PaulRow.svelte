@@ -94,7 +94,7 @@
     }
 
     tippy(`#farm-${invData.id}`, {
-      content: createTooltipContent(invData),
+      content: createTooltipContent(invData.icons[0], invData.icons[1]),
       allowHTML: true,
       placement: "left"
     });

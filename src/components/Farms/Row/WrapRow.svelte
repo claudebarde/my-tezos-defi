@@ -7,6 +7,7 @@
   import localStorageStore from "../../../localStorage";
   import { loadInvestment, prepareOperation } from "../../../utils";
   import toastStore from "../../Toast/toastStore";
+  import Modal from "../../Modal/Modal.svelte";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -23,6 +24,10 @@
   let compounding = false;
   let compoundingSuccess = undefined;
   let stakeInXtz: null | number = null;
+  let openSettingsModal = false;
+  let apy: null | number = null;
+  let apr: null | number = null;
+  let totalStaked: null | number = null;
   const dispatch = createEventDispatcher();
 
   const harvest = async () => {
@@ -138,9 +143,38 @@
     }
   };
 
+  const fetchStatistics = async (type: string) => {
+    try {
+      if (type === "stacking") {
+        const statsRes = await fetch(
+          `https://stats.info.tzwrap.com/v1/stacking/apy`
+        );
+        if (!statsRes) throw "Unable to fetch WRAP statistics";
+
+        const stats = await statsRes.json();
+        if (
+          Array.isArray(stats) &&
+          stats.length === 1 &&
+          stats[0].asset === "WRAP"
+        ) {
+          apy = +stats[0].apy;
+          apr = +stats[0].apr;
+          totalStaked = +stats[0].totalStaked;
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      toastStore.addToast({
+        type: "error",
+        text: JSON.stringify(error),
+        dismissable: false
+      });
+    }
+  };
+
   onMount(async () => {
     tippy(`#farm-${invData.id}`, {
-      content: createTooltipContent(invData),
+      content: createTooltipContent(invData.icons[0], invData.icons[1]),
       allowHTML: true,
       placement: "left"
     });
@@ -285,9 +319,54 @@
       {/if}
     {/if}
     {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-      <button class="mini">
+      <button
+        class="mini"
+        on:click={async () => {
+          openSettingsModal = !openSettingsModal;
+          if (invData.type === "stacking") {
+            await fetchStatistics("stacking");
+          } else if (invData.type === "staking") {
+            await fetchStatistics("liquidity-mining");
+          } else if (invData.type === "fee-farming") {
+            await fetchStatistics("staking");
+          }
+        }}
+      >
         <span class="material-icons"> settings </span>
       </button>
     {/if}
   </div>
 </div>
+{#if openSettingsModal}
+  <Modal type="default" on:close={() => (openSettingsModal = false)}>
+    <div slot="modal-title" class="modal-title">Settings</div>
+    <div slot="modal-body" class="modal-body">
+      <div class="modal-line">
+        <div>APR: {apr ? `${apr.toFixed(3)}%` : "--"}</div>
+        <div>APY: {apy ? `${apy.toFixed(3)}%` : "--"}</div>
+      </div>
+      <div class="modal-line">
+        <div>
+          Total Staked: {totalStaked
+            ? `${(+totalStaked.toFixed(3)).toLocaleString("en-US")} WRAP (${(+(
+                totalStaked * $store.xtzData.exchangeRate
+              ).toFixed(3)).toLocaleString("en-US")} ${
+                $localStorageStore.preferredFiat
+              })`
+            : "--"}
+        </div>
+      </div>
+    </div>
+    <div slot="modal-footer" class="modal-footer">
+      <div />
+      <button
+        class="primary"
+        on:click={() => {
+          openSettingsModal = false;
+        }}
+      >
+        Close
+      </button>
+    </div>
+  </Modal>
+{/if}

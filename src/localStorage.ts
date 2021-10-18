@@ -71,6 +71,31 @@ if (globalThis?.window?.localStorage) {
                 console.error(error);
               }
             } else {
+              // patches for typos in investment data
+              if (
+                stateFromStorage[userAddress].favoriteInvestments.includes(
+                  "WRAP-WBTC-FM"
+                )
+              ) {
+                const correctedFavoriteInvestments = stateFromStorage[
+                  userAddress
+                ].favoriteInvestments.filter(inv => inv !== "WRAP-WBTC-FM");
+                correctedFavoriteInvestments.push("WRAP-WWBTC-FM");
+                stateFromStorage[userAddress].favoriteInvestments =
+                  correctedFavoriteInvestments;
+              }
+              if (
+                stateFromStorage[userAddress].favoriteInvestments.includes(
+                  "WRAP-USDC-FM"
+                )
+              ) {
+                const correctedFavoriteInvestments = stateFromStorage[
+                  userAddress
+                ].favoriteInvestments.filter(inv => inv !== "WRAP-USDC-FM");
+                correctedFavoriteInvestments.push("WRAP-WUSDC-FM");
+                stateFromStorage[userAddress].favoriteInvestments =
+                  correctedFavoriteInvestments;
+              }
               newState = { ...stateFromStorage[userAddress] };
             }
 
