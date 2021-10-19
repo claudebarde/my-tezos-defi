@@ -41,6 +41,9 @@
     .modal-title {
       font-size: 1.5rem;
       position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .modal-body {

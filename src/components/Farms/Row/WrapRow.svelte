@@ -143,23 +143,42 @@
     }
   };
 
-  const fetchStatistics = async (type: string) => {
+  const fetchStatistics = async (type: string, farm: string) => {
     try {
-      if (type === "stacking") {
-        const statsRes = await fetch(
-          `https://stats.info.tzwrap.com/v1/stacking/apy`
-        );
-        if (!statsRes) throw "Unable to fetch WRAP statistics";
+      const url = `https://stats.info.tzwrap.com/v1/${type}/apy`;
+      const statsRes = await fetch(url);
+      if (!statsRes) throw "Unable to fetch WRAP statistics";
 
-        const stats = await statsRes.json();
-        if (
-          Array.isArray(stats) &&
-          stats.length === 1 &&
-          stats[0].asset === "WRAP"
-        ) {
-          apy = +stats[0].apy;
-          apr = +stats[0].apr;
-          totalStaked = +stats[0].totalStaked;
+      const stats = await statsRes.json();
+      if (
+        type === "stacking" &&
+        Array.isArray(stats) &&
+        stats.length === 1 &&
+        stats[0].asset === "WRAP"
+      ) {
+        // stacking
+        apy = +stats[0].apy;
+        apr = +stats[0].apr;
+        totalStaked = +stats[0].totalStaked;
+      } else if (type === "staking" && Array.isArray(stats)) {
+        const token = farm.replace("WRAP-W", "").replace("-FM", "");
+        const farmStats = stats.find(st => st.asset === token);
+        if (farmStats) {
+          apy = +farmStats.apy;
+          apr = +farmStats.apr;
+          totalStaked = +farmStats.totalStaked;
+        } else {
+          throw `Unable to find stats for ${farm}`;
+        }
+      } else if (type === "liquidity-mining") {
+        const token = farm.replace("-XTZ-LM", "");
+        const farmStats = stats.find(st => st.base === token);
+        if (farmStats) {
+          apy = +farmStats.apy;
+          apr = +farmStats.apr;
+          totalStaked = +farmStats.totalStaked;
+        } else {
+          throw `Unable to find stats for ${farm}`;
         }
       }
     } catch (error) {
@@ -324,11 +343,11 @@
         on:click={async () => {
           openSettingsModal = !openSettingsModal;
           if (invData.type === "stacking") {
-            await fetchStatistics("stacking");
+            await fetchStatistics("stacking", "WRAP");
           } else if (invData.type === "staking") {
-            await fetchStatistics("liquidity-mining");
+            await fetchStatistics("liquidity-mining", invName);
           } else if (invData.type === "fee-farming") {
-            await fetchStatistics("staking");
+            await fetchStatistics("staking", invName);
           }
         }}
       >
@@ -339,22 +358,53 @@
 </div>
 {#if openSettingsModal}
   <Modal type="default" on:close={() => (openSettingsModal = false)}>
-    <div slot="modal-title" class="modal-title">Settings</div>
+    <div slot="modal-title" class="modal-title">
+      <div>Settings</div>
+      <div>{invData.alias}</div>
+    </div>
     <div slot="modal-body" class="modal-body">
       <div class="modal-line">
         <div>APR: {apr ? `${apr.toFixed(3)}%` : "--"}</div>
         <div>APY: {apy ? `${apy.toFixed(3)}%` : "--"}</div>
       </div>
-      <div class="modal-line">
+      <br />
+      <div class="modal-line" style="text-align: center">
         <div>
-          Total Staked: {totalStaked
-            ? `${(+totalStaked.toFixed(3)).toLocaleString("en-US")} WRAP (${(+(
-                totalStaked * $store.xtzData.exchangeRate
-              ).toFixed(3)).toLocaleString("en-US")} ${
-                $localStorageStore.preferredFiat
-              })`
-            : "--"}
+          {#if invData.type === "staking"}
+            Total Value Staked: <br />
+            {totalStaked
+              ? `${(+totalStaked.toFixed(3)).toLocaleString("en-US")} XTZ (${(+(
+                  totalStaked * $store.xtzData.exchangeRate
+                ).toFixed(3)).toLocaleString("en-US")} ${
+                  $localStorageStore.preferredFiat
+                })`
+              : "--"}
+          {:else}
+            Total Token Staked: <br />
+            {totalStaked
+              ? `${(+totalStaked.toFixed(3)).toLocaleString(
+                  "en-US"
+                )} WRAP (${(+(
+                  totalStaked *
+                  $store.tokens.WRAP.exchangeRate *
+                  $store.xtzData.exchangeRate
+                ).toFixed(3)).toLocaleString("en-US")} ${
+                  $localStorageStore.preferredFiat
+                })`
+              : "--"}
+          {/if}
         </div>
+      </div>
+      <br />
+      <div>
+        Total rewards available:
+        {#if !rewards}
+          Unavailable
+        {:else}
+          <span id={`rewards-${invData.id}`}>
+            {+rewards.amount.toFixed(5) / 1} WRAP
+          </span>
+        {/if}
       </div>
     </div>
     <div slot="modal-footer" class="modal-footer">

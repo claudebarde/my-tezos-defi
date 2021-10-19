@@ -1294,21 +1294,24 @@ export const formatPlentyLpAmount = (
   exchangePair: string
 ): number => {
   switch (exchangePair) {
+    case "PLENTY-SMAK-LP":
+      return lpAmount / 10 ** 8;
     case "PLENTY-wUSDC":
     case "PLENTY-USDtz-LP":
     case "PLENTY-QUIPU-LP":
     case "PLENTY-hDAO-LP":
+    case "PLENTY-wUSDT-LP":
       return lpAmount / 10 ** 6;
     case "PLENTY-wWBTC":
     case "PLENTY-tzBTC-LP":
     case "PLENTY-WRAP-LP":
     case "PLENTY-UNO-LP":
       return lpAmount / 10 ** 5;
-    case "PLENTY-SMAK-LP":
-      return lpAmount / 10 ** 8;
     case "PLENTY-uUSD-LP":
     case "PLENTY-KALAM-LP":
       return lpAmount / 10 ** 4;
+    case "PLENTY-YOU-LP":
+      return lpAmount / 10 ** 3;
     default:
       return lpAmount;
   }

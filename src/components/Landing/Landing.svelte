@@ -1,17 +1,37 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { fly, fade } from "svelte/transition";
   import { bounceOut } from "svelte/easing";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
 
   let containerHeight = 0;
+  let wobbleInterval;
 
   onMount(() => {
     const container = document.getElementById("tokens-animation-container");
     if (container) {
       containerHeight = container.clientHeight;
     }
+
+    // sets further animation after the tokens are set
+    setTimeout(() => {
+      wobbleInterval = setInterval(() => {
+        // removes the currently assigned jello-horizontal class
+        const els = document.getElementsByClassName("jello-horizontal");
+        [...els].forEach(el => el.classList.remove("jello-horizontal"));
+        // adds the jello-horizontal class to a new element
+        const randomIndex = Math.floor(
+          Math.random() * Object.keys($store.tokens).length
+        );
+        const token = document.getElementById(`token-landing-${randomIndex}`);
+        token.classList.add("jello-horizontal");
+      }, 1500);
+    }, 6000);
+  });
+
+  onDestroy(() => {
+    clearInterval(wobbleInterval);
   });
 </script>
 
@@ -80,10 +100,12 @@
   </div>
   <div class="available-tokens" id="tokens-animation-container">
     {#if containerHeight > 0}
-      {#each Object.keys($store.tokens) as token}
+      {#each Object.keys($store.tokens) as token, index}
         <img
+          class="token-landing"
           src={`images/${token}.png`}
           alt={`${token}-logo`}
+          id={`token-landing-${index}`}
           in:fly={{
             delay: Math.random() * (2000 - 10) + 10,
             duration: 3000,
