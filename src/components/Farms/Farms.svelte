@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
   import { push } from "svelte-spa-router";
+  import tippy from "tippy.js";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import {
@@ -149,9 +150,10 @@
     ];
   };
 
-  const createTooltipContent = (invData: InvestmentData): string => {
-    const token1 = invData.icons[0];
-    const token2 = invData.icons[1];
+  const createTooltipContent = (
+    token1: AvailableToken | "XTZ",
+    token2: AvailableToken | "XTZ"
+  ): string => {
     const exchangeRate1 = $store.tokens[token1]
       ? formatTokenAmount($store.tokens[token1].exchangeRate)
       : "0";
@@ -168,7 +170,7 @@
           $store.xtzData.exchangeRate
         )} ${$localStorageStore.preferredFiat}</div>`;
       } else {
-        return `<div>${token1}: ${exchangeRate1} ꜩ`;
+        return `<div>${token1}: ${exchangeRate1} ꜩ</div>`;
       }
     }
   };
@@ -201,6 +203,22 @@
     } else {
       return 0;
     }
+  };
+
+  const sortFarmSelectModal = (
+    favorite: boolean,
+    platform: InvestmentPlatform,
+    type?: string
+  ): [string, InvestmentData][] => {
+    return Object.entries($store.investments)
+      .filter(inv => inv[1].platform === platform)
+      .filter(inv =>
+        favorite
+          ? $localStorageStore.favoriteInvestments.includes(inv[1].id)
+          : !$localStorageStore.favoriteInvestments.includes(inv[1].id)
+      )
+      .filter(inv => (type ? inv[1].type === type : true))
+      .sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()));
   };
 
   onMount(async () => {
@@ -313,9 +331,11 @@
         } else if (rw.platform === "paul") {
           tempRw.amount =
             tempRw.amount.toNumber() / 10 ** $store.tokens.PAUL.decimals;
+          readyToHarvest += tempRw.amount * $store.tokens.PAUL.exchangeRate;
         } else if (rw.platform === "kdao") {
           tempRw.amount =
             tempRw.amount.toNumber() / 10 ** $store.tokens.kDAO.decimals;
+          readyToHarvest += tempRw.amount * $store.tokens.kDAO.exchangeRate;
         } else if (rw.platform === "wrap") {
           if (rw.id === AvailableInvestments["WRAP-STACKING"]) {
             tempRw.amount =
@@ -323,12 +343,36 @@
           } else {
             tempRw.amount = tempRw.amount.toNumber();
           }
+          readyToHarvest += tempRw.amount * $store.tokens.WRAP.exchangeRate;
         }
 
         availableRewards = [
           ...availableRewards.filter(arw => arw.id !== rw.id),
           tempRw
         ];
+      });
+
+      const totalPlentyRewards = [
+        0,
+        0,
+        ...availableRewards
+          .filter(rw => rw.platform === "plenty")
+          .map(rw => +rw.amount)
+      ].reduce((a, b) => a + b);
+      tippy(`#total-plenty-rewards`, {
+        content: `<div>${
+          +(
+            totalPlentyRewards *
+            $store.tokens[AvailableToken.PLENTY].exchangeRate
+          ).toFixed(5) / 1
+        } ꜩ<br />${
+          +(
+            totalPlentyRewards *
+            $store.tokens[AvailableToken.PLENTY].exchangeRate *
+            $store.xtzData.exchangeRate
+          ).toFixed(5) / 1
+        } ${$localStorageStore.preferredFiat || "USD"}</div>`,
+        allowHTML: true
       });
     }
   });
@@ -423,13 +467,17 @@
       border: solid 2px transparent;
       border-radius: 10px;
       cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
 
       &:hover {
-        background-color: lighten($container-bg-color, 60);
+        border-color: lighten($container-bg-color, 60);
       }
 
       &.favorite {
         border-color: lighten($container-bg-color, 60);
+        background-color: lighten($container-bg-color, 60);
       }
     }
   }
@@ -597,7 +645,7 @@
       <div />
       <div />
       {#if availableRewards.length > 0}
-        <div class="total-rewards">
+        <div class="total-rewards" id="total-plenty-rewards">
           <span class="material-icons" style="vertical-align:middle">
             point_of_sale
           </span>
@@ -845,15 +893,62 @@
       {/if}
     </div>
     <div slot="modal-body" class="modal-body">
-      {#if selectFarmModal}
-        <div class="farm-selection-modal">
-          <!-- favorite farms -->
-          {#each Object.entries($store.investments)
-            .filter(inv => inv[1].platform === selectFarmModal)
-            .filter( inv => $localStorageStore.favoriteInvestments.includes(inv[1].id) )
-            .sort((a, b) => a[0]
-                .toLowerCase()
-                .localeCompare(b[0].toLowerCase())) as inv}
+      <div class="farm-selection-modal">
+        <!-- favorite farms -->
+        <div style="width:100%;font-size:0.9rem">Favorite</div>
+        {#each sortFarmSelectModal(true, selectFarmModal) as inv}
+          <div
+            class="farm-to-select"
+            class:favorite={$localStorageStore.favoriteInvestments.includes(
+              inv[0]
+            )}
+            on:click={async () => {
+              if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
+                removeFavoriteInvestment(inv[0]);
+              } else {
+                addFavoriteInvestment(inv[0]);
+              }
+            }}
+          >
+            <div class="small-icons">
+              {#each inv[1].icons as icon}
+                <img src={`images/${icon}.png`} alt={`${icon}-token`} />
+              {/each}
+            </div>
+            {inv[1].alias}
+          </div>
+        {/each}
+      </div>
+      <br />
+      <div class="farm-selection-modal">
+        <!-- other farms -->
+        {#if selectFarmModal === "wrap"}
+          {#if !$localStorageStore.favoriteInvestments.includes("WRAP-STACKING")}
+            <div style="width:100%;font-size:0.9rem">WRAP stacking</div>
+            <div
+              class="farm-to-select"
+              on:click={async () => {
+                if (
+                  $localStorageStore.favoriteInvestments.includes(
+                    "WRAP-STACKING"
+                  )
+                ) {
+                  removeFavoriteInvestment("WRAP-STACKING");
+                } else {
+                  addFavoriteInvestment("WRAP-STACKING");
+                }
+              }}
+            >
+              <div class="small-icons">
+                <img src={`images/WRAP.png`} alt="WRAP-token" />
+              </div>
+              Wrap Stacking
+            </div>
+          {/if}
+          {#each sortFarmSelectModal(false, selectFarmModal, "staking") as inv, index}
+            {#if index === 0}
+              <div style="width:100%;font-size:0.9rem">Liquidity mining</div>
+            {/if}
             <div
               class="farm-to-select"
               class:favorite={$localStorageStore.favoriteInvestments.includes(
@@ -867,19 +962,18 @@
                 }
               }}
             >
+              <div class="small-icons">
+                {#each inv[1].icons as icon}
+                  <img src={`images/${icon}.png`} alt={`${icon}-token`} />
+                {/each}
+              </div>
               {inv[1].alias}
             </div>
           {/each}
-        </div>
-        <br />
-        <div class="farm-selection-modal">
-          <!-- other farms -->
-          {#each Object.entries($store.investments)
-            .filter(inv => inv[1].platform === selectFarmModal)
-            .filter(inv => !$localStorageStore.favoriteInvestments.includes(inv[1].id))
-            .sort((a, b) => a[0]
-                .toLowerCase()
-                .localeCompare(b[0].toLowerCase())) as inv}
+          {#each sortFarmSelectModal(false, selectFarmModal, "fee-farming") as inv, index}
+            {#if index === 0}
+              <div style="width:100%;font-size:0.9rem">Fee Farming</div>
+            {/if}
             <div
               class="farm-to-select"
               class:favorite={$localStorageStore.favoriteInvestments.includes(
@@ -893,11 +987,40 @@
                 }
               }}
             >
+              <div class="small-icons">
+                {#each inv[1].icons as icon}
+                  <img src={`images/${icon}.png`} alt={`${icon}-token`} />
+                {/each}
+              </div>
               {inv[1].alias}
             </div>
           {/each}
-        </div>
-      {/if}
+        {:else}
+          <div style="width:100%;font-size:0.9rem">Available</div>
+          {#each sortFarmSelectModal(false, selectFarmModal) as inv}
+            <div
+              class="farm-to-select"
+              class:favorite={$localStorageStore.favoriteInvestments.includes(
+                inv[0]
+              )}
+              on:click={async () => {
+                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
+                  removeFavoriteInvestment(inv[0]);
+                } else {
+                  addFavoriteInvestment(inv[0]);
+                }
+              }}
+            >
+              <div class="small-icons">
+                {#each inv[1].icons as icon}
+                  <img src={`images/${icon}.png`} alt={`${icon}-token`} />
+                {/each}
+              </div>
+              {inv[1].alias}
+            </div>
+          {/each}
+        {/if}
+      </div>
     </div>
     <div slot="modal-footer" class="modal-footer">
       <div />

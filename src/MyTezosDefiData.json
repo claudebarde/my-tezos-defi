@@ -765,42 +765,6 @@
       "token": "WRAP",
       "liquidityToken": false
     },
-    "WRAP-XTZ-LM": {
-      "id": "WRAP-XTZ-LM",
-      "platform": "wrap",
-      "type": "staking",
-      "address": "KT1QY4siBbWg9qpj52fEzrWdWfkbFcwwjfoA",
-      "decimals": 6,
-      "info": [],
-      "alias": "Wrap-XTZ LM pool",
-      "icons": ["WRAP", "XTZ"],
-      "token": "WRAP",
-      "liquidityToken": true
-    },
-    "WRAP-USDC-FM": {
-      "id": "WRAP-USDC-FM",
-      "platform": "wrap",
-      "type": "fee-farming",
-      "address": "KT1Q2FUYTWBJhz5oJPhWMmdk9AW5GmybYibx",
-      "decimals": 8,
-      "info": [],
-      "alias": "wUSDC Fee Farming",
-      "icons": ["WRAP", "wUSDC"],
-      "token": "wUSDC",
-      "liquidityToken": false
-    },
-    "WRAP-WBTC-FM": {
-      "id": "WRAP-WBTC-FM",
-      "platform": "wrap",
-      "type": "fee-farming",
-      "address": "KT1C27Kz1maYphYZ5SLv821iumNQbgn95bRa",
-      "decimals": 8,
-      "info": [],
-      "alias": "wWBTC Fee Farming",
-      "icons": ["WRAP", "wWBTC"],
-      "token": "wWBTC",
-      "liquidityToken": false
-    },
     "CRUNCHY-FARMS": {
       "id": "CRUNCHY-FARMS",
       "platform": "crunchy",
@@ -866,5 +830,43 @@
       "token": "kUSD",
       "liquidityToken": true
     }
-  }
+  },
+  "wrap-staking": [
+    { "contract": "KT1QY4siBbWg9qpj52fEzrWdWfkbFcwwjfoA", "token": "WRAP" },
+    { "contract": "KT1NvQJYeMCdEtzF45bs3UNpMmjfY97u2qW2", "token": "wAAVE" },
+    { "contract": "KT1D3fEH94HkKkNdr5Wi5FaXB9k5AHHGjhuj", "token": "wBUSD" },
+    { "contract": "KT1EuvFwncr6z4hDVKAsqHuu9XXis9Zd8CqZ", "token": "wDAI" },
+    { "contract": "KT1T9zQKY259fbCt6tKHFnrMHEePgmsWAJYW", "token": "wLINK" },
+    { "contract": "KT1NodPMkSmMvLcaggUCGh5nx6aqYcYtyz5j", "token": "wMATIC" },
+    { "contract": "KT1Tni1sb5kVgCg2qMWJ2YPyUpDLFVg8RCbF", "token": "wPAX" },
+    { "contract": "KT1HjYtzsDHvN59hhTrFVZb9Ugg3xMPaWg33", "token": "wUNI" },
+    { "contract": "KT1LWf77r8tn9GFsMffFV8n8XrBMbL8G9avv", "token": "wUSDC" },
+    { "contract": "KT1B36N9Me7hjfrVsJHsu9cA3FkNWAfAkJ6m", "token": "wUSDT" },
+    { "contract": "KT1AxiZu1CtCMg5g5YiPL145cDx9axdwAexX", "token": "wWBTC" },
+    { "contract": "KT1BN1Si6u8ndd46RbbES5cNGojyRK6T8Md8", "token": "wWETH" }
+  ],
+  "wrap-fee-farming": [
+    { "contract": "KT1AFAnTNe5tsPHzhwK6EQscTmGCL1TVKmNR", "token": "WRAP" },
+    { "contract": "KT19Bu9pRLHJgc6Nat87xRgKR3AfHk9VV2ij", "token": "wAAVE" },
+    { "contract": "KT1MEVvRx725GSN8GrkzkCGnG6va7ABi1isC", "token": "wBUSD" },
+    { "contract": "KT1Xr2R2LStmuiMZjkbRppC3ReHAfFH9o9uy", "token": "wCEL" },
+    { "contract": "KT1BLsHsBJ3FURbJyunD8U2EihnZLmyhxbzx", "token": "wCOMP" },
+    { "contract": "KT1DKGc1ikNkgjmXfRNyRbvMRpS9uZZWmVaA", "token": "wCRO" },
+    { "contract": "KT1GKrs7J8meGf5xP7SNhHS4R3iEY1oCj7Nj", "token": "wDAI" },
+    { "contract": "KT1Q2B2KPS8w1GUW99gHZkJ1QaLFobJEMKja", "token": "wFTT" },
+    { "contract": "KT1WvsRaxb4dhE6Z8ZnU46Ujb5HwZ2PUt5Dt", "token": "wHT" },
+    { "contract": "KT1KNZvfEGz4K255oSSXSXM2NXogcdw1jbPj", "token": "wHUSD" },
+    { "contract": "KT1HzDLcXo3QtyuJoBqFJ1ZGPTRKREBXnVkG", "token": "wLEO" },
+    { "contract": "KT1FK2bdgs8q6bnyCkb6TJCur54D6gqKWPzk", "token": "wLINK" },
+    { "contract": "KT1Cv964d3vtacpoDL3HqBYmUjVvm6ttJmoA", "token": "wMATIC" },
+    { "contract": "KT1GApNWm5H12K5TaWcBfntfj12CT9vDG9hL", "token": "wMKR" },
+    { "contract": "KT1KAifxtnC6nTxUmzt2hYZL9u2XUqGqg6Jr", "token": "wOKB" },
+    { "contract": "KT18v7K8dcpvhVfJ6nXNKLwALMfBARjFP8La", "token": "wPAX" },
+    { "contract": "KT1D8xrzwMEgPDa1fxZzmXCLVJ6Jsczw2ErB", "token": "wSUSHI" },
+    { "contract": "KT1Jwhti7dfQM2NeUMEtkgHGMXVefQvGh1SQ", "token": "wUNI" },
+    { "contract": "KT1Q2FUYTWBJhz5oJPhWMmdk9AW5GmybYibx", "token": "wUSDC" },
+    { "contract": "KT18oo99LkMMdH8aXTMbCBD9ZunLqtkCVUUi", "token": "wUSDT" },
+    { "contract": "KT1C27Kz1maYphYZ5SLv821iumNQbgn95bRa", "token": "wWBTC" },
+    { "contract": "KT1KsP1tyN7HvUD1TaCkP7X8nBGkvejuvEk8", "token": "wWETH" }
+  ]
 }

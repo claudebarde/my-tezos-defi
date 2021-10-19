@@ -41,6 +41,9 @@
     .modal-title {
       font-size: 1.5rem;
       position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .modal-body {
@@ -49,10 +52,19 @@
       align-items: center;
       max-height: 400px;
       overflow: auto;
+      padding: 20px 0px;
 
       canvas {
         background-color: white;
         height: 300px;
+      }
+
+      .modal-line {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        width: 100%;
+        padding: 5px;
       }
     }
 
@@ -60,6 +72,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+    }
+
+    .small-icons {
+      padding-right: 10px;
+
+      img {
+        width: 18px;
+        height: 18px;
+      }
     }
   }
 }

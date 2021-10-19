@@ -293,6 +293,54 @@
             ...defiData.investments
           });
         }
+
+        if (defiData["wrap-staking"]) {
+          // builds investment data for WRAP staking farms
+          const investmentsWithWrapStaking = { ...$store.investments };
+          defiData["wrap-staking"].forEach(
+            farm =>
+              (investmentsWithWrapStaking[`${farm.token}-XTZ-LM`] = {
+                id: `${farm.token}-XTZ-LM`,
+                platform: "wrap",
+                type: "staking",
+                address: farm.contract,
+                decimals: 6,
+                info: [],
+                alias: `${farm.token}-XTZ LM pool`,
+                icons: [farm.token, "XTZ"],
+                token: farm.token,
+                liquidityToken: true
+              })
+          );
+          store.updateInvestments({
+            ...investmentsWithWrapStaking
+          });
+        }
+
+        if (defiData["wrap-fee-farming"]) {
+          // builds investment data for WRAP fee farming
+          const investmentsWithWrapFeeFarming = { ...$store.investments };
+          defiData["wrap-fee-farming"].forEach(
+            farm =>
+              (investmentsWithWrapFeeFarming[
+                `WRAP-${farm.token.toUpperCase()}-FM`
+              ] = {
+                id: `WRAP-${farm.token.toUpperCase()}-FM`,
+                platform: "wrap",
+                type: "fee-farming",
+                address: farm.contract,
+                decimals: 8,
+                info: [],
+                alias: `${farm.token} Fee Farming`,
+                icons: ["WRAP", farm.token],
+                token: farm.token,
+                liquidityToken: false
+              })
+          );
+          store.updateInvestments({
+            ...investmentsWithWrapFeeFarming
+          });
+        }
       } else {
         console.error(
           "Unable to load tokens and investments data from the IPFS"
