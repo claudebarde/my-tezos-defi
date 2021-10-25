@@ -9,7 +9,11 @@
   let showCanvas = true;
 
   onMount(async () => {
-    if ($localStorageStore && $store?.investments) {
+    if (
+      $localStorageStore &&
+      $store?.investments &&
+      $localStorageStore.favoriteInvestments
+    ) {
       const plentyInvestments = $localStorageStore.favoriteInvestments
         .map(inv =>
           $store.investments.hasOwnProperty(inv) &&

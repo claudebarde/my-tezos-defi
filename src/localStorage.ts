@@ -73,6 +73,10 @@ if (globalThis?.window?.localStorage) {
             } else {
               // patches for typos in investment data
               if (
+                stateFromStorage[userAddress] &&
+                stateFromStorage[userAddress].hasOwnProperty(
+                  "favoriteInvestments"
+                ) &&
                 stateFromStorage[userAddress].favoriteInvestments.includes(
                   "WRAP-WBTC-FM"
                 )
@@ -85,6 +89,10 @@ if (globalThis?.window?.localStorage) {
                   correctedFavoriteInvestments;
               }
               if (
+                stateFromStorage[userAddress] &&
+                stateFromStorage[userAddress].hasOwnProperty(
+                  "favoriteInvestments"
+                ) &&
                 stateFromStorage[userAddress].favoriteInvestments.includes(
                   "WRAP-USDC-FM"
                 )

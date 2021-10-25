@@ -3,7 +3,6 @@
   import { fly, fade } from "svelte/transition";
   import { bounceOut } from "svelte/easing";
   import store from "../../store";
-  import localStorageStore from "../../localStorage";
 
   let containerHeight = 0;
   let wobbleInterval;

@@ -21,7 +21,9 @@
   afterUpdate(() => {
     if ($localStorageStore && favoriteTokens.length === 0) {
       // initializes the tokens array
-      favoriteTokens = [...$localStorageStore.favoriteTokens];
+      favoriteTokens = $localStorageStore.favoriteTokens
+        ? [...$localStorageStore.favoriteTokens]
+        : [];
     } else if (
       favoriteTokens.length > 0 &&
       $localStorageStore &&

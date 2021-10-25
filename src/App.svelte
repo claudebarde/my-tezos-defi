@@ -5,7 +5,7 @@
   import { Tzip16Module } from "@taquito/tzip16";
   import store from "./store";
   import localStorageStore from "./localStorage";
-  import { AvailableToken } from "./types";
+  import { AvailableToken, AvailableFiat } from "./types";
   import type { State, TokenContract, Operation } from "./types";
   import Router from "svelte-spa-router";
   import routes from "./routes";
@@ -388,7 +388,10 @@
 
         // fetches fiat exchange rate
         const coinGeckoFetch = async () => {
-          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${$localStorageStore.preferredFiat.toLowerCase()}&days=2`;
+          const preferredFiat = $localStorageStore.preferredFiat
+            ? $localStorageStore.preferredFiat.toLowerCase()
+            : AvailableFiat.USD;
+          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${preferredFiat}&days=2`;
           const coinGeckoResponse = await fetch(url);
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();

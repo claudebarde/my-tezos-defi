@@ -115,6 +115,7 @@
 
   onMount(async () => {
     const invDetails = await loadInvestment(invData.id, $store.userAddress);
+    console.log(invDetails);
     if (invDetails) {
       store.updateInvestments({
         ...$store.investments,
@@ -125,13 +126,17 @@
         }
       });
       invData.balance = invDetails.balance;
-      stakeInXtz = await calcStakeInXtz({
-        isPlentyLpToken: invData.platform === "plenty",
-        id: invData.id,
-        balance: invData.balance,
-        decimals: invData.decimals,
-        exchangeRate: $store.tokens[invData.token].exchangeRate
-      });
+      if (!invDetails.balance) {
+        stakeInXtz = 0;
+      } else {
+        stakeInXtz = await calcStakeInXtz({
+          isPlentyLpToken: invData.platform === "plenty",
+          id: invData.id,
+          balance: invData.balance,
+          decimals: invData.decimals,
+          exchangeRate: $store.tokens[invData.token].exchangeRate
+        });
+      }
     }
 
     tippy(`#farm-${invData.id}`, {
@@ -187,7 +192,7 @@
     </a>
   </div>
   <div>
-    {#if !invData || !invData.balance}
+    {#if !invData || isNaN(invData.balance)}
       <span class="material-icons"> hourglass_empty </span>
     {:else}
       <span class:blurry-text={$store.blurryBalances}>
