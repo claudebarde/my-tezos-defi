@@ -351,13 +351,15 @@
       if (tezToolsDataRes && tezToolsDataRes.status === 200) {
         const tezToolsData = await tezToolsDataRes.json();
         // selects whitelisted tokens
-        const availableTokens = Object.values(AvailableToken);
+        const availableTokens = Object.values(AvailableToken).map(tk =>
+          tk.toLowerCase()
+        );
         const tezToolsTokens = tezToolsData.contracts.filter(contract =>
-          availableTokens.includes(contract.symbol)
+          availableTokens.includes(contract.symbol.toLowerCase())
         );
         tokens = tokens.map(([tokenSymbol, tokenData]) => {
           let tezToolToken = tezToolsTokens.find(
-            tk => tk.symbol === tokenSymbol
+            tk => tk.symbol.toLowerCase() === tokenSymbol.toLowerCase()
           );
           if (tezToolToken) {
             let tokenThumbnail = tezToolToken.thumbnailUri;

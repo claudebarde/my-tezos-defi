@@ -66,7 +66,7 @@
   }
 </style>
 
-{#if $store.tokens[tokenSymbol] || tokenSymbol === "XTZ" || validFiats.includes(tokenSymbol)}
+{#if ($store.tokens.hasOwnProperty(tokenSymbol) && $store.tokens[tokenSymbol].exchangeRate) || tokenSymbol === "XTZ" || validFiats.includes(tokenSymbol)}
   <div class="calculator-token">
     <div>
       {#if validFiats.includes(tokenSymbol)}

@@ -464,6 +464,17 @@
       "color": "#143A3A",
       "tokenId": 0,
       "whitelisted": true
+    },
+    "Ctez": {
+      "address": "KT1SjXiUX63QvdNMcM2m492f7kuf8JxXRLp4",
+      "dexContractAddress": "KT1FbYwEWU8BTfrvNoL5xDEC5owsDxv9nqKT",
+      "decimals": 6,
+      "ledgerPath": "tokens",
+      "ledgerKey": ["address"],
+      "type": "fa12",
+      "color": "#615BD8",
+      "tokenId": 0,
+      "whitelisted": true
     }
   },
   "investments": {
@@ -750,6 +761,17 @@
       "info": [],
       "alias": "Plenty-YOU LP farm",
       "icons": ["PLENTY", "YOU"],
+      "token": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-Ctez-LP": {
+      "id": "PLENTY-Ctez-LP",
+      "platform": "plenty",
+      "address": "KT1MfMMsYX34Q9cEaPtk4qkQ6pojA7D2nsgr",
+      "decimals": 18,
+      "info": [],
+      "alias": "Plenty-Ctez LP farm",
+      "icons": ["PLENTY", "Ctez"],
       "token": "PLENTY",
       "liquidityToken": true
     },

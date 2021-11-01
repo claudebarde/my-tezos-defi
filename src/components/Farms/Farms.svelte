@@ -28,6 +28,7 @@
   import PlentyTotalRewards from "./PlentyTotalRewards.svelte";
   import Modal from "../Modal/Modal.svelte";
   import config from "../../config";
+  import toastStore from "../Toast/toastStore";
 
   let plentyValueInXtz = true;
   let kdaoValueInXtz = true;
@@ -46,6 +47,15 @@
   let unstakedLpTokens: [AvailableInvestments, string, number][] = [];
   let lastVisit = 0;
   let selectFarmModal: null | InvestmentPlatform = null;
+  let searchingForStakes = false;
+  let searchingForStakesPlatform: InvestmentPlatform | null = null;
+  let loadingSearchingForStakes = false;
+  let foundStakes: {
+    platform: InvestmentPlatform;
+    id: AvailableInvestments;
+    name: string;
+    balance: number;
+  }[] = [];
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -224,6 +234,140 @@
       )
       .filter(inv => (type ? inv[1].type === type : true))
       .sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()));
+  };
+
+  const findStakes = async (platform: InvestmentPlatform) => {
+    if (platform) {
+      foundStakes = [];
+      searchingForStakes = true;
+      loadingSearchingForStakes = true;
+      searchingForStakesPlatform = platform;
+      if (platform === "plenty") {
+        const plentyFarms = Object.values($store.investments).filter(
+          inv => inv.platform === "plenty"
+        );
+        try {
+          const plentyFarmBalancesRes = await Promise.allSettled(
+            plentyFarms.map(async farm => ({
+              balance: await fetch(
+                `https://api.tzkt.io/v1/contracts/${farm.address}/bigmaps/balances/keys/${$store.userAddress}`
+              )
+                .then(res => res.json())
+                .catch(err => undefined),
+              alias: farm.alias,
+              id: farm.id
+            }))
+          );
+          const plentyFarmBalances = plentyFarmBalancesRes.filter(
+            res =>
+              res.status === "fulfilled" &&
+              res.value.balance &&
+              res.value.balance.active &&
+              +res.value.balance.value.balance > 0
+          );
+          if (plentyFarmBalances.length > 0) {
+            foundStakes = plentyFarmBalances.map((farm: any) => ({
+              platform: "plenty",
+              id: farm.value.id,
+              name: farm.value.alias,
+              balance: formatTokenAmount(
+                +farm.value.balance.value.balance / 10 ** 18
+              )
+            }));
+          }
+        } catch (error) {
+          console.error(error);
+          toastStore.addToast({
+            type: "error",
+            text: `Unable to fetch balances for ${platform.toUpperCase()}`,
+            dismissable: true
+          });
+        } finally {
+          loadingSearchingForStakes = false;
+        }
+      } else if (platform === "wrap") {
+        const wrapFarms = Object.values($store.investments).filter(
+          inv => inv.platform === "wrap"
+        );
+        try {
+          const wrapFarmBalancesRes = await Promise.allSettled(
+            wrapFarms.map(async farm => ({
+              balance: await fetch(
+                `https://api.tzkt.io/v1/contracts/${farm.address}/bigmaps/${
+                  farm.id.slice(-3) === "-FM" ? "balances" : "delegators"
+                }/keys/${$store.userAddress}`
+              )
+                .then(res => res.json())
+                .catch(err => undefined),
+              alias: farm.alias,
+              id: farm.id
+            }))
+          );
+          const wrapFarmBalances = wrapFarmBalancesRes.filter(
+            res =>
+              res.status === "fulfilled" &&
+              res.value.balance &&
+              res.value.balance.active
+          );
+          if (wrapFarmBalances.length > 0) {
+            foundStakes = wrapFarmBalances.map((farm: any) => {
+              if (farm.value.id === "WRAP-STACKING") {
+                return {
+                  platform: "wrap",
+                  id: farm.value.id,
+                  name: farm.value.alias,
+                  balance: formatTokenAmount(
+                    farm.value.id.slice(-3) === "-FM"
+                      ? +farm.value.balance.value.balance / 10 ** 8
+                      : +farm.value.balance.value.balance / 10 ** 6
+                  )
+                };
+              } else if (farm.value.id.slice(-3) === "-LM") {
+                return {
+                  platform: "wrap",
+                  id: farm.value.id,
+                  name: farm.value.alias,
+                  balance: formatTokenAmount(
+                    farm.value.id.slice(-3) === "-FM"
+                      ? +farm.value.balance.value.lpTokenBalance / 10 ** 8
+                      : +farm.value.balance.value.lpTokenBalance / 10 ** 6
+                  )
+                };
+              } else if (farm.value.id.slice(-3) === "-FM") {
+                return {
+                  platform: "wrap",
+                  id: farm.value.id,
+                  name: farm.value.alias,
+                  balance: formatTokenAmount(
+                    farm.value.id.slice(-3) === "-FM"
+                      ? +farm.value.balance.value / 10 ** 8
+                      : +farm.value.balance.value / 10 ** 6
+                  )
+                };
+              }
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          toastStore.addToast({
+            type: "error",
+            text: `Unable to fetch balances for ${platform.toUpperCase()}`,
+            dismissable: true
+          });
+        } finally {
+          loadingSearchingForStakes = false;
+        }
+      } else {
+        console.log(platform);
+      }
+      loadingSearchingForStakes = false;
+    } else {
+      toastStore.addToast({
+        type: "error",
+        text: `No platform name`,
+        dismissable: true
+      });
+    }
   };
 
   onMount(async () => {
@@ -653,8 +797,15 @@
       {/each}
       {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && Object.entries($localStorageStore.favoriteInvestments).filter( inv => inv.includes("PLENTY") )}
         <div class="row-footer">
-          <div />
-          <div />
+          <div style="grid-column: 1 / span 2">
+            <button
+              class="primary mini"
+              on:click={async () => await findStakes("plenty")}
+            >
+              <span class="material-icons"> search </span>
+              Find my stakes
+            </button>
+          </div>
           <div />
           <div />
           {#if availableRewards.length > 0}
@@ -798,6 +949,17 @@
           }}
         />
       {/each}
+      <div class="row-footer">
+        <div style="grid-column: 1 / span 2">
+          <button
+            class="primary mini"
+            on:click={async () => await findStakes("wrap")}
+          >
+            <span class="material-icons"> search </span>
+            Find my stakes
+          </button>
+        </div>
+      </div>
       <!-- KDAO FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao").length > 0}
         <div class="row-header">
@@ -900,13 +1062,13 @@
   <Modal type="default" on:close={() => (selectFarmModal = null)}>
     <div slot="modal-title" class="modal-title">
       {#if selectFarmModal === "plenty"}
-        Plenty farms
+        <div>Plenty farms</div>
       {:else if selectFarmModal === "wrap"}
-        Wrap farms
+        <div>Wrap farms</div>
       {:else if selectFarmModal === "paul"}
-        Paul farms
+        <div>Paul farms</div>
       {:else if selectFarmModal === "kdao"}
-        kDAO farms
+        <div>kDAO farms</div>
       {/if}
     </div>
     <div slot="modal-body" class="modal-body">
@@ -1050,6 +1212,56 @@
           selectFarmModal = null;
         }}
       >
+        <span class="material-icons"> close </span>
+        Close
+      </button>
+    </div>
+  </Modal>
+{/if}
+{#if searchingForStakes}
+  <Modal type="default" on:close={() => (searchingForStakes = false)}>
+    <div slot="modal-title" class="modal-title">
+      Existing stakes for {searchingForStakesPlatform.toUpperCase()}
+    </div>
+    <div slot="modal-body" class="modal-body">
+      {#if loadingSearchingForStakes}
+        <div>Loading, please wait...</div>
+      {:else}
+        {#each foundStakes as stake}
+          <div class="modal-find-stakes-line">
+            <div style="text-align: left">{stake.name}</div>
+            <div style="text-align: center">
+              {stake.balance} tokens
+            </div>
+            <div style="text-align: right">
+              {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.includes(stake.id)}
+                <button class="mini">
+                  <span class="material-icons"> check_circle_outline </span>
+                </button>
+              {:else}
+                <button
+                  class="mini"
+                  on:click={() => addFavoriteInvestment(stake.id)}
+                >
+                  <span class="material-icons"> add_circle </span>
+                </button>
+              {/if}
+            </div>
+          </div>
+        {:else}
+          <div>No stake found</div>
+        {/each}
+      {/if}
+    </div>
+    <div slot="modal-footer" class="modal-footer">
+      <div />
+      <button
+        class="primary"
+        on:click={() => {
+          searchingForStakes = false;
+        }}
+      >
+        <span class="material-icons"> close </span>
         Close
       </button>
     </div>

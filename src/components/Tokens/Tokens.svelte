@@ -21,7 +21,6 @@
       // gets user's balance
       const userToken = await searchUserTokens({
         Tezos: $store.Tezos,
-        network: $store.network,
         userAddress: $store.userAddress,
         tokens: Object.entries($store.tokens).filter(tk =>
           $localStorageStore.favoriteTokens.includes(tk[0])
@@ -53,7 +52,6 @@
 
     const newBalances = await searchUserTokens({
       Tezos: $store.Tezos,
-      network: $store.network,
       userAddress: $store.userAddress,
       tokens: Object.entries($store.tokens).filter(tk =>
         $localStorageStore.favoriteTokens.includes(tk[0])

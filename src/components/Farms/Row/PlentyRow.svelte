@@ -115,7 +115,6 @@
 
   onMount(async () => {
     const invDetails = await loadInvestment(invData.id, $store.userAddress);
-    console.log(invDetails);
     if (invDetails) {
       store.updateInvestments({
         ...$store.investments,

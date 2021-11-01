@@ -46,7 +46,8 @@ export enum AvailableToken {
   KDAO = "kDAO",
   QUIPU = "QUIPU",
   uUSD = "uUSD",
-  YOU = "YOU"
+  YOU = "YOU",
+  cTEZ = "cTEZ"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -75,6 +76,7 @@ export enum AvailableInvestments {
   "PLENTY-SMAK-LP" = "PLENTY-SMAK-LP",
   "PLENTY-KALAM-LP" = "PLENTY-KALAM-LP",
   "PLENTY-wDAI-LP" = "PLENTY-wDAI-LP",
+  "PLENTY-Ctez-LP" = "PLENTY-Ctez-LP",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",

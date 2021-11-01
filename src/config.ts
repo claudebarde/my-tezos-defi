@@ -94,7 +94,8 @@ export default {
     "PLENTY-uUSD-LP": "KT1Cba383ZJpEearqnUyUKUMsgu5Z3TXBgeH",
     "PLENTY-wUSDT": "KT1Bi4yoALg6tuP4PKaFNDtSsDdpGLrDiGAS",
     "PLENTY-wDAI-LP": "KT1KDmpYSDogNtEtEnEaHQLaySuqLr8aEfJW",
-    "PLENTY-YOU": "KT1EM6NjJdJXmz3Pj13pfu3MWVDwXEQnoH3N"
+    "PLENTY-YOU-LP": "KT1EM6NjJdJXmz3Pj13pfu3MWVDwXEQnoH3N",
+    "PLENTY-Ctez-LP": "KT1C9gJRfkpPbNdBn3XyYbrUHT6XgfPzZqXP"
   },
   plentyLptAddresses: {
     "PLENTY-wBUSD-LP": "KT1UC3vcVZ4K9b39uQxaMNA2N1RuJXKLCnoA",
@@ -119,6 +120,7 @@ export default {
     "PLENTY-YOU-LP": "KT1UaU5fbSYqYeFmhmsjLkqQXZ1ZG54Qs2vh",
     "kUSD-USDtz-LP": "KT1HEdGi7rq1zgZ68dhAtKMZYKeD3EM5vYdf",
     "wUSDC-USDtz-LP": "KT1FaoPYSyT4itmgTncvdshV7SeqqXk9RJXd",
-    "wWETH-ETHtz-LP": "KT1GubVxQVJucUJfJvysvAJKWpLwj3LKuWHn"
+    "wWETH-ETHtz-LP": "KT1GubVxQVJucUJfJvysvAJKWpLwj3LKuWHn",
+    "PLENTY-Ctez-LP": "KT1LdX5pUkZZGwYPePcAFSpETbqfbGCwJpfw"
   }
 };

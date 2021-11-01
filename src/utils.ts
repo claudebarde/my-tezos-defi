@@ -159,12 +159,10 @@ const findTzbtcBalance = async (
 
 export const searchUserTokens = async ({
   Tezos,
-  network,
   userAddress,
   tokens
 }: {
   Tezos: TezosToolkit;
-  network: State["network"];
   userAddress: TezosAccountAddress;
   tokens: [AvailableToken | string, TokenContract][];
 }) => {
@@ -223,10 +221,27 @@ export const searchUserTokens = async ({
         url(token[1].address, "account_info", userAddress)
       );
       const balance = await balanceResponse.json();
-      const balances: { [p: number]: string } = balance.value.balances;
-      newBalances.QUIPU =
-        +[0, 0, Object.values(balances)].reduce((a, b) => +a + +b) /
-        10 ** token[1].decimals;
+      if (balance.active) {
+        const balances: { [p: number]: string } = balance.value.balances;
+        newBalances.QUIPU =
+          +[0, 0, Object.values(balances)].reduce((a, b) => +a + +b) /
+          10 ** token[1].decimals;
+      } else {
+        newBalances.QUIPU = 0;
+      }
+    }
+    // cTEZ
+    if (tokens.find(tk => tk[0] === "cTEZ")) {
+      const token = tokens.find(tk => tk[0] === "cTEZ");
+      const balanceResponse = await fetch(
+        url(token[1].address, token[1].ledgerPath, userAddress)
+      );
+      const balance = await balanceResponse.json();
+      if (balance && balance.active && +balance?.value > 0) {
+        newBalances.cTEZ = +balance.value / 10 ** token[1].decimals;
+      } else {
+        newBalances.cTEZ = 0;
+      }
     }
 
     const aggregatedResults = [...balancesContracts, ...ledgerContracts];
@@ -1301,6 +1316,7 @@ export const formatPlentyLpAmount = (
     case "PLENTY-QUIPU-LP":
     case "PLENTY-hDAO-LP":
     case "PLENTY-wUSDT-LP":
+    case "PLENTY-Ctez-LP":
       return lpAmount / 10 ** 6;
     case "PLENTY-wWBTC":
     case "PLENTY-tzBTC-LP":
@@ -1338,7 +1354,7 @@ export const getPlentyLqtValue = async (
   Tezos: TezosToolkit
 ) => {
   try {
-    if (!exchangeAddress) throw "No exchange address";
+    if (!exchangeAddress) throw `No exchange address for ${exchangePair}`;
 
     // formats LP token amount according to exchange
     const formattedLpAmount = formatPlentyLpAmount(lpAmount, exchangePair);
