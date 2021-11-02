@@ -775,6 +775,17 @@
       "token": "PLENTY",
       "liquidityToken": true
     },
+    "xPLENTY-Staking": {
+      "id": "xPLENTY-Staking",
+      "platform": "plenty",
+      "address": "KT1Rpviewjg82JgjGfAKFneSupjAR1kUhbza",
+      "decimals": 18,
+      "info": [],
+      "alias": "xPLENTY-Staking",
+      "icons": ["xPLENTY"],
+      "token": "xPLENTY",
+      "liquidityToken": false
+    },
     "WRAP-STACKING": {
       "id": "WRAP-STACKING",
       "platform": "wrap",

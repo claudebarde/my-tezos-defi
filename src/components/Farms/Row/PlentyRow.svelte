@@ -14,6 +14,7 @@
   } from "../../../utils";
   import config from "../../../config";
   import toastStore from "../../Toast/toastStore";
+  import Modal from "../../Modal/Modal.svelte";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -28,6 +29,7 @@
   let harvesting = false;
   let harvestingSuccess = undefined;
   let stakeInXtz: null | number = null;
+  let openSettingsModal = false;
   const dispatch = createEventDispatcher();
 
   const calcStakeInXtz = async ({
@@ -278,9 +280,29 @@
       <span class="material-icons"> delete </span>
     </button>
     {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-      <button class="mini">
+      <button class="mini" on:click={() => (openSettingsModal = true)}>
         <span class="material-icons"> settings </span>
       </button>
     {/if}
   </div>
 </div>
+{#if openSettingsModal}
+  <Modal type="default" on:close={() => (openSettingsModal = false)}>
+    <div slot="modal-title" class="modal-title">
+      <div>Settings</div>
+      <div>{invData.alias}</div>
+    </div>
+    <div slot="modal-body" class="modal-body">Body</div>
+    <div slot="modal-footer" class="modal-footer">
+      <div />
+      <button
+        class="primary"
+        on:click={() => {
+          openSettingsModal = false;
+        }}
+      >
+        Close
+      </button>
+    </div>
+  </Modal>
+{/if}

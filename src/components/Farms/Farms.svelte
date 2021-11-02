@@ -24,6 +24,7 @@
   import WrapRow from "./Row/WrapRow.svelte";
   import PaulRow from "./Row/PaulRow.svelte";
   import KdaoRow from "./Row/KdaoRow.svelte";
+  import XPlentyRow from "./Row/XPlentyRow.svelte";
   import InvestmentSpread from "./InvestmentSpread.svelte";
   import PlentyTotalRewards from "./PlentyTotalRewards.svelte";
   import Modal from "../Modal/Modal.svelte";
@@ -441,7 +442,8 @@
             inv.platform === "paul" ||
             inv.platform === "kdao" ||
             inv.platform === "wrap"
-        );
+        )
+        .filter(inv => inv.id !== AvailableInvestments["xPLENTY-Staking"]);
       const rewards: any = await Promise.all(
         investmentData.map(async inv => {
           let rewards;
@@ -780,6 +782,7 @@
       {#each Object.entries($store.investments)
         .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
         .filter(inv => !config.stablecoins.includes(inv[1].icons[1]))
+        .filter(inv => inv[0] !== AvailableInvestments["xPLENTY-Staking"])
         .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
         <PlentyRow
           rewards={availableRewards.find(rw => rw.id === invData.id)}
@@ -795,6 +798,10 @@
           on:reset-rewards={event => resetRewards(event.detail)}
         />
       {/each}
+      {#if $localStorageStore.favoriteInvestments.includes("xPLENTY-Staking")}
+        <div class="farm-title">xPLENTY Staking</div>
+        <XPlentyRow />
+      {/if}
       {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && Object.entries($localStorageStore.favoriteInvestments).filter( inv => inv.includes("PLENTY") )}
         <div class="row-footer">
           <div style="grid-column: 1 / span 2">
@@ -949,17 +956,19 @@
           }}
         />
       {/each}
-      <div class="row-footer">
-        <div style="grid-column: 1 / span 2">
-          <button
-            class="primary mini"
-            on:click={async () => await findStakes("wrap")}
-          >
-            <span class="material-icons"> search </span>
-            Find my stakes
-          </button>
+      {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && Object.entries($localStorageStore.favoriteInvestments).filter( inv => inv.includes("WRAP") )}
+        <div class="row-footer">
+          <div style="grid-column: 1 / span 2">
+            <button
+              class="primary mini"
+              on:click={async () => await findStakes("wrap")}
+            >
+              <span class="material-icons"> search </span>
+              Find my stakes
+            </button>
+          </div>
         </div>
-      </div>
+      {/if}
       <!-- KDAO FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao").length > 0}
         <div class="row-header">
@@ -1078,16 +1087,8 @@
           <div style="width:100%;font-size:0.9rem">Favorite</div>
           {#each sortFarmSelectModal(true, selectFarmModal) as inv (inv[1].id)}
             <div
-              class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments &&
-                $localStorageStore.favoriteInvestments.includes(inv[0])}
-              on:click={async () => {
-                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
+              class="farm-to-select favorite"
+              on:click={async () => removeFavoriteInvestment(inv[0])}
             >
               <div class="small-icons">
                 {#each inv[1].icons as icon}
@@ -1107,17 +1108,7 @@
             <div style="width:100%;font-size:0.9rem">WRAP stacking</div>
             <div
               class="farm-to-select"
-              on:click={async () => {
-                if (
-                  $localStorageStore.favoriteInvestments.includes(
-                    "WRAP-STACKING"
-                  )
-                ) {
-                  removeFavoriteInvestment("WRAP-STACKING");
-                } else {
-                  addFavoriteInvestment("WRAP-STACKING");
-                }
-              }}
+              on:click={async () => addFavoriteInvestment("WRAP-STACKING")}
             >
               <div class="small-icons">
                 <img src={`images/WRAP.png`} alt="WRAP-token" />
@@ -1131,16 +1122,7 @@
             {/if}
             <div
               class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments.includes(
-                inv[0]
-              )}
-              on:click={async () => {
-                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
+              on:click={async () => addFavoriteInvestment(inv[0])}
             >
               <div class="small-icons">
                 {#each inv[1].icons as icon}
@@ -1156,16 +1138,7 @@
             {/if}
             <div
               class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments.includes(
-                inv[0]
-              )}
-              on:click={async () => {
-                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
+              on:click={async () => addFavoriteInvestment(inv[0])}
             >
               <div class="small-icons">
                 {#each inv[1].icons as icon}
@@ -1180,18 +1153,7 @@
           {#each sortFarmSelectModal(false, selectFarmModal) as inv (inv[1].id)}
             <div
               class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments &&
-                $localStorageStore.favoriteInvestments.includes(inv[0])}
-              on:click={async () => {
-                if (
-                  $localStorageStore.favoriteInvestments &&
-                  $localStorageStore.favoriteInvestments.includes(inv[0])
-                ) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
+              on:click={async () => addFavoriteInvestment(inv[0])}
             >
               <div class="small-icons">
                 {#each inv[1].icons as icon}

@@ -77,6 +77,7 @@ export enum AvailableInvestments {
   "PLENTY-KALAM-LP" = "PLENTY-KALAM-LP",
   "PLENTY-wDAI-LP" = "PLENTY-wDAI-LP",
   "PLENTY-Ctez-LP" = "PLENTY-Ctez-LP",
+  "xPLENTY-Staking" = "xPLENTY-Staking",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
