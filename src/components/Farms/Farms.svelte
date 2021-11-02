@@ -802,7 +802,7 @@
         <div class="farm-title">xPLENTY Staking</div>
         <XPlentyRow />
       {/if}
-      {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && Object.entries($localStorageStore.favoriteInvestments).filter( inv => inv.includes("PLENTY") )}
+      {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && $localStorageStore.favoriteInvestments.filter( inv => inv.includes("PLENTY") ).length > 0}
         <div class="row-footer">
           <div style="grid-column: 1 / span 2">
             <button
@@ -956,7 +956,7 @@
           }}
         />
       {/each}
-      {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && Object.entries($localStorageStore.favoriteInvestments).filter( inv => inv.includes("WRAP") )}
+      {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && $localStorageStore.favoriteInvestments.filter( inv => inv.includes("WRAP") ).length > 0}
         <div class="row-footer">
           <div style="grid-column: 1 / span 2">
             <button
