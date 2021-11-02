@@ -12,7 +12,7 @@
   import localStorageStore from "../../localStorage";
   import type { TezosAccountAddress } from "../../types";
   import { AvailableFiat } from "../../types";
-  import { shortenHash } from "../../utils";
+  import { shortenHash, formatTokenAmount } from "../../utils";
   import config from "../../config";
   import Calculator from "../Calculator/Calculator.svelte";
 
@@ -136,6 +136,11 @@
 
       username = shortenHash(userAddress);
       username = await fetchTezosDomain(userAddress);
+
+      setInterval(async () => {
+        const balance = await $store.Tezos.tz.getBalance(userAddress);
+        store.updateTezBalance(balance.toNumber());
+      }, 1000);
     } else {
       localStorageStore.init();
     }
@@ -205,7 +210,10 @@
           style="width: 30px;height:30px"
           alt="user-avatar"
         />
-        &nbsp; {username}
+        &nbsp; {username} | {formatTokenAmount(
+          $store.xtzData.balance / 10 ** 6,
+          2
+        )} ꜩ
       </button>
     {/if}
   </div>

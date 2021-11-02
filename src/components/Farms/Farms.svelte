@@ -645,13 +645,13 @@
     <div class="total-value">
       <div>Total value in farms</div>
       <div>
-        ꜩ {totalValueInFarms.length > 0
+        {totalValueInFarms.length > 0
           ? (
               +[0, ...totalValueInFarms.map(val => val[1])]
                 .reduce((a, b) => a + b)
                 .toFixed(3) / 1
             ).toLocaleString("en-US")
-          : 0}
+          : 0} ꜩ
       </div>
       <div>
         {(totalValueInFarms.length > 0
@@ -668,9 +668,9 @@
     <div class="ready-to-harvest">
       <div>Ready to harvest</div>
       <div>
-        ꜩ {readyToHarvest
+        {readyToHarvest
           ? (+readyToHarvest.toFixed(3) / 1).toLocaleString("en-US")
-          : 0}
+          : 0} ꜩ
       </div>
       <div>
         {(readyToHarvest
