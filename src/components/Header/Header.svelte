@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { fly } from "svelte/transition";
   import { BeaconWallet } from "@taquito/beacon-wallet";
   import {
@@ -36,6 +36,7 @@
   const tezosDomainContract = "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS";
   let username = "";
   let showAvailableFiats = false;
+  let showBalanceInFiat = false;
 
   const fetchTezosDomain = async (address: string): Promise<string> => {
     try {
@@ -204,17 +205,32 @@
 <header>
   <div>
     {#if $store.userAddress}
-      <button class="primary" on:click={disconnect}>
-        <img
-          src={`https://services.tzkt.io/v1/avatars/${$store.userAddress}`}
-          style="width: 30px;height:30px"
-          alt="user-avatar"
-        />
-        &nbsp; {username} | {formatTokenAmount(
-          $store.xtzData.balance / 10 ** 6,
-          2
-        )} ꜩ
-      </button>
+      <div class="buttons">
+        <button class="primary" on:click={disconnect}>
+          <img
+            src={`https://services.tzkt.io/v1/avatars/${$store.userAddress}`}
+            style="width: 30px;height:30px"
+            alt="user-avatar"
+          />
+          &nbsp; {username}
+        </button>
+        <button
+          class="primary"
+          on:click={() => (showBalanceInFiat = !showBalanceInFiat)}
+        >
+          <span class="material-icons"> account_balance </span>
+          &nbsp;
+          {#if showBalanceInFiat}
+            {formatTokenAmount(
+              ($store.xtzData.balance / 10 ** 6) * $store.xtzData.exchangeRate,
+              2
+            )}
+            {$localStorageStore.preferredFiat}
+          {:else}
+            {formatTokenAmount($store.xtzData.balance / 10 ** 6, 2)} ꜩ
+          {/if}
+        </button>
+      </div>
     {/if}
   </div>
   <div style="display:flex">
