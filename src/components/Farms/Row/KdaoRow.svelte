@@ -89,7 +89,7 @@
       } else if (invData.id === "KUSD-QUIPU-LP") {
         const halfStake = await estimateQuipuTezInShares(
           $store.Tezos,
-          $store.investments["KUSD-QUIPU-LP"].address,
+          "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6",
           invData.balance
         );
         stakeInXtz = (halfStake.toNumber() * 2) / 10 ** 6;
