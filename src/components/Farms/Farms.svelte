@@ -46,7 +46,6 @@
   let harvestingAll = false;
   let harvestingAllSuccess = undefined;
   let unstakedLpTokens: [AvailableInvestments, string, number][] = [];
-  let lastVisit = 0;
   let selectFarmModal: null | InvestmentPlatform = null;
   let searchingForStakes = false;
   let searchingForStakesPlatform: InvestmentPlatform | null = null;
@@ -408,19 +407,6 @@
           ]);
       }
     }
-
-    lastVisit = Date.now();
-
-    // refreshes data
-    document.addEventListener("visibilitychange", async () => {
-      if (
-        document.visibilityState === "visible" &&
-        Date.now() > lastVisit + 60_000 * 10
-      ) {
-        lastVisit = Date.now();
-        console.log("refreshes data");
-      }
-    });
   });
 
   afterUpdate(async () => {
@@ -690,7 +676,7 @@
           selectFarmModal = "plenty";
         }}
       >
-        <img src={$store.tokens.PLENTY.thumbnail} alt="Plenty" />
+        <img src="images/PLENTY.png" alt="Plenty" />
         &nbsp; Plenty
         <span class="material-icons"> arrow_drop_down </span>
       </button>
@@ -703,7 +689,7 @@
             selectFarmModal = "wrap";
           }}
         >
-          <img src={$store.tokens.WRAP.thumbnail} alt="WRAP" />
+          <img src="images/WRAP.png" alt="WRAP" />
           &nbsp; WRAP
           <span class="material-icons"> arrow_drop_down </span>
         </button>
@@ -716,7 +702,7 @@
           selectFarmModal = "paul";
         }}
       >
-        <img src={$store.tokens.PAUL.thumbnail} alt="Paul" />
+        <img src="images/PAUL.png" alt="Paul" />
         &nbsp; Paul
         <span class="material-icons"> arrow_drop_down </span>
       </button>
@@ -728,7 +714,7 @@
           selectFarmModal = "kdao";
         }}
       >
-        <img src={$store.tokens.kDAO.thumbnail} alt="kDAO" />
+        <img src="images/kDAO.png" alt="kDAO" />
         &nbsp; kDAO
         <span class="material-icons"> arrow_drop_down </span>
       </button>
@@ -758,7 +744,7 @@
       {#each Object.entries($store.investments)
         .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
         .filter(inv => config.stablecoins.includes(inv[1].icons[1]))
-        .sort((a, b) => sortFarmsPerRewards(a[1], b[1])) as [invName, invData]}
+        .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
         <PlentyRow
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
@@ -877,7 +863,7 @@
       {/if}
       {#each Object.entries($store.investments)
         .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
-        .filter(inv => inv[1].type === "stacking") as [invName, invData]}
+        .filter(inv => inv[1].type === "stacking") as [invName, invData] (invData.id)}
         <WrapRow
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
@@ -906,7 +892,7 @@
       {/if}
       {#each Object.entries($store.investments)
         .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
-        .filter(inv => inv[1].type === "staking") as [invName, invData]}
+        .filter(inv => inv[1].type === "staking") as [invName, invData] (invData.id)}
         <WrapRow
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
@@ -981,7 +967,7 @@
           <div>Reward</div>
         </div>
       {/if}
-      {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao") as [invName, invData]}
+      {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao") as [invName, invData] (invData.id)}
         <KdaoRow
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
@@ -1008,7 +994,7 @@
           <div>Reward</div>
         </div>
       {/if}
-      {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul") as [invName, invData]}
+      {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul") as [invName, invData] (invData.id)}
         <PaulRow
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}

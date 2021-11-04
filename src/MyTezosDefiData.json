@@ -475,6 +475,17 @@
       "color": "#615BD8",
       "tokenId": 0,
       "whitelisted": true
+    },
+    "MAG": {
+      "address": "KT1H5KJDxuM9DURSfttepebb6Cn7GbvAAT45",
+      "dexContractAddress": "KT1WREc3cpr36Nqjvegr6WSPgQKwDjL7XxLN",
+      "decimals": 6,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address"],
+      "type": "fa12",
+      "color": "#FF56E2",
+      "tokenId": 0,
+      "whitelisted": true
     }
   },
   "investments": {
@@ -828,12 +839,23 @@
       "alias": "PAUL/XTZ farm",
       "icons": ["PAUL", "XTZ"],
       "token": "PAUL",
-      "liquidityToken": false
+      "liquidityToken": true
+    },
+    "MAG-XTZ": {
+      "id": "MAG-XTZ",
+      "platform": "paul",
+      "address": "KT1JTbVbs4iCjYiBqeNBHqHkAztaTvB6qgJK",
+      "decimals": 6,
+      "info": [],
+      "alias": "MAG/XTZ farm",
+      "icons": ["MAG", "XTZ"],
+      "token": "MAG",
+      "liquidityToken": true
     },
     "KUSD-QUIPU-LP": {
       "id": "KUSD-QUIPU-LP",
       "platform": "kdao",
-      "address": "KT1RB179ddATKbCi7E8ben91bo2hqRRPrNQf",
+      "address": "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6",
       "decimals": 6,
       "info": [],
       "alias": "kUSD Quipu LP Farm",

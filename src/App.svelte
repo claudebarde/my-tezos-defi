@@ -21,7 +21,50 @@
   let Tezos: TezosToolkit;
   let coinGeckoInterval;
   let liveTrafficWorker;
+  let lastVisit = 0;
   let appReady = false;
+
+  const fetchTezToolsPrices = async (
+    tokens: [AvailableToken, TokenContract][]
+  ) => {
+    try {
+      const tezToolsDataRes = await fetch(`https://api.teztools.io/v1/prices`);
+      if (tezToolsDataRes && tezToolsDataRes.status === 200) {
+        const tezToolsData = await tezToolsDataRes.json();
+        // selects whitelisted tokens
+        const availableTokens = Object.values(AvailableToken).map(tk =>
+          tk.toLowerCase()
+        );
+        const tezToolsTokens = tezToolsData.contracts.filter(contract =>
+          availableTokens.includes(contract.symbol.toLowerCase())
+        );
+        tokens = tokens.map(([tokenSymbol, tokenData]) => {
+          let tezToolToken = tezToolsTokens.find(
+            tk => tk.symbol.toLowerCase() === tokenSymbol.toLowerCase()
+          );
+          if (tezToolToken) {
+            return [
+              tokenSymbol,
+              {
+                ...tokenData,
+                exchangeRate: tezToolToken.currentPrice,
+                websiteLink: tezToolToken.websiteLink
+              }
+            ];
+          } else {
+            return [tokenSymbol, tokenData];
+          }
+        });
+        store.updateTokens(tokens);
+        return true;
+      } else {
+        throw "Unable to fetch TezTools prices";
+      }
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  };
 
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic" && msg.data.msg) {
@@ -347,9 +390,11 @@
         );
       }
       // fetches data from TezTools
-      const tezToolsDataRes = await fetch(`https://api.teztools.io/v1/prices`);
-      if (tezToolsDataRes && tezToolsDataRes.status === 200) {
-        const tezToolsData = await tezToolsDataRes.json();
+      const tokensSuccess = await fetchTezToolsPrices(tokens);
+      //const tezToolsDataRes = await fetch(`https://api.teztools.io/v1/prices`);
+      if (tokensSuccess) {
+        //if (tezToolsDataRes && tezToolsDataRes.status === 200) {
+        /*const tezToolsData = await tezToolsDataRes.json();
         // selects whitelisted tokens
         const availableTokens = Object.values(AvailableToken).map(tk =>
           tk.toLowerCase()
@@ -362,23 +407,11 @@
             tk => tk.symbol.toLowerCase() === tokenSymbol.toLowerCase()
           );
           if (tezToolToken) {
-            let tokenThumbnail = tezToolToken.thumbnailUri;
-            if (tokenThumbnail && tokenThumbnail.includes("ipfs")) {
-              tokenThumbnail = `https://cloudflare-ipfs.com/ipfs/${tezToolToken.thumbnailUri.replace(
-                "ipfs://",
-                ""
-              )}`;
-            } else if (tokenSymbol === "kUSD") {
-              tokenThumbnail =
-                "https://img.templewallet.com/insecure/fit/64/64/ce/0/plain/https://kolibri-data.s3.amazonaws.com/logo.png";
-            }
-
             return [
               tokenSymbol,
               {
                 ...tokenData,
                 exchangeRate: tezToolToken.currentPrice,
-                thumbnail: tokenThumbnail,
                 websiteLink: tezToolToken.websiteLink
               }
             ];
@@ -386,7 +419,7 @@
             return [tokenSymbol, tokenData];
           }
         });
-        store.updateTokens(tokens);
+        store.updateTokens(tokens);*/
 
         // fetches fiat exchange rate
         const coinGeckoFetch = async () => {
@@ -428,6 +461,21 @@
         ) {
           store.updateServiceFee(null);
         }
+
+        // refreshes data
+        if (lastVisit === 0) lastVisit = Date.now();
+        document.addEventListener("visibilitychange", async () => {
+          if (
+            document.visibilityState === "visible" &&
+            Date.now() > lastVisit + 60_000 * 10
+          ) {
+            lastVisit = Date.now();
+            await fetchTezToolsPrices(
+              Object.entries($store.tokens) as [AvailableToken, TokenContract][]
+            );
+            console.log("refreshes data");
+          }
+        });
 
         appReady = true;
       }

@@ -24,23 +24,6 @@ import config from "./config";
 import { get } from "svelte/store";
 import store from "./store";
 
-// outputs "down" while visually looking like "up"
-const testUpsAndDownsData = [
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "up", diff: 0.02668999999999999 },
-  { direction: "down", diff: 0.00008000000000008001 },
-  { direction: "down", diff: 0.00002999999999997449 },
-  { direction: "down", diff: 0.00002999999999997449 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 }
-];
-
 export const calculateTrend = (
   tokenData:
     | HistoricalDataState["tokens"][AvailableToken]
@@ -463,7 +446,10 @@ export const calculateValue = (op: any): number => {
             10 ** token.decimals
           ).toFixed(5) / 1
         );
-      } else if (op.parameter.value.hasOwnProperty("value")) {
+      } else if (
+        op.parameter.value &&
+        op.parameter.value.hasOwnProperty("value")
+      ) {
         return (
           +(+op.parameter.value.value / 10 ** token.decimals).toFixed(5) / 1
         );
@@ -1497,4 +1483,22 @@ const calcWrapFeeMiningReward = async (
     console.error(error);
     return new BigNumber(0);
   }
+};
+
+export const estimateQuipuTezInShares = async (
+  Tezos: TezosToolkit,
+  dexAddress: string,
+  shares: BigNumber.Value
+) => {
+  const sharesBN = new BigNumber(shares);
+  if (sharesBN.isZero()) return new BigNumber(0);
+
+  const contract = await Tezos.wallet.at(
+    "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6"
+  );
+  const storage: any = await contract.storage();
+
+  return sharesBN
+    .times(storage.storage.tez_pool)
+    .idiv(storage.storage.total_supply);
 };

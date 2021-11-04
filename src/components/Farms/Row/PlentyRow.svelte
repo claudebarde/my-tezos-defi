@@ -140,12 +140,6 @@
       }
     }
 
-    tippy(`#farm-${invData.id}`, {
-      content: createTooltipContent(invData.icons[0], invData.icons[1]),
-      allowHTML: true,
-      placement: "left"
-    });
-
     tippy(`#harvest-${invData.id}`, {
       content: "Harvest"
     });
@@ -172,6 +166,12 @@
         allowHTML: true
       });
     }
+
+    tippy(`#farm-${invData.id}`, {
+      content: createTooltipContent(invData.icons[0], invData.icons[1]),
+      allowHTML: true,
+      placement: "left"
+    });
   });
 </script>
 

@@ -5,7 +5,11 @@
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
-  import { loadInvestment, prepareOperation } from "../../../utils";
+  import {
+    loadInvestment,
+    prepareOperation,
+    estimateQuipuTezInShares
+  } from "../../../utils";
   import toastStore from "../../Toast/toastStore";
 
   export let rewards: {
@@ -76,13 +80,22 @@
         }
       });
       invData.balance = invDetails.balance;
-      stakeInXtz =
-        +(
-          (invData.balance / 10 ** invData.decimals) *
-          $store.tokens[invData.token].exchangeRate
-        ).toFixed(5) / 1;
+      if (invData.id === "KUSD-KDAO") {
+        stakeInXtz =
+          +(
+            (invData.balance / 10 ** invData.decimals) *
+            $store.tokens[invData.token].exchangeRate
+          ).toFixed(5) / 1;
+      } else if (invData.id === "KUSD-QUIPU-LP") {
+        const halfStake = await estimateQuipuTezInShares(
+          $store.Tezos,
+          $store.investments["KUSD-QUIPU-LP"].address,
+          invData.balance
+        );
+        stakeInXtz = (halfStake.toNumber() * 2) / 10 ** 6;
+      }
+
       dispatch("update-farm-value", [invName, stakeInXtz]);
-      return stakeInXtz;
     }
 
     tippy(`#farm-${invData.id}`, {
@@ -134,12 +147,16 @@
   </div>
   <div>
     {#if valueInXtz}
-      <span class:blurry-text={$store.blurryBalances}>
-        {+(
-          ($store.tokens[invData.token].exchangeRate * invData.balance) /
-          10 ** invData.decimals
-        ).toFixed(5) / 1}
-      </span>
+      {#if invData.id === "KUSD-KDAO"}
+        <span class:blurry-text={$store.blurryBalances}>
+          {+(
+            ($store.tokens[invData.token].exchangeRate * invData.balance) /
+            10 ** invData.decimals
+          ).toFixed(5) / 1}
+        </span>
+      {:else if invData.id === "KUSD-QUIPU-LP"}
+        <span class:blurry-text={$store.blurryBalances}>{stakeInXtz}</span>
+      {/if}
     {:else}
       <span class:blurry-text={$store.blurryBalances}>
         {+(
