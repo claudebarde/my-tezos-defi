@@ -1493,12 +1493,26 @@ export const estimateQuipuTezInShares = async (
   const sharesBN = new BigNumber(shares);
   if (sharesBN.isZero()) return new BigNumber(0);
 
-  const contract = await Tezos.wallet.at(
-    "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6"
-  );
+  const contract = await Tezos.wallet.at(dexAddress);
   const storage: any = await contract.storage();
 
   return sharesBN
     .times(storage.storage.tez_pool)
+    .idiv(storage.storage.total_supply);
+};
+
+export const estimateQuipuTokenInShares = async (
+  Tezos: TezosToolkit,
+  dexAddress: string,
+  shares: BigNumber.Value
+) => {
+  const sharesBN = new BigNumber(shares);
+  if (sharesBN.isZero()) return new BigNumber(0);
+
+  const contract = await Tezos.wallet.at(dexAddress);
+  const storage: any = await contract.storage();
+
+  return sharesBN
+    .times(storage.storage.token_pool)
     .idiv(storage.storage.total_supply);
 };

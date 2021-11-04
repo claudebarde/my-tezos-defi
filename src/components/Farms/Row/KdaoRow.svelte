@@ -8,7 +8,9 @@
   import {
     loadInvestment,
     prepareOperation,
-    estimateQuipuTezInShares
+    estimateQuipuTezInShares,
+    estimateQuipuTokenInShares,
+    formatTokenAmount
   } from "../../../utils";
   import toastStore from "../../Toast/toastStore";
 
@@ -87,12 +89,22 @@
             $store.tokens[invData.token].exchangeRate
           ).toFixed(5) / 1;
       } else if (invData.id === "KUSD-QUIPU-LP") {
-        const halfStake = await estimateQuipuTezInShares(
+        const tezInStakesRaw = await estimateQuipuTezInShares(
           $store.Tezos,
           "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6",
           invData.balance
         );
-        stakeInXtz = (halfStake.toNumber() * 2) / 10 ** 6;
+        const tezInStakes = tezInStakesRaw.toNumber() / 10 ** 6;
+        const tokensInStakesRaw = await estimateQuipuTokenInShares(
+          $store.Tezos,
+          "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6",
+          invData.balance
+        );
+        const tokensInStakes =
+          (tokensInStakesRaw.toNumber() / 10 ** $store.tokens.kUSD.decimals) *
+          $store.tokens.kUSD.exchangeRate;
+
+        stakeInXtz = formatTokenAmount(tezInStakes + tokensInStakes);
       }
 
       dispatch("update-farm-value", [invName, stakeInXtz]);
@@ -155,7 +167,9 @@
           ).toFixed(5) / 1}
         </span>
       {:else if invData.id === "KUSD-QUIPU-LP"}
-        <span class:blurry-text={$store.blurryBalances}>{stakeInXtz}</span>
+        <span class:blurry-text={$store.blurryBalances}
+          >{stakeInXtz ?? "---"}</span
+        >
       {/if}
     {:else}
       <span class:blurry-text={$store.blurryBalances}>
