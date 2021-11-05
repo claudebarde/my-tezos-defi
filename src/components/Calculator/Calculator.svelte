@@ -33,7 +33,6 @@
       xtzVal = +(fiatVal / $store.xtzData.exchangeRate).toFixed(5) / 1;
     }
     // updates tokens prices
-    console.log(conversions);
     Object.keys(conversions).forEach(tk => {
       if (tk === token) {
         conversions[tk] = val;

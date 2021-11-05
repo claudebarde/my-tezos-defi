@@ -849,7 +849,18 @@
       "info": [],
       "alias": "MAG/XTZ farm",
       "icons": ["MAG", "XTZ"],
-      "token": "MAG",
+      "token": "PAUL",
+      "liquidityToken": true
+    },
+    "QUIPU-PAUL": {
+      "id": "QUIPU-PAUL",
+      "platform": "paul",
+      "address": "KT1M3a9PaWfBNTYibToVqZ3DChuk1x9Torwr",
+      "decimals": 6,
+      "info": [],
+      "alias": "QUIPU/PAUL farm",
+      "icons": ["QUIPU", "PAUL"],
+      "token": "PAUL",
       "liquidityToken": true
     },
     "KUSD-QUIPU-LP": {

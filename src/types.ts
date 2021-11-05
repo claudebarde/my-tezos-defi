@@ -88,6 +88,7 @@ export enum AvailableInvestments {
   "PAUL-PAUL" = "PAUL-PAUL",
   "PAUL-XTZ" = "PAUL-XTZ",
   "MAG-XTZ" = "MAG-XTZ",
+  "QUIPU-PAUL" = "QUIPU-PAUL",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
   "WRAP-STACKING" = "WRAP-STACKING",
