@@ -87,6 +87,7 @@ export enum AvailableInvestments {
   "CRUNCHY-FARMS" = "CRUNCHY-FARMS",
   "PAUL-PAUL" = "PAUL-PAUL",
   "PAUL-XTZ" = "PAUL-XTZ",
+  "MAG-XTZ" = "MAG-XTZ",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
   "WRAP-STACKING" = "WRAP-STACKING",
