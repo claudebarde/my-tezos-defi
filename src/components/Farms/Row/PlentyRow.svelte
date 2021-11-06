@@ -37,13 +37,15 @@
     id,
     balance,
     decimals,
-    exchangeRate
+    exchangeRate,
+    rewardToken
   }: {
     id: AvailableInvestments;
     isPlentyLpToken: boolean;
     balance: number;
     decimals: number;
     exchangeRate: number;
+    rewardToken: AvailableToken;
   }): Promise<number> => {
     if (!balance) return 0;
 
@@ -62,11 +64,24 @@
       if (!tokens) {
         return 0;
       } else {
-        const stakeInXtz =
-          (tokens.token1Amount / 10 ** $store.tokens.PLENTY.decimals) *
-            $store.tokens.PLENTY.exchangeRate +
-          (tokens.token2Amount / 10 ** $store.tokens[tokens.token2].decimals) *
-            $store.tokens[tokens.token2].exchangeRate;
+        let stakeInXtz = 0;
+        if (rewardToken === AvailableToken.YOU) {
+          // when reward token is YOU
+          stakeInXtz =
+            (tokens.token1Amount / 10 ** $store.tokens.uUSD.decimals) *
+              $store.tokens.uUSD.exchangeRate +
+            (tokens.token2Amount /
+              10 ** $store.tokens[tokens.token2].decimals) *
+              $store.tokens[tokens.token2].exchangeRate;
+        } else {
+          // when reward token is PLENTY
+          stakeInXtz =
+            (tokens.token1Amount / 10 ** $store.tokens.PLENTY.decimals) *
+              $store.tokens.PLENTY.exchangeRate +
+            (tokens.token2Amount /
+              10 ** $store.tokens[tokens.token2].decimals) *
+              $store.tokens[tokens.token2].exchangeRate;
+        }
         dispatch("update-farm-value", [invName, stakeInXtz]);
 
         return +stakeInXtz.toFixed(5) / 1;
@@ -135,7 +150,8 @@
           id: invData.id,
           balance: invData.balance,
           decimals: invData.decimals,
-          exchangeRate: $store.tokens[invData.token].exchangeRate
+          exchangeRate: $store.tokens[invData.rewardToken].exchangeRate,
+          rewardToken: invData.rewardToken
         });
       }
     }
@@ -209,15 +225,11 @@
       <div>
         {#if valueInXtz}
           <span class:blurry-text={$store.blurryBalances}>
-            {#await calcStakeInXtz( { isPlentyLpToken: false, id: invData.id, balance: invData.balance, decimals: invData.decimals, exchangeRate: $store.tokens[invData.token].exchangeRate } ) then stakeInXtz}
-              {stakeInXtz}
-            {/await}
+            {stakeInXtz}
           </span>
         {:else}
           <span class:blurry-text={$store.blurryBalances}>
-            {#await calcStakeInXtz( { isPlentyLpToken: false, id: invData.id, balance: invData.balance, decimals: invData.decimals, exchangeRate: $store.tokens[invData.token].exchangeRate } ) then stakeInXtz}
-              {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(5) / 1}
-            {/await}
+            {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(5) / 1}
           </span>
         {/if}
       </div>

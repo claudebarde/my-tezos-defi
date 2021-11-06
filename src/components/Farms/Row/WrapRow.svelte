@@ -233,7 +233,7 @@
         stakeInXtz =
           +(
             (invData.balance / 10 ** invData.decimals) *
-            $store.tokens[invData.token].exchangeRate
+            $store.tokens.WRAP.exchangeRate
           ).toFixed(5) / 1;
       }
       dispatch("update-farm-value", [invName, stakeInXtz]);

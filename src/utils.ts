@@ -1353,7 +1353,6 @@ export const getPlentyLqtValue = async (
       exchangeStorage.totalSupply.toNumber(),
       formattedLpAmount
     );
-
     return { ...tokenAmounts, token2: exchangePair.split("-")[1] };
   } catch (error) {
     console.error(error);

@@ -105,6 +105,10 @@
           dexAddress = "KT1WREc3cpr36Nqjvegr6WSPgQKwDjL7XxLN";
         }
 
+        if (!dexAddress) {
+          stakeInXtz = null;
+        }
+
         const tezInStakesRaw = await estimateQuipuTezInShares(
           $store.Tezos,
           dexAddress,
@@ -122,11 +126,7 @@
 
         stakeInXtz = formatTokenAmount(tezInStakes + tokensInStakes);
       } else {
-        stakeInXtz =
-          +(
-            (invData.balance / 10 ** invData.decimals) *
-            $store.tokens.PAUL.exchangeRate
-          ).toFixed(5) / 1;
+        stakeInXtz = null;
       }
 
       dispatch("update-farm-value", [invName, stakeInXtz]);

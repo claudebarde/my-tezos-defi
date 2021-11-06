@@ -486,6 +486,17 @@
       "color": "#FF56E2",
       "tokenId": 0,
       "whitelisted": true
+    },
+    "uDEFI": {
+      "address": "KT1XRPEPXbZK25r3Htzp2o1x7xdMMmfocKNW",
+      "dexContractAddress": "KT1H8sJY2VzrbiX4pYeUVsoMUd4iGw2DV7XH",
+      "decimals": 12,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 1],
+      "type": "fa2",
+      "color": "#143A3A",
+      "tokenId": 1,
+      "whitelisted": true
     }
   },
   "investments": {
@@ -552,7 +563,7 @@
       "info": [],
       "alias": "PLENTY-XTZ LP farm",
       "icons": ["PLENTY", "XTZ"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-wBUSD": {
@@ -563,7 +574,7 @@
       "info": [],
       "alias": "Plenty-wBUSD LP farm",
       "icons": ["PLENTY", "wBUSD"],
-      "token": "wBUSD",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-wUSDC": {
@@ -574,7 +585,7 @@
       "info": [],
       "alias": "Plenty-wUSDC LP farm",
       "icons": ["PLENTY", "wUSDC"],
-      "token": "wUSDC",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-wWBTC": {
@@ -585,7 +596,7 @@
       "info": [],
       "alias": "Plenty-wWBTC LP farm",
       "icons": ["PLENTY", "wWBTC"],
-      "token": "wWBTC",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-USDtz-LP": {
@@ -596,7 +607,7 @@
       "info": [],
       "alias": "PLENTY-USDtz LP farm",
       "icons": ["PLENTY", "USDtz"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-wMATIC-LP": {
@@ -607,7 +618,7 @@
       "info": [],
       "alias": "PLENTY-wMATIC LP farm",
       "icons": ["PLENTY", "wMATIC"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-wLINK-LP": {
@@ -618,7 +629,7 @@
       "info": [],
       "alias": "PLENTY-wLINK LP farm",
       "icons": ["PLENTY", "wLINK"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-hDAO-LP": {
@@ -629,7 +640,7 @@
       "info": [],
       "alias": "PLENTY-hDAO LP farm",
       "icons": ["PLENTY", "hDAO"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-ETHtz-LP": {
@@ -640,7 +651,7 @@
       "info": [],
       "alias": "PLENTY-ETHtz LP farm",
       "icons": ["PLENTY", "ETHtz"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-wWETH-LP": {
@@ -651,7 +662,7 @@
       "info": [],
       "alias": "PLENTY-wWETH LP farm",
       "icons": ["PLENTY", "wWETH"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-kUSD-LP": {
@@ -662,7 +673,7 @@
       "info": [],
       "alias": "PLENTY-kUSD LP farm",
       "icons": ["PLENTY", "kUSD"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-QUIPU-LP": {
@@ -673,7 +684,7 @@
       "info": [],
       "alias": "PLENTY-QUIPU LP farm",
       "icons": ["PLENTY", "QUIPU"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-tzBTC-LP": {
@@ -684,7 +695,7 @@
       "info": [],
       "alias": "PLENTY-tzBTC LP farm",
       "icons": ["PLENTY", "tzBTC"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-WRAP-LP": {
@@ -695,7 +706,7 @@
       "info": [],
       "alias": "PLENTY-WRAP LP farm",
       "icons": ["PLENTY", "WRAP"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-UNO-LP": {
@@ -706,7 +717,7 @@
       "info": [],
       "alias": "PLENTY-UNO LP farm",
       "icons": ["PLENTY", "UNO"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-SMAK-LP": {
@@ -717,7 +728,7 @@
       "info": [],
       "alias": "PLENTY-SMAK LP farm",
       "icons": ["PLENTY", "SMAK"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-KALAM-LP": {
@@ -728,7 +739,7 @@
       "info": [],
       "alias": "PLENTY-KALAM LP farm",
       "icons": ["PLENTY", "KALAM"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-uUSD-LP": {
@@ -739,7 +750,7 @@
       "info": [],
       "alias": "Plenty-uUSD LP farm",
       "icons": ["PLENTY", "uUSD"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-wUSDT-LP": {
@@ -750,7 +761,7 @@
       "info": [],
       "alias": "Plenty-wUSDT LP farm",
       "icons": ["PLENTY", "wUSDT"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-wDAI-LP": {
@@ -761,7 +772,7 @@
       "info": [],
       "alias": "Plenty-wDAI LP farm",
       "icons": ["PLENTY", "wDAI"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-YOU-LP": {
@@ -772,7 +783,7 @@
       "info": [],
       "alias": "Plenty-YOU LP farm",
       "icons": ["PLENTY", "YOU"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "PLENTY-Ctez-LP": {
@@ -783,7 +794,40 @@
       "info": [],
       "alias": "Plenty-Ctez LP farm",
       "icons": ["PLENTY", "Ctez"],
-      "token": "PLENTY",
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "uUSD-YOU-LP": {
+      "id": "uUSD-YOU-LP",
+      "platform": "plenty",
+      "address": "KT1KGKzNGX1NDP3hGcipzyqVMCkwWbH76NJU",
+      "decimals": 12,
+      "info": [],
+      "alias": "uUSD-YOU LP farm",
+      "icons": ["uUSD", "YOU"],
+      "rewardToken": "YOU",
+      "liquidityToken": true
+    },
+    "uUSD-wUSDC-LP": {
+      "id": "uUSD-wUSDC-LP",
+      "platform": "plenty",
+      "address": "KT1DfYVe4CaE9S6Sm3SEfhFYVZ9XzJbkQDqs",
+      "decimals": 9,
+      "info": [],
+      "alias": "uUSD-wUSDC LP farm",
+      "icons": ["uUSD", "wUSDC"],
+      "rewardToken": "YOU",
+      "liquidityToken": true
+    },
+    "uUSD-uDEFI-LP": {
+      "id": "uUSD-uDEFI-LP",
+      "platform": "plenty",
+      "address": "KT1RENb4rWNFPP5QJSYT4rRGGsk1tPgLLwu2",
+      "decimals": 12,
+      "info": [],
+      "alias": "uUSD-uDEFI LP farm",
+      "icons": ["uUSD", "uDEFI"],
+      "rewardToken": "YOU",
       "liquidityToken": true
     },
     "xPLENTY-Staking": {
@@ -794,7 +838,7 @@
       "info": [],
       "alias": "xPLENTY-Staking",
       "icons": ["xPLENTY"],
-      "token": "xPLENTY",
+      "rewardToken": "xPLENTY",
       "liquidityToken": false
     },
     "WRAP-STACKING": {
@@ -806,7 +850,7 @@
       "info": [],
       "alias": "Wrap Stacking",
       "icons": ["WRAP"],
-      "token": "WRAP",
+      "rewardToken": "WRAP",
       "liquidityToken": false
     },
     "CRUNCHY-FARMS": {
@@ -827,7 +871,7 @@
       "info": [],
       "alias": "PAUL farm",
       "icons": ["PAUL"],
-      "token": "PAUL",
+      "rewardToken": "PAUL",
       "liquidityToken": false
     },
     "PAUL-XTZ": {
@@ -838,7 +882,7 @@
       "info": [],
       "alias": "PAUL/XTZ farm",
       "icons": ["PAUL", "XTZ"],
-      "token": "PAUL",
+      "rewardToken": "PAUL",
       "liquidityToken": true
     },
     "MAG-XTZ": {
@@ -849,7 +893,7 @@
       "info": [],
       "alias": "MAG/XTZ farm",
       "icons": ["MAG", "XTZ"],
-      "token": "PAUL",
+      "rewardToken": "PAUL",
       "liquidityToken": true
     },
     "QUIPU-PAUL": {
@@ -860,7 +904,51 @@
       "info": [],
       "alias": "QUIPU/PAUL farm",
       "icons": ["QUIPU", "PAUL"],
-      "token": "PAUL",
+      "rewardToken": "PAUL",
+      "liquidityToken": true
+    },
+    "crDAO-XTZ": {
+      "id": "crDAO-XTZ",
+      "platform": "paul",
+      "address": "KT1BcSP2rE7bHpouNzWBb3MfNVZFcdaRWPta",
+      "decimals": 6,
+      "info": [],
+      "alias": "crDAO/QUIPU farm",
+      "icons": ["crDAO", "QUIPU"],
+      "rewardToken": "PAUL",
+      "liquidityToken": true
+    },
+    "QUIPU-XTZ": {
+      "id": "QUIPU-XTZ",
+      "platform": "paul",
+      "address": "KT1EiG7Xo1JTd3Q4kGnmM6eYqXW1EaYk4wZW",
+      "decimals": 6,
+      "info": [],
+      "alias": "QUIPU/XTZ farm",
+      "icons": ["QUIPU", "XTZ"],
+      "rewardToken": "PAUL",
+      "liquidityToken": true
+    },
+    "PAUL-crDAO": {
+      "id": "PAUL-crDAO",
+      "platform": "paul",
+      "address": "KT1Uoj71GA7oBbXHqnZTZmHQRCDuyaDs4zDR",
+      "decimals": 6,
+      "info": [],
+      "alias": "PAUL/crDAO farm",
+      "icons": ["PAUL", "crDAO"],
+      "rewardToken": "PAUL",
+      "liquidityToken": true
+    },
+    "QUIPU-crDAO": {
+      "id": "QUIPU-crDAO",
+      "platform": "paul",
+      "address": "KT1H8k3hKQ1FyhbXkxg13ihTJXHB6uEWvzmP",
+      "decimals": 6,
+      "info": [],
+      "alias": "QUIPU/crDAO farm",
+      "icons": ["QUIPU", "crDAO"],
+      "rewardToken": "PAUL",
       "liquidityToken": true
     },
     "KUSD-QUIPU-LP": {
@@ -871,7 +959,7 @@
       "info": [],
       "alias": "kUSD Quipu LP Farm",
       "icons": ["KUSD", "QUIPUSWAP"],
-      "token": "kDAO",
+      "rewardToken": "kDAO",
       "liquidityToken": true
     },
     "KUSD-KDAO": {
@@ -882,7 +970,7 @@
       "info": [],
       "alias": "kUSD Farm",
       "icons": ["KUSD", "KDAO"],
-      "token": "kUSD",
+      "rewardToken": "kDAO",
       "liquidityToken": false
     },
     "KUSD-QL": {
@@ -893,7 +981,7 @@
       "info": [],
       "alias": "QL kUSD Farm",
       "icons": ["QUIPUSWAP"],
-      "token": "kUSD",
+      "rewardToken": "kDAO",
       "liquidityToken": true
     }
   },

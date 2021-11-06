@@ -79,6 +79,9 @@ export enum AvailableInvestments {
   "PLENTY-wDAI-LP" = "PLENTY-wDAI-LP",
   "PLENTY-Ctez-LP" = "PLENTY-Ctez-LP",
   "xPLENTY-Staking" = "xPLENTY-Staking",
+  "uUSD-YOU-LP" = "uUSD-YOU-LP",
+  "uUSD-wUSDC-LP" = "uUSD-wUSDC-LP",
+  "uUSD-uDEFI-LP" = "uUSD-uDEFI-LP",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
@@ -149,7 +152,7 @@ export interface InvestmentData {
   decimals: number;
   info: any;
   icons: IconSet;
-  token: undefined | AvailableToken;
+  rewardToken: undefined | AvailableToken;
   favorite: boolean;
   liquidityToken: boolean;
   alias?: string;

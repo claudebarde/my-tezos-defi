@@ -376,7 +376,7 @@
                 info: [],
                 alias: `${farm.token} Fee Farming`,
                 icons: ["WRAP", farm.token],
-                token: farm.token,
+                rewardToken: farm.token,
                 liquidityToken: false
               })
           );

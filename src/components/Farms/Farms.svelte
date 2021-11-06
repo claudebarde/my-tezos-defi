@@ -216,11 +216,12 @@
   };
 
   const sortFarmSelectModal = (
+    favoriteInvestments: AvailableInvestments[],
     favorite: boolean,
     platform: InvestmentPlatform,
     type?: string
   ): [string, InvestmentData][] => {
-    if (!$localStorageStore.favoriteInvestments)
+    if (!favoriteInvestments)
       return Object.entries($store.investments).filter(
         inv => inv[1].platform === platform
       );
@@ -229,8 +230,8 @@
       .filter(inv => inv[1].platform === platform)
       .filter(inv =>
         favorite
-          ? $localStorageStore.favoriteInvestments.includes(inv[1].id)
-          : !$localStorageStore.favoriteInvestments.includes(inv[1].id)
+          ? favoriteInvestments.includes(inv[1].id)
+          : !favoriteInvestments.includes(inv[1].id)
       )
       .filter(inv => (type ? inv[1].type === type : true))
       .sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()));
@@ -1071,7 +1072,7 @@
         {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0}
           <!-- favorite farms -->
           <div style="width:100%;font-size:0.9rem">Favorite</div>
-          {#each sortFarmSelectModal(true, selectFarmModal) as inv (inv[1].id)}
+          {#each sortFarmSelectModal($localStorageStore.favoriteInvestments, true, selectFarmModal) as inv (inv[1].id)}
             <div
               class="farm-to-select favorite"
               on:click={async () => removeFavoriteInvestment(inv[0])}
@@ -1102,7 +1103,7 @@
               Wrap Stacking
             </div>
           {/if}
-          {#each sortFarmSelectModal(false, selectFarmModal, "staking") as inv, index (inv[1].id)}
+          {#each sortFarmSelectModal($localStorageStore.favoriteInvestments, false, selectFarmModal, "staking") as inv, index (inv[1].id)}
             {#if index === 0}
               <div style="width:100%;font-size:0.9rem">Liquidity mining</div>
             {/if}
@@ -1118,7 +1119,7 @@
               {inv[1].alias}
             </div>
           {/each}
-          {#each sortFarmSelectModal(false, selectFarmModal, "fee-farming") as inv, index}
+          {#each sortFarmSelectModal($localStorageStore.favoriteInvestments, false, selectFarmModal, "fee-farming") as inv, index}
             {#if index === 0}
               <div style="width:100%;font-size:0.9rem">Fee Farming</div>
             {/if}
@@ -1136,7 +1137,7 @@
           {/each}
         {:else}
           <div style="width:100%;font-size:0.9rem">Available</div>
-          {#each sortFarmSelectModal(false, selectFarmModal) as inv (inv[1].id)}
+          {#each sortFarmSelectModal($localStorageStore.favoriteInvestments, false, selectFarmModal) as inv (inv[1].id)}
             <div
               class="farm-to-select"
               on:click={async () => addFavoriteInvestment(inv[0])}
