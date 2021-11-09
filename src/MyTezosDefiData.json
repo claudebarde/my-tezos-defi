@@ -497,6 +497,28 @@
       "color": "#143A3A",
       "tokenId": 1,
       "whitelisted": true
+    },
+    "PXL": {
+      "address": "KT1F1mn2jbqQCJcsNgYKVAQjvenecNMY2oPK",
+      "dexContractAddress": "KT1UJ1hVTdiUen7H3zk1CXGC7PbANb57VkS4",
+      "decimals": 6,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address"],
+      "type": "fa2",
+      "color": "#1DD3B0",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "pxlDAO": {
+      "address": "KT1VQG4kZR6FkF8jppegp8cGhjJF66jJejLf",
+      "dexContractAddress": "KT1RbvTVdb5jiT3dMyc9PxLdjzQD6QJjfZ9G",
+      "decimals": 6,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address"],
+      "type": "fa2",
+      "color": "#B2FF9E",
+      "tokenId": 0,
+      "whitelisted": true
     }
   },
   "investments": {

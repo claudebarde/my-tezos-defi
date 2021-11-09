@@ -32,14 +32,12 @@ export const calcTokenStakesInAlienFarm = async (param: {
   const value = parser.parseMichelineExpression(
     "(pair (pair (pair address nat) (pair (or unit unit) address)) (pair nat (or unit unit)))"
   );
-  //console.log(micheline, key[0], value);
   const packedKey = await Tezos.rpc.packData({ data: key[0], type: value });
   const qpTokenId = await dexStorage.storage.token_to_id.get(packedKey.packed);
   if (qpTokenId) {
     // finds shares
-    const ttDexStorage: any = await ttDexContract.storage();
     const { token_a_pool, token_b_pool, total_supply } =
-      await ttDexStorage.storage.pairs.get(qpTokenId.toNumber());
+      await dexStorage.storage.pairs.get(qpTokenId.toNumber());
     // QP token has 6 decimals
     const tokenAAmount = shares
       .times(1e6)
