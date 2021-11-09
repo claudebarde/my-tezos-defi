@@ -86,7 +86,7 @@
         stakeInXtz =
           +(
             (invData.balance / 10 ** invData.decimals) *
-            $store.tokens[invData.token].exchangeRate
+            $store.tokens[invData.rewardToken].exchangeRate
           ).toFixed(5) / 1;
       } else if (invData.id === "KUSD-QUIPU-LP") {
         const tezInStakesRaw = await estimateQuipuTezInShares(
@@ -162,7 +162,8 @@
       {#if invData.id === "KUSD-KDAO"}
         <span class:blurry-text={$store.blurryBalances}>
           {+(
-            ($store.tokens[invData.token].exchangeRate * invData.balance) /
+            ($store.tokens[invData.rewardToken].exchangeRate *
+              invData.balance) /
             10 ** invData.decimals
           ).toFixed(5) / 1}
         </span>
@@ -174,7 +175,7 @@
     {:else}
       <span class:blurry-text={$store.blurryBalances}>
         {+(
-          (($store.tokens[invData.token].exchangeRate * invData.balance) /
+          (($store.tokens[invData.rewardToken].exchangeRate * invData.balance) /
             10 ** invData.decimals) *
           $store.xtzData.exchangeRate
         ).toFixed(2) / 1}

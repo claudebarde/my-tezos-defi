@@ -391,36 +391,7 @@
       }
       // fetches data from TezTools
       const tokensSuccess = await fetchTezToolsPrices(tokens);
-      //const tezToolsDataRes = await fetch(`https://api.teztools.io/v1/prices`);
       if (tokensSuccess) {
-        //if (tezToolsDataRes && tezToolsDataRes.status === 200) {
-        /*const tezToolsData = await tezToolsDataRes.json();
-        // selects whitelisted tokens
-        const availableTokens = Object.values(AvailableToken).map(tk =>
-          tk.toLowerCase()
-        );
-        const tezToolsTokens = tezToolsData.contracts.filter(contract =>
-          availableTokens.includes(contract.symbol.toLowerCase())
-        );
-        tokens = tokens.map(([tokenSymbol, tokenData]) => {
-          let tezToolToken = tezToolsTokens.find(
-            tk => tk.symbol.toLowerCase() === tokenSymbol.toLowerCase()
-          );
-          if (tezToolToken) {
-            return [
-              tokenSymbol,
-              {
-                ...tokenData,
-                exchangeRate: tezToolToken.currentPrice,
-                websiteLink: tezToolToken.websiteLink
-              }
-            ];
-          } else {
-            return [tokenSymbol, tokenData];
-          }
-        });
-        store.updateTokens(tokens);*/
-
         // fetches fiat exchange rate
         const coinGeckoFetch = async () => {
           const preferredFiat = $localStorageStore.preferredFiat

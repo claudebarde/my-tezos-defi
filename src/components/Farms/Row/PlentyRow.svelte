@@ -221,7 +221,7 @@
     {/if}
   </div>
   <div>
-    {#if !invData.liquidityToken && $store.tokens[invData.token]}
+    {#if !invData.liquidityToken && $store.tokens[invData.rewardToken]}
       <div>
         {#if valueInXtz}
           <span class:blurry-text={$store.blurryBalances}>

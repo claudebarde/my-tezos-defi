@@ -12,6 +12,7 @@
     estimateQuipuTokenInShares,
     formatTokenAmount
   } from "../../../utils";
+  import { calcTokenStakesInAlienFarm } from "../../../paulUtils";
   import toastStore from "../../Toast/toastStore";
 
   export let rewards: {
@@ -91,8 +92,7 @@
         ...$store.investments,
         [invData.id]: {
           ...$store.investments[invData.id],
-          balance: invDetails.balance,
-          info: invDetails.info
+          balance: invDetails.balance
         }
       });
       invData.balance = invDetails.balance;
@@ -127,6 +127,31 @@
         stakeInXtz = formatTokenAmount(tezInStakes + tokensInStakes);
       } else {
         stakeInXtz = null;
+      }
+
+      if (invData.info.includes("paul-lqt")) {
+        const shares = await calcTokenStakesInAlienFarm({
+          Tezos: $store.Tezos,
+          amountOfTokens: invData.balance,
+          tokens: invData.icons.map(icon => ({
+            address: $store.tokens[icon as AvailableToken].address,
+            tokenId: $store.tokens[icon as AvailableToken].tokenId,
+            tokenType: $store.tokens[icon as AvailableToken].type
+          }))
+        });
+        if (shares) {
+          const token1InXtz =
+            ((shares.tokenAAmount /
+              10 ** $store.tokens[invData.icons[0]].decimals) *
+              $store.tokens[invData.icons[0]].exchangeRate) /
+            10 ** 6;
+          const token2InXtz =
+            ((shares.tokenBAmount /
+              10 ** $store.tokens[invData.icons[1]].decimals) *
+              $store.tokens[invData.icons[1]].exchangeRate) /
+            10 ** 6;
+          stakeInXtz = formatTokenAmount(token1InXtz + token2InXtz);
+        }
       }
 
       dispatch("update-farm-value", [invName, stakeInXtz]);
@@ -176,12 +201,12 @@
   <div>
     {#if valueInXtz}
       <span class:blurry-text={$store.blurryBalances}>
-        {stakeInXtz ?? "---"}
+        {stakeInXtz ?? "N/A"}
       </span>
     {:else}
       <span class:blurry-text={$store.blurryBalances}>
         {+(
-          (($store.tokens[invData.token].exchangeRate * invData.balance) /
+          (($store.tokens[invData.rewardToken].exchangeRate * invData.balance) /
             10 ** invData.decimals) *
           $store.xtzData.exchangeRate
         ).toFixed(2) / 1}

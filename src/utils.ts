@@ -19,7 +19,7 @@ import type {
   KolibriOvenData
 } from "./types";
 import { AvailableToken, AvailableInvestments } from "./types";
-import { char2Bytes, bytes2Char } from "@taquito/utils";
+import { char2Bytes } from "@taquito/utils";
 import config from "./config";
 import { get } from "svelte/store";
 import store from "./store";
@@ -842,21 +842,18 @@ export const loadInvestment = async (
           const userData = await userDataResponse.json();
           return {
             id: inv.id,
-            balance: +userData.value.amount,
-            info: undefined
+            balance: +userData.value.amount
           };
         } else {
           return {
             id: inv.id,
-            balance: 0,
-            info: undefined
+            balance: 0
           };
         }
       } catch (error) {
         return {
           id: inv.id,
-          balance: 0,
-          info: undefined
+          balance: 0
         };
       }
     } else if (inv.platform === "kdao") {
