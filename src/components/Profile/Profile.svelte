@@ -91,6 +91,7 @@
       img {
         width: 25px;
         height: 25px;
+        vertical-align: sub;
       }
     }
   }
@@ -126,6 +127,12 @@
             &nbsp; {token.id}
           </div>
           <div>{formatTokenAmount(token.balance, 3)} tokens</div>
+          <div>
+            {formatTokenAmount(
+              token.balance * $store.tokens[token.id].exchangeRate,
+              3
+            )} ꜩ
+          </div>
         </div>
       {:else}
         <div>No token found</div>
