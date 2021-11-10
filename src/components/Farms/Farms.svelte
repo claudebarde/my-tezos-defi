@@ -968,7 +968,9 @@
           <div>Reward</div>
         </div>
       {/if}
-      {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao") as [invName, invData] (invData.id)}
+      {#each Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao")
+        .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
         <KdaoRow
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
@@ -995,7 +997,9 @@
           <div>Reward</div>
         </div>
       {/if}
-      {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul") as [invName, invData] (invData.id)}
+      {#each Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul")
+        .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
         <PaulRow
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}

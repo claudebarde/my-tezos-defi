@@ -48,7 +48,9 @@ export enum AvailableToken {
   uUSD = "uUSD",
   YOU = "YOU",
   cTEZ = "cTEZ",
-  MAG = "MAG"
+  MAG = "MAG",
+  PXL = "PXL",
+  pxlDAO = "pxlDAO"
 }
 export enum AvailableFiat {
   USD = "USD",
