@@ -43,8 +43,10 @@
   }[] = [];
   let lastRewardsCheck = 0;
   let totalValueInFarms: [AvailableInvestments, number][] = [];
-  let harvestingAll = false;
-  let harvestingAllSuccess = undefined;
+  let harvestingAllPlenty = false;
+  let harvestingAllPlentySuccess = undefined;
+  let harvestingAllPaul = false;
+  let harvestingAllPaulSuccess = undefined;
   let unstakedLpTokens: [AvailableInvestments, string, number][] = [];
   let selectFarmModal: null | InvestmentPlatform = null;
   let searchingForStakes = false;
@@ -89,8 +91,8 @@
     });
   };
 
-  const harvestAll = async () => {
-    harvestingAll = true;
+  const harvestAllPlenty = async () => {
+    harvestingAllPlenty = true;
     // gets the addresses of pools with rewards to harvest
     let allRewards = (
       await Promise.all(
@@ -131,20 +133,77 @@
       const op = await batch.send();
       await op.confirmation();
       const receipt = await op.receipt();
-      harvestingAll = false;
+      harvestingAllPlenty = false;
       if (!receipt) {
-        harvestingAllSuccess = false;
+        harvestingAllPlentySuccess = false;
         throw `Operation failed: ${receipt}`;
       } else {
-        harvestingAllSuccess = true;
+        harvestingAllPlentySuccess = true;
         setTimeout(() => {
-          harvestingAllSuccess = undefined;
+          harvestingAllPlentySuccess = undefined;
         }, 2000);
       }
     } catch (error) {
       console.log(error);
     } finally {
-      harvestingAll = false;
+      harvestingAllPlenty = false;
+    }
+  };
+
+  const harvestAllPaul = async () => {
+    harvestingAllPaul = true;
+    // gets the addresses of pools with rewards to harvest
+    let allRewards = (
+      await Promise.all(
+        Object.values($store.investments)
+          .filter(inv => inv.platform === "paul")
+          .map(inv =>
+            (async () => ({
+              address: inv.address,
+              rewards: await getPaulReward(inv.address)
+            }))()
+          )
+      )
+    ).filter(res => res.rewards && res.rewards.toNumber() > 0);
+    const contractCalls = await Promise.all(
+      allRewards.map(async res => {
+        const contract = await $store.Tezos.wallet.at(res.address);
+        return contract.methods.earn($store.userAddress);
+      })
+    );
+    const fee = [0, 0, ...allRewards.map(res => res.rewards.toNumber())].reduce(
+      (a, b) => +a + +b
+    );
+    console.log(contractCalls, fee);
+    // batches transactions
+    try {
+      const batch = prepareOperation({
+        contractCalls: contractCalls,
+        amount: +fee,
+        tokenSymbol: AvailableToken.PAUL
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      const receipt = await op.receipt();
+      harvestingAllPaul = false;
+      if (!receipt) {
+        harvestingAllPaulSuccess = false;
+        throw `Operation failed: ${receipt}`;
+      } else {
+        harvestingAllPaulSuccess = true;
+        setTimeout(() => {
+          harvestingAllPaulSuccess = undefined;
+        }, 2000);
+      }
+    } catch (error) {
+      console.log(error);
+      toastStore.addToast({
+            type: "error",
+            text: error.message ? error.message : `Unable to harvest Alien's' farms`,
+            dismissable: true
+          });
+    } finally {
+      harvestingAllPaul = false;
     }
   };
 
@@ -822,20 +881,20 @@
             <div />
           {/if}
           <div style="display:flex;justify-content:center">
-            {#if harvestingAll}
+            {#if harvestingAllPlenty}
               <button class="mini loading">
                 Harvesting <span class="material-icons"> sync </span>
               </button>
             {:else}
               <!-- Harvest button states -->
-              {#if harvestingAllSuccess === true}
+              {#if harvestingAllPlentySuccess === true}
                 <button class="mini success"> Harvested! </button>
-              {:else if harvestingAllSuccess === false}
-                <button class="mini error" on:click={harvestAll}>
+              {:else if harvestingAllPlentySuccess === false}
+                <button class="mini error" on:click={harvestAllPlenty}>
                   Retry
                 </button>
               {:else}
-                <button class="mini" on:click={harvestAll}>
+                <button class="mini" on:click={harvestAllPlenty}>
                   <span class="material-icons"> agriculture </span>&nbsp;
                   Harvest all
                 </button>
@@ -1014,6 +1073,34 @@
           on:reset-rewards={event => resetRewards(event.detail)}
         />
       {/each}
+    </div>
+    <div class="row-footer">
+      <div />
+      <div />
+      <div />
+      <div />
+      <div />
+      <div style="display:flex;justify-content:center">
+        {#if harvestingAllPaul}
+          <button class="mini loading">
+            Harvesting <span class="material-icons"> sync </span>
+          </button>
+        {:else}
+          <!-- Harvest button states -->
+          {#if harvestingAllPaulSuccess === true}
+            <button class="mini success"> Harvested! </button>
+          {:else if harvestingAllPaulSuccess === false}
+            <button class="mini error" on:click={harvestAllPaul}>
+              Retry
+            </button>
+          {:else}
+            <button class="mini" on:click={harvestAllPaul}>
+              <span class="material-icons"> agriculture </span>&nbsp; Harvest
+              all
+            </button>
+          {/if}
+        {/if}
+      </div>
     </div>
   {/if}
   <br />
