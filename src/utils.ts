@@ -6,6 +6,7 @@ import type {
 } from "@taquito/taquito";
 import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
 import { tzip16 } from "@taquito/tzip16";
+import { bytes2Char } from "@taquito/utils";
 import BigNumber from "bignumber.js";
 import type {
   HistoricalDataState,
@@ -658,6 +659,30 @@ export const getKolibriOvens = async (
   } catch (error) {
     console.log(error);
     return null;
+  }
+};
+
+export const fetchTezosDomain = async (
+  Tezos: TezosToolkit,
+  address: string
+): Promise<string> => {
+  try {
+    const contract = await Tezos.wallet.at(
+      "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS"
+    );
+    const storage: any = await contract.storage();
+    const user = await storage.store.reverse_records.get(address);
+    if (user) {
+      return bytes2Char(user.name);
+    } else {
+      return address.slice(0, 5) + "..." + address.slice(-5);
+    }
+  } catch (error) {
+    console.error(
+      "Failed to fetch Tezos domain contract or username with error:",
+      error
+    );
+    return address.slice(0, 5) + "..." + address.slice(-5);
   }
 };
 

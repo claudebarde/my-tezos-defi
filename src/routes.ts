@@ -15,7 +15,7 @@ export default {
   "/tokens": Tokens,
   "/farms": Farms,
   "/stats": Stats,
-  "/profile": Profile,
+  "/profile/:useraddress": Profile,
   "/settings": Settings,
   "/traffic": wrap({
     component: Traffic,

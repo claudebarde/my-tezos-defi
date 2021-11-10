@@ -7,12 +7,15 @@
     BeaconEvent,
     defaultEventCallbacks
   } from "@airgap/beacon-sdk";
-  import { bytes2Char } from "@taquito/utils";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import type { TezosAccountAddress } from "../../types";
   import { AvailableFiat } from "../../types";
-  import { shortenHash, formatTokenAmount } from "../../utils";
+  import {
+    shortenHash,
+    formatTokenAmount,
+    fetchTezosDomain
+  } from "../../utils";
   import config from "../../config";
   import Calculator from "../Calculator/Calculator.svelte";
 
@@ -33,29 +36,9 @@
       }
     }
   };
-  const tezosDomainContract = "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS";
   let username = "";
   let showAvailableFiats = false;
   let showBalanceInFiat = false;
-
-  const fetchTezosDomain = async (address: string): Promise<string> => {
-    try {
-      const contract = await $store.Tezos.wallet.at(tezosDomainContract);
-      const storage: any = await contract.storage();
-      const user = await storage.store.reverse_records.get(address);
-      if (user) {
-        return bytes2Char(user.name);
-      } else {
-        return address.slice(0, 5) + "..." + address.slice(-5);
-      }
-    } catch (error) {
-      console.error(
-        "Failed to fetch Tezos domain contract or username with error:",
-        error
-      );
-      return address.slice(0, 5) + "..." + address.slice(-5);
-    }
-  };
 
   const connect = async () => {
     let wallet;
@@ -77,7 +60,7 @@
       localStorageStore.init(userAddress);
       store.updateUserAddress(userAddress);
       username = shortenHash(userAddress);
-      username = await fetchTezosDomain(userAddress);
+      username = await fetchTezosDomain($store.Tezos, userAddress);
     } catch (err) {
       console.error(err);
     }
@@ -136,7 +119,7 @@
       localStorageStore.init(userAddress);
 
       username = shortenHash(userAddress);
-      username = await fetchTezosDomain(userAddress);
+      username = await fetchTezosDomain($store.Tezos, userAddress);
 
       setInterval(async () => {
         const balance = await $store.Tezos.tz.getBalance(userAddress);
