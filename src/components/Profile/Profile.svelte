@@ -67,6 +67,10 @@
     h3,
     h4 {
       text-align: center;
+
+      .material-icons {
+        vertical-align: middle;
+      }
     }
 
     .user-tokens-stats {
@@ -98,13 +102,19 @@
   {:else}
     <h3>Profile for {username}</h3>
   {/if}
-  <h4>XTZ balance</h4>
+  <h4>
+    <span class="material-icons"> account_balance </span>
+    XTZ balance
+  </h4>
   {#if xtzBalance}
     <div style="text-align: center">{xtzBalance} ꜩ</div>
   {:else}
     <div style="text-align: center">Loading XTZ balance...</div>
   {/if}
-  <h4>Tokens balances</h4>
+  <h4>
+    <span class="material-icons"> savings </span>
+    Tokens balances
+  </h4>
   <div class="user-tokens-stats">
     {#if loadingUserTokens}
       <div>Loading user tokens...</div>
