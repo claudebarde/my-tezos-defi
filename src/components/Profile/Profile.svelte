@@ -4,10 +4,11 @@
     fetchTezosDomain,
     shortenHash,
     searchUserTokens,
-    formatTokenAmount
+    formatTokenAmount,
+    loadInvestments
   } from "../../utils";
   import store from "../../store";
-  import type { AvailableToken } from "../../types";
+  import { AvailableToken, AvailableInvestments } from "../../types";
 
   export let params;
 
@@ -15,7 +16,9 @@
   let username = "";
   let xtzBalance: null | string = null;
   let loadingUserTokens = true;
+  let loadingUserFarms = true;
   let userTokens: { id: AvailableToken; balance: number }[] = [];
+  let investments: { id: AvailableInvestments; balance: number }[] = [];
 
   onMount(async () => {
     const { useraddress: userAddress } = params;
@@ -55,6 +58,23 @@
         loadingUserTokens = false;
       }
     }
+
+    // finds user's investments
+    const investmentsRes = await loadInvestments(
+      [...Object.values(AvailableInvestments).slice(3)],
+      userAddress
+    );
+    investments = investmentsRes
+      .filter(
+        res =>
+          res.status === "fulfilled" && !!res.value && res.value.balance > 0
+      )
+      .map((res: PromiseFulfilledResult<any>) => ({
+        id: res.value.id,
+        balance: res.value.balance
+      }));
+    console.log(investments);
+    loadingUserFarms = false;
   });
 </script>
 
@@ -74,6 +94,28 @@
     }
 
     .user-tokens-stats {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+
+      & > div {
+        width: 25%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 10px;
+      }
+
+      img {
+        width: 25px;
+        height: 25px;
+        vertical-align: sub;
+      }
+    }
+
+    .user-farms-stats {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -118,7 +160,7 @@
   </h4>
   <div class="user-tokens-stats">
     {#if loadingUserTokens}
-      <div>Loading user tokens...</div>
+      <div>Loading user's tokens...</div>
     {:else}
       {#each userTokens as token}
         <div>
@@ -136,6 +178,28 @@
         </div>
       {:else}
         <div>No token found</div>
+      {/each}
+    {/if}
+  </div>
+  <h4>
+    <span class="material-icons"> agriculture </span>
+    Stakes in farms
+  </h4>
+  <div class="user-farms-stats">
+    {#if loadingUserFarms}
+      <div>Loading user's farms...</div>
+    {:else}
+      {#each investments as inv}
+        <div>
+          <div class="icon">
+            {#each $store.investments[inv.id].icons as icon}
+              <img src={`images/${icon}.png`} alt="token-icon" />
+            {/each}
+          </div>
+          <div>{$store.investments[inv.id].alias}</div>
+        </div>
+      {:else}
+        <div>No farm to show</div>
       {/each}
     {/if}
   </div>

@@ -994,6 +994,15 @@ export const loadInvestment = async (
   }
 };
 
+export const loadInvestments = async (
+  investments: AvailableInvestments[],
+  userAddress: TezosAccountAddress
+) => {
+  return Promise.allSettled(
+    investments.map(inv => loadInvestment(inv, userAddress))
+  );
+};
+
 /*export const loadInvestment = async (investment: AvailableInvestments) => {
   const localStore = get(store);
   if (localStore.investments && localStore.investments[investment]) {
