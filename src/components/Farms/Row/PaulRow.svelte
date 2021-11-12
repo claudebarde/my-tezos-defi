@@ -125,11 +125,16 @@
           $store.tokens.PAUL.exchangeRate;
 
         stakeInXtz = formatTokenAmount(tezInStakes + tokensInStakes);
+      } else if (invData.id === "PAUL-PAUL") {
+        stakeInXtz = formatTokenAmount(
+          (invData.balance / 10 ** invData.decimals) *
+            $store.tokens.PAUL.exchangeRate
+        );
       } else {
         stakeInXtz = null;
       }
 
-      if (invData.info.includes("paul-lqt")) {
+      if (invData.info?.includes("paul-lqt")) {
         const shares = await calcTokenStakesInAlienFarm({
           Tezos: $store.Tezos,
           amountOfTokens: invData.balance,

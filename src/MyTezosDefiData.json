@@ -890,7 +890,7 @@
       "platform": "paul",
       "address": "KT1DMCGGiHT2dgjjXHG7qh1C1maFchrLNphx",
       "decimals": 8,
-      "info": ["paul-lqt"],
+      "info": [],
       "alias": "PAUL farm",
       "icons": ["PAUL"],
       "rewardToken": "PAUL",

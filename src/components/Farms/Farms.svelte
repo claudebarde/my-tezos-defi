@@ -198,10 +198,12 @@
     } catch (error) {
       console.log(error);
       toastStore.addToast({
-            type: "error",
-            text: error.message ? error.message : `Unable to harvest Alien's' farms`,
-            dismissable: true
-          });
+        type: "error",
+        text: error.message
+          ? error.message
+          : `Unable to harvest Alien's' farms`,
+        dismissable: true
+      });
     } finally {
       harvestingAllPaul = false;
     }
@@ -572,6 +574,28 @@
           +(
             totalPlentyRewards *
             $store.tokens[AvailableToken.PLENTY].exchangeRate *
+            $store.xtzData.exchangeRate
+          ).toFixed(5) / 1
+        } ${$localStorageStore.preferredFiat || "USD"}</div>`,
+        allowHTML: true
+      });
+
+      const totalPaulRewards = [
+        0,
+        0,
+        ...availableRewards
+          .filter(rw => rw.platform === "paul")
+          .map(rw => +rw.amount)
+      ].reduce((a, b) => a + b);
+      tippy(`#total-paul-rewards`, {
+        content: `<div>${
+          +(
+            totalPaulRewards * $store.tokens[AvailableToken.PAUL].exchangeRate
+          ).toFixed(5) / 1
+        } ꜩ<br />${
+          +(
+            totalPaulRewards *
+            $store.tokens[AvailableToken.PAUL].exchangeRate *
             $store.xtzData.exchangeRate
           ).toFixed(5) / 1
         } ${$localStorageStore.preferredFiat || "USD"}</div>`,
@@ -1079,7 +1103,25 @@
       <div />
       <div />
       <div />
-      <div />
+      {#if availableRewards.length > 0}
+        <div class="total-rewards" id="total-paul-rewards">
+          <span class="material-icons" style="vertical-align:middle">
+            point_of_sale
+          </span>
+          {formatTokenAmount(
+            [
+              0,
+              0,
+              ...availableRewards
+                .filter(rw => rw.platform === "paul")
+                .map(rw => +rw.amount)
+            ].reduce((a, b) => a + b),
+            2
+          )}
+        </div>
+      {:else}
+        <div />
+      {/if}
       <div style="display:flex;justify-content:center">
         {#if harvestingAllPaul}
           <button class="mini loading">
