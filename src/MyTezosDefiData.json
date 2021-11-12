@@ -973,6 +973,17 @@
       "rewardToken": "PAUL",
       "liquidityToken": true
     },
+    "wWBTC-PAUL": {
+      "id": "wWBTC-PAUL",
+      "platform": "paul",
+      "address": "KT1UDwFmuyAbCCC6YSJvNVQPwNGjW91W2HDf",
+      "decimals": 6,
+      "info": ["paul-lqt"],
+      "alias": "wWBTC/PAUL farm",
+      "icons": ["wWBTC", "PAUL"],
+      "rewardToken": "PAUL",
+      "liquidityToken": true
+    },
     "KUSD-QUIPU-LP": {
       "id": "KUSD-QUIPU-LP",
       "platform": "kdao",
