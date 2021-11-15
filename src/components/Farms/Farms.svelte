@@ -6,14 +6,13 @@
   import localStorageStore from "../../localStorage";
   import {
     loadInvestment,
-    getPlentyReward,
     getPaulReward,
     getKdaoReward,
     getWrapReward,
     prepareOperation,
-    formatPlentyLpAmount,
     formatTokenAmount
   } from "../../utils";
+  import { getPlentyReward, formatPlentyLpAmount } from "../../plentyUtils";
   import {
     AvailableToken,
     AvailableInvestments,

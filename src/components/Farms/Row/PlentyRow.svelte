@@ -7,12 +7,8 @@
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
-  import {
-    prepareOperation,
-    getPlentyLqtValue,
-    loadInvestment
-  } from "../../../utils";
-  import config from "../../../config";
+  import { prepareOperation, loadInvestment } from "../../../utils";
+  import { calcPlentyStakeInXtz } from "../../../plentyUtils";
   import toastStore from "../../Toast/toastStore";
   import Modal from "../../Modal/Modal.svelte";
 
@@ -31,63 +27,6 @@
   let stakeInXtz: null | number = null;
   let openSettingsModal = false;
   const dispatch = createEventDispatcher();
-
-  const calcStakeInXtz = async ({
-    isPlentyLpToken,
-    id,
-    balance,
-    decimals,
-    exchangeRate,
-    rewardToken
-  }: {
-    id: AvailableInvestments;
-    isPlentyLpToken: boolean;
-    balance: number;
-    decimals: number;
-    exchangeRate: number;
-    rewardToken: AvailableToken;
-  }): Promise<number> => {
-    if (!balance) return 0;
-
-    if (!isPlentyLpToken) {
-      const stakeInXtz =
-        +((balance / 10 ** decimals) * exchangeRate).toFixed(5) / 1;
-      dispatch("update-farm-value", [invName, stakeInXtz]);
-      return stakeInXtz;
-    } else {
-      const tokens = await getPlentyLqtValue(
-        id,
-        config.plentyDexAddresses[id],
-        balance,
-        $store.Tezos
-      );
-      if (!tokens) {
-        return 0;
-      } else {
-        let stakeInXtz = 0;
-        if (rewardToken === AvailableToken.YOU) {
-          // when reward token is YOU
-          stakeInXtz =
-            (tokens.token1Amount / 10 ** $store.tokens.uUSD.decimals) *
-              $store.tokens.uUSD.exchangeRate +
-            (tokens.token2Amount /
-              10 ** $store.tokens[tokens.token2].decimals) *
-              $store.tokens[tokens.token2].exchangeRate;
-        } else {
-          // when reward token is PLENTY
-          stakeInXtz =
-            (tokens.token1Amount / 10 ** $store.tokens.PLENTY.decimals) *
-              $store.tokens.PLENTY.exchangeRate +
-            (tokens.token2Amount /
-              10 ** $store.tokens[tokens.token2].decimals) *
-              $store.tokens[tokens.token2].exchangeRate;
-        }
-        dispatch("update-farm-value", [invName, stakeInXtz]);
-
-        return +stakeInXtz.toFixed(5) / 1;
-      }
-    }
-  };
 
   const harvest = async () => {
     harvesting = true;
@@ -145,7 +84,7 @@
       if (!invDetails.balance) {
         stakeInXtz = 0;
       } else {
-        stakeInXtz = await calcStakeInXtz({
+        stakeInXtz = await calcPlentyStakeInXtz({
           isPlentyLpToken: invData.platform === "plenty",
           id: invData.id,
           balance: invData.balance,
@@ -153,6 +92,7 @@
           exchangeRate: $store.tokens[invData.rewardToken].exchangeRate,
           rewardToken: invData.rewardToken
         });
+        dispatch("update-farm-value", [invName, stakeInXtz]);
       }
     }
 

@@ -7,6 +7,8 @@
     formatTokenAmount,
     loadInvestments
   } from "../../utils";
+  import { calcPlentyStakeInXtz } from "../../plentyUtils";
+  import { calcTokenStakesInAlienFarm } from "../../paulUtils";
   import store from "../../store";
   import { AvailableToken, AvailableInvestments } from "../../types";
 
@@ -18,7 +20,11 @@
   let loadingUserTokens = true;
   let loadingUserFarms = true;
   let userTokens: { id: AvailableToken; balance: number }[] = [];
-  let investments: { id: AvailableInvestments; balance: number }[] = [];
+  let investments: {
+    id: AvailableInvestments;
+    balance: number;
+    stakeInXtz: null | number;
+  }[] = [];
 
   onMount(async () => {
     const { useraddress: userAddress } = params;
@@ -61,19 +67,84 @@
 
     // finds user's investments
     const investmentsRes = await loadInvestments(
-      [...Object.values(AvailableInvestments).slice(3)],
+      [...Object.values(AvailableInvestments)],
       userAddress
     );
-    investments = investmentsRes
-      .filter(
-        res =>
-          res.status === "fulfilled" && !!res.value && res.value.balance > 0
-      )
-      .map((res: PromiseFulfilledResult<any>) => ({
-        id: res.value.id,
-        balance: res.value.balance
-      }));
-    console.log(investments);
+    const investmentsStakeInXtz = await Promise.allSettled(
+      investmentsRes
+        .filter(
+          res =>
+            res.status === "fulfilled" && !!res.value && res.value.balance > 0
+        )
+        .map(async (res: PromiseFulfilledResult<any>) => {
+          if ($store.investments[res.value.id].platform === "plenty") {
+            const stakeInXtz = await calcPlentyStakeInXtz({
+              id: res.value.id,
+              isPlentyLpToken: $store.investments[res.value.id].liquidityToken,
+              balance: res.value.balance,
+              decimals: $store.investments[res.value.id].decimals,
+              exchangeRate: $store.tokens.PLENTY.exchangeRate,
+              rewardToken: $store.investments[res.value.id].rewardToken
+            });
+            return {
+              id: res.value.id,
+              balance: res.value.balance,
+              stakeInXtz
+            };
+          } else if ($store.investments[res.value.id].platform === "paul") {
+            /*const { tokenAAmount, tokenBAmount } =
+              await calcTokenStakesInAlienFarm({
+                Tezos: $store.Tezos,
+                amountOfTokens: res.value.balance,
+                tokens: [
+                  {
+                    address:
+                      $store.tokens[$store.investments[res.value.id].icons[0]]
+                        .address,
+                    tokenId:
+                      $store.tokens[$store.investments[res.value.id].icons[0]]
+                        .tokenId,
+                    tokenType:
+                      $store.tokens[$store.investments[res.value.id].icons[0]]
+                        .tokenType
+                  },
+                  {
+                    address:
+                      $store.tokens[$store.investments[res.value.id].icons[1]]
+                        .address,
+                    tokenId:
+                      $store.tokens[$store.investments[res.value.id].icons[1]]
+                        .tokenId,
+                    tokenType:
+                      $store.tokens[$store.investments[res.value.id].icons[1]]
+                        .tokenType
+                  }
+                ]
+              });
+            const stakeInXtz = tokenAAmount + tokenBAmount;
+            console.log(res.value.id, stakeInXtz);
+            return {
+              id: res.value.id,
+              balance: res.value.balance,
+              stakeInXtz
+            };*/
+            return {
+              id: res.value.id,
+              balance: res.value.balance,
+              stakeInXtz: null
+            };
+          } else {
+            return {
+              id: res.value.id,
+              balance: res.value.balance,
+              stakeInXtz: null
+            };
+          }
+        })
+    );
+    investments = investmentsStakeInXtz
+      .filter(val => val.status === "fulfilled")
+      .map((val: PromiseFulfilledResult<any>) => val.value);
     loadingUserFarms = false;
   });
 </script>
@@ -197,6 +268,11 @@
             {/each}
           </div>
           <div>{$store.investments[inv.id].alias}</div>
+          {#if inv.stakeInXtz}
+            <div>{inv.stakeInXtz} ꜩ</div>
+          {:else}
+            <div>N/A</div>
+          {/if}
         </div>
       {:else}
         <div>No farm to show</div>
