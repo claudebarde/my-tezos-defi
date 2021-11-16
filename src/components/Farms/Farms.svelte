@@ -418,6 +418,50 @@
         } finally {
           loadingSearchingForStakes = false;
         }
+      } else if (platform === "paul") {
+        const paulFarms = Object.values($store.investments).filter(
+          inv => inv.platform === "paul"
+        );
+        try {
+          const paulFarmBalancesRes = await Promise.allSettled(
+            paulFarms.map(async farm => ({
+              balance: await fetch(
+                `https://api.tzkt.io/v1/contracts/${farm.address}/bigmaps/account_info/keys/${$store.userAddress}`
+              )
+                .then(res => res.json())
+                .catch(err => undefined),
+              alias: farm.alias,
+              id: farm.id
+            }))
+          );
+          const paulFarmBalances = paulFarmBalancesRes.filter(
+            res =>
+              res.status === "fulfilled" &&
+              res.value.balance &&
+              res.value.balance.active
+          );
+          if (paulFarmBalances.length > 0) {
+            foundStakes = paulFarmBalances.map((farm: any) => {
+              return {
+                platform: "paul",
+                id: farm.value.id,
+                name: farm.value.alias,
+                balance: formatTokenAmount(
+                  +farm.value.balance.value.amount / 10 ** 6
+                )
+              };
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          toastStore.addToast({
+            type: "error",
+            text: `Unable to fetch balances for ${platform.toUpperCase()}`,
+            dismissable: true
+          });
+        } finally {
+          loadingSearchingForStakes = false;
+        }
       } else {
         console.log(platform);
       }
@@ -1098,8 +1142,15 @@
       {/each}
     </div>
     <div class="row-footer">
-      <div />
-      <div />
+      <div style="grid-column: 1 / span 2">
+        <button
+          class="primary mini"
+          on:click={async () => await findStakes("paul")}
+        >
+          <span class="material-icons"> search </span>
+          Find my stakes
+        </button>
+      </div>
       <div />
       <div />
       {#if availableRewards.length > 0}
