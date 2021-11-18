@@ -5,10 +5,8 @@ import type {
   State,
   TezosAccountAddress,
   TokenContract,
-  Operation,
-  AvailableToken
+  Operation
 } from "./types";
-import { sortTokensByBalance } from "./utils";
 
 const settings: State["settings"] = {
   testnet: {
@@ -45,7 +43,7 @@ const initialState: State = {
   },
   serviceFee: null, //process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "QmcpqBvQkYNqzfp8AAMZD9CzQoJsjgK6Gm45PQk2VBns3R", //"QmQponA3PsXMdg2HgUmztZXHjGnVKc6k4cfeKz5t6dsa6D",
+  defiData: "QmSppVhrBDGL4nbzPjm64fCBvTp3bHozPHjuXkKRf7UoU5", //"QmQponA3PsXMdg2HgUmztZXHjGnVKc6k4cfeKz5t6dsa6D",
   liquidityBaking: undefined,
   blurryBalances: false
 };

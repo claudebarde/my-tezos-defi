@@ -519,6 +519,17 @@
       "color": "#B2FF9E",
       "tokenId": 0,
       "whitelisted": true
+    },
+    "fDAO": {
+      "address": "KT1KPoyzkj82Sbnafm6pfesZKEhyCpXwQfMc",
+      "dexContractAddress": "KT1BweorZK1CJDEu76SyKcxfzeiAxip73Kot",
+      "decimals": 6,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address"],
+      "type": "fa2",
+      "color": "#019ADA",
+      "tokenId": 0,
+      "whitelisted": true
     }
   },
   "investments": {

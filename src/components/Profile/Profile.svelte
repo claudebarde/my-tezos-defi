@@ -25,6 +25,7 @@
     balance: number;
     stakeInXtz: null | number;
   }[] = [];
+  let shareLinkState: "idle" | "clicked" = "idle";
 
   onMount(async () => {
     const { useraddress: userAddress } = params;
@@ -164,6 +165,16 @@
       }
     }
 
+    .title {
+      position: relative;
+
+      .share-link {
+        position: absolute;
+        top: 0px;
+        right: 20px;
+      }
+    }
+
     .user-tokens-stats {
       display: flex;
       justify-content: center;
@@ -214,7 +225,27 @@
   {#if noUser}
     <h3>A user address is missing to display the profile.</h3>
   {:else}
-    <h3>Profile for {username}</h3>
+    <div class="title">
+      <h3>Profile for {username}</h3>
+      {#if navigator.clipboard}
+        <button
+          class="share-link mini"
+          on:click={async () => {
+            shareLinkState = "clicked";
+            await navigator.clipboard.writeText(
+              `https://www.mytezosdefi.com/#/profile/${params.useraddress}`
+            );
+            setTimeout(() => (shareLinkState = "idle"), 2000);
+          }}
+        >
+          {#if shareLinkState === "clicked"}
+            Copied!
+          {:else}
+            Share link
+          {/if}
+        </button>
+      {/if}
+    </div>
   {/if}
   <h4>
     <span class="material-icons"> account_balance </span>

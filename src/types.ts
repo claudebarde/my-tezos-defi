@@ -50,7 +50,8 @@ export enum AvailableToken {
   cTEZ = "cTEZ",
   MAG = "MAG",
   PXL = "PXL",
-  pxlDAO = "pxlDAO"
+  pxlDAO = "pxlDAO",
+  fDAO = "fDAO"
 }
 export enum AvailableFiat {
   USD = "USD",
