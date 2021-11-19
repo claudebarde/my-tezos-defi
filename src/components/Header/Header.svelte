@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { fly } from "svelte/transition";
   import { BeaconWallet } from "@taquito/beacon-wallet";
   import {
@@ -7,12 +7,15 @@
     BeaconEvent,
     defaultEventCallbacks
   } from "@airgap/beacon-sdk";
-  import { bytes2Char } from "@taquito/utils";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import type { TezosAccountAddress } from "../../types";
   import { AvailableFiat } from "../../types";
-  import { shortenHash } from "../../utils";
+  import {
+    shortenHash,
+    formatTokenAmount,
+    fetchTezosDomain
+  } from "../../utils";
   import config from "../../config";
   import Calculator from "../Calculator/Calculator.svelte";
 
@@ -33,28 +36,9 @@
       }
     }
   };
-  const tezosDomainContract = "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS";
   let username = "";
   let showAvailableFiats = false;
-
-  const fetchTezosDomain = async (address: string): Promise<string> => {
-    try {
-      const contract = await $store.Tezos.wallet.at(tezosDomainContract);
-      const storage: any = await contract.storage();
-      const user = await storage.store.reverse_records.get(address);
-      if (user) {
-        return bytes2Char(user.name);
-      } else {
-        return address.slice(0, 5) + "..." + address.slice(-5);
-      }
-    } catch (error) {
-      console.error(
-        "Failed to fetch Tezos domain contract or username with error:",
-        error
-      );
-      return address.slice(0, 5) + "..." + address.slice(-5);
-    }
-  };
+  let showBalanceInFiat = false;
 
   const connect = async () => {
     let wallet;
@@ -76,7 +60,7 @@
       localStorageStore.init(userAddress);
       store.updateUserAddress(userAddress);
       username = shortenHash(userAddress);
-      username = await fetchTezosDomain(userAddress);
+      username = await fetchTezosDomain($store.Tezos, userAddress);
     } catch (err) {
       console.error(err);
     }
@@ -135,7 +119,12 @@
       localStorageStore.init(userAddress);
 
       username = shortenHash(userAddress);
-      username = await fetchTezosDomain(userAddress);
+      username = await fetchTezosDomain($store.Tezos, userAddress);
+
+      setInterval(async () => {
+        const balance = await $store.Tezos.tz.getBalance(userAddress);
+        store.updateTezBalance(balance.toNumber());
+      }, 1000);
     } else {
       localStorageStore.init();
     }
@@ -199,14 +188,32 @@
 <header>
   <div>
     {#if $store.userAddress}
-      <button class="primary" on:click={disconnect}>
-        <img
-          src={`https://services.tzkt.io/v1/avatars/${$store.userAddress}`}
-          style="width: 30px;height:30px"
-          alt="user-avatar"
-        />
-        &nbsp; {username}
-      </button>
+      <div class="buttons">
+        <button class="primary" on:click={disconnect}>
+          <img
+            src={`https://services.tzkt.io/v1/avatars/${$store.userAddress}`}
+            style="width: 30px;height:30px"
+            alt="user-avatar"
+          />
+          &nbsp; {username}
+        </button>
+        <button
+          class="primary"
+          on:click={() => (showBalanceInFiat = !showBalanceInFiat)}
+        >
+          <span class="material-icons"> account_balance </span>
+          &nbsp;
+          {#if showBalanceInFiat}
+            {formatTokenAmount(
+              ($store.xtzData.balance / 10 ** 6) * $store.xtzData.exchangeRate,
+              2
+            )}
+            {$localStorageStore.preferredFiat}
+          {:else}
+            {formatTokenAmount($store.xtzData.balance / 10 ** 6, 2)} ꜩ
+          {/if}
+        </button>
+      </div>
     {/if}
   </div>
   <div style="display:flex">

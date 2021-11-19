@@ -5,7 +5,7 @@
   import { Tzip16Module } from "@taquito/tzip16";
   import store from "./store";
   import localStorageStore from "./localStorage";
-  import { AvailableToken } from "./types";
+  import { AvailableToken, AvailableFiat } from "./types";
   import type { State, TokenContract, Operation } from "./types";
   import Router from "svelte-spa-router";
   import routes from "./routes";
@@ -21,7 +21,50 @@
   let Tezos: TezosToolkit;
   let coinGeckoInterval;
   let liveTrafficWorker;
+  let lastVisit = 0;
   let appReady = false;
+
+  const fetchTezToolsPrices = async (
+    tokens: [AvailableToken, TokenContract][]
+  ) => {
+    try {
+      const tezToolsDataRes = await fetch(`https://api.teztools.io/v1/prices`);
+      if (tezToolsDataRes && tezToolsDataRes.status === 200) {
+        const tezToolsData = await tezToolsDataRes.json();
+        // selects whitelisted tokens
+        const availableTokens = Object.values(AvailableToken).map(tk =>
+          tk.toLowerCase()
+        );
+        const tezToolsTokens = tezToolsData.contracts.filter(contract =>
+          availableTokens.includes(contract.symbol.toLowerCase())
+        );
+        tokens = tokens.map(([tokenSymbol, tokenData]) => {
+          let tezToolToken = tezToolsTokens.find(
+            tk => tk.symbol.toLowerCase() === tokenSymbol.toLowerCase()
+          );
+          if (tezToolToken) {
+            return [
+              tokenSymbol,
+              {
+                ...tokenData,
+                exchangeRate: tezToolToken.currentPrice,
+                websiteLink: tezToolToken.websiteLink
+              }
+            ];
+          } else {
+            return [tokenSymbol, tokenData];
+          }
+        });
+        store.updateTokens(tokens);
+        return true;
+      } else {
+        throw "Unable to fetch TezTools prices";
+      }
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  };
 
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic" && msg.data.msg) {
@@ -254,7 +297,8 @@
     try {
       // fetches data from the IPFS
       const defiDataResponse = await fetch(
-        `https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
+        //`https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
+        `https://gateway.pinata.cloud/ipfs/${$store.defiData}`
       );
       if (defiDataResponse) {
         const defiData: {
@@ -333,7 +377,7 @@
                 info: [],
                 alias: `${farm.token} Fee Farming`,
                 icons: ["WRAP", farm.token],
-                token: farm.token,
+                rewardToken: farm.token,
                 liquidityToken: false
               })
           );
@@ -347,48 +391,14 @@
         );
       }
       // fetches data from TezTools
-      const tezToolsDataRes = await fetch(`https://api.teztools.io/v1/prices`);
-      if (tezToolsDataRes && tezToolsDataRes.status === 200) {
-        const tezToolsData = await tezToolsDataRes.json();
-        // selects whitelisted tokens
-        const availableTokens = Object.values(AvailableToken);
-        const tezToolsTokens = tezToolsData.contracts.filter(contract =>
-          availableTokens.includes(contract.symbol)
-        );
-        tokens = tokens.map(([tokenSymbol, tokenData]) => {
-          let tezToolToken = tezToolsTokens.find(
-            tk => tk.symbol === tokenSymbol
-          );
-          if (tezToolToken) {
-            let tokenThumbnail = tezToolToken.thumbnailUri;
-            if (tokenThumbnail && tokenThumbnail.includes("ipfs")) {
-              tokenThumbnail = `https://cloudflare-ipfs.com/ipfs/${tezToolToken.thumbnailUri.replace(
-                "ipfs://",
-                ""
-              )}`;
-            } else if (tokenSymbol === "kUSD") {
-              tokenThumbnail =
-                "https://img.templewallet.com/insecure/fit/64/64/ce/0/plain/https://kolibri-data.s3.amazonaws.com/logo.png";
-            }
-
-            return [
-              tokenSymbol,
-              {
-                ...tokenData,
-                exchangeRate: tezToolToken.currentPrice,
-                thumbnail: tokenThumbnail,
-                websiteLink: tezToolToken.websiteLink
-              }
-            ];
-          } else {
-            return [tokenSymbol, tokenData];
-          }
-        });
-        store.updateTokens(tokens);
-
+      const tokensSuccess = await fetchTezToolsPrices(tokens);
+      if (tokensSuccess) {
         // fetches fiat exchange rate
         const coinGeckoFetch = async () => {
-          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${$localStorageStore.preferredFiat.toLowerCase()}&days=2`;
+          const preferredFiat = $localStorageStore.preferredFiat
+            ? $localStorageStore.preferredFiat.toLowerCase()
+            : AvailableFiat.USD;
+          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${preferredFiat}&days=2`;
           const coinGeckoResponse = await fetch(url);
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();
@@ -423,6 +433,21 @@
         ) {
           store.updateServiceFee(null);
         }
+
+        // refreshes data
+        if (lastVisit === 0) lastVisit = Date.now();
+        document.addEventListener("visibilitychange", async () => {
+          if (
+            document.visibilityState === "visible" &&
+            Date.now() > lastVisit + 60_000 * 10
+          ) {
+            lastVisit = Date.now();
+            await fetchTezToolsPrices(
+              Object.entries($store.tokens) as [AvailableToken, TokenContract][]
+            );
+            console.log("refreshes data");
+          }
+        });
 
         appReady = true;
       }

@@ -6,6 +6,7 @@ import type {
 } from "@taquito/taquito";
 import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
 import { tzip16 } from "@taquito/tzip16";
+import { bytes2Char } from "@taquito/utils";
 import BigNumber from "bignumber.js";
 import type {
   HistoricalDataState,
@@ -19,27 +20,10 @@ import type {
   KolibriOvenData
 } from "./types";
 import { AvailableToken, AvailableInvestments } from "./types";
-import { char2Bytes, bytes2Char } from "@taquito/utils";
+import { char2Bytes } from "@taquito/utils";
 import config from "./config";
 import { get } from "svelte/store";
 import store from "./store";
-
-// outputs "down" while visually looking like "up"
-const testUpsAndDownsData = [
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 },
-  { direction: "up", diff: 0.02668999999999999 },
-  { direction: "down", diff: 0.00008000000000008001 },
-  { direction: "down", diff: 0.00002999999999997449 },
-  { direction: "down", diff: 0.00002999999999997449 },
-  { direction: "same", diff: 0 },
-  { direction: "same", diff: 0 }
-];
 
 export const calculateTrend = (
   tokenData:
@@ -159,12 +143,10 @@ const findTzbtcBalance = async (
 
 export const searchUserTokens = async ({
   Tezos,
-  network,
   userAddress,
   tokens
 }: {
   Tezos: TezosToolkit;
-  network: State["network"];
   userAddress: TezosAccountAddress;
   tokens: [AvailableToken | string, TokenContract][];
 }) => {
@@ -223,10 +205,27 @@ export const searchUserTokens = async ({
         url(token[1].address, "account_info", userAddress)
       );
       const balance = await balanceResponse.json();
-      const balances: { [p: number]: string } = balance.value.balances;
-      newBalances.QUIPU =
-        +[0, 0, Object.values(balances)].reduce((a, b) => +a + +b) /
-        10 ** token[1].decimals;
+      if (balance.active) {
+        const balances: { [p: number]: string } = balance.value.balances;
+        newBalances.QUIPU =
+          +[0, 0, Object.values(balances)].reduce((a, b) => +a + +b) /
+          10 ** token[1].decimals;
+      } else {
+        newBalances.QUIPU = 0;
+      }
+    }
+    // cTEZ
+    if (tokens.find(tk => tk[0] === "cTEZ")) {
+      const token = tokens.find(tk => tk[0] === "cTEZ");
+      const balanceResponse = await fetch(
+        url(token[1].address, token[1].ledgerPath, userAddress)
+      );
+      const balance = await balanceResponse.json();
+      if (balance && balance.active && +balance?.value > 0) {
+        newBalances.cTEZ = +balance.value / 10 ** token[1].decimals;
+      } else {
+        newBalances.cTEZ = 0;
+      }
     }
 
     const aggregatedResults = [...balancesContracts, ...ledgerContracts];
@@ -448,7 +447,10 @@ export const calculateValue = (op: any): number => {
             10 ** token.decimals
           ).toFixed(5) / 1
         );
-      } else if (op.parameter.value.hasOwnProperty("value")) {
+      } else if (
+        op.parameter.value &&
+        op.parameter.value.hasOwnProperty("value")
+      ) {
         return (
           +(+op.parameter.value.value / 10 ** token.decimals).toFixed(5) / 1
         );
@@ -660,6 +662,30 @@ export const getKolibriOvens = async (
   }
 };
 
+export const fetchTezosDomain = async (
+  Tezos: TezosToolkit,
+  address: string
+): Promise<string> => {
+  try {
+    const contract = await Tezos.wallet.at(
+      "KT1GBZmSxmnKJXGMdMLbugPfLyUPmuLSMwKS"
+    );
+    const storage: any = await contract.storage();
+    const user = await storage.store.reverse_records.get(address);
+    if (user) {
+      return bytes2Char(user.name);
+    } else {
+      return address.slice(0, 5) + "..." + address.slice(-5);
+    }
+  } catch (error) {
+    console.error(
+      "Failed to fetch Tezos domain contract or username with error:",
+      error
+    );
+    return address.slice(0, 5) + "..." + address.slice(-5);
+  }
+};
+
 export const fetchAddressFromTezosDomain = async (
   domain: string
 ): Promise<TezosContractAddress | null> => {
@@ -674,54 +700,6 @@ export const fetchAddressFromTezosDomain = async (
     return user.address;
   } else {
     return null;
-  }
-};
-
-export const getPlentyReward = async (
-  userAddress: string,
-  stakingContractAddress: string,
-  currentLevel: number,
-  decimals: number
-) => {
-  const localStore = get(store);
-
-  try {
-    if (!stakingContractAddress) {
-      throw "No contract address provided";
-    }
-
-    const contract = await localStore.Tezos.wallet.at(stakingContractAddress);
-    const storage: any = await contract.storage();
-    if (storage.totalSupply.toNumber() == 0) {
-      throw "No One Staked";
-    }
-    // Calculate Reward Per Token
-    let rewardPerToken = Math.min(
-      currentLevel,
-      storage.periodFinish.toNumber()
-    );
-    rewardPerToken = rewardPerToken - storage.lastUpdateTime.toNumber();
-    rewardPerToken *= storage.rewardRate.toNumber() * Math.pow(10, decimals);
-    rewardPerToken =
-      rewardPerToken / storage.totalSupply.toNumber() +
-      storage.rewardPerTokenStored.toNumber();
-    // Fetch User's Big Map Detais;   ​
-    const userDetails = await storage.balances.get(userAddress);
-    // Calculating Rewards   ​
-    let totalRewards =
-      userDetails.balance.toNumber() *
-      (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
-    totalRewards =
-      totalRewards / Math.pow(10, decimals) + userDetails.rewards.toNumber();
-    totalRewards = totalRewards / Math.pow(10, decimals); // Reducing to Token Decimals
-
-    if (totalRewards >= 0) {
-      return { status: true, totalRewards };
-    } else {
-      throw `Negative rewards: ${totalRewards}`;
-    }
-  } catch (error) {
-    return { status: false, error };
   }
 };
 
@@ -841,21 +819,18 @@ export const loadInvestment = async (
           const userData = await userDataResponse.json();
           return {
             id: inv.id,
-            balance: +userData.value.amount,
-            info: undefined
+            balance: +userData.value.amount
           };
         } else {
           return {
             id: inv.id,
-            balance: 0,
-            info: undefined
+            balance: 0
           };
         }
       } catch (error) {
         return {
           id: inv.id,
-          balance: 0,
-          info: undefined
+          balance: 0
         };
       }
     } else if (inv.platform === "kdao") {
@@ -969,6 +944,15 @@ export const loadInvestment = async (
   } else {
     return null;
   }
+};
+
+export const loadInvestments = async (
+  investments: AvailableInvestments[],
+  userAddress: TezosAccountAddress
+) => {
+  return Promise.allSettled(
+    investments.map(inv => loadInvestment(inv, userAddress))
+  );
 };
 
 /*export const loadInvestment = async (investment: AvailableInvestments) => {
@@ -1289,76 +1273,6 @@ export const calculateLqtOutput = ({
   };
 };
 
-export const formatPlentyLpAmount = (
-  lpAmount: number,
-  exchangePair: string
-): number => {
-  switch (exchangePair) {
-    case "PLENTY-SMAK-LP":
-      return lpAmount / 10 ** 8;
-    case "PLENTY-wUSDC":
-    case "PLENTY-USDtz-LP":
-    case "PLENTY-QUIPU-LP":
-    case "PLENTY-hDAO-LP":
-    case "PLENTY-wUSDT-LP":
-      return lpAmount / 10 ** 6;
-    case "PLENTY-wWBTC":
-    case "PLENTY-tzBTC-LP":
-    case "PLENTY-WRAP-LP":
-    case "PLENTY-UNO-LP":
-      return lpAmount / 10 ** 5;
-    case "PLENTY-uUSD-LP":
-    case "PLENTY-KALAM-LP":
-      return lpAmount / 10 ** 4;
-    case "PLENTY-YOU-LP":
-      return lpAmount / 10 ** 3;
-    default:
-      return lpAmount;
-  }
-};
-
-export const getLPConversion = (
-  token1_pool: number,
-  token2_pool: number,
-  totalSupply: number,
-  lpAmount: number
-) => {
-  const token1Amount = (token1_pool * lpAmount) / totalSupply;
-  const token2Amount = (token2_pool * lpAmount) / totalSupply;
-  return {
-    token1Amount,
-    token2Amount
-  };
-};
-
-export const getPlentyLqtValue = async (
-  exchangePair: AvailableInvestments,
-  exchangeAddress: string,
-  lpAmount: number,
-  Tezos: TezosToolkit
-) => {
-  try {
-    if (!exchangeAddress) throw "No exchange address";
-
-    // formats LP token amount according to exchange
-    const formattedLpAmount = formatPlentyLpAmount(lpAmount, exchangePair);
-
-    const exchangeContract = await Tezos.wallet.at(exchangeAddress);
-    const exchangeStorage: any = await exchangeContract.storage();
-    const tokenAmounts = getLPConversion(
-      exchangeStorage.token1_pool.toNumber(),
-      exchangeStorage.token2_pool.toNumber(),
-      exchangeStorage.totalSupply.toNumber(),
-      formattedLpAmount
-    );
-
-    return { ...tokenAmounts, token2: exchangePair.split("-")[1] };
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-};
-
 const updateWrapLiquidityMiningPool = (
   currentLevel: number,
   farm: any,
@@ -1481,4 +1395,36 @@ const calcWrapFeeMiningReward = async (
     console.error(error);
     return new BigNumber(0);
   }
+};
+
+export const estimateQuipuTezInShares = async (
+  Tezos: TezosToolkit,
+  dexAddress: string,
+  shares: BigNumber.Value
+) => {
+  const sharesBN = new BigNumber(shares);
+  if (sharesBN.isZero()) return new BigNumber(0);
+
+  const contract = await Tezos.wallet.at(dexAddress);
+  const storage: any = await contract.storage();
+
+  return sharesBN
+    .times(storage.storage.tez_pool)
+    .idiv(storage.storage.total_supply);
+};
+
+export const estimateQuipuTokenInShares = async (
+  Tezos: TezosToolkit,
+  dexAddress: string,
+  shares: BigNumber.Value
+) => {
+  const sharesBN = new BigNumber(shares);
+  if (sharesBN.isZero()) return new BigNumber(0);
+
+  const contract = await Tezos.wallet.at(dexAddress);
+  const storage: any = await contract.storage();
+
+  return sharesBN
+    .times(storage.storage.token_pool)
+    .idiv(storage.storage.total_supply);
 };

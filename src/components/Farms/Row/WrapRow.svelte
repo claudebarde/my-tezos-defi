@@ -78,7 +78,14 @@
       const tokensToCompound = Math.floor(
         rewards.amount * 10 ** $store.tokens.WRAP.decimals
       );
+      // contract to get the rewards from
       const contract = await $store.Tezos.wallet.at(invData.address);
+      // wrap stacking contract for compounding
+      const wrapStackingAddress = $store.investments["WRAP-STACKING"].address;
+      const wrapStakingContract = await $store.Tezos.wallet.at(
+        wrapStackingAddress
+      );
+      // wrap token contract
       const wrapTokenContract = await $store.Tezos.wallet.at(
         $store.tokens.WRAP.address
       );
@@ -90,17 +97,17 @@
             {
               add_operator: {
                 owner: $store.userAddress,
-                operator: invData.address,
+                operator: wrapStackingAddress,
                 token_id: 0
               }
             }
           ]),
-          contract.methods.stake(tokensToCompound),
+          wrapStakingContract.methods.stake(tokensToCompound),
           wrapTokenContract.methods.update_operators([
             {
               remove_operator: {
                 owner: $store.userAddress,
-                operator: invData.address,
+                operator: wrapStackingAddress,
                 token_id: 0
               }
             }
@@ -206,11 +213,9 @@
       content: "Remove"
     });
 
-    if (invData.id === AvailableInvestments["WRAP-STACKING"]) {
-      tippy(`#harvest-restake-${invData.id}`, {
-        content: "Harvest and restake"
-      });
-    }
+    tippy(`#harvest-restake-${invData.id}`, {
+      content: "Harvest and restake"
+    });
 
     const invDetails = await loadInvestment(invData.id, $store.userAddress);
     if (invDetails) {
@@ -233,7 +238,7 @@
         stakeInXtz =
           +(
             (invData.balance / 10 ** invData.decimals) *
-            $store.tokens[invData.token].exchangeRate
+            $store.tokens.WRAP.exchangeRate
           ).toFixed(5) / 1;
       }
       dispatch("update-farm-value", [invName, stakeInXtz]);
@@ -316,26 +321,24 @@
         <span class="material-icons"> agriculture </span>
       </button>
     {/if}
-    {#if invData.id === AvailableInvestments["WRAP-STACKING"]}
-      {#if compounding}
-        <button class="mini loading">
-          <span class="material-icons"> sync </span>
-        </button>
-      {:else if compoundingSuccess === true}
-        <button class="mini success">
-          <span class="material-icons"> thumb_up </span>
-        </button>
-      {:else if compoundingSuccess === false}
-        <button class="mini error" on:click={compound}> Retry </button>
-      {:else}
-        <button
-          class="mini"
-          on:click={compound}
-          id={`harvest-restake-${invData.id}`}
-        >
-          <span class="material-icons"> save_alt </span>
-        </button>
-      {/if}
+    {#if compounding}
+      <button class="mini loading">
+        <span class="material-icons"> sync </span>
+      </button>
+    {:else if compoundingSuccess === true}
+      <button class="mini success">
+        <span class="material-icons"> thumb_up </span>
+      </button>
+    {:else if compoundingSuccess === false}
+      <button class="mini error" on:click={compound}> Retry </button>
+    {:else}
+      <button
+        class="mini"
+        on:click={compound}
+        id={`harvest-restake-${invData.id}`}
+      >
+        <span class="material-icons"> save_alt </span>
+      </button>
     {/if}
     {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
       <button

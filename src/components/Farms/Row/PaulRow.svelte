@@ -5,7 +5,14 @@
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
-  import { loadInvestment, prepareOperation } from "../../../utils";
+  import {
+    loadInvestment,
+    prepareOperation,
+    estimateQuipuTezInShares,
+    estimateQuipuTokenInShares,
+    formatTokenAmount
+  } from "../../../utils";
+  import { calcTokenStakesInAlienFarm } from "../../../paulUtils";
   import toastStore from "../../Toast/toastStore";
 
   export let rewards: {
@@ -73,31 +80,87 @@
   };
 
   onMount(async () => {
+    tippy(`#farm-${invData.id}`, {
+      content: createTooltipContent(invData.icons[0], invData.icons[1]),
+      allowHTML: true,
+      placement: "left"
+    });
+
     const invDetails = await loadInvestment(invData.id, $store.userAddress);
     if (invDetails) {
       store.updateInvestments({
         ...$store.investments,
         [invData.id]: {
           ...$store.investments[invData.id],
-          balance: invDetails.balance,
-          info: invDetails.info
+          balance: invDetails.balance
         }
       });
       invData.balance = invDetails.balance;
-      stakeInXtz =
-        +(
-          (invData.balance / 10 ** invData.decimals) *
-          $store.tokens[invData.token].exchangeRate
-        ).toFixed(5) / 1;
-      dispatch("update-farm-value", [invName, stakeInXtz]);
-      return stakeInXtz;
-    }
 
-    tippy(`#farm-${invData.id}`, {
-      content: createTooltipContent(invData.icons[0], invData.icons[1]),
-      allowHTML: true,
-      placement: "left"
-    });
+      if (invData.id === "PAUL-XTZ" || invData.id === "MAG-XTZ") {
+        let dexAddress = "";
+        if (invData.id === "PAUL-XTZ") {
+          dexAddress = "KT1K8A8DLUTVuHaDBCZiG6AJdvKJbtH8dqmN";
+        } else if (invData.id === "MAG-XTZ") {
+          dexAddress = "KT1WREc3cpr36Nqjvegr6WSPgQKwDjL7XxLN";
+        }
+
+        if (!dexAddress) {
+          stakeInXtz = null;
+        }
+
+        const tezInStakesRaw = await estimateQuipuTezInShares(
+          $store.Tezos,
+          dexAddress,
+          invData.balance
+        );
+        const tezInStakes = tezInStakesRaw.toNumber() / 10 ** 6;
+        const tokensInStakesRaw = await estimateQuipuTokenInShares(
+          $store.Tezos,
+          dexAddress,
+          invData.balance
+        );
+        const tokensInStakes =
+          (tokensInStakesRaw.toNumber() / 10 ** $store.tokens.PAUL.decimals) *
+          $store.tokens.PAUL.exchangeRate;
+
+        stakeInXtz = formatTokenAmount(tezInStakes + tokensInStakes);
+      } else if (invData.id === "PAUL-PAUL") {
+        stakeInXtz = formatTokenAmount(
+          (invData.balance / 10 ** invData.decimals) *
+            $store.tokens.PAUL.exchangeRate
+        );
+      } else {
+        stakeInXtz = null;
+      }
+
+      if (invData.info?.includes("paul-lqt")) {
+        const shares = await calcTokenStakesInAlienFarm({
+          Tezos: $store.Tezos,
+          amountOfTokens: invData.balance,
+          tokens: invData.icons.map(icon => ({
+            address: $store.tokens[icon as AvailableToken].address,
+            tokenId: $store.tokens[icon as AvailableToken].tokenId,
+            tokenType: $store.tokens[icon as AvailableToken].type
+          }))
+        });
+        if (shares) {
+          const token1InXtz =
+            ((shares.tokenAAmount /
+              10 ** $store.tokens[invData.icons[0]].decimals) *
+              $store.tokens[invData.icons[0]].exchangeRate) /
+            10 ** 6;
+          const token2InXtz =
+            ((shares.tokenBAmount /
+              10 ** $store.tokens[invData.icons[1]].decimals) *
+              $store.tokens[invData.icons[1]].exchangeRate) /
+            10 ** 6;
+          stakeInXtz = formatTokenAmount(token1InXtz + token2InXtz);
+        }
+      }
+
+      dispatch("update-farm-value", [invName, stakeInXtz]);
+    }
   });
 
   afterUpdate(() => {
@@ -143,15 +206,12 @@
   <div>
     {#if valueInXtz}
       <span class:blurry-text={$store.blurryBalances}>
-        {+(
-          ($store.tokens[invData.token].exchangeRate * invData.balance) /
-          10 ** invData.decimals
-        ).toFixed(5) / 1}
+        {stakeInXtz ?? "N/A"}
       </span>
     {:else}
       <span class:blurry-text={$store.blurryBalances}>
         {+(
-          (($store.tokens[invData.token].exchangeRate * invData.balance) /
+          (($store.tokens[invData.rewardToken].exchangeRate * invData.balance) /
             10 ** invData.decimals) *
           $store.xtzData.exchangeRate
         ).toFixed(2) / 1}

@@ -11,7 +11,7 @@
 
   onMount(async () => {
     if (platform == "wxtz") {
-      iconPath = $store.tokens.wXTZ.thumbnail;
+      iconPath = "images/wXTZ.png";
       const getBalance = await $store.Tezos.tz.getBalance(address);
       if (getBalance) {
         lockedAmount = getBalance.toNumber() / 10 ** 6;
@@ -19,7 +19,7 @@
         lockedAmount = 0;
       }
     } else if (platform == "kusd") {
-      iconPath = "images/kusd.png";
+      iconPath = "images/kUSD.png";
       const getBalance = await $store.Tezos.tz.getBalance(address);
       if (getBalance) {
         lockedAmount = getBalance.toNumber() / 10 ** 6;
@@ -27,7 +27,7 @@
         lockedAmount = 0;
       }
     } else if (platform == "uusd") {
-      iconPath = $store.tokens.uUSD.thumbnail;
+      iconPath = "images/uUSD.png";
       const getBalance = await $store.Tezos.tz.getBalance(address);
       if (getBalance) {
         lockedAmount = getBalance.toNumber() / 10 ** 6;

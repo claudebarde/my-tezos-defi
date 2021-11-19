@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { afterUpdate } from "svelte";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import CalculatorBox from "./CalculatorBox.svelte";
@@ -26,7 +26,8 @@
     } else if (token === "XTZ") {
       xtzVal = val;
       // updates fiat price
-      fiatVal = +(1 / (xtzVal * $store.xtzData.exchangeRate)).toFixed(5);
+      //fiatVal = +(1 / (xtzVal * $store.xtzData.exchangeRate)).toFixed(5);
+      fiatVal = +(xtzVal * $store.xtzData.exchangeRate).toFixed(5);
     } else if (token === "FIAT") {
       fiatVal = val;
       xtzVal = +(fiatVal / $store.xtzData.exchangeRate).toFixed(5) / 1;
@@ -42,8 +43,8 @@
     });
   };
 
-  onMount(() => {
-    if ($store.tokens) {
+  afterUpdate(() => {
+    if ($store.tokens && Object.values(conversions).length === 0) {
       Object.keys($store.tokens).forEach(token => (conversions[token] = 0));
     }
   });

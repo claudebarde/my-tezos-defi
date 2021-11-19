@@ -219,7 +219,7 @@
           selectUusdVaults = false;
         }}
       >
-        <img src={$store.tokens.wXTZ.thumbnail} alt="wXTZ" />
+        <img src="images/wXTZ.png" alt="wXTZ" />
         &nbsp; wXTZ
         <span class="material-icons"> arrow_drop_down </span>
       </button>
@@ -257,7 +257,7 @@
           selectWxtzVaults = false;
         }}
       >
-        <img src={$store.tokens.uUSD.thumbnail} alt="uUSD" />
+        <img src="images/uUSD.png" alt="uUSD" />
         &nbsp; Youves
         <span class="material-icons"> arrow_drop_down </span>
       </button>

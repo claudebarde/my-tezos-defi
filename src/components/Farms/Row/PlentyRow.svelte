@@ -7,13 +7,10 @@
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
-  import {
-    prepareOperation,
-    getPlentyLqtValue,
-    loadInvestment
-  } from "../../../utils";
-  import config from "../../../config";
+  import { prepareOperation, loadInvestment } from "../../../utils";
+  import { calcPlentyStakeInXtz } from "../../../plentyUtils";
   import toastStore from "../../Toast/toastStore";
+  import Modal from "../../Modal/Modal.svelte";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -28,49 +25,8 @@
   let harvesting = false;
   let harvestingSuccess = undefined;
   let stakeInXtz: null | number = null;
+  let openSettingsModal = false;
   const dispatch = createEventDispatcher();
-
-  const calcStakeInXtz = async ({
-    isPlentyLpToken,
-    id,
-    balance,
-    decimals,
-    exchangeRate
-  }: {
-    id: AvailableInvestments;
-    isPlentyLpToken: boolean;
-    balance: number;
-    decimals: number;
-    exchangeRate: number;
-  }): Promise<number> => {
-    if (!balance) return 0;
-
-    if (!isPlentyLpToken) {
-      const stakeInXtz =
-        +((balance / 10 ** decimals) * exchangeRate).toFixed(5) / 1;
-      dispatch("update-farm-value", [invName, stakeInXtz]);
-      return stakeInXtz;
-    } else {
-      const tokens = await getPlentyLqtValue(
-        id,
-        config.plentyDexAddresses[id],
-        balance,
-        $store.Tezos
-      );
-      if (!tokens) {
-        return 0;
-      } else {
-        const stakeInXtz =
-          (tokens.token1Amount / 10 ** $store.tokens.PLENTY.decimals) *
-            $store.tokens.PLENTY.exchangeRate +
-          (tokens.token2Amount / 10 ** $store.tokens[tokens.token2].decimals) *
-            $store.tokens[tokens.token2].exchangeRate;
-        dispatch("update-farm-value", [invName, stakeInXtz]);
-
-        return +stakeInXtz.toFixed(5) / 1;
-      }
-    }
-  };
 
   const harvest = async () => {
     harvesting = true;
@@ -125,20 +81,20 @@
         }
       });
       invData.balance = invDetails.balance;
-      stakeInXtz = await calcStakeInXtz({
-        isPlentyLpToken: invData.platform === "plenty",
-        id: invData.id,
-        balance: invData.balance,
-        decimals: invData.decimals,
-        exchangeRate: $store.tokens[invData.token].exchangeRate
-      });
+      if (!invDetails.balance) {
+        stakeInXtz = 0;
+      } else {
+        stakeInXtz = await calcPlentyStakeInXtz({
+          isPlentyLpToken: invData.platform === "plenty",
+          id: invData.id,
+          balance: invData.balance,
+          decimals: invData.decimals,
+          exchangeRate: $store.tokens[invData.rewardToken].exchangeRate,
+          rewardToken: invData.rewardToken
+        });
+        dispatch("update-farm-value", [invName, stakeInXtz]);
+      }
     }
-
-    tippy(`#farm-${invData.id}`, {
-      content: createTooltipContent(invData.icons[0], invData.icons[1]),
-      allowHTML: true,
-      placement: "left"
-    });
 
     tippy(`#harvest-${invData.id}`, {
       content: "Harvest"
@@ -166,6 +122,12 @@
         allowHTML: true
       });
     }
+
+    tippy(`#farm-${invData.id}`, {
+      content: createTooltipContent(invData.icons[0], invData.icons[1]),
+      allowHTML: true,
+      placement: "left"
+    });
   });
 </script>
 
@@ -187,7 +149,7 @@
     </a>
   </div>
   <div>
-    {#if !invData || !invData.balance}
+    {#if !invData || isNaN(invData.balance)}
       <span class="material-icons"> hourglass_empty </span>
     {:else}
       <span class:blurry-text={$store.blurryBalances}>
@@ -199,19 +161,15 @@
     {/if}
   </div>
   <div>
-    {#if !invData.liquidityToken && $store.tokens[invData.token]}
+    {#if !invData.liquidityToken && $store.tokens[invData.rewardToken]}
       <div>
         {#if valueInXtz}
           <span class:blurry-text={$store.blurryBalances}>
-            {#await calcStakeInXtz( { isPlentyLpToken: false, id: invData.id, balance: invData.balance, decimals: invData.decimals, exchangeRate: $store.tokens[invData.token].exchangeRate } ) then stakeInXtz}
-              {stakeInXtz}
-            {/await}
+            {stakeInXtz}
           </span>
         {:else}
           <span class:blurry-text={$store.blurryBalances}>
-            {#await calcStakeInXtz( { isPlentyLpToken: false, id: invData.id, balance: invData.balance, decimals: invData.decimals, exchangeRate: $store.tokens[invData.token].exchangeRate } ) then stakeInXtz}
-              {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(5) / 1}
-            {/await}
+            {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(5) / 1}
           </span>
         {/if}
       </div>
@@ -274,9 +232,29 @@
       <span class="material-icons"> delete </span>
     </button>
     {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-      <button class="mini">
+      <button class="mini" on:click={() => (openSettingsModal = true)}>
         <span class="material-icons"> settings </span>
       </button>
     {/if}
   </div>
 </div>
+{#if openSettingsModal}
+  <Modal type="default" on:close={() => (openSettingsModal = false)}>
+    <div slot="modal-title" class="modal-title">
+      <div>Settings</div>
+      <div>{invData.alias}</div>
+    </div>
+    <div slot="modal-body" class="modal-body">Body</div>
+    <div slot="modal-footer" class="modal-footer">
+      <div />
+      <button
+        class="primary"
+        on:click={() => {
+          openSettingsModal = false;
+        }}
+      >
+        Close
+      </button>
+    </div>
+  </Modal>
+{/if}

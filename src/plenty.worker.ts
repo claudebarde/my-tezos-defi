@@ -1,4 +1,4 @@
-import { getLPConversion, formatPlentyLpAmount } from "./utils";
+import { getLPConversion, formatPlentyLpAmount } from "./plentyUtils";
 
 const ctx: Worker = self as any;
 let favoriteFarms: string[] = [];

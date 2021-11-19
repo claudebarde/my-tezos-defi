@@ -6,14 +6,13 @@
   import localStorageStore from "../../localStorage";
   import {
     loadInvestment,
-    getPlentyReward,
     getPaulReward,
     getKdaoReward,
     getWrapReward,
     prepareOperation,
-    formatPlentyLpAmount,
     formatTokenAmount
   } from "../../utils";
+  import { getPlentyReward, formatPlentyLpAmount } from "../../plentyUtils";
   import {
     AvailableToken,
     AvailableInvestments,
@@ -24,10 +23,12 @@
   import WrapRow from "./Row/WrapRow.svelte";
   import PaulRow from "./Row/PaulRow.svelte";
   import KdaoRow from "./Row/KdaoRow.svelte";
+  import XPlentyRow from "./Row/XPlentyRow.svelte";
   import InvestmentSpread from "./InvestmentSpread.svelte";
   import PlentyTotalRewards from "./PlentyTotalRewards.svelte";
   import Modal from "../Modal/Modal.svelte";
   import config from "../../config";
+  import toastStore from "../Toast/toastStore";
 
   let plentyValueInXtz = true;
   let kdaoValueInXtz = true;
@@ -41,11 +42,21 @@
   }[] = [];
   let lastRewardsCheck = 0;
   let totalValueInFarms: [AvailableInvestments, number][] = [];
-  let harvestingAll = false;
-  let harvestingAllSuccess = undefined;
+  let harvestingAllPlenty = false;
+  let harvestingAllPlentySuccess = undefined;
+  let harvestingAllPaul = false;
+  let harvestingAllPaulSuccess = undefined;
   let unstakedLpTokens: [AvailableInvestments, string, number][] = [];
-  let lastVisit = 0;
   let selectFarmModal: null | InvestmentPlatform = null;
+  let searchingForStakes = false;
+  let searchingForStakesPlatform: InvestmentPlatform | null = null;
+  let loadingSearchingForStakes = false;
+  let foundStakes: {
+    platform: InvestmentPlatform;
+    id: AvailableInvestments;
+    name: string;
+    balance: number;
+  }[] = [];
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -79,8 +90,8 @@
     });
   };
 
-  const harvestAll = async () => {
-    harvestingAll = true;
+  const harvestAllPlenty = async () => {
+    harvestingAllPlenty = true;
     // gets the addresses of pools with rewards to harvest
     let allRewards = (
       await Promise.all(
@@ -121,20 +132,79 @@
       const op = await batch.send();
       await op.confirmation();
       const receipt = await op.receipt();
-      harvestingAll = false;
+      harvestingAllPlenty = false;
       if (!receipt) {
-        harvestingAllSuccess = false;
+        harvestingAllPlentySuccess = false;
         throw `Operation failed: ${receipt}`;
       } else {
-        harvestingAllSuccess = true;
+        harvestingAllPlentySuccess = true;
         setTimeout(() => {
-          harvestingAllSuccess = undefined;
+          harvestingAllPlentySuccess = undefined;
         }, 2000);
       }
     } catch (error) {
       console.log(error);
     } finally {
-      harvestingAll = false;
+      harvestingAllPlenty = false;
+    }
+  };
+
+  const harvestAllPaul = async () => {
+    harvestingAllPaul = true;
+    // gets the addresses of pools with rewards to harvest
+    let allRewards = (
+      await Promise.all(
+        Object.values($store.investments)
+          .filter(inv => inv.platform === "paul")
+          .map(inv =>
+            (async () => ({
+              address: inv.address,
+              rewards: await getPaulReward(inv.address)
+            }))()
+          )
+      )
+    ).filter(res => res.rewards && res.rewards.toNumber() > 0);
+    const contractCalls = await Promise.all(
+      allRewards.map(async res => {
+        const contract = await $store.Tezos.wallet.at(res.address);
+        return contract.methods.earn($store.userAddress);
+      })
+    );
+    const fee = [0, 0, ...allRewards.map(res => res.rewards.toNumber())].reduce(
+      (a, b) => +a + +b
+    );
+    console.log(contractCalls, fee);
+    // batches transactions
+    try {
+      const batch = prepareOperation({
+        contractCalls: contractCalls,
+        amount: +fee,
+        tokenSymbol: AvailableToken.PAUL
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      const receipt = await op.receipt();
+      harvestingAllPaul = false;
+      if (!receipt) {
+        harvestingAllPaulSuccess = false;
+        throw `Operation failed: ${receipt}`;
+      } else {
+        harvestingAllPaulSuccess = true;
+        setTimeout(() => {
+          harvestingAllPaulSuccess = undefined;
+        }, 2000);
+      }
+    } catch (error) {
+      console.log(error);
+      toastStore.addToast({
+        type: "error",
+        text: error.message
+          ? error.message
+          : `Unable to harvest Alien's' farms`,
+        dismissable: true
+      });
+    } finally {
+      harvestingAllPaul = false;
     }
   };
 
@@ -206,26 +276,215 @@
   };
 
   const sortFarmSelectModal = (
+    favoriteInvestments: AvailableInvestments[],
     favorite: boolean,
     platform: InvestmentPlatform,
     type?: string
   ): [string, InvestmentData][] => {
+    if (!favoriteInvestments)
+      return Object.entries($store.investments).filter(
+        inv => inv[1].platform === platform
+      );
+
     return Object.entries($store.investments)
       .filter(inv => inv[1].platform === platform)
       .filter(inv =>
         favorite
-          ? $localStorageStore.favoriteInvestments.includes(inv[1].id)
-          : !$localStorageStore.favoriteInvestments.includes(inv[1].id)
+          ? favoriteInvestments.includes(inv[1].id)
+          : !favoriteInvestments.includes(inv[1].id)
       )
       .filter(inv => (type ? inv[1].type === type : true))
       .sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()));
+  };
+
+  const findStakes = async (platform: InvestmentPlatform) => {
+    if (platform) {
+      foundStakes = [];
+      searchingForStakes = true;
+      loadingSearchingForStakes = true;
+      searchingForStakesPlatform = platform;
+      if (platform === "plenty") {
+        const plentyFarms = Object.values($store.investments).filter(
+          inv => inv.platform === "plenty"
+        );
+        try {
+          const plentyFarmBalancesRes = await Promise.allSettled(
+            plentyFarms.map(async farm => ({
+              balance: await fetch(
+                `https://api.tzkt.io/v1/contracts/${farm.address}/bigmaps/balances/keys/${$store.userAddress}`
+              )
+                .then(res => res.json())
+                .catch(err => undefined),
+              alias: farm.alias,
+              id: farm.id
+            }))
+          );
+          const plentyFarmBalances = plentyFarmBalancesRes.filter(
+            res =>
+              res.status === "fulfilled" &&
+              res.value.balance &&
+              res.value.balance.active &&
+              +res.value.balance.value.balance > 0
+          );
+          if (plentyFarmBalances.length > 0) {
+            foundStakes = plentyFarmBalances.map((farm: any) => ({
+              platform: "plenty",
+              id: farm.value.id,
+              name: farm.value.alias,
+              balance: formatTokenAmount(
+                +farm.value.balance.value.balance / 10 ** 18
+              )
+            }));
+          }
+        } catch (error) {
+          console.error(error);
+          toastStore.addToast({
+            type: "error",
+            text: `Unable to fetch balances for ${platform.toUpperCase()}`,
+            dismissable: true
+          });
+        } finally {
+          loadingSearchingForStakes = false;
+        }
+      } else if (platform === "wrap") {
+        const wrapFarms = Object.values($store.investments).filter(
+          inv => inv.platform === "wrap"
+        );
+        try {
+          const wrapFarmBalancesRes = await Promise.allSettled(
+            wrapFarms.map(async farm => ({
+              balance: await fetch(
+                `https://api.tzkt.io/v1/contracts/${farm.address}/bigmaps/${
+                  farm.id.slice(-3) === "-FM" ? "balances" : "delegators"
+                }/keys/${$store.userAddress}`
+              )
+                .then(res => res.json())
+                .catch(err => undefined),
+              alias: farm.alias,
+              id: farm.id
+            }))
+          );
+          const wrapFarmBalances = wrapFarmBalancesRes.filter(
+            res =>
+              res.status === "fulfilled" &&
+              res.value.balance &&
+              res.value.balance.active
+          );
+          if (wrapFarmBalances.length > 0) {
+            foundStakes = wrapFarmBalances.map((farm: any) => {
+              if (farm.value.id === "WRAP-STACKING") {
+                return {
+                  platform: "wrap",
+                  id: farm.value.id,
+                  name: farm.value.alias,
+                  balance: formatTokenAmount(
+                    farm.value.id.slice(-3) === "-FM"
+                      ? +farm.value.balance.value.balance / 10 ** 8
+                      : +farm.value.balance.value.balance / 10 ** 6
+                  )
+                };
+              } else if (farm.value.id.slice(-3) === "-LM") {
+                return {
+                  platform: "wrap",
+                  id: farm.value.id,
+                  name: farm.value.alias,
+                  balance: formatTokenAmount(
+                    farm.value.id.slice(-3) === "-FM"
+                      ? +farm.value.balance.value.lpTokenBalance / 10 ** 8
+                      : +farm.value.balance.value.lpTokenBalance / 10 ** 6
+                  )
+                };
+              } else if (farm.value.id.slice(-3) === "-FM") {
+                return {
+                  platform: "wrap",
+                  id: farm.value.id,
+                  name: farm.value.alias,
+                  balance: formatTokenAmount(
+                    farm.value.id.slice(-3) === "-FM"
+                      ? +farm.value.balance.value / 10 ** 8
+                      : +farm.value.balance.value / 10 ** 6
+                  )
+                };
+              }
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          toastStore.addToast({
+            type: "error",
+            text: `Unable to fetch balances for ${platform.toUpperCase()}`,
+            dismissable: true
+          });
+        } finally {
+          loadingSearchingForStakes = false;
+        }
+      } else if (platform === "paul") {
+        const paulFarms = Object.values($store.investments).filter(
+          inv => inv.platform === "paul"
+        );
+        try {
+          const paulFarmBalancesRes = await Promise.allSettled(
+            paulFarms.map(async farm => ({
+              balance: await fetch(
+                `https://api.tzkt.io/v1/contracts/${farm.address}/bigmaps/account_info/keys/${$store.userAddress}`
+              )
+                .then(res => res.json())
+                .catch(err => undefined),
+              alias: farm.alias,
+              id: farm.id
+            }))
+          );
+          const paulFarmBalances = paulFarmBalancesRes.filter(
+            res =>
+              res.status === "fulfilled" &&
+              res.value.balance &&
+              res.value.balance.active
+          );
+          if (paulFarmBalances.length > 0) {
+            foundStakes = paulFarmBalances.map((farm: any) => {
+              return {
+                platform: "paul",
+                id: farm.value.id,
+                name: farm.value.alias,
+                balance: formatTokenAmount(
+                  +farm.value.balance.value.amount / 10 ** 6
+                )
+              };
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          toastStore.addToast({
+            type: "error",
+            text: `Unable to fetch balances for ${platform.toUpperCase()}`,
+            dismissable: true
+          });
+        } finally {
+          loadingSearchingForStakes = false;
+        }
+      } else {
+        console.log(platform);
+      }
+      loadingSearchingForStakes = false;
+    } else {
+      toastStore.addToast({
+        type: "error",
+        text: `No platform name`,
+        dismissable: true
+      });
+    }
   };
 
   onMount(async () => {
     if (!$store.userAddress) push("/");
 
     // looks for unstaked LP tokens
-    if ($store.Tezos && $store.userAddress && $localStorageStore) {
+    if (
+      $store.Tezos &&
+      $store.userAddress &&
+      $localStorageStore &&
+      $localStorageStore.favoriteInvestments
+    ) {
       // PLENTY
       const plentyLptAddresses = $localStorageStore.favoriteInvestments
         .map(inv => config.plentyLptAddresses[inv.replace("-LP", "") + "-LP"])
@@ -253,25 +512,13 @@
           ]);
       }
     }
-
-    lastVisit = Date.now();
-
-    // refreshes data
-    document.addEventListener("visibilitychange", async () => {
-      if (
-        document.visibilityState === "visible" &&
-        Date.now() > lastVisit + 60_000 * 10
-      ) {
-        lastVisit = Date.now();
-        console.log("refreshes data");
-      }
-    });
   });
 
   afterUpdate(async () => {
     // calculates available rewards
     if (
       $localStorageStore &&
+      $localStorageStore.favoriteInvestments &&
       $store.investments &&
       $store.lastOperations.length > 0 &&
       lastRewardsCheck + 10_000 < Date.now()
@@ -286,7 +533,8 @@
             inv.platform === "paul" ||
             inv.platform === "kdao" ||
             inv.platform === "wrap"
-        );
+        )
+        .filter(inv => inv.id !== AvailableInvestments["xPLENTY-Staking"]);
       const rewards: any = await Promise.all(
         investmentData.map(async inv => {
           let rewards;
@@ -369,6 +617,28 @@
           +(
             totalPlentyRewards *
             $store.tokens[AvailableToken.PLENTY].exchangeRate *
+            $store.xtzData.exchangeRate
+          ).toFixed(5) / 1
+        } ${$localStorageStore.preferredFiat || "USD"}</div>`,
+        allowHTML: true
+      });
+
+      const totalPaulRewards = [
+        0,
+        0,
+        ...availableRewards
+          .filter(rw => rw.platform === "paul")
+          .map(rw => +rw.amount)
+      ].reduce((a, b) => a + b);
+      tippy(`#total-paul-rewards`, {
+        content: `<div>${
+          +(
+            totalPaulRewards * $store.tokens[AvailableToken.PAUL].exchangeRate
+          ).toFixed(5) / 1
+        } ꜩ<br />${
+          +(
+            totalPaulRewards *
+            $store.tokens[AvailableToken.PAUL].exchangeRate *
             $store.xtzData.exchangeRate
           ).toFixed(5) / 1
         } ${$localStorageStore.preferredFiat || "USD"}</div>`,
@@ -488,13 +758,13 @@
     <div class="total-value">
       <div>Total value in farms</div>
       <div>
-        ꜩ {totalValueInFarms.length > 0
+        {totalValueInFarms.length > 0
           ? (
               +[0, ...totalValueInFarms.map(val => val[1])]
                 .reduce((a, b) => a + b)
                 .toFixed(3) / 1
             ).toLocaleString("en-US")
-          : 0}
+          : 0} ꜩ
       </div>
       <div>
         {(totalValueInFarms.length > 0
@@ -511,9 +781,9 @@
     <div class="ready-to-harvest">
       <div>Ready to harvest</div>
       <div>
-        ꜩ {readyToHarvest
+        {readyToHarvest
           ? (+readyToHarvest.toFixed(3) / 1).toLocaleString("en-US")
-          : 0}
+          : 0} ꜩ
       </div>
       <div>
         {(readyToHarvest
@@ -533,7 +803,7 @@
           selectFarmModal = "plenty";
         }}
       >
-        <img src={$store.tokens.PLENTY.thumbnail} alt="Plenty" />
+        <img src="images/PLENTY.png" alt="Plenty" />
         &nbsp; Plenty
         <span class="material-icons"> arrow_drop_down </span>
       </button>
@@ -546,7 +816,7 @@
             selectFarmModal = "wrap";
           }}
         >
-          <img src={$store.tokens.WRAP.thumbnail} alt="WRAP" />
+          <img src="images/WRAP.png" alt="WRAP" />
           &nbsp; WRAP
           <span class="material-icons"> arrow_drop_down </span>
         </button>
@@ -559,7 +829,7 @@
           selectFarmModal = "paul";
         }}
       >
-        <img src={$store.tokens.PAUL.thumbnail} alt="Paul" />
+        <img src="images/PAUL.png" alt="Paul" />
         &nbsp; Paul
         <span class="material-icons"> arrow_drop_down </span>
       </button>
@@ -571,81 +841,320 @@
           selectFarmModal = "kdao";
         }}
       >
-        <img src={$store.tokens.kDAO.thumbnail} alt="kDAO" />
+        <img src="images/kDAO.png" alt="kDAO" />
         &nbsp; kDAO
         <span class="material-icons"> arrow_drop_down </span>
       </button>
     </div>
   </div>
   <br />
-  <div class="favorite-investments">
-    <!-- PLENTY FARMS -->
-    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty").length > 0}
-      <div class="row-header">
-        <div />
-        <div>Contract</div>
-        <div>Stake</div>
-        <div>
-          Stake in {kdaoValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
+  {#if $localStorageStore.favoriteInvestments}
+    <div class="favorite-investments">
+      <!-- PLENTY FARMS -->
+      {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty").length > 0}
+        <div class="row-header">
+          <div />
+          <div>Contract</div>
+          <div>Stake</div>
+          <div>
+            Stake in {kdaoValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
+          </div>
+          <div>Reward</div>
         </div>
-        <div>Reward</div>
-      </div>
-    {/if}
-    <!-- PLENTY FARMS WITH STABLECOINS -->
-    {#if Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
-      .filter(inv => config.stablecoins.includes(inv[1].icons[1])).length > 0}
-      <div class="farm-title">Stablecoins</div>
-    {/if}
-    {#each Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
-      .filter(inv => config.stablecoins.includes(inv[1].icons[1]))
-      .sort((a, b) => sortFarmsPerRewards(a[1], b[1])) as [invName, invData]}
-      <PlentyRow
-        rewards={availableRewards.find(rw => rw.id === invData.id)}
-        {invName}
-        {invData}
-        valueInXtz={true}
-        {createTooltipContent}
-        on:update-farm-value={event =>
-          (totalValueInFarms = [
-            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
-            event.detail
-          ])}
-        on:reset-rewards={event => resetRewards(event.detail)}
-      />
-    {/each}
-    <!-- PLENTY FARMS WITH STABLECOINS -->
-    {#if Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
-      .filter(inv => !config.stablecoins.includes(inv[1].icons[1])).length > 0}
-      <div class="farm-title">Other tokens</div>
-    {/if}
-    {#each Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
-      .filter(inv => !config.stablecoins.includes(inv[1].icons[1]))
-      .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
-      <PlentyRow
-        rewards={availableRewards.find(rw => rw.id === invData.id)}
-        {invName}
-        {invData}
-        valueInXtz={true}
-        {createTooltipContent}
-        on:update-farm-value={event =>
-          (totalValueInFarms = [
-            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
-            event.detail
-          ])}
-        on:reset-rewards={event => resetRewards(event.detail)}
-      />
-    {/each}
+      {/if}
+      <!-- PLENTY FARMS WITH STABLECOINS -->
+      {#if Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
+        .filter(inv => config.stablecoins.includes(inv[1].icons[1])).length > 0}
+        <div class="farm-title">Stablecoins</div>
+      {/if}
+      {#each Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
+        .filter(inv => config.stablecoins.includes(inv[1].icons[1]))
+        .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
+        <PlentyRow
+          rewards={availableRewards.find(rw => rw.id === invData.id)}
+          {invName}
+          {invData}
+          valueInXtz={true}
+          {createTooltipContent}
+          on:update-farm-value={event =>
+            (totalValueInFarms = [
+              ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+              event.detail
+            ])}
+          on:reset-rewards={event => resetRewards(event.detail)}
+        />
+      {/each}
+      <!-- PLENTY FARMS WITH STABLECOINS -->
+      {#if Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
+        .filter(inv => !config.stablecoins.includes(inv[1].icons[1])).length > 0}
+        <div class="farm-title">Other tokens</div>
+      {/if}
+      {#each Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty")
+        .filter(inv => !config.stablecoins.includes(inv[1].icons[1]))
+        .filter(inv => inv[0] !== AvailableInvestments["xPLENTY-Staking"])
+        .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
+        <PlentyRow
+          rewards={availableRewards.find(rw => rw.id === invData.id)}
+          {invName}
+          {invData}
+          valueInXtz={true}
+          {createTooltipContent}
+          on:update-farm-value={event =>
+            (totalValueInFarms = [
+              ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+              event.detail
+            ])}
+          on:reset-rewards={event => resetRewards(event.detail)}
+        />
+      {/each}
+      {#if $localStorageStore.favoriteInvestments.includes("xPLENTY-Staking")}
+        <div class="farm-title">xPLENTY Staking</div>
+        <XPlentyRow />
+      {/if}
+      {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && $localStorageStore.favoriteInvestments.filter( inv => inv.includes("PLENTY") ).length > 0}
+        <div class="row-footer">
+          <div style="grid-column: 1 / span 2">
+            <button
+              class="primary mini"
+              on:click={async () => await findStakes("plenty")}
+            >
+              <span class="material-icons"> search </span>
+              Find my stakes
+            </button>
+          </div>
+          <div />
+          <div />
+          {#if availableRewards.length > 0}
+            <div class="total-rewards" id="total-plenty-rewards">
+              <span class="material-icons" style="vertical-align:middle">
+                point_of_sale
+              </span>
+              {formatTokenAmount(
+                [
+                  0,
+                  0,
+                  ...availableRewards
+                    .filter(rw => rw.platform === "plenty")
+                    .map(rw => +rw.amount)
+                ].reduce((a, b) => a + b),
+                2
+              )}
+            </div>
+          {:else}
+            <div />
+          {/if}
+          <div style="display:flex;justify-content:center">
+            {#if harvestingAllPlenty}
+              <button class="mini loading">
+                Harvesting <span class="material-icons"> sync </span>
+              </button>
+            {:else}
+              <!-- Harvest button states -->
+              {#if harvestingAllPlentySuccess === true}
+                <button class="mini success"> Harvested! </button>
+              {:else if harvestingAllPlentySuccess === false}
+                <button class="mini error" on:click={harvestAllPlenty}>
+                  Retry
+                </button>
+              {:else}
+                <button class="mini" on:click={harvestAllPlenty}>
+                  <span class="material-icons"> agriculture </span>&nbsp;
+                  Harvest all
+                </button>
+              {/if}
+            {/if}
+          </div>
+        </div>
+      {/if}
+      <!-- WRAP FARMS -->
+      {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap").length > 0}
+        <div class="row-header">
+          <div />
+          <div>Contract</div>
+          <div>Stake</div>
+          <div>
+            Stake in {wrapValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
+          </div>
+          <div>Reward</div>
+        </div>
+      {/if}
+      <!-- WRAP STACKING -->
+      {#if Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+        .find(inv => inv[1].type === "stacking")}
+        <div class="farm-title">WRAP Stacking</div>
+      {/if}
+      {#each Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+        .filter(inv => inv[1].type === "stacking") as [invName, invData] (invData.id)}
+        <WrapRow
+          rewards={availableRewards.find(rw => rw.id === invData.id)}
+          {invName}
+          {invData}
+          valueInXtz={true}
+          {createTooltipContent}
+          on:update-farm-value={event =>
+            (totalValueInFarms = [
+              ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+              event.detail
+            ])}
+          on:reset-rewards={event => resetRewards(event.detail)}
+          on:update-stake={event => {
+            const { id, balance } = event.detail;
+            const newInvestments = { ...$store.investments };
+            newInvestments[id].balance = balance;
+            store.updateInvestments(newInvestments);
+          }}
+        />
+      {/each}
+      <!-- LIQUIDITY MINING -->
+      {#if Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+        .find(inv => inv[1].type === "staking")}
+        <div class="farm-title">Liquidity Mining</div>
+      {/if}
+      {#each Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+        .filter(inv => inv[1].type === "staking") as [invName, invData] (invData.id)}
+        <WrapRow
+          rewards={availableRewards.find(rw => rw.id === invData.id)}
+          {invName}
+          {invData}
+          valueInXtz={true}
+          {createTooltipContent}
+          on:update-farm-value={event =>
+            (totalValueInFarms = [
+              ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+              event.detail
+            ])}
+          on:reset-rewards={event => resetRewards(event.detail)}
+          on:update-stake={event => {
+            const { id, balance } = event.detail;
+            const newInvestments = { ...$store.investments };
+            newInvestments[id].balance = balance;
+            store.updateInvestments(newInvestments);
+          }}
+        />
+      {/each}
+      <!-- FEE FARMING -->
+      {#if Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+        .find(inv => inv[1].type === "fee-farming")}
+        <div class="farm-title">Fee Farming</div>
+      {/if}
+      {#each Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
+        .filter(inv => inv[1].type === "fee-farming") as [invName, invData]}
+        <WrapRow
+          rewards={availableRewards.find(rw => rw.id === invData.id)}
+          {invName}
+          {invData}
+          valueInXtz={true}
+          {createTooltipContent}
+          on:update-farm-value={event =>
+            (totalValueInFarms = [
+              ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+              event.detail
+            ])}
+          on:reset-rewards={event => resetRewards(event.detail)}
+          on:update-stake={event => {
+            const { id, balance } = event.detail;
+            const newInvestments = { ...$store.investments };
+            newInvestments[id].balance = balance;
+            store.updateInvestments(newInvestments);
+          }}
+        />
+      {/each}
+      {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && $localStorageStore.favoriteInvestments.filter( inv => inv.includes("WRAP") ).length > 0}
+        <div class="row-footer">
+          <div style="grid-column: 1 / span 2">
+            <button
+              class="primary mini"
+              on:click={async () => await findStakes("wrap")}
+            >
+              <span class="material-icons"> search </span>
+              Find my stakes
+            </button>
+          </div>
+        </div>
+      {/if}
+      <!-- KDAO FARMS -->
+      {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao").length > 0}
+        <div class="row-header">
+          <div />
+          <div>Contract</div>
+          <div>Stake</div>
+          <div>
+            Stake in {kdaoValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
+          </div>
+          <div>Reward</div>
+        </div>
+      {/if}
+      {#each Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao")
+        .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
+        <KdaoRow
+          rewards={availableRewards.find(rw => rw.id === invData.id)}
+          {invName}
+          {invData}
+          valueInXtz={true}
+          {createTooltipContent}
+          on:update-farm-value={event =>
+            (totalValueInFarms = [
+              ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+              event.detail
+            ])}
+          on:reset-rewards={event => resetRewards(event.detail)}
+        />
+      {/each}
+      <!-- PAUL FARMS -->
+      {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul").length > 0}
+        <div class="row-header">
+          <div />
+          <div>Contract</div>
+          <div>Stake</div>
+          <div>
+            Stake in {paulValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
+          </div>
+          <div>Reward</div>
+        </div>
+      {/if}
+      {#each Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul")
+        .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
+        <PaulRow
+          rewards={availableRewards.find(rw => rw.id === invData.id)}
+          {invName}
+          {invData}
+          valueInXtz={true}
+          {createTooltipContent}
+          on:update-farm-value={event =>
+            (totalValueInFarms = [
+              ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+              event.detail
+            ])}
+          on:reset-rewards={event => resetRewards(event.detail)}
+        />
+      {/each}
+    </div>
     <div class="row-footer">
-      <div />
-      <div />
+      <div style="grid-column: 1 / span 2">
+        <button
+          class="primary mini"
+          on:click={async () => await findStakes("paul")}
+        >
+          <span class="material-icons"> search </span>
+          Find my stakes
+        </button>
+      </div>
       <div />
       <div />
       {#if availableRewards.length > 0}
-        <div class="total-rewards" id="total-plenty-rewards">
+        <div class="total-rewards" id="total-paul-rewards">
           <span class="material-icons" style="vertical-align:middle">
             point_of_sale
           </span>
@@ -654,7 +1163,7 @@
               0,
               0,
               ...availableRewards
-                .filter(rw => rw.platform === "plenty")
+                .filter(rw => rw.platform === "paul")
                 .map(rw => +rw.amount)
             ].reduce((a, b) => a + b),
             2
@@ -664,18 +1173,20 @@
         <div />
       {/if}
       <div style="display:flex;justify-content:center">
-        {#if harvestingAll}
+        {#if harvestingAllPaul}
           <button class="mini loading">
             Harvesting <span class="material-icons"> sync </span>
           </button>
         {:else}
           <!-- Harvest button states -->
-          {#if harvestingAllSuccess === true}
+          {#if harvestingAllPaulSuccess === true}
             <button class="mini success"> Harvested! </button>
-          {:else if harvestingAllSuccess === false}
-            <button class="mini error" on:click={harvestAll}> Retry </button>
+          {:else if harvestingAllPaulSuccess === false}
+            <button class="mini error" on:click={harvestAllPaul}>
+              Retry
+            </button>
           {:else}
-            <button class="mini" on:click={harvestAll}>
+            <button class="mini" on:click={harvestAllPaul}>
               <span class="material-icons"> agriculture </span>&nbsp; Harvest
               all
             </button>
@@ -683,160 +1194,7 @@
         {/if}
       </div>
     </div>
-    <!-- WRAP FARMS -->
-    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap").length > 0}
-      <div class="row-header">
-        <div />
-        <div>Contract</div>
-        <div>Stake</div>
-        <div>
-          Stake in {wrapValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-        </div>
-        <div>Reward</div>
-      </div>
-    {/if}
-    <!-- WRAP STACKING -->
-    {#if Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
-      .find(inv => inv[1].type === "stacking")}
-      <div class="farm-title">WRAP Stacking</div>
-    {/if}
-    {#each Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
-      .filter(inv => inv[1].type === "stacking") as [invName, invData]}
-      <WrapRow
-        rewards={availableRewards.find(rw => rw.id === invData.id)}
-        {invName}
-        {invData}
-        valueInXtz={true}
-        {createTooltipContent}
-        on:update-farm-value={event =>
-          (totalValueInFarms = [
-            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
-            event.detail
-          ])}
-        on:reset-rewards={event => resetRewards(event.detail)}
-        on:update-stake={event => {
-          const { id, balance } = event.detail;
-          const newInvestments = { ...$store.investments };
-          newInvestments[id].balance = balance;
-          store.updateInvestments(newInvestments);
-        }}
-      />
-    {/each}
-    <!-- LIQUIDITY MINING -->
-    {#if Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
-      .find(inv => inv[1].type === "staking")}
-      <div class="farm-title">Liquidity Mining</div>
-    {/if}
-    {#each Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
-      .filter(inv => inv[1].type === "staking") as [invName, invData]}
-      <WrapRow
-        rewards={availableRewards.find(rw => rw.id === invData.id)}
-        {invName}
-        {invData}
-        valueInXtz={true}
-        {createTooltipContent}
-        on:update-farm-value={event =>
-          (totalValueInFarms = [
-            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
-            event.detail
-          ])}
-        on:reset-rewards={event => resetRewards(event.detail)}
-        on:update-stake={event => {
-          const { id, balance } = event.detail;
-          const newInvestments = { ...$store.investments };
-          newInvestments[id].balance = balance;
-          store.updateInvestments(newInvestments);
-        }}
-      />
-    {/each}
-    <!-- FEE FARMING -->
-    {#if Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
-      .find(inv => inv[1].type === "fee-farming")}
-      <div class="farm-title">Fee Farming</div>
-    {/if}
-    {#each Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap")
-      .filter(inv => inv[1].type === "fee-farming") as [invName, invData]}
-      <WrapRow
-        rewards={availableRewards.find(rw => rw.id === invData.id)}
-        {invName}
-        {invData}
-        valueInXtz={true}
-        {createTooltipContent}
-        on:update-farm-value={event =>
-          (totalValueInFarms = [
-            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
-            event.detail
-          ])}
-        on:reset-rewards={event => resetRewards(event.detail)}
-        on:update-stake={event => {
-          const { id, balance } = event.detail;
-          const newInvestments = { ...$store.investments };
-          newInvestments[id].balance = balance;
-          store.updateInvestments(newInvestments);
-        }}
-      />
-    {/each}
-    <!-- KDAO FARMS -->
-    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao").length > 0}
-      <div class="row-header">
-        <div />
-        <div>Contract</div>
-        <div>Stake</div>
-        <div>
-          Stake in {kdaoValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-        </div>
-        <div>Reward</div>
-      </div>
-    {/if}
-    {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao") as [invName, invData]}
-      <KdaoRow
-        rewards={availableRewards.find(rw => rw.id === invData.id)}
-        {invName}
-        {invData}
-        valueInXtz={true}
-        {createTooltipContent}
-        on:update-farm-value={event =>
-          (totalValueInFarms = [
-            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
-            event.detail
-          ])}
-        on:reset-rewards={event => resetRewards(event.detail)}
-      />
-    {/each}
-    <!-- PAUL FARMS -->
-    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul").length > 0}
-      <div class="row-header">
-        <div />
-        <div>Contract</div>
-        <div>Stake</div>
-        <div>
-          Stake in {paulValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-        </div>
-        <div>Reward</div>
-      </div>
-    {/if}
-    {#each Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul") as [invName, invData]}
-      <PaulRow
-        rewards={availableRewards.find(rw => rw.id === invData.id)}
-        {invName}
-        {invData}
-        valueInXtz={true}
-        {createTooltipContent}
-        on:update-farm-value={event =>
-          (totalValueInFarms = [
-            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
-            event.detail
-          ])}
-        on:reset-rewards={event => resetRewards(event.detail)}
-      />
-    {/each}
-  </div>
+  {/if}
   <br />
   <div>
     <InvestmentSpread {totalValueInFarms} />
@@ -883,84 +1241,24 @@
   <Modal type="default" on:close={() => (selectFarmModal = null)}>
     <div slot="modal-title" class="modal-title">
       {#if selectFarmModal === "plenty"}
-        Plenty farms
+        <div>Plenty farms</div>
       {:else if selectFarmModal === "wrap"}
-        Wrap farms
+        <div>Wrap farms</div>
       {:else if selectFarmModal === "paul"}
-        Paul farms
+        <div>Paul farms</div>
       {:else if selectFarmModal === "kdao"}
-        kDAO farms
+        <div>kDAO farms</div>
       {/if}
     </div>
     <div slot="modal-body" class="modal-body">
       <div class="farm-selection-modal">
-        <!-- favorite farms -->
-        <div style="width:100%;font-size:0.9rem">Favorite</div>
-        {#each sortFarmSelectModal(true, selectFarmModal) as inv}
-          <div
-            class="farm-to-select"
-            class:favorite={$localStorageStore.favoriteInvestments.includes(
-              inv[0]
-            )}
-            on:click={async () => {
-              if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                removeFavoriteInvestment(inv[0]);
-              } else {
-                addFavoriteInvestment(inv[0]);
-              }
-            }}
-          >
-            <div class="small-icons">
-              {#each inv[1].icons as icon}
-                <img src={`images/${icon}.png`} alt={`${icon}-token`} />
-              {/each}
-            </div>
-            {inv[1].alias}
-          </div>
-        {/each}
-      </div>
-      <br />
-      <div class="farm-selection-modal">
-        <!-- other farms -->
-        {#if selectFarmModal === "wrap"}
-          {#if !$localStorageStore.favoriteInvestments.includes("WRAP-STACKING")}
-            <div style="width:100%;font-size:0.9rem">WRAP stacking</div>
+        {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0}
+          <!-- favorite farms -->
+          <div style="width:100%;font-size:0.9rem">Favorite</div>
+          {#each sortFarmSelectModal($localStorageStore.favoriteInvestments, true, selectFarmModal) as inv (inv[1].id)}
             <div
-              class="farm-to-select"
-              on:click={async () => {
-                if (
-                  $localStorageStore.favoriteInvestments.includes(
-                    "WRAP-STACKING"
-                  )
-                ) {
-                  removeFavoriteInvestment("WRAP-STACKING");
-                } else {
-                  addFavoriteInvestment("WRAP-STACKING");
-                }
-              }}
-            >
-              <div class="small-icons">
-                <img src={`images/WRAP.png`} alt="WRAP-token" />
-              </div>
-              Wrap Stacking
-            </div>
-          {/if}
-          {#each sortFarmSelectModal(false, selectFarmModal, "staking") as inv, index}
-            {#if index === 0}
-              <div style="width:100%;font-size:0.9rem">Liquidity mining</div>
-            {/if}
-            <div
-              class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments.includes(
-                inv[0]
-              )}
-              on:click={async () => {
-                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
+              class="farm-to-select favorite"
+              on:click={async () => removeFavoriteInvestment(inv[0])}
             >
               <div class="small-icons">
                 {#each inv[1].icons as icon}
@@ -970,22 +1268,47 @@
               {inv[1].alias}
             </div>
           {/each}
-          {#each sortFarmSelectModal(false, selectFarmModal, "fee-farming") as inv, index}
+        {/if}
+      </div>
+      <br />
+      <div class="farm-selection-modal">
+        <!-- other farms -->
+        {#if selectFarmModal === "wrap"}
+          {#if !$localStorageStore.favoriteInvestments.includes("WRAP-STACKING")}
+            <div style="width:100%;font-size:0.9rem">WRAP stacking</div>
+            <div
+              class="farm-to-select"
+              on:click={async () => addFavoriteInvestment("WRAP-STACKING")}
+            >
+              <div class="small-icons">
+                <img src={`images/WRAP.png`} alt="WRAP-token" />
+              </div>
+              Wrap Stacking
+            </div>
+          {/if}
+          {#each sortFarmSelectModal($localStorageStore.favoriteInvestments, false, selectFarmModal, "staking") as inv, index (inv[1].id)}
+            {#if index === 0}
+              <div style="width:100%;font-size:0.9rem">Liquidity mining</div>
+            {/if}
+            <div
+              class="farm-to-select"
+              on:click={async () => addFavoriteInvestment(inv[0])}
+            >
+              <div class="small-icons">
+                {#each inv[1].icons as icon}
+                  <img src={`images/${icon}.png`} alt={`${icon}-token`} />
+                {/each}
+              </div>
+              {inv[1].alias}
+            </div>
+          {/each}
+          {#each sortFarmSelectModal($localStorageStore.favoriteInvestments, false, selectFarmModal, "fee-farming") as inv, index}
             {#if index === 0}
               <div style="width:100%;font-size:0.9rem">Fee Farming</div>
             {/if}
             <div
               class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments.includes(
-                inv[0]
-              )}
-              on:click={async () => {
-                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
+              on:click={async () => addFavoriteInvestment(inv[0])}
             >
               <div class="small-icons">
                 {#each inv[1].icons as icon}
@@ -997,19 +1320,10 @@
           {/each}
         {:else}
           <div style="width:100%;font-size:0.9rem">Available</div>
-          {#each sortFarmSelectModal(false, selectFarmModal) as inv}
+          {#each sortFarmSelectModal($localStorageStore.favoriteInvestments, false, selectFarmModal) as inv (inv[1].id)}
             <div
               class="farm-to-select"
-              class:favorite={$localStorageStore.favoriteInvestments.includes(
-                inv[0]
-              )}
-              on:click={async () => {
-                if ($localStorageStore.favoriteInvestments.includes(inv[0])) {
-                  removeFavoriteInvestment(inv[0]);
-                } else {
-                  addFavoriteInvestment(inv[0]);
-                }
-              }}
+              on:click={async () => addFavoriteInvestment(inv[0])}
             >
               <div class="small-icons">
                 {#each inv[1].icons as icon}
@@ -1030,6 +1344,56 @@
           selectFarmModal = null;
         }}
       >
+        <span class="material-icons"> close </span>
+        Close
+      </button>
+    </div>
+  </Modal>
+{/if}
+{#if searchingForStakes}
+  <Modal type="default" on:close={() => (searchingForStakes = false)}>
+    <div slot="modal-title" class="modal-title">
+      Existing stakes for {searchingForStakesPlatform.toUpperCase()}
+    </div>
+    <div slot="modal-body" class="modal-body">
+      {#if loadingSearchingForStakes}
+        <div>Loading, please wait...</div>
+      {:else}
+        {#each foundStakes as stake}
+          <div class="modal-find-stakes-line">
+            <div style="text-align: left">{stake.name}</div>
+            <div style="text-align: center">
+              {stake.balance} tokens
+            </div>
+            <div style="text-align: right">
+              {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.includes(stake.id)}
+                <button class="mini">
+                  <span class="material-icons"> check_circle_outline </span>
+                </button>
+              {:else}
+                <button
+                  class="mini"
+                  on:click={() => addFavoriteInvestment(stake.id)}
+                >
+                  <span class="material-icons"> add_circle </span>
+                </button>
+              {/if}
+            </div>
+          </div>
+        {:else}
+          <div>No stake found</div>
+        {/each}
+      {/if}
+    </div>
+    <div slot="modal-footer" class="modal-footer">
+      <div />
+      <button
+        class="primary"
+        on:click={() => {
+          searchingForStakes = false;
+        }}
+      >
+        <span class="material-icons"> close </span>
         Close
       </button>
     </div>

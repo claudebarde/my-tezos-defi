@@ -74,6 +74,13 @@
         <span class="material-icons"> savings </span>
         &nbsp; My vaults
       </a>
+      <a
+        href={`#/profile/${$store.userAddress}`}
+        class:selected={$location === "/profile"}
+      >
+        <span class="material-icons"> portrait </span>
+        &nbsp; My profile
+      </a>
     {/if}
     <a
       href="#/liquidity-baking"

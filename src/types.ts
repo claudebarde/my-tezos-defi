@@ -46,7 +46,12 @@ export enum AvailableToken {
   KDAO = "kDAO",
   QUIPU = "QUIPU",
   uUSD = "uUSD",
-  YOU = "YOU"
+  YOU = "YOU",
+  cTEZ = "cTEZ",
+  MAG = "MAG",
+  PXL = "PXL",
+  pxlDAO = "pxlDAO",
+  fDAO = "fDAO"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -74,6 +79,12 @@ export enum AvailableInvestments {
   "PLENTY-UNO-LP" = "PLENTY-UNO-LP",
   "PLENTY-SMAK-LP" = "PLENTY-SMAK-LP",
   "PLENTY-KALAM-LP" = "PLENTY-KALAM-LP",
+  "PLENTY-wDAI-LP" = "PLENTY-wDAI-LP",
+  "PLENTY-Ctez-LP" = "PLENTY-Ctez-LP",
+  "xPLENTY-Staking" = "xPLENTY-Staking",
+  "uUSD-YOU-LP" = "uUSD-YOU-LP",
+  "uUSD-wUSDC-LP" = "uUSD-wUSDC-LP",
+  "uUSD-uDEFI-LP" = "uUSD-uDEFI-LP",
   "QUIPUSWAP-PLENTY" = "QUIPUSWAP-PLENTY",
   "QUIPUSWAP-KUSD" = "QUIPUSWAP-KUSD",
   "QUIPUSWAP-USDtz" = "QUIPUSWAP-USDtz",
@@ -82,6 +93,10 @@ export enum AvailableInvestments {
   "CRUNCHY-FARMS" = "CRUNCHY-FARMS",
   "PAUL-PAUL" = "PAUL-PAUL",
   "PAUL-XTZ" = "PAUL-XTZ",
+  "MAG-XTZ" = "MAG-XTZ",
+  "QUIPU-PAUL" = "QUIPU-PAUL",
+  "wWBTC-PAUL" = "wWBTC-PAUL",
+  "wUSDC-PAUL" = "wUSDC-PAUL",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
   "WRAP-STACKING" = "WRAP-STACKING",
@@ -142,7 +157,7 @@ export interface InvestmentData {
   decimals: number;
   info: any;
   icons: IconSet;
-  token: undefined | AvailableToken;
+  rewardToken: undefined | AvailableToken;
   favorite: boolean;
   liquidityToken: boolean;
   alias?: string;

@@ -21,7 +21,9 @@
   afterUpdate(() => {
     if ($localStorageStore && favoriteTokens.length === 0) {
       // initializes the tokens array
-      favoriteTokens = [...$localStorageStore.favoriteTokens];
+      favoriteTokens = $localStorageStore.favoriteTokens
+        ? [...$localStorageStore.favoriteTokens]
+        : [];
     } else if (
       favoriteTokens.length > 0 &&
       $localStorageStore &&
@@ -58,7 +60,7 @@
 {#if $localStorageStore && $store.tokens && favoriteTokens.length > 0}
   <div class="token-display">
     <img
-      src={$store.tokens[favoriteTokens[counter]].thumbnail}
+      src={`images/${favoriteTokens[counter]}.png`}
       alt={`${favoriteTokens[counter]}-logo`}
     />
     <span>{favoriteTokens[counter]}</span>
@@ -69,18 +71,23 @@
           : 0}
       </span>
       <br />
-      <span>
-        ꜩ {+$store.tokens[favoriteTokens[counter]].exchangeRate.toFixed(3) / 1}
-      </span>
-      <br />
-      {#if $store.xtzData.exchangeRate}
-        {(
-          $store.tokens[favoriteTokens[counter]].exchangeRate *
-          $store.xtzData.exchangeRate
-        ).toFixed(2)}
-        {$localStorageStore.preferredFiat}
+      {#if !$store.tokens[favoriteTokens[counter]].exchangeRate}
+        <span>---</span>
       {:else}
-        ---
+        <span>
+          ꜩ {+$store.tokens[favoriteTokens[counter]].exchangeRate.toFixed(3) /
+            1}
+        </span>
+        <br />
+        {#if $store.xtzData.exchangeRate}
+          {(
+            $store.tokens[favoriteTokens[counter]].exchangeRate *
+            $store.xtzData.exchangeRate
+          ).toFixed(2)}
+          {$localStorageStore.preferredFiat}
+        {:else}
+          ---
+        {/if}
       {/if}
     </span>
   </div>
