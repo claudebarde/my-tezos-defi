@@ -995,6 +995,17 @@
       "rewardToken": "PAUL",
       "liquidityToken": true
     },
+    "wUSDC-PAUL": {
+      "id": "wUSDC-PAUL",
+      "platform": "paul",
+      "address": "KT1Lm2C7TsRi4EMQj2sxpr3iD1jpck1MXXSY",
+      "decimals": 6,
+      "info": ["paul-lqt"],
+      "alias": "wUSDC/PAUL farm",
+      "icons": ["wUSDC", "PAUL"],
+      "rewardToken": "PAUL",
+      "liquidityToken": true
+    },
     "KUSD-QUIPU-LP": {
       "id": "KUSD-QUIPU-LP",
       "platform": "kdao",
