@@ -7,11 +7,11 @@
     formatTokenAmount,
     loadInvestments
   } from "../../utils";
-  import { calcPlentyStakeInXtz } from "../../plentyUtils";
+  import { calcPlentyStakeInXtz } from "../../tokenUtils/plentyUtils";
   import {
     calcTokenStakesInAlienFarm,
     calcTokenStakesFromQuipu
-  } from "../../paulUtils";
+  } from "../../tokenUtils/paulUtils";
   import store from "../../store";
   import { AvailableToken, AvailableInvestments } from "../../types";
 
@@ -155,6 +155,23 @@
                 id: res.value.id,
                 balance: res.value.balance,
                 stakeInXtz
+              };
+            } else {
+              return {
+                id: res.value.id,
+                balance: res.value.balance,
+                stakeInXtz: null
+              };
+            }
+          } else if (invData.platform === "wrap") {
+            if (invData.id === "WRAP-STACKING") {
+              return {
+                id: res.value.id,
+                balance: res.value.balance,
+                stakeInXtz: formatTokenAmount(
+                  (+res.value.balance / 10 ** $store.tokens.WRAP.decimals) *
+                    $store.tokens.WRAP.exchangeRate
+                )
               };
             } else {
               return {

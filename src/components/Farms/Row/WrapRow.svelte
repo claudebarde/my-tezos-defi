@@ -1,13 +1,14 @@
 <script lang="ts">
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
   import tippy from "tippy.js";
-  import { InvestmentData, AvailableInvestments } from "../../../types";
+  import type { InvestmentData, AvailableInvestments } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
   import { loadInvestment, prepareOperation } from "../../../utils";
   import toastStore from "../../Toast/toastStore";
   import Modal from "../../Modal/Modal.svelte";
+  import { calcTokenStakesInWrapFarms } from "../../../tokenUtils/wrapUtils";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -228,12 +229,23 @@
         }
       });
       invData.balance = invDetails.balance;
+
       if (invData.type === "fee-farming") {
         stakeInXtz =
           +(
             (invData.balance / 10 ** invData.decimals) *
             $store.tokens.WRAP.exchangeRate
           ).toFixed(5) / 1;
+      } else if (invData.type === "staking") {
+        const stakes = await calcTokenStakesInWrapFarms({
+          invData,
+          balance: invData.balance,
+          tokenExchangeRate: $store.tokens[invData.rewardToken].exchangeRate,
+          tokenDecimals: $store.tokens[invData.rewardToken].decimals,
+          Tezos: $store.Tezos
+        });
+
+        stakeInXtz = +stakes.toFixed(5) / 1;
       } else {
         stakeInXtz =
           +(
@@ -288,11 +300,19 @@
   <div>
     {#if valueInXtz}
       <span class:blurry-text={$store.blurryBalances}>
-        {stakeInXtz}
+        {#if stakeInXtz}
+          {stakeInXtz}
+        {:else}
+          <span class="material-icons"> hourglass_empty </span>
+        {/if}
       </span>
     {:else}
       <span class:blurry-text={$store.blurryBalances}>
-        {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(2) / 1}
+        {#if stakeInXtz}
+          {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(2) / 1}
+        {:else}
+          <span class="material-icons"> hourglass_empty </span>
+        {/if}
       </span>
     {/if}
   </div>

@@ -1,8 +1,8 @@
 import type { TezosToolkit } from "@taquito/taquito";
-import { AvailableInvestments, AvailableToken } from "./types";
+import { AvailableInvestments, AvailableToken } from "../types";
 import { get } from "svelte/store";
-import store from "./store";
-import config from "./config";
+import store from "../store";
+import config from "../config";
 
 export const formatPlentyLpAmount = (
   lpAmount: number,

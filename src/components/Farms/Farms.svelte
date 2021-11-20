@@ -8,11 +8,14 @@
     loadInvestment,
     getPaulReward,
     getKdaoReward,
-    getWrapReward,
     prepareOperation,
     formatTokenAmount
   } from "../../utils";
-  import { getPlentyReward, formatPlentyLpAmount } from "../../plentyUtils";
+  import {
+    getPlentyReward,
+    formatPlentyLpAmount
+  } from "../../tokenUtils/plentyUtils";
+  import { getWrapReward } from "../../tokenUtils/wrapUtils";
   import {
     AvailableToken,
     AvailableInvestments,

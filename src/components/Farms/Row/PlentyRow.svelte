@@ -8,7 +8,7 @@
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
   import { prepareOperation, loadInvestment } from "../../../utils";
-  import { calcPlentyStakeInXtz } from "../../../plentyUtils";
+  import { calcPlentyStakeInXtz } from "../../../tokenUtils/plentyUtils";
   import toastStore from "../../Toast/toastStore";
   import Modal from "../../Modal/Modal.svelte";
 

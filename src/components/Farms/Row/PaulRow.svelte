@@ -13,7 +13,7 @@
   import {
     calcTokenStakesInAlienFarm,
     calcTokenStakesFromQuipu
-  } from "../../../paulUtils";
+  } from "../../../tokenUtils/paulUtils";
   import toastStore from "../../Toast/toastStore";
 
   export let rewards: {

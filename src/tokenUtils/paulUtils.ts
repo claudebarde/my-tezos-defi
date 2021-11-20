@@ -1,12 +1,12 @@
 import type { TezosToolkit } from "@taquito/taquito";
 import { Parser } from "@taquito/michel-codec";
 import BigNumber from "bignumber.js";
-import type { TezosContractAddress, AvailableInvestments } from "./types";
+import type { TezosContractAddress, AvailableInvestments } from "../types";
 import {
   estimateQuipuTezInShares,
   estimateQuipuTokenInShares,
   formatTokenAmount
-} from "./utils";
+} from "../utils";
 
 export const calcTokenStakesInAlienFarm = async (param: {
   Tezos: TezosToolkit;

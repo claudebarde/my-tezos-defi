@@ -128,5 +128,14 @@ export default {
     "uUSD-YOU-LP": "KT1Tmncfgpp4ZSp6aEogL7uhBqHTiKsSPegK",
     "uUSD-wUSDC-LP": "KT1A2W6mBjn49yqzjJbt9T7xNVD9gDeL45qD",
     "uUSD-uDEFI-LP": "KT1RQvdYD9yc763j8FiVLyXbKPVVbZqGRx5m"
+  },
+  wrapLiquidityMiningDexAddress: {
+    "WRAP-XTZ-LM": "KT1FG63hhFtMEEEtmBSX2vuFmP87t9E7Ab4t",
+    "WRAP-wBUSD-LM": "KT1UMAE2PBskeQayP5f2ZbGiVYF7h8bZ2gyp",
+    "WRAP-wDAI-LM": "KT1PQ8TMzGMfViRq4tCMFKD2QF5zwJnY67Xn",
+    "WRAP-wUSDC-LM": "KT1U2hs5eNdeCpHouAvQXGMzGFGJowbhjqmo",
+    "WRAP-wUSDT-LM": "KT1T4pfr6NL8dUiz8ibesjEvH2Ne3k6AuXgn",
+    "WRAP-wWBTC-LM": "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
+    "WRAP-wWETH-LM": "KT1DuYujxrmgepwSDHtADthhKBje9BosUs1w"
   }
 };
