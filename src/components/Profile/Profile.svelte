@@ -8,7 +8,10 @@
     loadInvestments
   } from "../../utils";
   import { calcPlentyStakeInXtz } from "../../plentyUtils";
-  import { calcTokenStakesInAlienFarm } from "../../paulUtils";
+  import {
+    calcTokenStakesInAlienFarm,
+    calcTokenStakesFromQuipu
+  } from "../../paulUtils";
   import store from "../../store";
   import { AvailableToken, AvailableInvestments } from "../../types";
 
@@ -78,62 +81,88 @@
             res.status === "fulfilled" && !!res.value && res.value.balance > 0
         )
         .map(async (res: PromiseFulfilledResult<any>) => {
-          if ($store.investments[res.value.id].platform === "plenty") {
+          const invData = $store.investments[res.value.id];
+
+          if (invData.platform === "plenty") {
             const stakeInXtz = await calcPlentyStakeInXtz({
               id: res.value.id,
-              isPlentyLpToken: $store.investments[res.value.id].liquidityToken,
+              isPlentyLpToken: invData.liquidityToken,
               balance: res.value.balance,
-              decimals: $store.investments[res.value.id].decimals,
+              decimals: invData.decimals,
               exchangeRate: $store.tokens.PLENTY.exchangeRate,
-              rewardToken: $store.investments[res.value.id].rewardToken
+              rewardToken: invData.rewardToken
             });
             return {
               id: res.value.id,
               balance: res.value.balance,
               stakeInXtz
             };
-          } else if ($store.investments[res.value.id].platform === "paul") {
-            /*const { tokenAAmount, tokenBAmount } =
-              await calcTokenStakesInAlienFarm({
+          } else if (invData.platform === "paul") {
+            if (invData.info.includes("paul-lqt")) {
+              const { tokenAAmount, tokenBAmount } =
+                await calcTokenStakesInAlienFarm({
+                  Tezos: $store.Tezos,
+                  amountOfTokens: res.value.balance,
+                  tokens: [
+                    {
+                      address: $store.tokens[invData.icons[0]].address,
+                      tokenId: $store.tokens[invData.icons[0]].tokenId,
+                      tokenType: $store.tokens[invData.icons[0]].type
+                    },
+                    {
+                      address: $store.tokens[invData.icons[1]].address,
+                      tokenId: $store.tokens[invData.icons[1]].tokenId,
+                      tokenType: $store.tokens[invData.icons[1]].type
+                    }
+                  ]
+                });
+              const token1InXtz =
+                ((tokenAAmount /
+                  10 ** $store.tokens[invData.icons[0]].decimals) *
+                  $store.tokens[invData.icons[0]].exchangeRate) /
+                10 ** 6;
+              const token2InXtz =
+                ((tokenBAmount /
+                  10 ** $store.tokens[invData.icons[1]].decimals) *
+                  $store.tokens[invData.icons[1]].exchangeRate) /
+                10 ** 6;
+              const stakeInXtz = formatTokenAmount(token1InXtz + token2InXtz);
+              return {
+                id: res.value.id,
+                balance: res.value.balance,
+                stakeInXtz
+              };
+            } else if (invData.id === "PAUL-PAUL") {
+              return {
+                id: res.value.id,
+                balance: res.value.balance,
+                stakeInXtz: formatTokenAmount(
+                  (+res.value.balance / 10 ** $store.tokens.PAUL.decimals) *
+                    $store.tokens.PAUL.exchangeRate
+                )
+              };
+            } else if (invData.id === "PAUL-XTZ" || invData.id === "MAG-XTZ") {
+              const stakeInXtz = await calcTokenStakesFromQuipu({
                 Tezos: $store.Tezos,
-                amountOfTokens: res.value.balance,
-                tokens: [
-                  {
-                    address:
-                      $store.tokens[$store.investments[res.value.id].icons[0]]
-                        .address,
-                    tokenId:
-                      $store.tokens[$store.investments[res.value.id].icons[0]]
-                        .tokenId,
-                    tokenType:
-                      $store.tokens[$store.investments[res.value.id].icons[0]]
-                        .tokenType
-                  },
-                  {
-                    address:
-                      $store.tokens[$store.investments[res.value.id].icons[1]]
-                        .address,
-                    tokenId:
-                      $store.tokens[$store.investments[res.value.id].icons[1]]
-                        .tokenId,
-                    tokenType:
-                      $store.tokens[$store.investments[res.value.id].icons[1]]
-                        .tokenType
-                  }
-                ]
+                id: invData.id,
+                balance: invData.balance,
+                paulToken: {
+                  decimals: $store.tokens.PAUL.decimals,
+                  exchangeRate: $store.tokens.PAUL.exchangeRate
+                }
               });
-            const stakeInXtz = tokenAAmount + tokenBAmount;
-            console.log(res.value.id, stakeInXtz);
-            return {
-              id: res.value.id,
-              balance: res.value.balance,
-              stakeInXtz
-            };*/
-            return {
-              id: res.value.id,
-              balance: res.value.balance,
-              stakeInXtz: null
-            };
+              return {
+                id: res.value.id,
+                balance: res.value.balance,
+                stakeInXtz
+              };
+            } else {
+              return {
+                id: res.value.id,
+                balance: res.value.balance,
+                stakeInXtz: null
+              };
+            }
           } else {
             return {
               id: res.value.id,

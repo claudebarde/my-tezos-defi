@@ -1,7 +1,12 @@
 import type { TezosToolkit } from "@taquito/taquito";
 import { Parser } from "@taquito/michel-codec";
 import BigNumber from "bignumber.js";
-import type { TezosContractAddress } from "./types";
+import type { TezosContractAddress, AvailableInvestments } from "./types";
+import {
+  estimateQuipuTezInShares,
+  estimateQuipuTokenInShares,
+  formatTokenAmount
+} from "./utils";
 
 export const calcTokenStakesInAlienFarm = async (param: {
   Tezos: TezosToolkit;
@@ -57,4 +62,42 @@ export const calcTokenStakesInAlienFarm = async (param: {
   } else {
     return null;
   }
+};
+
+export const calcTokenStakesFromQuipu = async (param: {
+  Tezos: TezosToolkit;
+  id: AvailableInvestments;
+  balance: number;
+  paulToken: { decimals: number; exchangeRate: number };
+}) => {
+  let { Tezos, id, balance, paulToken } = param;
+
+  let dexAddress = "";
+  let stakeInXtz = null;
+  if (id === "PAUL-XTZ") {
+    dexAddress = "KT1K8A8DLUTVuHaDBCZiG6AJdvKJbtH8dqmN";
+  } else if (id === "MAG-XTZ") {
+    dexAddress = "KT1WREc3cpr36Nqjvegr6WSPgQKwDjL7XxLN";
+  }
+
+  if (!dexAddress) {
+    return null;
+  }
+
+  const tezInStakesRaw = await estimateQuipuTezInShares(
+    Tezos,
+    dexAddress,
+    balance
+  );
+  const tezInStakes = tezInStakesRaw.toNumber() / 10 ** 6;
+  const tokensInStakesRaw = await estimateQuipuTokenInShares(
+    Tezos,
+    dexAddress,
+    balance
+  );
+  const tokensInStakes =
+    (tokensInStakesRaw.toNumber() / 10 ** paulToken.decimals) *
+    paulToken.exchangeRate;
+
+  return formatTokenAmount(tezInStakes + tokensInStakes);
 };

@@ -8,11 +8,12 @@
   import {
     loadInvestment,
     prepareOperation,
-    estimateQuipuTezInShares,
-    estimateQuipuTokenInShares,
     formatTokenAmount
   } from "../../../utils";
-  import { calcTokenStakesInAlienFarm } from "../../../paulUtils";
+  import {
+    calcTokenStakesInAlienFarm,
+    calcTokenStakesFromQuipu
+  } from "../../../paulUtils";
   import toastStore from "../../Toast/toastStore";
 
   export let rewards: {
@@ -98,33 +99,15 @@
       invData.balance = invDetails.balance;
 
       if (invData.id === "PAUL-XTZ" || invData.id === "MAG-XTZ") {
-        let dexAddress = "";
-        if (invData.id === "PAUL-XTZ") {
-          dexAddress = "KT1K8A8DLUTVuHaDBCZiG6AJdvKJbtH8dqmN";
-        } else if (invData.id === "MAG-XTZ") {
-          dexAddress = "KT1WREc3cpr36Nqjvegr6WSPgQKwDjL7XxLN";
-        }
-
-        if (!dexAddress) {
-          stakeInXtz = null;
-        }
-
-        const tezInStakesRaw = await estimateQuipuTezInShares(
-          $store.Tezos,
-          dexAddress,
-          invData.balance
-        );
-        const tezInStakes = tezInStakesRaw.toNumber() / 10 ** 6;
-        const tokensInStakesRaw = await estimateQuipuTokenInShares(
-          $store.Tezos,
-          dexAddress,
-          invData.balance
-        );
-        const tokensInStakes =
-          (tokensInStakesRaw.toNumber() / 10 ** $store.tokens.PAUL.decimals) *
-          $store.tokens.PAUL.exchangeRate;
-
-        stakeInXtz = formatTokenAmount(tezInStakes + tokensInStakes);
+        stakeInXtz = await calcTokenStakesFromQuipu({
+          Tezos: $store.Tezos,
+          id: invData.id,
+          balance: invData.balance,
+          paulToken: {
+            decimals: $store.tokens.PAUL.decimals,
+            exchangeRate: $store.tokens.PAUL.exchangeRate
+          }
+        });
       } else if (invData.id === "PAUL-PAUL") {
         stakeInXtz = formatTokenAmount(
           (invData.balance / 10 ** invData.decimals) *
