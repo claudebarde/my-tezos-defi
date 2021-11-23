@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
   import tippy from "tippy.js";
-  import type { InvestmentData, AvailableInvestments } from "../../../types";
+  import { InvestmentData, AvailableInvestments } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
@@ -15,6 +15,7 @@
     calcTokenStakesFromQuipu
   } from "../../../tokenUtils/paulUtils";
   import toastStore from "../../Toast/toastStore";
+  import config from "../../../config";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -23,7 +24,7 @@
     },
     invData: InvestmentData,
     invName: AvailableInvestments,
-    valueInXtz: boolean,
+    //valueInXtz: boolean,
     createTooltipContent;
 
   let harvesting = false;
@@ -166,7 +167,98 @@
   });
 </script>
 
-<div class="farm-row">
+<div class="farm-block">
+  <div class="farm-block__name">
+    <div class="icons">
+      {#each invData.icons as icon}
+        <img src={`images/${icon}.png`} alt="token-icon" />
+      {/each}
+    </div>
+    <br />
+    <div>
+      <a
+        href={`https://better-call.dev/mainnet/${invData.address}/operations`}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        {invData.alias}
+      </a>
+    </div>
+  </div>
+  <div class="farm-block__data">
+    <div class="farm-block__data__info">
+      <span class="title">Stake:</span>
+      <br />
+      <div class:blurry-text={$store.blurryBalances}>
+        {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1} LPT
+      </div>
+      <br />
+      {#if stakeInXtz}
+        <span class="title">Stake in XTZ:</span>
+        <br />
+        <div class:blurry-text={$store.blurryBalances}>
+          {+stakeInXtz.toFixed(5) / 1} ꜩ
+        </div>
+        <br />
+        <span class="title">
+          Stake in {$localStorageStore.preferredFiat}:
+        </span>
+        <br />
+        <div class:blurry-text={$store.blurryBalances}>
+          {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(2) / 1}
+          {config.validFiats.find(
+            fiat => fiat.code === $localStorageStore.preferredFiat
+          ).symbol}
+        </div>
+      {:else}
+        <span class="material-icons"> hourglass_empty </span>
+      {/if}
+    </div>
+  </div>
+  <div class="farm-block__actions">
+    <div>
+      <span class="title">Available rewards:</span>
+      <br />
+      {#if !rewards}
+        <span class="material-icons"> hourglass_empty </span>
+      {:else}
+        <span id={`rewards-${invData.id}`}>
+          {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
+          {$store.investments[invData.id].rewardToken}
+        </span>
+      {/if}
+    </div>
+    <br />
+    <div class="buttons stack">
+      {#if harvesting}
+        <button class="primary loading">
+          Harvesting &nbsp;
+          <span class="material-icons"> sync </span>
+        </button>
+      {:else if harvestingSuccess === true}
+        <button class="primary success">
+          Success! &nbsp;
+          <span class="material-icons"> thumb_up </span>
+        </button>
+      {:else if harvestingSuccess === false}
+        <button class="primary error" on:click={harvest}> Retry </button>
+      {:else}
+        <button class="primary" on:click={harvest}>
+          Harvest &nbsp;
+          <span class="material-icons"> agriculture </span>
+        </button>
+      {/if}
+      {#if invData.id === AvailableInvestments["PAUL-PAUL"]}
+        <button class="primary" on:click={compound}>
+          Harvest & Restake &nbsp;
+          <span class="material-icons"> save_alt </span>
+        </button>
+      {/if}
+    </div>
+  </div>
+</div>
+
+<!--<div class="farm-row">
   <div class="icon" id={`farm-${invData.id}`}>
     {#each invData.icons as icon}
       <img src={`images/${icon}.png`} alt="token-icon" />
@@ -231,10 +323,10 @@
         <span class="material-icons"> save_alt </span>
       </button>
     {/if}-->
-    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+<!--{#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
       <button class="mini">
         <span class="material-icons"> settings </span>
       </button>
     {/if}
   </div>
-</div>
+</div>-->

@@ -855,7 +855,7 @@
     <div class="favorite-investments">
       <!-- PLENTY FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty").length > 0}
-        <div class="row-header">
+        <!--<div class="row-header">
           <div />
           <div>Contract</div>
           <div>Stake</div>
@@ -863,6 +863,9 @@
             Stake in {kdaoValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
           </div>
           <div>Reward</div>
+        </div>-->
+        <div class="row-header">
+          <div style="grid-column: 1 / span 2">Plenty Farms</div>
         </div>
       {/if}
       <!-- PLENTY FARMS WITH STABLECOINS -->
@@ -879,7 +882,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
           {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
@@ -904,7 +906,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
           {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
@@ -975,7 +976,7 @@
       {/if}
       <!-- WRAP FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap").length > 0}
-        <div class="row-header">
+        <!--<div class="row-header">
           <div />
           <div>Contract</div>
           <div>Stake</div>
@@ -983,6 +984,9 @@
             Stake in {wrapValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
           </div>
           <div>Reward</div>
+        </div>-->
+        <div class="row-header">
+          <div style="grid-column: 1 / span 2">Wrap Farms</div>
         </div>
       {/if}
       <!-- WRAP STACKING -->
@@ -998,7 +1002,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
           {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
@@ -1027,7 +1030,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
           {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
@@ -1056,7 +1058,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
           {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
@@ -1087,7 +1088,7 @@
       {/if}
       <!-- KDAO FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao").length > 0}
-        <div class="row-header">
+        <!--<div class="row-header">
           <div />
           <div>Contract</div>
           <div>Stake</div>
@@ -1095,6 +1096,9 @@
             Stake in {kdaoValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
           </div>
           <div>Reward</div>
+        </div>-->
+        <div class="row-header">
+          <div style="grid-column: 1 / span 2">kDAO Farms</div>
         </div>
       {/if}
       {#each Object.entries($store.investments)
@@ -1104,7 +1108,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
           {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
@@ -1116,7 +1119,7 @@
       {/each}
       <!-- PAUL FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul").length > 0}
-        <div class="row-header">
+        <!--<div class="row-header">
           <div />
           <div>Contract</div>
           <div>Stake</div>
@@ -1124,6 +1127,9 @@
             Stake in {paulValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
           </div>
           <div>Reward</div>
+        </div>-->
+        <div class="row-header">
+          <div style="grid-column: 1 / span 2">Alien's Farms</div>
         </div>
       {/if}
       {#each Object.entries($store.investments)
@@ -1133,7 +1139,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
           {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [

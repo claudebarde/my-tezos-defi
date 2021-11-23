@@ -5,6 +5,8 @@
   import "tippy.js/themes/light-border.css";
   import store from "../../../store";
   import { formatTokenAmount } from "../../../utils";
+  import localStorageStore from "../../../localStorage";
+  import config from "../../../config";
 
   const rewardManagerAddress = "KT1MCgouivQ2rzam5hA2gqF1eMtY5i6ndJvT";
   const xPlentyCurveAddress = "KT1PxkrCckgh5fA5v2cZEE2bX5q2RV1rv8dj";
@@ -124,7 +126,69 @@
   });
 </script>
 
-<div class="farm-row">
+<div class="farm-block">
+  <div class="farm-block__name">
+    <div class="icons">
+      <img src={`images/xPLENTY.png`} alt="token-icon" />
+    </div>
+    <br />
+    <div>
+      <a
+        href={`https://better-call.dev/mainnet/${$store.investments["xPLENTY-Staking"].address}/operations`}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >
+        {$store.investments["xPLENTY-Staking"].alias}
+      </a>
+    </div>
+  </div>
+  <div class="farm-block__data">
+    <div class="farm-block__data__info">
+      <span class="title">Stake:</span>
+      <br />
+      <div class:blurry-text={$store.blurryBalances}>
+        {formatTokenAmount($store.investments["xPLENTY-Staking"].balance)} xPLENTY
+      </div>
+      <br />
+      <span class="title">Stake in XTZ:</span>
+      <br />
+      <div class:blurry-text={$store.blurryBalances}>
+        {formatTokenAmount(
+          $store.investments["xPLENTY-Staking"].balance *
+            $store.tokens.xPLENTY.exchangeRate
+        )} ꜩ
+      </div>
+      <br />
+      <span class="title">Stake in {$localStorageStore.preferredFiat}:</span>
+      <br />
+      <div class:blurry-text={$store.blurryBalances}>
+        {formatTokenAmount(
+          $store.investments["xPLENTY-Staking"].balance *
+            $store.tokens.xPLENTY.exchangeRate *
+            $store.xtzData.exchangeRate,
+          2
+        )}
+        {config.validFiats.find(
+          fiat => fiat.code === $localStorageStore.preferredFiat
+        ).symbol}
+      </div>
+    </div>
+  </div>
+  <div class="farm-block__actions">
+    <div class="buttons stack">
+      <button class="primary" id="xplenty-stake-button">
+        Stake &nbsp;
+        <span class="material-icons"> file_download </span>
+      </button>
+      <button class="primary" id="xplenty-unstake-button">
+        Unstake &nbsp;
+        <span class="material-icons"> file_upload </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!--<div class="farm-row">
   <div class="icon">
     <img src="images/xPLENTY.png" alt="xPLENTY-token-icon" />
   </div>
@@ -151,4 +215,4 @@
       <span class="material-icons"> file_upload </span>
     </button>
   </div>
-</div>
+</div>-->

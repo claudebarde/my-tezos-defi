@@ -39,9 +39,54 @@
 
 .farm-sub-row {
   @include farm-row-template;
+  font-size: 0.9rem;
 
   &.expanded {
     border-left: solid 4px $container-bg-color;
     margin-bottom: 4px;
+  }
+}
+
+.farm-block {
+  display: grid;
+  grid-template-columns: 33% 33% 33%;
+  gap: 10px;
+  align-items: stretch;
+  padding: 20px;
+  margin: 10px 0px;
+  background-color: lighten($container-bg-color, 65);
+  border-radius: 10px;
+
+  .title {
+    color: #4b5563;
+  }
+
+  .farm-block__name {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    .icons img {
+      width: 48px;
+      height: 48px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .farm-block__actions {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
   }
 }

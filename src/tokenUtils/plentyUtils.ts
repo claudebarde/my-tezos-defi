@@ -3,6 +3,7 @@ import { AvailableInvestments, AvailableToken } from "../types";
 import { get } from "svelte/store";
 import store from "../store";
 import config from "../config";
+import type { TezosContractAddress } from "../types";
 
 export const formatPlentyLpAmount = (
   lpAmount: number,
@@ -177,4 +178,25 @@ export const calcPlentyStakeInXtz = async ({
       return +stakeInXtz.toFixed(5) / 1;
     }
   }
+};
+
+export const calcPlentyAprApy = async (params: {
+  farmAddress: TezosContractAddress;
+  Tezos: TezosToolkit;
+  rewardTokenPriceInFiat: number;
+  stakeTokenPriceInFiat: number;
+}): Promise<{ apr: number | null; apy: number | null }> => {
+  const { farmAddress, Tezos, rewardTokenPriceInFiat, stakeTokenPriceInFiat } =
+    params;
+  // fetches the storage
+  const farm = await Tezos.wallet.at(farmAddress);
+  const farmStorage: any = await farm.storage();
+  // calculates APR
+  const apr =
+    ((farmStorage.rewardRate.toNumber() * 1051200 * rewardTokenPriceInFiat) /
+      (farmStorage.totalSupply.toNumber() * stakeTokenPriceInFiat)) *
+    100;
+  console.log(apr);
+
+  return { apr: null, apy: null };
 };
