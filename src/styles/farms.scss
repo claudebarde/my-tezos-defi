@@ -1,11 +1,16 @@
 @import "./settings.scss";
 
-.farm-row {
+@mixin farm-row-template {
   display: grid;
   grid-template-columns: 10% 25% 16% 17% 14% 18%;
   padding: 10px;
   align-items: center;
-  transition: 0.3s;
+}
+
+.farm-row {
+  @include farm-row-template;
+  transition: background-color 0.3s;
+  border-left: solid 4px transparent;
 
   &:hover {
     background-color: lighten($container-bg-color, 65);
@@ -25,5 +30,18 @@
       width: 25px;
       height: 25px;
     }
+  }
+
+  &.expanded {
+    border-left: solid 4px $container-bg-color;
+  }
+}
+
+.farm-sub-row {
+  @include farm-row-template;
+
+  &.expanded {
+    border-left: solid 4px $container-bg-color;
+    margin-bottom: 4px;
   }
 }

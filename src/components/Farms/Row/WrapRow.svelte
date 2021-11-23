@@ -1,11 +1,16 @@
 <script lang="ts">
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
+  import { slide } from "svelte/transition";
   import tippy from "tippy.js";
   import type { InvestmentData, AvailableInvestments } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
-  import { loadInvestment, prepareOperation } from "../../../utils";
+  import {
+    loadInvestment,
+    prepareOperation,
+    formatTokenAmount
+  } from "../../../utils";
   import toastStore from "../../Toast/toastStore";
   import Modal from "../../Modal/Modal.svelte";
   import { calcTokenStakesInWrapFarms } from "../../../tokenUtils/wrapUtils";
@@ -30,6 +35,8 @@
   let apr: null | number = null;
   let totalStaked: null | number = null;
   const dispatch = createEventDispatcher();
+  let expand = false;
+  let roiPerWeek: number | null = null;
 
   const harvest = async () => {
     harvesting = true;
@@ -153,7 +160,20 @@
 
   const fetchStatistics = async (type: string, farm: string) => {
     try {
-      const url = `https://stats.info.tzwrap.com/v1/${type}/apy`;
+      let url = "";
+      switch (type) {
+        case "staking":
+          url = `https://stats.info.tzwrap.com/v1/liquidity-mining/apy`;
+          break;
+        case "stacking":
+          url = `https://stats.info.tzwrap.com/v1/stacking/apy`;
+          break;
+        case "fee-farming":
+          url = `https://stats.info.tzwrap.com/v1/staking/apy`;
+          break;
+      }
+      if (!url) throw "No URL was generated";
+
       const statsRes = await fetch(url);
       if (!statsRes) throw "Unable to fetch WRAP statistics";
 
@@ -169,17 +189,10 @@
         apr = +stats[0].apr;
         totalStaked = +stats[0].totalStaked;
       } else if (type === "staking" && Array.isArray(stats)) {
-        const token = farm.replace("WRAP-W", "").replace("-FM", "");
-        const farmStats = stats.find(st => st.asset === token);
-        if (farmStats) {
-          apy = +farmStats.apy;
-          apr = +farmStats.apr;
-          totalStaked = +farmStats.totalStaked;
-        } else {
-          throw `Unable to find stats for ${farm}`;
-        }
-      } else if (type === "liquidity-mining") {
-        const token = farm.replace("-XTZ-LM", "");
+        const token =
+          farm === "WRAP-XTZ-FM"
+            ? AvailableToken.WRAP
+            : $store.investments[farm].rewardToken;
         const farmStats = stats.find(st => st.base === token);
         if (farmStats) {
           apy = +farmStats.apy;
@@ -188,6 +201,21 @@
         } else {
           throw `Unable to find stats for ${farm}`;
         }
+      } else if (type === "fee-farming") {
+        const token = $store.investments[farm].rewardToken.slice(1);
+        const farmStats = stats.find(st => st.asset === token);
+        if (farmStats) {
+          apy = +farmStats.apy;
+          apr = +farmStats.apr;
+          totalStaked = +farmStats.totalStaked;
+        } else {
+          throw `Unable to find stats for ${farm}`;
+        }
+      }
+
+      // calculates ROI per week
+      if (stakeInXtz) {
+        roiPerWeek = (stakeInXtz * apr) / 100 / 52;
       }
     } catch (error) {
       console.error(error);
@@ -277,7 +305,7 @@
   });
 </script>
 
-<div class="farm-row">
+<div class="farm-row" class:expanded={expand}>
   <div class="icon" id={`farm-${invData.id}`}>
     {#each invData.icons as icon}
       <img src={`images/${icon}.png`} alt="token-icon" />
@@ -360,25 +388,64 @@
         <span class="material-icons"> save_alt </span>
       </button>
     {/if}
-    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-      <button
-        class="mini"
-        on:click={async () => {
-          openSettingsModal = !openSettingsModal;
-          if (invData.type === "stacking") {
-            await fetchStatistics("stacking", "WRAP");
-          } else if (invData.type === "staking") {
-            await fetchStatistics("liquidity-mining", invName);
-          } else if (invData.type === "fee-farming") {
-            await fetchStatistics("staking", invName);
-          }
-        }}
-      >
-        <span class="material-icons"> settings </span>
-      </button>
-    {/if}
+    <button
+      class="mini"
+      on:click={async e => {
+        if (!expand) {
+          await fetchStatistics(invData.type, invData.id);
+        }
+
+        expand = !expand;
+      }}
+    >
+      <span class="material-icons">
+        {#if expand}
+          expand_less
+        {:else}
+          expand_more
+        {/if}
+      </span>
+    </button>
   </div>
 </div>
+{#if expand}
+  <div class="farm-sub-row expanded" transition:slide={{ duration: 300 }}>
+    <div>
+      {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+        <button
+          class="mini"
+          on:click={async () => {
+            openSettingsModal = !openSettingsModal;
+            if (invData.type === "stacking") {
+              await fetchStatistics("stacking", "WRAP");
+            } else if (invData.type === "staking") {
+              await fetchStatistics("liquidity-mining", invName);
+            } else if (invData.type === "fee-farming") {
+              await fetchStatistics("staking", invName);
+            }
+          }}
+        >
+          <span class="material-icons"> settings </span>
+        </button>
+      {/if}
+    </div>
+    <div style="grid-column: 2 / span 2">
+      APR: {apr ? `${apr.toFixed(3)}%` : "--"} | APY: {apy
+        ? `${apy.toFixed(3)}%`
+        : "--"}
+    </div>
+    <div style="grid-column: 4 / span 2">
+      <span>ROI/week:</span>
+      <span>
+        {#if roiPerWeek}
+          {formatTokenAmount(roiPerWeek, 2)} XTZ
+        {:else}
+          <span class="material-icons"> hourglass_empty </span>
+        {/if}
+      </span>
+    </div>
+  </div>
+{/if}
 {#if openSettingsModal}
   <Modal type="default" on:close={() => (openSettingsModal = false)}>
     <div slot="modal-title" class="modal-title">
@@ -411,7 +478,7 @@
                   totalStaked *
                   $store.tokens.WRAP.exchangeRate *
                   $store.xtzData.exchangeRate
-                ).toFixed(3)).toLocaleString("en-US")} ${
+                ).toFixed(2)).toLocaleString("en-US")} ${
                   $localStorageStore.preferredFiat
                 })`
               : "--"}
@@ -419,15 +486,25 @@
         </div>
       </div>
       <br />
-      <div>
-        Total rewards available:
-        {#if !rewards}
-          Unavailable
-        {:else}
-          <span id={`rewards-${invData.id}`}>
-            {+rewards.amount.toFixed(5) / 1} WRAP
-          </span>
-        {/if}
+      <div class="modal-line" style="text-align: center">
+        <div>
+          Total rewards available:
+          <br />
+          {#if !rewards}
+            Unavailable
+          {:else}
+            <span>
+              {+rewards.amount.toFixed(5) / 1} WRAP ({`${formatTokenAmount(
+                rewards.amount * $store.tokens.WRAP.exchangeRate
+              )} XTZ / ${formatTokenAmount(
+                rewards.amount *
+                  $store.tokens.WRAP.exchangeRate *
+                  $store.xtzData.exchangeRate,
+                2
+              )} ${$localStorageStore.preferredFiat}`})
+            </span>
+          {/if}
+        </div>
       </div>
     </div>
     <div slot="modal-footer" class="modal-footer">

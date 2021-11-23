@@ -122,8 +122,28 @@ export enum AvailableInvestments {
   "wUSDT-XTZ-LM" = "wUSDT-XTZ-LM",
   "wWBTC-XTZ-LM" = "wWBTC-XTZ-LM",
   "wWETH-XTZ-LM" = "wWETH-XTZ-LM",
-  "WRAP-USDC-FM" = "WRAP-USDC-FM",
-  "WRAP-WBTC-FM" = "WRAP-WBTC-FM"
+  "WRAP-FM" = "WRAP-FM",
+  "WRAP-wAAVE-FM" = "WRAP-wAAVE-FM",
+  "WRAP-wBUSD-FM" = "WRAP-wBUSD-FM",
+  "WRAP-wCEL-FM" = "WRAP-wCEL-FM",
+  "WRAP-wCOMP-FM" = "WRAP-wCOMP-FM",
+  "WRAP-wCRO-FM" = "WRAP-wCRO-FM",
+  "WRAP-wDAI-FM" = "WRAP-wDAI-FM",
+  "WRAP-wFTT-FM" = "WRAP-wFTT-FM",
+  "WRAP-wHT-FM" = "WRAP-wHT-FM",
+  "WRAP-wHUSD-FM" = "WRAP-wHUSD-FM",
+  "WRAP-wLEO-FM" = "WRAP-wLEO-FM",
+  "WRAP-wLINK-FM" = "WRAP-wLINK-FM",
+  "WRAP-wMATIC-FM" = "WRAP-wMATIC-FM",
+  "WRAP-wMKR-FM" = "WRAP-wMKR-FM",
+  "WRAP-wOKB-FM" = "WRAP-wOKB-FM",
+  "WRAP-wPAX-FM" = "WRAP-wPAX-FM",
+  "WRAP-wSUSHI-FM" = "WRAP-wSUSHI-FM",
+  "WRAP-wUNI-FM" = "WRAP-wUNI-FM",
+  "WRAP-wUSDC-FM" = "WRAP-wUSDC-FM",
+  "WRAP-wUSDT-FM" = "WRAP-wUSDT-FM",
+  "WRAP-wWBTC-FM" = "WRAP-wWBTC-FM",
+  "WRAP-wWETH-FM" = "WRAP-wWETH-FM"
 }
 
 export type InvestmentPlatform =

@@ -12,6 +12,7 @@
     calcTokenStakesInAlienFarm,
     calcTokenStakesFromQuipu
   } from "../../tokenUtils/paulUtils";
+  import { calcTokenStakesInWrapFarms } from "../../tokenUtils/wrapUtils";
   import store from "../../store";
   import { AvailableToken, AvailableInvestments } from "../../types";
 
@@ -172,6 +173,28 @@
                   (+res.value.balance / 10 ** $store.tokens.WRAP.decimals) *
                     $store.tokens.WRAP.exchangeRate
                 )
+              };
+            } else if (invData.type === "staking") {
+              const stakes = await calcTokenStakesInWrapFarms({
+                invData,
+                balance: res.value.balance,
+                tokenExchangeRate:
+                  $store.tokens[invData.rewardToken].exchangeRate,
+                tokenDecimals: $store.tokens[invData.rewardToken].decimals,
+                Tezos: $store.Tezos
+              });
+              return {
+                id: res.value.id,
+                balance: res.value.balance,
+                stakeInXtz: stakes ? formatTokenAmount(stakes) : null
+              };
+            } else if (invData.type === "fee-farming") {
+              return {
+                id: res.value.id,
+                balance: res.value.balance,
+                stakeInXtz:
+                  res.value.balance *
+                  $store.tokens[invData.rewardToken].exchangeRate
               };
             } else {
               return {
