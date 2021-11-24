@@ -101,3 +101,35 @@ export const calcTokenStakesFromQuipu = async (param: {
 
   return formatTokenAmount(tezInStakes + tokensInStakes);
 };
+
+export const calcPaulFarmApr = async ({
+  Tezos,
+  farmAddress,
+  earnCoinPrice,
+  tokenDecimals
+}: {
+  Tezos: TezosToolkit;
+  farmAddress: TezosContractAddress;
+  earnCoinPrice: number;
+  tokenDecimals: number;
+}) => {
+  const contract = await Tezos.wallet.at(farmAddress);
+  const storage: any = await contract.storage();
+  // TODO: calculate the price for the LP token
+  const lpTokenPrice = 1;
+  const earnCoinsPerYear =
+    (((storage.reward_per_second * storage.coefficient) / 100) *
+      24 *
+      3600 *
+      365) /
+    10 ** tokenDecimals;
+  const totalStakedInUsd = (storage.total_staked / 10 ** 6) * lpTokenPrice;
+
+  return (((earnCoinPrice * earnCoinsPerYear) / totalStakedInUsd) * 100) / 100;
+  /*
+    For farming: earnCoinPrice * earnCoinsPerYear / totalStakedInUsd * 100%, 
+    where earnCoinPrice -  the price of one reward token, 
+    earnCoinsPerYear = reward_per_second * coefficient / 100 * 24 * 3600 * 365 / (10  tokenDecimals), 
+    totalStakedInUsd = total_staked / (10  6) * lpTokenPrice
+  */
+};

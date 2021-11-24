@@ -855,15 +855,6 @@
     <div class="favorite-investments">
       <!-- PLENTY FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty").length > 0}
-        <!--<div class="row-header">
-          <div />
-          <div>Contract</div>
-          <div>Stake</div>
-          <div>
-            Stake in {kdaoValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-          </div>
-          <div>Reward</div>
-        </div>-->
         <div class="row-header">
           <div style="grid-column: 1 / span 2">Plenty Farms</div>
         </div>
@@ -976,15 +967,6 @@
       {/if}
       <!-- WRAP FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap").length > 0}
-        <!--<div class="row-header">
-          <div />
-          <div>Contract</div>
-          <div>Stake</div>
-          <div>
-            Stake in {wrapValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-          </div>
-          <div>Reward</div>
-        </div>-->
         <div class="row-header">
           <div style="grid-column: 1 / span 2">Wrap Farms</div>
         </div>
@@ -1088,15 +1070,6 @@
       {/if}
       <!-- KDAO FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao").length > 0}
-        <!--<div class="row-header">
-          <div />
-          <div>Contract</div>
-          <div>Stake</div>
-          <div>
-            Stake in {kdaoValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-          </div>
-          <div>Reward</div>
-        </div>-->
         <div class="row-header">
           <div style="grid-column: 1 / span 2">kDAO Farms</div>
         </div>
@@ -1119,15 +1092,6 @@
       {/each}
       <!-- PAUL FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul").length > 0}
-        <!--<div class="row-header">
-          <div />
-          <div>Contract</div>
-          <div>Stake</div>
-          <div>
-            Stake in {paulValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-          </div>
-          <div>Reward</div>
-        </div>-->
         <div class="row-header">
           <div style="grid-column: 1 / span 2">Alien's Farms</div>
         </div>

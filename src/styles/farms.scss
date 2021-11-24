@@ -49,7 +49,7 @@
 
 .farm-block {
   display: grid;
-  grid-template-columns: 33% 33% 33%;
+  grid-template-columns: 25% 40% 35%;
   gap: 10px;
   align-items: stretch;
   padding: 20px;
@@ -82,11 +82,19 @@
     }
   }
 
-  .farm-block__actions {
+  .farm-block__data {
     text-align: center;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: center;
+  }
+
+  .farm-block__actions {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-around;
   }
 }

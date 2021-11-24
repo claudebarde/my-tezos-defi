@@ -140,7 +140,7 @@
 
 <div class="farm-block">
   <div class="farm-block__name">
-    <div class="icons">
+    <div class="icons" id={`farm-${invData.id}`}>
       {#each invData.icons as icon}
         <img src={`images/${icon}.png`} alt="token-icon" />
       {/each}
@@ -165,14 +165,14 @@
       </div>
       <br />
       {#if stakeInXtz}
-        <span class="title">Stake in XTZ:</span>
+        <span class="title">Value in XTZ:</span>
         <br />
         <div class:blurry-text={$store.blurryBalances}>
           {+stakeInXtz.toFixed(5) / 1} ꜩ
         </div>
         <br />
         <span class="title">
-          Stake in {$localStorageStore.preferredFiat}:
+          Value in {$localStorageStore.preferredFiat}:
         </span>
         <br />
         <div class:blurry-text={$store.blurryBalances}>
@@ -196,6 +196,22 @@
         <span id={`rewards-${invData.id}`}>
           {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
           {$store.investments[invData.id].rewardToken}
+        </span>
+      {/if}
+      {#if rewards?.amount}
+        <br />
+        <span style="font-size:0.7rem">
+          ({formatTokenAmount(
+            rewards.amount * $store.tokens[invData.rewardToken].exchangeRate
+          )} ꜩ / {formatTokenAmount(
+            rewards.amount *
+              $store.tokens[invData.rewardToken].exchangeRate *
+              $store.xtzData.exchangeRate,
+            2
+          )}
+          {config.validFiats.find(
+            fiat => fiat.code === $localStorageStore.preferredFiat
+          ).symbol})
         </span>
       {/if}
     </div>
