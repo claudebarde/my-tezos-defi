@@ -546,7 +546,7 @@
               $store.userAddress,
               inv.address,
               $store.lastOperations[0].level,
-              inv.decimals
+              18
             );
           } else if (inv.platform === "paul") {
             rewards = await getPaulReward(inv.address);

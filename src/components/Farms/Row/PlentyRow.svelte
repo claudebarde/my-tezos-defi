@@ -1,10 +1,9 @@
 <script lang="ts">
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
-  import { slide } from "svelte/transition";
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
   import "tippy.js/themes/light-border.css";
-  import type { AvailableInvestments, InvestmentData } from "../../../types";
+  import { AvailableInvestments, InvestmentData } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
@@ -15,7 +14,8 @@
   } from "../../../utils";
   import {
     calcPlentyStakeInXtz,
-    calcPlentyAprApy
+    calcPlentyAprApy,
+    getLPTokenPrice
   } from "../../../tokenUtils/plentyUtils";
   import toastStore from "../../Toast/toastStore";
   import Modal from "../../Modal/Modal.svelte";
@@ -36,8 +36,10 @@
   let stakeInXtz: null | number = null;
   let openSettingsModal = false;
   const dispatch = createEventDispatcher();
-  let expand = false;
+  let apy: null | number = null;
+  let apr: null | number = null;
   let roiPerWeek: number | null = null;
+  let moreOptions = false;
 
   const harvest = async () => {
     harvesting = true;
@@ -80,13 +82,29 @@
     }
   };
 
-  const fetchStatistics = async () => {
-    await calcPlentyAprApy({
+  const fetchStatistics = async (
+    tokenPair: AvailableInvestments,
+    token1: AvailableToken,
+    token2: AvailableToken
+  ) => {
+    const lpTokenPrice = await getLPTokenPrice({
+      tokenPair,
+      token1_price: $store.tokens[token1].exchangeRate,
+      token1_decimal: $store.tokens[token1].decimals,
+      token2_price: $store.tokens[token2].exchangeRate,
+      token2_decimal: $store.tokens[token2].decimals,
+      lp_token_decimal: $store.investments[tokenPair].decimals,
+      Tezos: $store.Tezos
+    });
+    const result = await calcPlentyAprApy({
       Tezos: $store.Tezos,
       farmAddress: invData.address,
-      rewardTokenPriceInFiat: 0.5562893951539197, //$store.tokens.PLENTY.exchangeRate,
-      stakeTokenPriceInFiat: 1.4976254962101335 //$store.tokens[invData.icons[1]].exchangeRate
+      rewardTokenPriceInFiat: $store.tokens.PLENTY.exchangeRate,
+      stakeTokenPriceInFiat: lpTokenPrice
     });
+
+    apr = result.apr;
+    apy = result.apy;
   };
 
   onMount(async () => {
@@ -115,6 +133,12 @@
         dispatch("update-farm-value", [invName, stakeInXtz]);
       }
     }
+
+    await fetchStatistics(
+      invData.id,
+      invData.icons[0] as AvailableToken,
+      invData.icons[1] as AvailableToken
+    );
 
     tippy(`#harvest-${invData.id}`, {
       content: "Harvest"
@@ -168,6 +192,17 @@
         {invData.alias}
       </a>
     </div>
+    {#if apr}
+      <br />
+      <div style="font-size:0.7rem">
+        APR: {apr.toFixed(2)}%
+      </div>
+    {/if}
+    {#if apy}
+      <div style="font-size:0.7rem">
+        APY: {apy.toFixed(2)}%
+      </div>
+    {/if}
   </div>
   <div class="farm-block__data">
     <div class="farm-block__data__info">
@@ -176,7 +211,7 @@
       {#if !invData.liquidityToken && $store.tokens[invData.rewardToken]}
         <div>
           <div class:blurry-text={$store.blurryBalances}>
-            {+(invData.balance / 10 ** invData.decimals).toFixed(3) / 1} LPT
+            {+(invData.balance / 10 ** 18).toFixed(3) / 1} LPT
           </div>
           <br />
           <span class="title">Value in XTZ:</span>
@@ -199,7 +234,7 @@
       {:else if invData.liquidityToken && invData.alias !== "PLENTY-XTZ LP farm" && $store.tokens.PLENTY.exchangeRate}
         <div>
           <div class:blurry-text={$store.blurryBalances}>
-            {+(invData.balance / 10 ** invData.decimals).toFixed(3) / 1} LPT
+            {+(invData.balance / 10 ** 18).toFixed(3) / 1} LPT
           </div>
           {#if stakeInXtz || stakeInXtz === 0}
             <br />
@@ -290,15 +325,12 @@
       <button
         class="primary"
         on:click={async () => {
-          if (!expand) {
-            await fetchStatistics();
-          }
-          expand = !expand;
+          moreOptions = !moreOptions;
         }}
       >
         Show more options &nbsp;
         <span class="material-icons">
-          {#if expand}
+          {#if moreOptions}
             expand_less
           {:else}
             expand_more

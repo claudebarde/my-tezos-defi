@@ -180,23 +180,63 @@ export const calcPlentyStakeInXtz = async ({
   }
 };
 
+export const getLPTokenPrice = async ({
+  tokenPair,
+  token1_price,
+  token1_decimal,
+  token2_price,
+  token2_decimal,
+  lp_token_decimal,
+  Tezos
+}: {
+  tokenPair: AvailableInvestments;
+  token1_price: number;
+  token1_decimal: number;
+  token2_price: number;
+  token2_decimal: number;
+  lp_token_decimal: number;
+  Tezos: TezosToolkit;
+}) => {
+  const dexAddress = config.plentyDexAddresses[tokenPair];
+  const contract = await Tezos.wallet.at(dexAddress);
+  const storage: any = await contract.storage();
+
+  let token1Amount =
+    (Math.pow(10, lp_token_decimal) * storage.token1_pool) /
+    storage.totalSupply;
+  token1Amount = (token1Amount * token1_price) / Math.pow(10, token1_decimal);
+
+  let token2Amount =
+    (Math.pow(10, lp_token_decimal) * storage.token2_pool) /
+    storage.totalSupply;
+  token2Amount = (token2Amount * token2_price) / Math.pow(10, token2_decimal);
+
+  return +(token1Amount + token2Amount).toFixed(2);
+};
+
 export const calcPlentyAprApy = async (params: {
   farmAddress: TezosContractAddress;
   Tezos: TezosToolkit;
   rewardTokenPriceInFiat: number;
   stakeTokenPriceInFiat: number;
 }): Promise<{ apr: number | null; apy: number | null }> => {
+  let apr = null;
+  let apy = null;
+
   const { farmAddress, Tezos, rewardTokenPriceInFiat, stakeTokenPriceInFiat } =
     params;
   // fetches the storage
   const farm = await Tezos.wallet.at(farmAddress);
   const farmStorage: any = await farm.storage();
   // calculates APR
-  const apr =
+  apr =
     ((farmStorage.rewardRate.toNumber() * 1051200 * rewardTokenPriceInFiat) /
       (farmStorage.totalSupply.toNumber() * stakeTokenPriceInFiat)) *
     100;
-  console.log(apr);
 
-  return { apr: null, apy: null };
+  if (apr) {
+    apy = ((apr / 100 / 365 + 1) ** 365 - 1) * 100;
+  }
+
+  return { apr, apy };
 };
