@@ -1,9 +1,14 @@
 <script lang="ts">
-  import { onMount, afterUpdate, createEventDispatcher } from "svelte";
+  import {
+    onMount,
+    afterUpdate,
+    onDestroy,
+    createEventDispatcher
+  } from "svelte";
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
   import "tippy.js/themes/light-border.css";
-  import { AvailableInvestments, InvestmentData } from "../../../types";
+  import type { AvailableInvestments, InvestmentData } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
@@ -40,6 +45,7 @@
   let apr: null | number = null;
   let roiPerWeek: number | null = null;
   let moreOptions = false;
+  let refreshStats;
 
   const harvest = async () => {
     harvesting = true;
@@ -105,6 +111,9 @@
 
     apr = result.apr;
     apy = result.apy;
+
+    // calculates estimated ROI per week
+    roiPerWeek = formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
   };
 
   onMount(async () => {
@@ -147,6 +156,16 @@
     tippy(`#remove-${invData.id}`, {
       content: "Remove"
     });
+
+    refreshStats = setInterval(
+      async () =>
+        await fetchStatistics(
+          invData.id,
+          invData.icons[0] as AvailableToken,
+          invData.icons[1] as AvailableToken
+        ),
+      600000
+    );
   });
 
   afterUpdate(() => {
@@ -172,6 +191,10 @@
       allowHTML: true,
       placement: "left"
     });
+  });
+
+  onDestroy(() => {
+    clearInterval(refreshStats);
   });
 </script>
 
@@ -264,6 +287,16 @@
         <div>--</div>
       {/if}
     </div>
+    {#if roiPerWeek}
+      <br />
+      <div class="farm-block__data__info">
+        <span class="title">Estimated ROI/week</span>
+        <br />
+        <div>
+          {roiPerWeek} ꜩ
+        </div>
+      </div>
+    {/if}
   </div>
   <div class="farm-block__actions">
     <div>
