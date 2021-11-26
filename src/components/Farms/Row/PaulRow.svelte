@@ -33,6 +33,7 @@
   let stakeInXtz: null | number = null;
   const dispatch = createEventDispatcher();
   let apr: number | null = null;
+  let roiPerWeek: number | null = null;
 
   const harvest = async () => {
     harvesting = true;
@@ -156,7 +157,9 @@
       tokenDecimals: $store.tokens.PAUL.decimals,
       paulPrice: $store.tokens.PAUL.exchangeRate
     });
-    console.log(invData.id, apr);
+
+    // calculates estimated ROI per week
+    roiPerWeek = formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
   });
 
   afterUpdate(async () => {
@@ -232,6 +235,16 @@
         <span class="material-icons"> hourglass_empty </span>
       {/if}
     </div>
+    {#if roiPerWeek}
+      <br />
+      <div class="farm-block__data__info">
+        <span class="title">Estimated ROI/week:</span>
+        <br />
+        <div>
+          {roiPerWeek} ꜩ
+        </div>
+      </div>
+    {/if}
   </div>
   <div class="farm-block__actions">
     <div>
