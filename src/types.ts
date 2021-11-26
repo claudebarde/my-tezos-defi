@@ -97,6 +97,7 @@ export enum AvailableInvestments {
   "QUIPU-PAUL" = "QUIPU-PAUL",
   "wWBTC-PAUL" = "wWBTC-PAUL",
   "wUSDC-PAUL" = "wUSDC-PAUL",
+  "wWETH-PAUL" = "wWETH-PAUL",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
   "WRAP-STACKING" = "WRAP-STACKING",

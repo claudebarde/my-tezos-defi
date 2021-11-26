@@ -290,7 +290,7 @@
     {#if roiPerWeek}
       <br />
       <div class="farm-block__data__info">
-        <span class="title">Estimated ROI/week</span>
+        <span class="title">Estimated ROI/week:</span>
         <br />
         <div>
           {roiPerWeek} ꜩ

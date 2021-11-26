@@ -679,16 +679,20 @@
     .row-footer {
       display: grid;
       grid-template-columns: 10% 25% 16% 17% 14% 18%;
-      padding: 5px 10px;
       align-items: center;
       padding: 10px;
     }
     .row-header {
       background-color: darken($container-bg-color, 3);
       color: white;
+      padding: 5px 10px;
     }
     .row-footer {
       color: $container-bg-color;
+      background-color: lighten($container-bg-color, 65);
+      padding: 15px 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
     }
 
     .unstaked-token {
@@ -914,7 +918,7 @@
         <div class="row-footer">
           <div style="grid-column: 1 / span 2">
             <button
-              class="primary mini"
+              class="primary"
               on:click={async () => await findStakes("plenty")}
             >
               <span class="material-icons"> search </span>
@@ -925,10 +929,7 @@
           <div />
           {#if availableRewards.length > 0}
             <div class="total-rewards" id="total-plenty-rewards">
-              <span class="material-icons" style="vertical-align:middle">
-                point_of_sale
-              </span>
-              {formatTokenAmount(
+              Total: {formatTokenAmount(
                 [
                   0,
                   0,
@@ -944,19 +945,19 @@
           {/if}
           <div style="display:flex;justify-content:center">
             {#if harvestingAllPlenty}
-              <button class="mini loading">
+              <button class="primary loading">
                 Harvesting <span class="material-icons"> sync </span>
               </button>
             {:else}
               <!-- Harvest button states -->
               {#if harvestingAllPlentySuccess === true}
-                <button class="mini success"> Harvested! </button>
+                <button class="primary success"> Harvested! </button>
               {:else if harvestingAllPlentySuccess === false}
-                <button class="mini error" on:click={harvestAllPlenty}>
+                <button class="primary error" on:click={harvestAllPlenty}>
                   Retry
                 </button>
               {:else}
-                <button class="mini" on:click={harvestAllPlenty}>
+                <button class="primary" on:click={harvestAllPlenty}>
                   <span class="material-icons"> agriculture </span>&nbsp;
                   Harvest all
                 </button>
@@ -1115,10 +1116,7 @@
     </div>
     <div class="row-footer">
       <div style="grid-column: 1 / span 2">
-        <button
-          class="primary mini"
-          on:click={async () => await findStakes("paul")}
-        >
+        <button class="primary" on:click={async () => await findStakes("paul")}>
           <span class="material-icons"> search </span>
           Find my stakes
         </button>
@@ -1127,10 +1125,7 @@
       <div />
       {#if availableRewards.length > 0}
         <div class="total-rewards" id="total-paul-rewards">
-          <span class="material-icons" style="vertical-align:middle">
-            point_of_sale
-          </span>
-          {formatTokenAmount(
+          Total: {formatTokenAmount(
             [
               0,
               0,
@@ -1146,19 +1141,19 @@
       {/if}
       <div style="display:flex;justify-content:center">
         {#if harvestingAllPaul}
-          <button class="mini loading">
+          <button class="primary loading">
             Harvesting <span class="material-icons"> sync </span>
           </button>
         {:else}
           <!-- Harvest button states -->
           {#if harvestingAllPaulSuccess === true}
-            <button class="mini success"> Harvested! </button>
+            <button class="primary success"> Harvested! </button>
           {:else if harvestingAllPaulSuccess === false}
             <button class="mini error" on:click={harvestAllPaul}>
               Retry
             </button>
           {:else}
-            <button class="mini" on:click={harvestAllPaul}>
+            <button class="primary" on:click={harvestAllPaul}>
               <span class="material-icons"> agriculture </span>&nbsp; Harvest
               all
             </button>

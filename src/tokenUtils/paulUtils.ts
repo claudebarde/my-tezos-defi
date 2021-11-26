@@ -1,7 +1,10 @@
 import type { TezosToolkit } from "@taquito/taquito";
 import { Parser } from "@taquito/michel-codec";
 import BigNumber from "bignumber.js";
-import type { TezosContractAddress, AvailableInvestments } from "../types";
+import { get } from "svelte/store";
+import store from "../store";
+import type { TezosContractAddress, AvailableToken } from "../types";
+import { AvailableInvestments } from "../types";
 import {
   estimateQuipuTezInShares,
   estimateQuipuTokenInShares,
@@ -104,28 +107,76 @@ export const calcTokenStakesFromQuipu = async (param: {
 
 export const calcPaulFarmApr = async ({
   Tezos,
+  farmId,
   farmAddress,
   earnCoinPrice,
-  tokenDecimals
+  tokenDecimals,
+  paulPrice
 }: {
   Tezos: TezosToolkit;
+  farmId: AvailableInvestments;
   farmAddress: TezosContractAddress;
   earnCoinPrice: number;
   tokenDecimals: number;
-}) => {
+  paulPrice: number;
+}): Promise<number | null> => {
+  const localStore = get(store);
+
   const contract = await Tezos.wallet.at(farmAddress);
   const storage: any = await contract.storage();
   // TODO: calculate the price for the LP token
-  const lpTokenPrice = 1;
-  const earnCoinsPerYear =
-    (((storage.reward_per_second * storage.coefficient) / 100) *
-      24 *
-      3600 *
-      365) /
-    10 ** tokenDecimals;
-  const totalStakedInUsd = (storage.total_staked / 10 ** 6) * lpTokenPrice;
+  let lpTokenPrice: null | number;
+  switch (farmId) {
+    case AvailableInvestments["PAUL-PAUL"]:
+      lpTokenPrice = paulPrice / 10 ** 4;
+      break;
+    case AvailableInvestments["PAUL-XTZ"]:
+    case AvailableInvestments["MAG-XTZ"]:
+      lpTokenPrice = await calcTokenStakesFromQuipu({
+        Tezos,
+        id: farmId,
+        balance: 10 ** 4,
+        paulToken: { decimals: tokenDecimals, exchangeRate: paulPrice }
+      });
+      break;
+    case AvailableInvestments["wWBTC-PAUL"]:
+    case AvailableInvestments["wUSDC-PAUL"]:
+    case AvailableInvestments["QUIPU-PAUL"]:
+      const invData = localStore.investments[farmId];
+      const { tokenBAmount } = await calcTokenStakesInAlienFarm({
+        Tezos,
+        amountOfTokens: 10 ** 4,
+        tokens: invData.icons.map(icon => ({
+          address: localStore.tokens[icon as AvailableToken].address,
+          tokenId: localStore.tokens[icon as AvailableToken].tokenId,
+          tokenType: localStore.tokens[icon as AvailableToken].type
+        }))
+      });
+      lpTokenPrice =
+        (((tokenBAmount / 10 ** localStore.tokens.PAUL.decimals) *
+          localStore.tokens.PAUL.exchangeRate) /
+          10 ** 6) *
+        2;
+      break;
+    default:
+      lpTokenPrice = null;
+  }
 
-  return (((earnCoinPrice * earnCoinsPerYear) / totalStakedInUsd) * 100) / 100;
+  if (lpTokenPrice) {
+    const earnCoinsPerYear =
+      (((storage.reward_per_second * storage.coefficient) / 100) *
+        24 *
+        3600 *
+        365) /
+      10 ** tokenDecimals;
+    const totalStakedInUsd = (storage.total_staked / 10 ** 6) * lpTokenPrice;
+
+    return (
+      (((earnCoinPrice * earnCoinsPerYear) / totalStakedInUsd) * 100) / 100
+    );
+  } else {
+    return null;
+  }
   /*
     For farming: earnCoinPrice * earnCoinsPerYear / totalStakedInUsd * 100%, 
     where earnCoinPrice -  the price of one reward token, 

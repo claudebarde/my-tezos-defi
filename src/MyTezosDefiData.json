@@ -1006,6 +1006,17 @@
       "rewardToken": "PAUL",
       "liquidityToken": true
     },
+    "wWETH-PAUL": {
+      "id": "wWETH-PAUL",
+      "platform": "paul",
+      "address": "KT1UcYH3CLtKL393rHEEkFphWjZNzeHtLEXB",
+      "decimals": 6,
+      "info": ["paul-lqt"],
+      "alias": "wWETH/PAUL farm",
+      "icons": ["wWETH", "PAUL"],
+      "rewardToken": "PAUL",
+      "liquidityToken": true
+    },
     "KUSD-QUIPU-LP": {
       "id": "KUSD-QUIPU-LP",
       "platform": "kdao",

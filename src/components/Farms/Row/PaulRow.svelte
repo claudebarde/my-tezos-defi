@@ -12,7 +12,8 @@
   } from "../../../utils";
   import {
     calcTokenStakesInAlienFarm,
-    calcTokenStakesFromQuipu
+    calcTokenStakesFromQuipu,
+    calcPaulFarmApr
   } from "../../../tokenUtils/paulUtils";
   import toastStore from "../../Toast/toastStore";
   import config from "../../../config";
@@ -31,6 +32,7 @@
   let harvestingSuccess = undefined;
   let stakeInXtz: null | number = null;
   const dispatch = createEventDispatcher();
+  let apr: number | null = null;
 
   const harvest = async () => {
     harvesting = true;
@@ -145,9 +147,19 @@
 
       dispatch("update-farm-value", [invName, stakeInXtz]);
     }
+
+    apr = await calcPaulFarmApr({
+      Tezos: $store.Tezos,
+      farmId: invData.id,
+      farmAddress: invData.address,
+      earnCoinPrice: $store.tokens.PAUL.exchangeRate,
+      tokenDecimals: $store.tokens.PAUL.decimals,
+      paulPrice: $store.tokens.PAUL.exchangeRate
+    });
+    console.log(invData.id, apr);
   });
 
-  afterUpdate(() => {
+  afterUpdate(async () => {
     if (rewards && rewards.amount && invData.platform === "paul") {
       tippy(`#rewards-${invData.id}`, {
         content: `<div>${
@@ -184,6 +196,12 @@
         {invData.alias}
       </a>
     </div>
+    {#if apr}
+      <br />
+      <div style="font-size:0.7rem">
+        APR: {apr.toFixed(2)}%
+      </div>
+    {/if}
   </div>
   <div class="farm-block__data">
     <div class="farm-block__data__info">
