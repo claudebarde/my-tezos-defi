@@ -361,161 +361,17 @@
           moreOptions = !moreOptions;
         }}
       >
-        Show more options &nbsp;
-        <span class="material-icons">
-          {#if moreOptions}
-            expand_less
-          {:else}
-            expand_more
-          {/if}
-        </span>
+        {#if moreOptions}
+          Show less options &nbsp;
+          <span class="material-icons"> expand_less </span>
+        {:else}
+          Show more options &nbsp;
+          <span class="material-icons"> expand_more </span>
+        {/if}
       </button>
     </div>
   </div>
 </div>
-<!--<div class="farm-row" class:expanded={expand}>
-  <div style="display:flex">
-    <div class="icon" id={`farm-${invData.id}`}>
-      {#each invData.icons as icon}
-        <img src={`images/${icon}.png`} alt="token-icon" />
-      {/each}
-    </div>
-  </div>
-  <div>
-    <a
-      href={`https://better-call.dev/mainnet/${invData.address}/operations`}
-      target="_blank"
-      rel="noopener noreferrer nofollow"
-    >
-      {invData.alias}
-    </a>
-  </div>
-  <div>
-    {#if !invData || isNaN(invData.balance)}
-      <span class="material-icons"> hourglass_empty </span>
-    {:else}
-      <span class:blurry-text={$store.blurryBalances}>
-        {+(invData.balance / 10 ** invData.decimals).toFixed(3) / 1}
-      </span>
-    {/if}
-  </div>
-  <div>
-    {#if !invData.liquidityToken && $store.tokens[invData.rewardToken]}
-      <div>
-        {#if valueInXtz}
-          <span class:blurry-text={$store.blurryBalances}>
-            {stakeInXtz}
-          </span>
-        {:else}
-          <span class:blurry-text={$store.blurryBalances}>
-            {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(5) / 1}
-          </span>
-        {/if}
-      </div>
-    {:else if invData.liquidityToken && invData.alias !== "PLENTY-XTZ LP farm" && $store.tokens.PLENTY.exchangeRate}
-      <div>
-        {#if valueInXtz}
-          <span class:blurry-text={$store.blurryBalances}>
-            {#if stakeInXtz || stakeInXtz === 0}
-              {stakeInXtz}
-            {:else}
-              <span class="material-icons"> hourglass_empty </span>
-            {/if}
-          </span>
-        {:else}
-          <span class:blurry-text={$store.blurryBalances}>
-            {#if stakeInXtz || stakeInXtz === 0}
-              {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(5) / 1}
-            {:else}
-              <span class="material-icons"> hourglass_empty </span>
-            {/if}
-          </span>
-        {/if}
-      </div>
-    {:else if invData.alias === "PLENTY-XTZ LP farm" && $store.tokens.PLENTY}
-      <div>--</div>
-    {:else}
-      <div>--</div>
-    {/if}
-  </div>
-  <div>
-    {#if !rewards}
-      <span class="material-icons"> hourglass_empty </span>
-    {:else}
-      <span id={`rewards-${invData.id}`}>
-        {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
-      </span>
-    {/if}
-  </div>
-  <div class="buttons">
-    {#if harvesting}
-      <button class="mini loading">
-        <span class="material-icons"> sync </span>
-      </button>
-    {:else if harvestingSuccess === true}
-      <button class="mini success">
-        <span class="material-icons"> thumb_up </span>
-      </button>
-    {:else if harvestingSuccess === false}
-      <button class="mini error" on:click={harvest}> Retry </button>
-    {:else}
-      <button class="mini" on:click={harvest} id={`harvest-${invData.id}`}>
-        <span class="material-icons"> agriculture </span>
-      </button>
-    {/if}
-    <button
-      class="mini"
-      on:click={() => dispatch("remove-investment", invData.id)}
-      id={`remove-${invData.id}`}
-    >
-      <span class="material-icons"> delete </span>
-    </button>
-    <button
-      class="mini"
-      on:click={async () => {
-        if (!expand) {
-          await fetchStatistics();
-        }
-        expand = !expand;
-      }}
-    >
-      <span class="material-icons">
-        {#if expand}
-          expand_less
-        {:else}
-          expand_more
-        {/if}
-      </span>
-    </button>
-  </div>
-</div>
-{#if expand}
-  <div class="farm-sub-row expanded" transition:slide={{ duration: 300 }}>
-    <div>
-      {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-        <button
-          class="mini"
-          on:click={async () => {
-            openSettingsModal = !openSettingsModal;
-          }}
-        >
-          <span class="material-icons"> settings </span>
-        </button>
-      {/if}
-    </div>
-    <div style="grid-column: 2 / span 2">APR & APY</div>
-    <div style="grid-column: 4 / span 2">
-      <span>ROI/week &#8776;</span>
-      <span>
-        {#if roiPerWeek}
-          {formatTokenAmount(roiPerWeek, 2)} XTZ
-        {:else}
-          <span class="material-icons"> hourglass_empty </span>
-        {/if}
-      </span>
-    </div>
-  </div>
-{/if}-->
 {#if openSettingsModal}
   <Modal type="default" on:close={() => (openSettingsModal = false)}>
     <div slot="modal-title" class="modal-title">

@@ -34,6 +34,7 @@
   const dispatch = createEventDispatcher();
   let apr: number | null = null;
   let roiPerWeek: number | null = null;
+  let moreOptions = false;
 
   const harvest = async () => {
     harvesting = true;
@@ -301,79 +302,20 @@
           <span class="material-icons"> save_alt </span>
         </button>
       {/if}
+      <button
+        class="primary"
+        on:click={async () => {
+          moreOptions = !moreOptions;
+        }}
+      >
+        {#if moreOptions}
+          Show less options &nbsp;
+          <span class="material-icons"> expand_less </span>
+        {:else}
+          Show more options &nbsp;
+          <span class="material-icons"> expand_more </span>
+        {/if}
+      </button>
     </div>
   </div>
 </div>
-
-<!--<div class="farm-row">
-  <div class="icon" id={`farm-${invData.id}`}>
-    {#each invData.icons as icon}
-      <img src={`images/${icon}.png`} alt="token-icon" />
-    {/each}
-  </div>
-  <div>
-    <a
-      href={`https://better-call.dev/mainnet/${invData.address}/operations`}
-      target="_blank"
-      rel="noopener noreferrer nofollow"
-    >
-      {invData.alias}
-    </a>
-  </div>
-  <div>
-    <span class:blurry-text={$store.blurryBalances}>
-      {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1}
-    </span>
-  </div>
-  <div>
-    {#if valueInXtz}
-      <span class:blurry-text={$store.blurryBalances}>
-        {stakeInXtz ?? "N/A"}
-      </span>
-    {:else}
-      <span class:blurry-text={$store.blurryBalances}>
-        {+(
-          (($store.tokens[invData.rewardToken].exchangeRate * invData.balance) /
-            10 ** invData.decimals) *
-          $store.xtzData.exchangeRate
-        ).toFixed(2) / 1}
-      </span>
-    {/if}
-  </div>
-  <div>
-    {#if !rewards}
-      <span class="material-icons"> hourglass_empty </span>
-    {:else}
-      <span id={`rewards-${invData.id}`}>
-        {+rewards.amount.toFixed(5) / 1}
-      </span>
-    {/if}
-  </div>
-  <div class="buttons">
-    {#if harvesting}
-      <button class="mini loading">
-        <span class="material-icons"> sync </span>
-      </button>
-    {:else if harvestingSuccess === true}
-      <button class="mini success">
-        <span class="material-icons"> thumb_up </span>
-      </button>
-    {:else if harvestingSuccess === false}
-      <button class="mini error" on:click={harvest}> Retry </button>
-    {:else}
-      <button class="mini" on:click={harvest}>
-        <span class="material-icons"> agriculture </span>
-      </button>
-    {/if}
-    <!--{#if invData.id === AvailableInvestments["PAUL-PAUL"]}
-      <button class="mini" on:click={compound}>
-        <span class="material-icons"> save_alt </span>
-      </button>
-    {/if}-->
-<!--{#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-      <button class="mini">
-        <span class="material-icons"> settings </span>
-      </button>
-    {/if}
-  </div>
-</div>-->

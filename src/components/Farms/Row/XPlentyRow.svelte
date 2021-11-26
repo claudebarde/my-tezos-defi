@@ -187,32 +187,3 @@
     </div>
   </div>
 </div>
-
-<!--<div class="farm-row">
-  <div class="icon">
-    <img src="images/xPLENTY.png" alt="xPLENTY-token-icon" />
-  </div>
-  <div>{$store.investments["xPLENTY-Staking"].alias}</div>
-  <div>{$store.investments["xPLENTY-Staking"].balance}</div>
-  <div>
-    {formatTokenAmount(
-      $store.investments["xPLENTY-Staking"].balance *
-        $store.tokens.xPLENTY.exchangeRate
-    )}
-  </div>
-  <div>
-    {#if expectedPlentyTokens}
-      {formatTokenAmount(expectedPlentyTokens)}
-    {:else}
-      <span class="material-icons"> hourglass_empty </span>
-    {/if}
-  </div>
-  <div class="buttons">
-    <button class="mini" id="xplenty-stake-button">
-      <span class="material-icons"> file_download </span>
-    </button>
-    <button class="mini" id="xplenty-unstake-button">
-      <span class="material-icons"> file_upload </span>
-    </button>
-  </div>
-</div>-->
