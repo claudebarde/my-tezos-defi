@@ -36,7 +36,9 @@
           tk.toLowerCase()
         );
         const tezToolsTokens = tezToolsData.contracts.filter(contract =>
-          availableTokens.includes(contract.symbol.toLowerCase())
+          availableTokens.includes(
+            contract.symbol && contract.symbol.toLowerCase()
+          )
         );
         tokens = tokens.map(([tokenSymbol, tokenData]) => {
           let tezToolToken = tezToolsTokens.find(

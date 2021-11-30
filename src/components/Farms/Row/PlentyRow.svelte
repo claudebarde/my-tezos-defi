@@ -355,20 +355,22 @@
         Remove &nbsp;
         <span class="material-icons"> delete </span>
       </button>
-      <button
-        class="primary"
-        on:click={async () => {
-          moreOptions = !moreOptions;
-        }}
-      >
-        {#if moreOptions}
-          Show less options &nbsp;
-          <span class="material-icons"> expand_less </span>
-        {:else}
-          Show more options &nbsp;
-          <span class="material-icons"> expand_more </span>
-        {/if}
-      </button>
+      {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+        <button
+          class="primary"
+          on:click={async () => {
+            moreOptions = !moreOptions;
+          }}
+        >
+          {#if moreOptions}
+            Show less options &nbsp;
+            <span class="material-icons"> expand_less </span>
+          {:else}
+            Show more options &nbsp;
+            <span class="material-icons"> expand_more </span>
+          {/if}
+        </button>
+      {/if}
     </div>
   </div>
 </div>

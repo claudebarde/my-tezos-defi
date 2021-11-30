@@ -299,7 +299,7 @@
       <div>Locked</div>
     </div>
     {#each $localStorageStore.wXtzVaults as address}
-      <Row {address} platform="wxtz" valueInXtz={true} />
+      <Row {address} platform="wxtz" />
     {/each}
   {/if}
   <br />
@@ -311,7 +311,7 @@
       <div>Locked</div>
     </div>
     {#each $localStorageStore.kUsdVaults as address}
-      <Row {address} platform="kusd" valueInXtz={true} />
+      <Row {address} platform="kusd" />
     {/each}
   {/if}
   <br />
@@ -323,7 +323,7 @@
       <div>Locked</div>
     </div>
     {#each $localStorageStore.uUsdVaults as address}
-      <Row {address} platform="uusd" valueInXtz={true} />
+      <Row {address} platform="uusd" />
     {/each}
   {/if}
 </section>

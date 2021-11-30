@@ -2,9 +2,9 @@
   import { onMount } from "svelte";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
-  import { shortenHash } from "../../utils";
+  import { shortenHash, formatTokenAmount } from "../../utils";
 
-  export let address, platform, valueInXtz;
+  export let address, platform;
 
   let lockedAmount: number | null = null;
   let iconPath;
@@ -43,7 +43,7 @@
 
   .row {
     display: grid;
-    grid-template-columns: 10% 25% 20% 17% 16% 12%;
+    grid-template-columns: 10% 25% 37% 16% 12%;
     padding: 10px;
     align-items: center;
     transition: 0.3s;
@@ -94,14 +94,18 @@
     {/if}
   </div>
   <div>
-    {#if valueInXtz}
-      {lockedAmount ?? "--"} ꜩ
+    {#if lockedAmount}
+      <span>
+        {lockedAmount} ꜩ
+      </span>
+      <span style="font-size:0.8rem">
+        ({formatTokenAmount(lockedAmount * $store.xtzData.exchangeRate, 2)}
+        {$localStorageStore.preferredFiat})
+      </span>
     {:else}
-      {lockedAmount * $store.xtzData.exchangeRate}
-      {$localStorageStore.preferredFiat}
+      <span class="material-icons"> hourglass_empty </span>
     {/if}
   </div>
-  <div />
   <div />
   <div>
     <button
