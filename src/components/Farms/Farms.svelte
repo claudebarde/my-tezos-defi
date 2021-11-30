@@ -946,7 +946,8 @@
           <div style="display:flex;justify-content:center">
             {#if harvestingAllPlenty}
               <button class="primary loading">
-                Harvesting <span class="material-icons"> sync </span>
+                <span class="material-icons"> sync </span>
+                Harvesting
               </button>
             {:else}
               <!-- Harvest button states -->

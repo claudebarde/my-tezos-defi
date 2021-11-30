@@ -11,7 +11,7 @@
     left: 50%;
     transform: translateX(-50%);
     border-radius: 5px;
-    height: 25px;
+    min-height: 25px;
     min-width: 20%;
     text-align: center;
     color: white;

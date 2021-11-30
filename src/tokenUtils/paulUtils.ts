@@ -142,6 +142,7 @@ export const calcPaulFarmApr = async ({
     case AvailableInvestments["wWBTC-PAUL"]:
     case AvailableInvestments["wUSDC-PAUL"]:
     case AvailableInvestments["QUIPU-PAUL"]:
+    case AvailableInvestments["wWETH-PAUL"]:
       const invData = localStore.investments[farmId];
       const { tokenBAmount } = await calcTokenStakesInAlienFarm({
         Tezos,
