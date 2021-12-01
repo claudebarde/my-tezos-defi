@@ -480,8 +480,10 @@
   };
 
   const sortFarmsByApr = (farm: { id: AvailableInvestments; apr: number }) => {
-    const newFarmsList = [...farmAprs, farm].sort((a, b) => b.apr - a.apr);
-    farmAprs = [...newFarmsList];
+    if (!farmAprs.find(f => f.id == farm.id)) {
+      const newFarmsList = [...farmAprs, farm].sort((a, b) => b.apr - a.apr);
+      farmAprs = [...newFarmsList];
+    }
   };
 
   onMount(async () => {
