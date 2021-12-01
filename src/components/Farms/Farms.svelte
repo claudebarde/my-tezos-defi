@@ -1231,7 +1231,7 @@
               {$store.investments[farm.id].alias}
             </div>
             <div>
-              {farm.apr.toFixed(3)} %
+              {+farm.apr.toFixed(3) / 1} %
             </div>
           </div>
         {/each}
