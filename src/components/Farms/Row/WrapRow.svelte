@@ -214,6 +214,8 @@
         }
       }
 
+      dispatch("farm-apr", { id: invData.id, apr });
+
       // calculates ROI per week
       if (stakeInXtz) {
         roiPerWeek = (stakeInXtz * apr) / 100 / 52;

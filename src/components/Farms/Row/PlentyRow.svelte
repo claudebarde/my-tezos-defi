@@ -112,6 +112,8 @@
     apr = result.apr;
     apy = result.apy;
 
+    dispatch("farm-apr", { id: invData.id, apr });
+
     // calculates estimated ROI per week
     roiPerWeek = formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
   };

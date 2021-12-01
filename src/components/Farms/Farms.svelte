@@ -60,6 +60,7 @@
     name: string;
     balance: number;
   }[] = [];
+  let farmAprs: { id: AvailableInvestments; apr: number }[] = [];
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -478,6 +479,11 @@
     }
   };
 
+  const sortFarmsByApr = (farm: { id: AvailableInvestments; apr: number }) => {
+    const newFarmsList = [...farmAprs, farm].sort((a, b) => b.apr - a.apr);
+    farmAprs = [...newFarmsList];
+  };
+
   onMount(async () => {
     if (!$store.userAddress) push("/");
 
@@ -695,7 +701,8 @@
       border-radius: 10px;
     }
 
-    .unstaked-token {
+    .unstaked-token,
+    .best-farm-apr {
       display: grid;
       grid-template-columns: 10% 25% 65%;
       padding: 10px;
@@ -884,6 +891,7 @@
               event.detail
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
       <!-- PLENTY FARMS WITH STABLECOINS -->
@@ -908,6 +916,7 @@
               event.detail
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
       {#if $localStorageStore.favoriteInvestments.includes("xPLENTY-Staking")}
@@ -999,6 +1008,7 @@
             newInvestments[id].balance = balance;
             store.updateInvestments(newInvestments);
           }}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
       <!-- LIQUIDITY MINING -->
@@ -1027,6 +1037,7 @@
             newInvestments[id].balance = balance;
             store.updateInvestments(newInvestments);
           }}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
       <!-- FEE FARMING -->
@@ -1055,6 +1066,7 @@
             newInvestments[id].balance = balance;
             store.updateInvestments(newInvestments);
           }}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
       {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && $localStorageStore.favoriteInvestments.filter( inv => inv.includes("WRAP") ).length > 0}
@@ -1112,6 +1124,7 @@
               event.detail
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
     </div>
@@ -1203,6 +1216,27 @@
         No token found
       {/each}
     </div>
+    <br />
+    {#if farmAprs.length > 0}
+      <div style="font-size:1.1rem">Best APRs</div>
+      <div>
+        {#each farmAprs.slice(0, 7) as farm}
+          <div class="best-farm-apr">
+            <div class="icon">
+              {#each $store.investments[farm.id].icons as icon}
+                <img src={`images/${icon}.png`} alt="token-icon" />
+              {/each}
+            </div>
+            <div>
+              {$store.investments[farm.id].alias}
+            </div>
+            <div>
+              {farm.apr.toFixed(3)} %
+            </div>
+          </div>
+        {/each}
+      </div>
+    {/if}
   {/if}
 </section>
 {#if selectFarmModal}

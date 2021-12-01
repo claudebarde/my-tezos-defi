@@ -158,6 +158,7 @@
       tokenDecimals: $store.tokens.PAUL.decimals,
       paulPrice: $store.tokens.PAUL.exchangeRate
     });
+    dispatch("farm-apr", { id: invData.id, apr });
 
     // calculates estimated ROI per week
     roiPerWeek = formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
