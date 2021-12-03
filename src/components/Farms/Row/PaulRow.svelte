@@ -24,9 +24,7 @@
       amount: number;
     },
     invData: InvestmentData,
-    invName: AvailableInvestments,
-    //valueInXtz: boolean,
-    createTooltipContent;
+    invName: AvailableInvestments;
 
   let harvesting = false;
   let harvestingSuccess = undefined;
@@ -86,12 +84,6 @@
   };
 
   onMount(async () => {
-    tippy(`#farm-${invData.id}`, {
-      content: createTooltipContent(invData.icons[0], invData.icons[1]),
-      allowHTML: true,
-      placement: "left"
-    });
-
     const invDetails = await loadInvestment(invData.id, $store.userAddress);
     if (invDetails) {
       store.updateInvestments({
@@ -207,6 +199,14 @@
         APR: {apr.toFixed(2)}%
       </div>
     {/if}
+    <br />
+    {#each invData.icons as token}
+      {#if $store.tokens[token]}
+        <div style="font-size:0.7rem">
+          1 {token} = {formatTokenAmount($store.tokens[token].exchangeRate)} XTZ
+        </div>
+      {/if}
+    {/each}
   </div>
   <div class="farm-block__data">
     <div class="farm-block__data__info">

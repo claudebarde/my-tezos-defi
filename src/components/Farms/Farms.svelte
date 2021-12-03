@@ -1219,26 +1219,26 @@
       {/each}
     </div>
     <br />
-    {#if farmAprs.length > 0}
-      <div style="font-size:1.1rem">Best APRs</div>
-      <div>
-        {#each farmAprs.slice(0, 7) as farm}
-          <div class="best-farm-apr">
-            <div class="icon">
-              {#each $store.investments[farm.id].icons as icon}
-                <img src={`images/${icon}.png`} alt="token-icon" />
-              {/each}
-            </div>
-            <div>
-              {$store.investments[farm.id].alias}
-            </div>
-            <div>
-              {+farm.apr.toFixed(3) / 1} %
-            </div>
+  {/if}
+  {#if farmAprs.length > 0}
+    <div style="font-size:1.1rem">Best APRs</div>
+    <div>
+      {#each farmAprs.slice(0, 7) as farm}
+        <div class="best-farm-apr">
+          <div class="icon">
+            {#each $store.investments[farm.id].icons as icon}
+              <img src={`images/${icon}.png`} alt="token-icon" />
+            {/each}
           </div>
-        {/each}
-      </div>
-    {/if}
+          <div>
+            {$store.investments[farm.id].alias}
+          </div>
+          <div>
+            {+farm.apr.toFixed(3) / 1} %
+          </div>
+        </div>
+      {/each}
+    </div>
   {/if}
 </section>
 {#if selectFarmModal}
