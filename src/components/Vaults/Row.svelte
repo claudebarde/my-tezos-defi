@@ -34,6 +34,14 @@
       } else {
         lockedAmount = 0;
       }
+    } else if (platform == "ctez") {
+      iconPath = "images/Ctez.png";
+      const getBalance = await $store.Tezos.tz.getBalance(address);
+      if (getBalance) {
+        lockedAmount = getBalance.toNumber() / 10 ** 6;
+      } else {
+        lockedAmount = 0;
+      }
     }
   });
 </script>
@@ -94,7 +102,7 @@
     {/if}
   </div>
   <div>
-    {#if lockedAmount}
+    {#if lockedAmount || lockedAmount === 0}
       <span>
         {lockedAmount} ꜩ
       </span>

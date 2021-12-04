@@ -886,7 +886,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
@@ -911,7 +910,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
@@ -997,7 +995,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
@@ -1026,7 +1023,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
@@ -1055,7 +1051,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
@@ -1119,7 +1114,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),

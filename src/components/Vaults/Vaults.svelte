@@ -9,9 +9,11 @@
   let selectKusdVaults = false;
   let selectWxtzVaults = false;
   let selectUusdVaults = false;
+  let selectCtezVaults = false;
   let kusdNewVault = "";
   let wxtzNewVault = "";
   let uusdNewVault = "";
+  let ctezNewVault = "";
   let localVaultAddresses = [];
   let totalLocked: number | null = null;
 
@@ -19,7 +21,8 @@
     const allVaults = [
       ...$localStorageStore.wXtzVaults,
       ...$localStorageStore.kUsdVaults,
-      ...$localStorageStore.uUsdVaults
+      ...$localStorageStore.uUsdVaults,
+      ...$localStorageStore.ctezVaults
     ];
     if (
       allVaults.length > 0 &&
@@ -125,7 +128,29 @@
           border-radius: 10px;
           position: absolute;
           top: 70px;
-          right: -80px;
+          right: -100px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+          background-color: white;
+          padding: 5px;
+        }
+      }
+
+      #ctez-vaults {
+        position: relative;
+        height: 60px;
+
+        .select-ctez-vaults {
+          z-index: 100;
+          width: 440px;
+          height: 100px;
+          border: none;
+          border-radius: 10px;
+          position: absolute;
+          top: 70px;
+          right: -50px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -179,6 +204,7 @@
           selectKusdVaults = !selectKusdVaults;
           selectWxtzVaults = false;
           selectUusdVaults = false;
+          selectCtezVaults = false;
         }}
       >
         <img src="images/kUSD.png" alt="kUSD" />
@@ -217,6 +243,7 @@
           selectWxtzVaults = !selectWxtzVaults;
           selectKusdVaults = false;
           selectUusdVaults = false;
+          selectCtezVaults = false;
         }}
       >
         <img src="images/wXTZ.png" alt="wXTZ" />
@@ -255,6 +282,7 @@
           selectUusdVaults = !selectUusdVaults;
           selectKusdVaults = false;
           selectWxtzVaults = false;
+          selectCtezVaults = false;
         }}
       >
         <img src="images/uUSD.png" alt="uUSD" />
@@ -286,9 +314,48 @@
         </div>
       {/if}
     </div>
+    <div id="ctez-vaults">
+      <button
+        class="primary"
+        on:click={() => {
+          selectCtezVaults = !selectCtezVaults;
+          selectUusdVaults = false;
+          selectKusdVaults = false;
+          selectWxtzVaults = false;
+        }}
+      >
+        <img src="images/Ctez.png" alt="Ctez" />
+        &nbsp; Ctez
+        <span class="material-icons"> arrow_drop_down </span>
+      </button>
+      {#if selectCtezVaults}
+        <div
+          class="select-ctez-vaults"
+          transition:fly={{ duration: 400, y: 100 }}
+        >
+          <div>Add a new vault</div>
+          <br />
+          <div class="input-new-vault">
+            <input type="text" bind:value={ctezNewVault} />
+            <button
+              class="mini"
+              on:click={() => {
+                if (validateContractAddress(ctezNewVault) === 3) {
+                  localStorageStore.addVault("ctez", ctezNewVault);
+                  ctezNewVault = "";
+                  selectCtezVaults = false;
+                }
+              }}
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      {/if}
+    </div>
   </div>
   <br />
-  {#if $localStorageStore.wXtzVaults.length === 0 && $localStorageStore.kUsdVaults.length === 0 && $localStorageStore.uUsdVaults.length === 0}
+  {#if $localStorageStore.wXtzVaults.length === 0 && $localStorageStore.kUsdVaults.length === 0 && $localStorageStore.uUsdVaults.length === 0 && $localStorageStore.ctezVaults.length === 0}
     <div>No vault or oven</div>
   {/if}
   <!-- wXTZ -->
@@ -324,6 +391,18 @@
     </div>
     {#each $localStorageStore.uUsdVaults as address}
       <Row {address} platform="uusd" />
+    {/each}
+  {/if}
+  <br />
+  <!-- uUCtezD -->
+  {#if $localStorageStore?.ctezVaults.length > 0}
+    <div class="row-header">
+      <div />
+      <div>Vault</div>
+      <div>Locked</div>
+    </div>
+    {#each $localStorageStore.ctezVaults as address}
+      <Row {address} platform="ctez" />
     {/each}
   {/if}
 </section>

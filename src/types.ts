@@ -282,6 +282,7 @@ export interface LocalStorageState {
   wXtzVaults: TezosContractAddress[];
   kUsdVaults: TezosContractAddress[];
   uUsdVaults: TezosContractAddress[];
+  ctezVaults: TezosContractAddress[];
   lastUpdate: number;
 }
 
