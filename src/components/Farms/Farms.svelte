@@ -33,10 +33,6 @@
   import config from "../../config";
   import toastStore from "../Toast/toastStore";
 
-  let plentyValueInXtz = true;
-  let kdaoValueInXtz = true;
-  let paulValueInXtz = true;
-  let wrapValueInXtz = true;
   let readyToHarvest = 0;
   let availableRewards: {
     id: AvailableInvestments;
@@ -49,6 +45,8 @@
   let harvestingAllPlentySuccess = undefined;
   let harvestingAllPaul = false;
   let harvestingAllPaulSuccess = undefined;
+  let harvestingAllWrap = false;
+  let harvestingAllWrapSuccess = undefined;
   let unstakedLpTokens: [AvailableInvestments, string, number][] = [];
   let selectFarmModal: null | InvestmentPlatform = null;
   let searchingForStakes = false;
@@ -202,13 +200,77 @@
       console.log(error);
       toastStore.addToast({
         type: "error",
-        text: error.message
-          ? error.message
-          : `Unable to harvest Alien's' farms`,
+        text: error.message ? error.message : `Unable to harvest Alien's farms`,
         dismissable: true
       });
     } finally {
       harvestingAllPaul = false;
+    }
+  };
+
+  const harvestAllWrap = async () => {
+    harvestingAllWrap = true;
+    // gets the addresses of pools with rewards to harvest
+    let allRewards = (
+      await Promise.all(
+        Object.values($store.investments)
+          .filter(inv => inv.platform === "wrap")
+          .filter(inv =>
+            $localStorageStore.favoriteInvestments.includes(inv.id)
+          )
+          .map(inv =>
+            (async () => ({
+              address: inv.address,
+              rewards: await getWrapReward(
+                inv.id,
+                inv.address,
+                $store.userAddress,
+                inv.balance
+              )
+            }))()
+          )
+      )
+    ).filter(res => res.rewards && res.rewards.toNumber() > 0);
+
+    const contractCalls = await Promise.all(
+      allRewards.map(async res => {
+        const contract = await $store.Tezos.wallet.at(res.address);
+        return contract.methods.claim([["unit"]]);
+      })
+    );
+    const fee = [0, 0, ...allRewards.map(res => res.rewards.toNumber())].reduce(
+      (a, b) => +a + +b
+    );
+    console.log("Fee:", fee);
+    // batches transactions
+    try {
+      const batch = prepareOperation({
+        contractCalls: contractCalls,
+        amount: 0, //+fee,
+        tokenSymbol: AvailableToken.WRAP
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      const receipt = await op.receipt();
+      harvestingAllWrap = false;
+      if (!receipt) {
+        harvestingAllWrapSuccess = false;
+        throw `Operation failed: ${receipt}`;
+      } else {
+        harvestingAllWrapSuccess = true;
+        setTimeout(() => {
+          harvestingAllWrapSuccess = undefined;
+        }, 2000);
+      }
+    } catch (error) {
+      console.log(error);
+      toastStore.addToast({
+        type: "error",
+        text: error.message ? error.message : `Unable to harvest Wrap farms`,
+        dismissable: true
+      });
+    } finally {
+      harvestingAllWrap = false;
     }
   };
 
@@ -936,7 +998,7 @@
           </div>
           <div />
           <div />
-          {#if availableRewards.length > 0}
+          {#if availableRewards.filter(rw => rw.platform === "plenty").length > 0}
             <div class="total-rewards" id="total-plenty-rewards">
               Total: {formatTokenAmount(
                 [
@@ -949,31 +1011,31 @@
                 2
               )}
             </div>
+            <div style="display:flex;justify-content:center">
+              {#if harvestingAllPlenty}
+                <button class="primary loading">
+                  <span class="material-icons"> sync </span>
+                  Harvesting
+                </button>
+              {:else}
+                <!-- Harvest button states -->
+                {#if harvestingAllPlentySuccess === true}
+                  <button class="primary success"> Harvested! </button>
+                {:else if harvestingAllPlentySuccess === false}
+                  <button class="primary error" on:click={harvestAllPlenty}>
+                    Retry
+                  </button>
+                {:else}
+                  <button class="primary" on:click={harvestAllPlenty}>
+                    <span class="material-icons"> agriculture </span>&nbsp;
+                    Harvest all
+                  </button>
+                {/if}
+              {/if}
+            </div>
           {:else}
             <div />
           {/if}
-          <div style="display:flex;justify-content:center">
-            {#if harvestingAllPlenty}
-              <button class="primary loading">
-                <span class="material-icons"> sync </span>
-                Harvesting
-              </button>
-            {:else}
-              <!-- Harvest button states -->
-              {#if harvestingAllPlentySuccess === true}
-                <button class="primary success"> Harvested! </button>
-              {:else if harvestingAllPlentySuccess === false}
-                <button class="primary error" on:click={harvestAllPlenty}>
-                  Retry
-                </button>
-              {:else}
-                <button class="primary" on:click={harvestAllPlenty}>
-                  <span class="material-icons"> agriculture </span>&nbsp;
-                  Harvest all
-                </button>
-              {/if}
-            {/if}
-          </div>
         </div>
       {/if}
       <!-- WRAP FARMS -->
@@ -1070,13 +1132,52 @@
         <div class="row-footer">
           <div style="grid-column: 1 / span 2">
             <button
-              class="primary mini"
+              class="primary"
               on:click={async () => await findStakes("wrap")}
             >
               <span class="material-icons"> search </span>
               Find my stakes
             </button>
           </div>
+          <div />
+          <div />
+          {#if availableRewards.filter(rw => rw.platform === "wrap").length > 0}
+            <div class="total-rewards" id="total-wrap-rewards">
+              Total: {formatTokenAmount(
+                [
+                  0,
+                  0,
+                  ...availableRewards
+                    .filter(rw => rw.platform === "wrap")
+                    .map(rw => +rw.amount)
+                ].reduce((a, b) => a + b),
+                2
+              )}
+            </div>
+            <div style="display:flex;justify-content:center">
+              {#if harvestingAllWrap}
+                <button class="primary loading">
+                  Harvesting <span class="material-icons"> sync </span>
+                </button>
+              {:else}
+                <!-- Harvest button states -->
+                {#if harvestingAllWrapSuccess === true}
+                  <button class="primary success"> Harvested! </button>
+                {:else if harvestingAllWrapSuccess === false}
+                  <button class="mini error" on:click={harvestAllWrap}>
+                    Retry
+                  </button>
+                {:else}
+                  <button class="primary" on:click={harvestAllWrap}>
+                    <span class="material-icons"> agriculture </span>&nbsp;
+                    Harvest all
+                  </button>
+                {/if}
+              {/if}
+            </div>
+          {:else}
+            <div />
+          {/if}
         </div>
       {/if}
       <!-- KDAO FARMS -->
@@ -1137,7 +1238,7 @@
         </div>
         <div />
         <div />
-        {#if availableRewards.length > 0}
+        {#if availableRewards.filter(rw => rw.platform === "paul").length > 0}
           <div class="total-rewards" id="total-paul-rewards">
             Total: {formatTokenAmount(
               [
@@ -1150,30 +1251,30 @@
               2
             )}
           </div>
+          <div style="display:flex;justify-content:center">
+            {#if harvestingAllPaul}
+              <button class="primary loading">
+                Harvesting <span class="material-icons"> sync </span>
+              </button>
+            {:else}
+              <!-- Harvest button states -->
+              {#if harvestingAllPaulSuccess === true}
+                <button class="primary success"> Harvested! </button>
+              {:else if harvestingAllPaulSuccess === false}
+                <button class="mini error" on:click={harvestAllPaul}>
+                  Retry
+                </button>
+              {:else}
+                <button class="primary" on:click={harvestAllPaul}>
+                  <span class="material-icons"> agriculture </span>&nbsp;
+                  Harvest all
+                </button>
+              {/if}
+            {/if}
+          </div>
         {:else}
           <div />
         {/if}
-        <div style="display:flex;justify-content:center">
-          {#if harvestingAllPaul}
-            <button class="primary loading">
-              Harvesting <span class="material-icons"> sync </span>
-            </button>
-          {:else}
-            <!-- Harvest button states -->
-            {#if harvestingAllPaulSuccess === true}
-              <button class="primary success"> Harvested! </button>
-            {:else if harvestingAllPaulSuccess === false}
-              <button class="mini error" on:click={harvestAllPaul}>
-                Retry
-              </button>
-            {:else}
-              <button class="primary" on:click={harvestAllPaul}>
-                <span class="material-icons"> agriculture </span>&nbsp; Harvest
-                all
-              </button>
-            {/if}
-          {/if}
-        </div>
       </div>
     {/if}
   {/if}
