@@ -221,9 +221,9 @@ export const searchUserTokens = async ({
       );
       const balance = await balanceResponse.json();
       if (balance && balance.active && +balance?.value > 0) {
-        newBalances.cTEZ = +balance.value / 10 ** token[1].decimals;
+        newBalances.Ctez = +balance.value / 10 ** token[1].decimals;
       } else {
-        newBalances.cTEZ = 0;
+        newBalances.Ctez = 0;
       }
     }
 

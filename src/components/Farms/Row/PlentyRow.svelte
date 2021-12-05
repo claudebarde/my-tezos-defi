@@ -149,14 +149,6 @@
       invData.icons[1] as AvailableToken
     );
 
-    tippy(`#harvest-${invData.id}`, {
-      content: "Harvest"
-    });
-
-    tippy(`#remove-${invData.id}`, {
-      content: "Remove"
-    });
-
     refreshStats = setInterval(
       async () =>
         await fetchStatistics(
@@ -349,14 +341,6 @@
           <span class="material-icons"> agriculture </span>
         </button>
       {/if}
-      <button
-        class="primary"
-        on:click={() => dispatch("remove-investment", invData.id)}
-        id={`remove-${invData.id}`}
-      >
-        Remove &nbsp;
-        <span class="material-icons"> delete </span>
-      </button>
       {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
         <button
           class="primary"

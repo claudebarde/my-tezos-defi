@@ -4,6 +4,7 @@
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import { formatTokenAmount } from "../../utils";
+  import { AvailableToken } from "../../types";
 
   let chart;
   let showCanvas = true;
@@ -73,10 +74,17 @@
           totalPlentyRewards += totalValue;
           data.labels.push(rw.alias);
           data.datasets[0].data.push(totalValue);
-          data.datasets[0].backgroundColor.push(
-            $store.tokens[rw.id === "PLENTY-XTZ-LP" ? "PLENTY" : rw.icons[1]]
-              .color
-          );
+          if ($store.tokens[rw.id] === "PLENTY-XTZ-LP") {
+            data.datasets[0].backgroundColor.push($store.tokens.PLENTY.color);
+          } else if (
+            $store.investments[rw.id].icons[0] === AvailableToken.Ctez
+          ) {
+            data.datasets[0].backgroundColor.push($store.tokens.Ctez.color);
+          } else {
+            data.datasets[0].backgroundColor.push(
+              $store.tokens[rw.icons[1]].color
+            );
+          }
         }
       });
       const canvas = document.getElementById(

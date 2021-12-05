@@ -98,7 +98,10 @@ export default {
     "PLENTY-Ctez-LP": "KT1C9gJRfkpPbNdBn3XyYbrUHT6XgfPzZqXP",
     "uUSD-YOU-LP": "KT1TnrLFrdemNZ1AnnWNfi21rXg7eknS484C",
     "uUSD-wUSDC-LP": "KT1JbUFVGrMCpW39UtH97dMkG2nMMrefQLLa",
-    "uUSD-uDEFI-LP": "KT1EAw8hL5zseB3SLpJhBqPQfP9aWrWh8iMW"
+    "uUSD-uDEFI-LP": "KT1EAw8hL5zseB3SLpJhBqPQfP9aWrWh8iMW",
+    "Ctez-kUSD-LP": "KT1X1nkqJDR1UHwbfpcnME5Z7agJLjUQNguB",
+    "Ctez-PAUL-LP": "KT1LixgLzdK4nseeD6MmmVpokuw9CvpVX9KW",
+    "Ctez-wWBTC-LP": "KT1XPUvZHc1YKTJYnGbB755V95hDgvS1qQYf"
   },
   plentyLptAddresses: {
     "PLENTY-wBUSD-LP": "KT1UC3vcVZ4K9b39uQxaMNA2N1RuJXKLCnoA",
@@ -127,7 +130,10 @@ export default {
     "PLENTY-Ctez-LP": "KT1LdX5pUkZZGwYPePcAFSpETbqfbGCwJpfw",
     "uUSD-YOU-LP": "KT1Tmncfgpp4ZSp6aEogL7uhBqHTiKsSPegK",
     "uUSD-wUSDC-LP": "KT1A2W6mBjn49yqzjJbt9T7xNVD9gDeL45qD",
-    "uUSD-uDEFI-LP": "KT1RQvdYD9yc763j8FiVLyXbKPVVbZqGRx5m"
+    "uUSD-uDEFI-LP": "KT1RQvdYD9yc763j8FiVLyXbKPVVbZqGRx5m",
+    "Ctez-kUSD-LP": "KT19bFNh8pZCRtTy7Pi9kpEcb2Yd7KWArAik",
+    "Ctez-PAUL-LP": "KT1N93veCzepAPydFGGUhDFiA69PoawasxXi",
+    "Ctez-wWBTC-LP": "KT1XWRUcvtcgpsETcasdUnNkq9rJeWmz8ihD"
   },
   wrapLiquidityMiningDexAddress: {
     "WRAP-XTZ-LM": "KT1FG63hhFtMEEEtmBSX2vuFmP87t9E7Ab4t",

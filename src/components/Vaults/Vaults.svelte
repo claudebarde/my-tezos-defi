@@ -394,7 +394,7 @@
     {/each}
   {/if}
   <br />
-  <!-- uUCtezD -->
+  <!-- Ctez -->
   {#if $localStorageStore?.ctezVaults.length > 0}
     <div class="row-header">
       <div />

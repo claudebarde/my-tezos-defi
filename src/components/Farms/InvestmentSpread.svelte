@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from "svelte";
+  import { afterUpdate } from "svelte";
   import Chart from "chart.js/auto";
   import store from "../../store";
-  import localStorageStore from "../../localStorage";
-  import type { AvailableInvestments } from "../../types";
+  import { AvailableInvestments, AvailableToken } from "../../types";
 
   export let totalValueInFarms: [AvailableInvestments, number][];
 
@@ -31,10 +30,19 @@
         if (percent > 1) {
           data.labels.push($store.investments[inv[0]].alias);
           data.datasets[0].data.push(inv[1]);
+
           if ($store.investments[inv[0]].platform === "plenty") {
-            data.datasets[0].backgroundColor.push(
-              $store.tokens[$store.investments[inv[0]].icons[1]].color
-            );
+            if ($store.investments[inv[0]].icons[0] === AvailableToken.PLENTY) {
+              data.datasets[0].backgroundColor.push($store.tokens.PLENTY.color);
+            } else if (
+              $store.investments[inv[0]].icons[0] === AvailableToken.Ctez
+            ) {
+              data.datasets[0].backgroundColor.push($store.tokens.Ctez.color);
+            }
+          } else if ($store.investments[inv[0]].platform === "paul") {
+            data.datasets[0].backgroundColor.push($store.tokens.PAUL.color);
+          } else if ($store.investments[inv[0]].platform === "wrap") {
+            data.datasets[0].backgroundColor.push($store.tokens.WRAP.color);
           }
         }
       });

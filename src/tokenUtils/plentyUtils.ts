@@ -10,6 +10,9 @@ export const formatPlentyLpAmount = (
   exchangePair: string
 ): number => {
   switch (exchangePair) {
+    case "Ctez-PAUL-LP":
+    case "Ctez-wWBTC-LP":
+      return lpAmount / 10 ** 11;
     case "PLENTY-SMAK-LP":
       return lpAmount / 10 ** 8;
     case "PLENTY-wUSDC":
@@ -18,6 +21,7 @@ export const formatPlentyLpAmount = (
     case "PLENTY-hDAO-LP":
     case "PLENTY-wUSDT-LP":
     case "PLENTY-Ctez-LP":
+    case "Ctez-kUSD-LP":
       return lpAmount / 10 ** 6;
     case "PLENTY-wWBTC":
     case "PLENTY-tzBTC-LP":
@@ -162,6 +166,14 @@ export const calcPlentyStakeInXtz = async ({
         stakeInXtz =
           (tokens.token1Amount / 10 ** localStore.tokens.uUSD.decimals) *
             localStore.tokens.uUSD.exchangeRate +
+          (tokens.token2Amount /
+            10 ** localStore.tokens[tokens.token2].decimals) *
+            localStore.tokens[tokens.token2].exchangeRate;
+      } else if (id.slice(0, 4).toLowerCase() === "ctez") {
+        // when staked token is Ctez
+        stakeInXtz =
+          (tokens.token1Amount / 10 ** localStore.tokens.Ctez.decimals) *
+            localStore.tokens.Ctez.exchangeRate +
           (tokens.token2Amount /
             10 ** localStore.tokens[tokens.token2].decimals) *
             localStore.tokens[tokens.token2].exchangeRate;
