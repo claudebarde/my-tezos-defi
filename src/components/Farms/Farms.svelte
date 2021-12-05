@@ -8,11 +8,14 @@
     loadInvestment,
     getPaulReward,
     getKdaoReward,
-    getWrapReward,
     prepareOperation,
     formatTokenAmount
   } from "../../utils";
-  import { getPlentyReward, formatPlentyLpAmount } from "../../plentyUtils";
+  import {
+    getPlentyReward,
+    formatPlentyLpAmount
+  } from "../../tokenUtils/plentyUtils";
+  import { getWrapReward } from "../../tokenUtils/wrapUtils";
   import {
     AvailableToken,
     AvailableInvestments,
@@ -57,6 +60,7 @@
     name: string;
     balance: number;
   }[] = [];
+  let farmAprs: { id: AvailableInvestments; apr: number }[] = [];
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -475,6 +479,13 @@
     }
   };
 
+  const sortFarmsByApr = (farm: { id: AvailableInvestments; apr: number }) => {
+    if (!farmAprs.find(f => f.id == farm.id)) {
+      const newFarmsList = [...farmAprs, farm].sort((a, b) => b.apr - a.apr);
+      farmAprs = [...newFarmsList];
+    }
+  };
+
   onMount(async () => {
     if (!$store.userAddress) push("/");
 
@@ -543,7 +554,7 @@
               $store.userAddress,
               inv.address,
               $store.lastOperations[0].level,
-              inv.decimals
+              18
             );
           } else if (inv.platform === "paul") {
             rewards = await getPaulReward(inv.address);
@@ -676,19 +687,24 @@
     .row-footer {
       display: grid;
       grid-template-columns: 10% 25% 16% 17% 14% 18%;
-      padding: 5px 10px;
       align-items: center;
       padding: 10px;
     }
     .row-header {
       background-color: darken($container-bg-color, 3);
       color: white;
+      padding: 5px 10px;
     }
     .row-footer {
       color: $container-bg-color;
+      background-color: lighten($container-bg-color, 65);
+      padding: 15px 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
     }
 
-    .unstaked-token {
+    .unstaked-token,
+    .best-farm-apr {
       display: grid;
       grid-template-columns: 10% 25% 65%;
       padding: 10px;
@@ -853,13 +869,7 @@
       <!-- PLENTY FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "plenty").length > 0}
         <div class="row-header">
-          <div />
-          <div>Contract</div>
-          <div>Stake</div>
-          <div>
-            Stake in {kdaoValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-          </div>
-          <div>Reward</div>
+          <div style="grid-column: 1 / span 2">Plenty Farms</div>
         </div>
       {/if}
       <!-- PLENTY FARMS WITH STABLECOINS -->
@@ -876,14 +886,13 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
               event.detail
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
       <!-- PLENTY FARMS WITH STABLECOINS -->
@@ -901,14 +910,13 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
               event.detail
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
       {#if $localStorageStore.favoriteInvestments.includes("xPLENTY-Staking")}
@@ -919,7 +927,7 @@
         <div class="row-footer">
           <div style="grid-column: 1 / span 2">
             <button
-              class="primary mini"
+              class="primary"
               on:click={async () => await findStakes("plenty")}
             >
               <span class="material-icons"> search </span>
@@ -930,10 +938,7 @@
           <div />
           {#if availableRewards.length > 0}
             <div class="total-rewards" id="total-plenty-rewards">
-              <span class="material-icons" style="vertical-align:middle">
-                point_of_sale
-              </span>
-              {formatTokenAmount(
+              Total: {formatTokenAmount(
                 [
                   0,
                   0,
@@ -949,19 +954,20 @@
           {/if}
           <div style="display:flex;justify-content:center">
             {#if harvestingAllPlenty}
-              <button class="mini loading">
-                Harvesting <span class="material-icons"> sync </span>
+              <button class="primary loading">
+                <span class="material-icons"> sync </span>
+                Harvesting
               </button>
             {:else}
               <!-- Harvest button states -->
               {#if harvestingAllPlentySuccess === true}
-                <button class="mini success"> Harvested! </button>
+                <button class="primary success"> Harvested! </button>
               {:else if harvestingAllPlentySuccess === false}
-                <button class="mini error" on:click={harvestAllPlenty}>
+                <button class="primary error" on:click={harvestAllPlenty}>
                   Retry
                 </button>
               {:else}
-                <button class="mini" on:click={harvestAllPlenty}>
+                <button class="primary" on:click={harvestAllPlenty}>
                   <span class="material-icons"> agriculture </span>&nbsp;
                   Harvest all
                 </button>
@@ -973,13 +979,7 @@
       <!-- WRAP FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "wrap").length > 0}
         <div class="row-header">
-          <div />
-          <div>Contract</div>
-          <div>Stake</div>
-          <div>
-            Stake in {wrapValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-          </div>
-          <div>Reward</div>
+          <div style="grid-column: 1 / span 2">Wrap Farms</div>
         </div>
       {/if}
       <!-- WRAP STACKING -->
@@ -995,8 +995,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
@@ -1009,6 +1007,7 @@
             newInvestments[id].balance = balance;
             store.updateInvestments(newInvestments);
           }}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
       <!-- LIQUIDITY MINING -->
@@ -1024,8 +1023,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
@@ -1038,6 +1035,7 @@
             newInvestments[id].balance = balance;
             store.updateInvestments(newInvestments);
           }}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
       <!-- FEE FARMING -->
@@ -1053,8 +1051,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
@@ -1067,6 +1063,7 @@
             newInvestments[id].balance = balance;
             store.updateInvestments(newInvestments);
           }}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
       {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && $localStorageStore.favoriteInvestments.filter( inv => inv.includes("WRAP") ).length > 0}
@@ -1085,13 +1082,7 @@
       <!-- KDAO FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "kdao").length > 0}
         <div class="row-header">
-          <div />
-          <div>Contract</div>
-          <div>Stake</div>
-          <div>
-            Stake in {kdaoValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-          </div>
-          <div>Reward</div>
+          <div style="grid-column: 1 / span 2">kDAO Farms</div>
         </div>
       {/if}
       {#each Object.entries($store.investments)
@@ -1101,7 +1092,6 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
           {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
@@ -1114,13 +1104,7 @@
       <!-- PAUL FARMS -->
       {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul").length > 0}
         <div class="row-header">
-          <div />
-          <div>Contract</div>
-          <div>Stake</div>
-          <div>
-            Stake in {paulValueInXtz ? "XTZ" : $localStorageStore.preferredFiat}
-          </div>
-          <div>Reward</div>
+          <div style="grid-column: 1 / span 2">Alien's Farms</div>
         </div>
       {/if}
       {#each Object.entries($store.investments)
@@ -1130,23 +1114,19 @@
           rewards={availableRewards.find(rw => rw.id === invData.id)}
           {invName}
           {invData}
-          valueInXtz={true}
-          {createTooltipContent}
           on:update-farm-value={event =>
             (totalValueInFarms = [
               ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
               event.detail
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
         />
       {/each}
     </div>
     <div class="row-footer">
       <div style="grid-column: 1 / span 2">
-        <button
-          class="primary mini"
-          on:click={async () => await findStakes("paul")}
-        >
+        <button class="primary" on:click={async () => await findStakes("paul")}>
           <span class="material-icons"> search </span>
           Find my stakes
         </button>
@@ -1155,10 +1135,7 @@
       <div />
       {#if availableRewards.length > 0}
         <div class="total-rewards" id="total-paul-rewards">
-          <span class="material-icons" style="vertical-align:middle">
-            point_of_sale
-          </span>
-          {formatTokenAmount(
+          Total: {formatTokenAmount(
             [
               0,
               0,
@@ -1174,19 +1151,19 @@
       {/if}
       <div style="display:flex;justify-content:center">
         {#if harvestingAllPaul}
-          <button class="mini loading">
+          <button class="primary loading">
             Harvesting <span class="material-icons"> sync </span>
           </button>
         {:else}
           <!-- Harvest button states -->
           {#if harvestingAllPaulSuccess === true}
-            <button class="mini success"> Harvested! </button>
+            <button class="primary success"> Harvested! </button>
           {:else if harvestingAllPaulSuccess === false}
             <button class="mini error" on:click={harvestAllPaul}>
               Retry
             </button>
           {:else}
-            <button class="mini" on:click={harvestAllPaul}>
+            <button class="primary" on:click={harvestAllPaul}>
               <span class="material-icons"> agriculture </span>&nbsp; Harvest
               all
             </button>
@@ -1233,6 +1210,27 @@
         {/if}
       {:else}
         No token found
+      {/each}
+    </div>
+    <br />
+  {/if}
+  {#if farmAprs.length > 0}
+    <div style="font-size:1.1rem">Best APRs</div>
+    <div>
+      {#each farmAprs.slice(0, 7) as farm}
+        <div class="best-farm-apr">
+          <div class="icon">
+            {#each $store.investments[farm.id].icons as icon}
+              <img src={`images/${icon}.png`} alt="token-icon" />
+            {/each}
+          </div>
+          <div>
+            {$store.investments[farm.id].alias}
+          </div>
+          <div>
+            {+farm.apr.toFixed(3) / 1} %
+          </div>
+        </div>
       {/each}
     </div>
   {/if}

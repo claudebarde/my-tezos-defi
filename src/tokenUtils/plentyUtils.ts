@@ -1,14 +1,18 @@
 import type { TezosToolkit } from "@taquito/taquito";
-import { AvailableInvestments, AvailableToken } from "./types";
+import { AvailableInvestments, AvailableToken } from "../types";
 import { get } from "svelte/store";
-import store from "./store";
-import config from "./config";
+import store from "../store";
+import config from "../config";
+import type { TezosContractAddress } from "../types";
 
 export const formatPlentyLpAmount = (
   lpAmount: number,
   exchangePair: string
 ): number => {
   switch (exchangePair) {
+    case "Ctez-PAUL-LP":
+    case "Ctez-wWBTC-LP":
+      return lpAmount / 10 ** 11;
     case "PLENTY-SMAK-LP":
       return lpAmount / 10 ** 8;
     case "PLENTY-wUSDC":
@@ -17,6 +21,7 @@ export const formatPlentyLpAmount = (
     case "PLENTY-hDAO-LP":
     case "PLENTY-wUSDT-LP":
     case "PLENTY-Ctez-LP":
+    case "Ctez-kUSD-LP":
       return lpAmount / 10 ** 6;
     case "PLENTY-wWBTC":
     case "PLENTY-tzBTC-LP":
@@ -164,6 +169,14 @@ export const calcPlentyStakeInXtz = async ({
           (tokens.token2Amount /
             10 ** localStore.tokens[tokens.token2].decimals) *
             localStore.tokens[tokens.token2].exchangeRate;
+      } else if (id.slice(0, 4).toLowerCase() === "ctez") {
+        // when staked token is Ctez
+        stakeInXtz =
+          (tokens.token1Amount / 10 ** localStore.tokens.Ctez.decimals) *
+            localStore.tokens.Ctez.exchangeRate +
+          (tokens.token2Amount /
+            10 ** localStore.tokens[tokens.token2].decimals) *
+            localStore.tokens[tokens.token2].exchangeRate;
       } else {
         // when reward token is PLENTY
         stakeInXtz =
@@ -177,4 +190,65 @@ export const calcPlentyStakeInXtz = async ({
       return +stakeInXtz.toFixed(5) / 1;
     }
   }
+};
+
+export const getLPTokenPrice = async ({
+  tokenPair,
+  token1_price,
+  token1_decimal,
+  token2_price,
+  token2_decimal,
+  lp_token_decimal,
+  Tezos
+}: {
+  tokenPair: AvailableInvestments;
+  token1_price: number;
+  token1_decimal: number;
+  token2_price: number;
+  token2_decimal: number;
+  lp_token_decimal: number;
+  Tezos: TezosToolkit;
+}) => {
+  const dexAddress = config.plentyDexAddresses[tokenPair];
+  const contract = await Tezos.wallet.at(dexAddress);
+  const storage: any = await contract.storage();
+
+  let token1Amount =
+    (Math.pow(10, lp_token_decimal) * storage.token1_pool) /
+    storage.totalSupply;
+  token1Amount = (token1Amount * token1_price) / Math.pow(10, token1_decimal);
+
+  let token2Amount =
+    (Math.pow(10, lp_token_decimal) * storage.token2_pool) /
+    storage.totalSupply;
+  token2Amount = (token2Amount * token2_price) / Math.pow(10, token2_decimal);
+
+  return +(token1Amount + token2Amount).toFixed(2);
+};
+
+export const calcPlentyAprApy = async (params: {
+  farmAddress: TezosContractAddress;
+  Tezos: TezosToolkit;
+  rewardTokenPriceInFiat: number;
+  stakeTokenPriceInFiat: number;
+}): Promise<{ apr: number | null; apy: number | null }> => {
+  let apr = null;
+  let apy = null;
+
+  const { farmAddress, Tezos, rewardTokenPriceInFiat, stakeTokenPriceInFiat } =
+    params;
+  // fetches the storage
+  const farm = await Tezos.wallet.at(farmAddress);
+  const farmStorage: any = await farm.storage();
+  // calculates APR
+  apr =
+    ((farmStorage.rewardRate.toNumber() * 1051200 * rewardTokenPriceInFiat) /
+      (farmStorage.totalSupply.toNumber() * stakeTokenPriceInFiat)) *
+    100;
+
+  if (apr) {
+    apy = ((apr / 100 / 365 + 1) ** 365 - 1) * 100;
+  }
+
+  return { apr, apy };
 };

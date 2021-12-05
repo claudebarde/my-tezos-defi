@@ -20,6 +20,7 @@ let initialState: LocalStorageState = {
   kUsdVaults: [],
   wXtzVaults: [],
   uUsdVaults: [],
+  ctezVaults: [],
   lastUpdate: Date.now()
 };
 
@@ -250,7 +251,7 @@ if (globalThis?.window?.localStorage) {
       });
     },
     addVault: (
-      platform: "wxtz" | "kusd" | "uusd",
+      platform: "wxtz" | "kusd" | "uusd" | "ctez",
       vault: TezosContractAddress
     ) => {
       store.update(store => {
@@ -265,6 +266,9 @@ if (globalThis?.window?.localStorage) {
             break;
           case "uusd":
             vaultsToUpdate = "uUsdVaults";
+            break;
+          case "ctez":
+            vaultsToUpdate = "ctezVaults";
             break;
         }
 
@@ -291,7 +295,7 @@ if (globalThis?.window?.localStorage) {
       });
     },
     removeVault: (
-      platform: "wxtz" | "kusd" | "uusd",
+      platform: "wxtz" | "kusd" | "uusd" | "ctez",
       vault: TezosContractAddress
     ) => {
       store.update(store => {
@@ -306,6 +310,9 @@ if (globalThis?.window?.localStorage) {
             break;
           case "uusd":
             vaultsToUpdate = "uUSdVaults";
+            break;
+          case "ctez":
+            vaultsToUpdate = "ctezVaults";
             break;
         }
 

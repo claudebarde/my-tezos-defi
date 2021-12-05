@@ -1,6 +1,6 @@
 {
   "name": "my-tezos-defi",
-  "version": "4.2.0",
+  "version": "4.4.0",
   "devDependencies": {
     "@tsconfig/svelte": "^2.0.1",
     "@types/node": "^16.11.9",

@@ -2,9 +2,9 @@
   import { onMount } from "svelte";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
-  import { shortenHash } from "../../utils";
+  import { shortenHash, formatTokenAmount } from "../../utils";
 
-  export let address, platform, valueInXtz;
+  export let address, platform;
 
   let lockedAmount: number | null = null;
   let iconPath;
@@ -34,6 +34,14 @@
       } else {
         lockedAmount = 0;
       }
+    } else if (platform == "ctez") {
+      iconPath = "images/Ctez.png";
+      const getBalance = await $store.Tezos.tz.getBalance(address);
+      if (getBalance) {
+        lockedAmount = getBalance.toNumber() / 10 ** 6;
+      } else {
+        lockedAmount = 0;
+      }
     }
   });
 </script>
@@ -43,7 +51,7 @@
 
   .row {
     display: grid;
-    grid-template-columns: 10% 25% 20% 17% 16% 12%;
+    grid-template-columns: 10% 25% 37% 16% 12%;
     padding: 10px;
     align-items: center;
     transition: 0.3s;
@@ -94,14 +102,18 @@
     {/if}
   </div>
   <div>
-    {#if valueInXtz}
-      {lockedAmount ?? "--"} ꜩ
+    {#if lockedAmount || lockedAmount === 0}
+      <span>
+        {lockedAmount} ꜩ
+      </span>
+      <span style="font-size:0.8rem">
+        ({formatTokenAmount(lockedAmount * $store.xtzData.exchangeRate, 2)}
+        {$localStorageStore.preferredFiat})
+      </span>
     {:else}
-      {lockedAmount * $store.xtzData.exchangeRate}
-      {$localStorageStore.preferredFiat}
+      <span class="material-icons"> hourglass_empty </span>
     {/if}
   </div>
-  <div />
   <div />
   <div>
     <button

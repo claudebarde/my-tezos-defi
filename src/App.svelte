@@ -36,7 +36,9 @@
           tk.toLowerCase()
         );
         const tezToolsTokens = tezToolsData.contracts.filter(contract =>
-          availableTokens.includes(contract.symbol.toLowerCase())
+          availableTokens.includes(
+            contract.symbol && contract.symbol.toLowerCase()
+          )
         );
         tokens = tokens.map(([tokenSymbol, tokenData]) => {
           let tezToolToken = tezToolsTokens.find(
@@ -326,6 +328,40 @@
         }
 
         if (defiData.investments) {
+          /*defiData.investments["Ctez-kUSD-LP"] = {
+            id: "Ctez-kUSD-LP",
+            platform: "plenty",
+            address: "KT1L8N5RZg4CM2VSnuC8t1CGLiQpzVoN6P1u",
+            decimals: 12,
+            info: [],
+            alias: "Ctez-kUSD LP farm",
+            icons: ["Ctez", "kUSD"],
+            rewardToken: "PLENTY",
+            liquidityToken: true
+          };
+          defiData.investments["Ctez-PAUL-LP"] = {
+            id: "Ctez-PAUL-LP",
+            platform: "plenty",
+            address: "KT1K3NERNpLxRmREpmjqt7LsvEr2SbC9Cs6o",
+            decimals: 7,
+            info: [],
+            alias: "Ctez-PAUL LP farm",
+            icons: ["Ctez", "PAUL"],
+            rewardToken: "PLENTY",
+            liquidityToken: true
+          };
+          defiData.investments["Ctez-wWBTC-LP"] = {
+            id: "Ctez-wWBTC-LP",
+            platform: "plenty",
+            address: "KT1VmvPo8bLYh1xVC9TpzwWtrczjzEMS2mEk",
+            decimals: 7,
+            info: [],
+            alias: "Ctez-wWBTC LP farm",
+            icons: ["Ctez", "wWBTC"],
+            rewardToken: "PLENTY",
+            liquidityToken: true
+          };*/
+
           Object.keys(defiData.investments).forEach(key => {
             defiData.investments[key].balance = 0;
             defiData.investments[key].favorite =
@@ -352,7 +388,7 @@
                 info: [],
                 alias: `${farm.token}-XTZ LM pool`,
                 icons: [farm.token, "XTZ"],
-                token: farm.token,
+                rewardToken: farm.token,
                 liquidityToken: true
               })
           );
