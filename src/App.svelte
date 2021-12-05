@@ -328,7 +328,7 @@
         }
 
         if (defiData.investments) {
-          /*defiData.investments["Ctez-kUSD-LP"] = {
+          defiData.investments["Ctez-kUSD-LP"] = {
             id: "Ctez-kUSD-LP",
             platform: "plenty",
             address: "KT1L8N5RZg4CM2VSnuC8t1CGLiQpzVoN6P1u",
@@ -360,7 +360,7 @@
             icons: ["Ctez", "wWBTC"],
             rewardToken: "PLENTY",
             liquidityToken: true
-          };*/
+          };
 
           Object.keys(defiData.investments).forEach(key => {
             defiData.investments[key].balance = 0;

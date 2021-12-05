@@ -1124,53 +1124,58 @@
         />
       {/each}
     </div>
-    <div class="row-footer">
-      <div style="grid-column: 1 / span 2">
-        <button class="primary" on:click={async () => await findStakes("paul")}>
-          <span class="material-icons"> search </span>
-          Find my stakes
-        </button>
-      </div>
-      <div />
-      <div />
-      {#if availableRewards.length > 0}
-        <div class="total-rewards" id="total-paul-rewards">
-          Total: {formatTokenAmount(
-            [
-              0,
-              0,
-              ...availableRewards
-                .filter(rw => rw.platform === "paul")
-                .map(rw => +rw.amount)
-            ].reduce((a, b) => a + b),
-            2
-          )}
-        </div>
-      {:else}
-        <div />
-      {/if}
-      <div style="display:flex;justify-content:center">
-        {#if harvestingAllPaul}
-          <button class="primary loading">
-            Harvesting <span class="material-icons"> sync </span>
+    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul").length > 0}
+      <div class="row-footer">
+        <div style="grid-column: 1 / span 2">
+          <button
+            class="primary"
+            on:click={async () => await findStakes("paul")}
+          >
+            <span class="material-icons"> search </span>
+            Find my stakes
           </button>
+        </div>
+        <div />
+        <div />
+        {#if availableRewards.length > 0}
+          <div class="total-rewards" id="total-paul-rewards">
+            Total: {formatTokenAmount(
+              [
+                0,
+                0,
+                ...availableRewards
+                  .filter(rw => rw.platform === "paul")
+                  .map(rw => +rw.amount)
+              ].reduce((a, b) => a + b),
+              2
+            )}
+          </div>
         {:else}
-          <!-- Harvest button states -->
-          {#if harvestingAllPaulSuccess === true}
-            <button class="primary success"> Harvested! </button>
-          {:else if harvestingAllPaulSuccess === false}
-            <button class="mini error" on:click={harvestAllPaul}>
-              Retry
+          <div />
+        {/if}
+        <div style="display:flex;justify-content:center">
+          {#if harvestingAllPaul}
+            <button class="primary loading">
+              Harvesting <span class="material-icons"> sync </span>
             </button>
           {:else}
-            <button class="primary" on:click={harvestAllPaul}>
-              <span class="material-icons"> agriculture </span>&nbsp; Harvest
-              all
-            </button>
+            <!-- Harvest button states -->
+            {#if harvestingAllPaulSuccess === true}
+              <button class="primary success"> Harvested! </button>
+            {:else if harvestingAllPaulSuccess === false}
+              <button class="mini error" on:click={harvestAllPaul}>
+                Retry
+              </button>
+            {:else}
+              <button class="primary" on:click={harvestAllPaul}>
+                <span class="material-icons"> agriculture </span>&nbsp; Harvest
+                all
+              </button>
+            {/if}
           {/if}
-        {/if}
+        </div>
       </div>
-    </div>
+    {/if}
   {/if}
   <br />
   <div>
