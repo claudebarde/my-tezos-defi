@@ -37,9 +37,24 @@
     align-items: center;
     justify-content: center;
 
-    .icons img {
-      width: 48px;
-      height: 48px;
+    .icons {
+      img {
+        width: 48px;
+        height: 48px;
+        transition: 0.3s;
+
+        &:not(:first-child) {
+          margin-left: -8px;
+          background-color: lighten($container-bg-color, 65);
+          box-shadow: 0 0 0 3px lighten($container-bg-color, 65);
+          border-radius: 50%;
+        }
+      }
+
+      &:hover img:not(:first-child) {
+        margin-left: 5px;
+        box-shadow: none;
+      }
     }
 
     a {
