@@ -24,7 +24,6 @@ async function init() {
   if (headResponse) {
     const head = await headResponse.json();
     const currentLevel = head.level;
-    console.log(contractsToWatch.length);
     try {
       const lastTxsResponse = await fetch(
         `https://api.mainnet.tzkt.io/v1/operations/transactions?level.ge=${
