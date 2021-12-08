@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from "svelte";
+  import { onMount, afterUpdate, onDestroy } from "svelte";
   import { slide } from "svelte/transition";
   import { push } from "svelte-spa-router";
   import store from "../../store";
@@ -13,16 +13,23 @@
 
   let showSelectTokens = false;
   let totalHoldingInXtz = 0;
-  let tokensStatsDaily: {
-    tokenId: AvailableToken;
-    difference: number;
-    increase: boolean;
-  }[] = [];
-  let tokensStatsWeekly: {
-    tokenId: AvailableToken;
-    difference: number;
-    increase: boolean;
-  }[] = [];
+  let tokensStatsDaily:
+    | {
+        [p in AvailableToken]: {
+          difference: number;
+          increase: boolean;
+        };
+      }
+    | {} = {};
+  let tokensStatsWeekly:
+    | {
+        [p in AvailableToken]: {
+          difference: number;
+          increase: boolean;
+        };
+      }
+    | {} = {};
+  let tokensStatsRefresh;
 
   const addFavoriteToken = async tokenSymbol => {
     try {
@@ -57,26 +64,11 @@
     localStorageStore.removeFavoriteToken(tokenSymbol);
   };
 
-  onMount(async () => {
-    if (!$store.userAddress) push("/");
-
+  const fetchTokensStats = async () => {
+    // fetches tokens stats
     const userTokens = Object.entries($store.tokens).filter(tk =>
       $localStorageStore.favoriteTokens.includes(tk[0])
     );
-    const newBalances = await searchUserTokens({
-      Tezos: $store.Tezos,
-      userAddress: $store.userAddress,
-      tokens: userTokens
-    });
-    store.updateTokensBalances(newBalances as State["tokensBalances"]);
-
-    // fetches XTZ balance
-    const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-    if (balance) {
-      store.updateTezBalance(balance.toNumber());
-    }
-
-    // fetches tokens stats
     const tokensAggregateWeeklyPromises = await Promise.allSettled(
       // [userTokens.find(tk => tk[0] === AvailableToken.PLENTY)]
       [...userTokens.filter(tk => tk[0] !== "xPLENTY")].map(
@@ -112,7 +104,12 @@
         return Math.abs(difference * 100);
       })()
     }));
-    tokensStatsWeekly = [...tokensWeekly];
+    tokensWeekly.forEach(item => {
+      tokensStatsWeekly[item.tokenId] = {
+        difference: item.difference,
+        increase: item.increase
+      };
+    });
     const tokensDaily = tokensAggregateWeekly.map(stats => ({
       tokenId: stats.tokenId,
       increase:
@@ -126,7 +123,35 @@
         return Math.abs(difference * 100);
       })()
     }));
-    tokensStatsDaily = [...tokensDaily];
+    tokensDaily.forEach(item => {
+      tokensStatsDaily[item.tokenId] = {
+        difference: item.difference,
+        increase: item.increase
+      };
+    });
+  };
+
+  onMount(async () => {
+    if (!$store.userAddress) push("/");
+
+    const userTokens = Object.entries($store.tokens).filter(tk =>
+      $localStorageStore.favoriteTokens.includes(tk[0])
+    );
+    const newBalances = await searchUserTokens({
+      Tezos: $store.Tezos,
+      userAddress: $store.userAddress,
+      tokens: userTokens
+    });
+    store.updateTokensBalances(newBalances as State["tokensBalances"]);
+
+    // fetches XTZ balance
+    const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+    if (balance) {
+      store.updateTezBalance(balance.toNumber());
+    }
+
+    await fetchTokensStats();
+    tokensStatsRefresh = setInterval(fetchTokensStats, 10 * 60000);
   });
 
   afterUpdate(async () => {
@@ -158,6 +183,10 @@
         totalHoldingInXtz += $store.xtzData.balance / 10 ** 6;
       }
     }
+  });
+
+  onDestroy(() => {
+    clearInterval(tokensStatsRefresh);
   });
 </script>
 
@@ -401,45 +430,33 @@
             {/if}
           </div>
         </div>
-        {#if tokensStatsWeekly.find(stats => stats.tokenId === token) || tokensStatsWeekly.find(stats => stats.tokenId === token)}
+        {#if tokensStatsWeekly.hasOwnProperty(token) || tokensStatsDaily.hasOwnProperty(token)}
           <div class="favorite-token__stats">
-            {#if tokensStatsWeekly.find(stats => stats.tokenId === token)}
+            {#if tokensStatsDaily.hasOwnProperty(token)}
               <div>
                 Price change (24 h):
                 <span
                   style={`color:${
-                    tokensStatsDaily.find(stats => stats.tokenId === token)
-                      .increase
-                      ? "green"
-                      : "red"
+                    tokensStatsDaily[token].increase ? "green" : "red"
                   }`}
                 >
-                  {tokensStatsDaily.find(stats => stats.tokenId === token)
-                    .increase
+                  {tokensStatsDaily[token].increase
                     ? "+"
-                    : "-"}{tokensStatsDaily
-                    .find(stats => stats.tokenId === token)
-                    .difference.toFixed(2)}%
+                    : "-"}{tokensStatsDaily[token].difference.toFixed(2)}%
                 </span>
               </div>
             {/if}
-            {#if tokensStatsWeekly.find(stats => stats.tokenId === token)}
+            {#if tokensStatsWeekly.hasOwnProperty(token)}
               <div>
                 Price change (7 d):
                 <span
                   style={`color:${
-                    tokensStatsWeekly.find(stats => stats.tokenId === token)
-                      .increase
-                      ? "green"
-                      : "red"
+                    tokensStatsWeekly[token].increase ? "green" : "red"
                   }`}
                 >
-                  {tokensStatsWeekly.find(stats => stats.tokenId === token)
-                    .increase
+                  {tokensStatsWeekly[token].increase
                     ? "+"
-                    : "-"}{tokensStatsWeekly
-                    .find(stats => stats.tokenId === token)
-                    .difference.toFixed(2)}%
+                    : "-"}{tokensStatsWeekly[token].difference.toFixed(2)}%
                 </span>
               </div>
             {/if}
