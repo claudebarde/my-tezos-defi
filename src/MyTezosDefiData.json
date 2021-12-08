@@ -863,6 +863,50 @@
       "rewardToken": "YOU",
       "liquidityToken": true
     },
+    "Ctez-kUSD-LP": {
+      "id": "Ctez-kUSD-LP",
+      "platform": "plenty",
+      "address": "KT1L8N5RZg4CM2VSnuC8t1CGLiQpzVoN6P1u",
+      "decimals": 12,
+      "info": [],
+      "alias": "Ctez-kUSD LP farm",
+      "icons": ["Ctez", "kUSD"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "Ctez-PAUL-LP": {
+      "id": "Ctez-PAUL-LP",
+      "platform": "plenty",
+      "address": "KT1K3NERNpLxRmREpmjqt7LsvEr2SbC9Cs6o",
+      "decimals": 7,
+      "info": [],
+      "alias": "Ctez-PAUL LP farm",
+      "icons": ["Ctez", "PAUL"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "Ctez-wWBTC-LP": {
+      "id": "Ctez-wWBTC-LP",
+      "platform": "plenty",
+      "address": "KT1VmvPo8bLYh1xVC9TpzwWtrczjzEMS2mEk",
+      "decimals": 7,
+      "info": [],
+      "alias": "Ctez-wWBTC LP farm",
+      "icons": ["Ctez", "wWBTC"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "Ctez-kUSD-LP": {
+      "id": "Ctez-kUSD-LP",
+      "platform": "plenty",
+      "address": "KT1L8N5RZg4CM2VSnuC8t1CGLiQpzVoN6P1u",
+      "decimals": 7,
+      "info": [],
+      "alias": "Ctez-kUSD LP farm",
+      "icons": ["Ctez", "kUSD"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
     "xPLENTY-Staking": {
       "id": "xPLENTY-Staking",
       "platform": "plenty",
@@ -1088,5 +1132,122 @@
     { "contract": "KT18oo99LkMMdH8aXTMbCBD9ZunLqtkCVUUi", "token": "wUSDT" },
     { "contract": "KT1C27Kz1maYphYZ5SLv821iumNQbgn95bRa", "token": "wWBTC" },
     { "contract": "KT1KsP1tyN7HvUD1TaCkP7X8nBGkvejuvEk8", "token": "wWETH" }
+  ],
+  "plenty-ctez-farms": [
+    {
+      "address": "KT1L8N5RZg4CM2VSnuC8t1CGLiQpzVoN6P1u",
+      "token": "kUSD",
+      "decimals": 12
+    },
+    {
+      "address": "KT1MeeKpbSaAP9YDb6B7qBDvEGZq274715s2",
+      "token": "USDtz",
+      "decimals": 6
+    },
+    {
+      "address": "KT1V71rxAhuHCggnBUXfceBM6RpHzUUJMYyK",
+      "token": "wUSDC",
+      "decimals": 6
+    },
+    {
+      "address": "KT1PYtm173zVdPEMoNecUBRhqgFbdVHPDj3p",
+      "token": "wUSDT",
+      "decimals": 6
+    },
+    {
+      "address": "KT1MCtUoNZTpGsPNyEvCZ88i6aRVow91axPr",
+      "token": "wBUSD",
+      "decimals": 12
+    },
+    {
+      "address": "KT1ELuj8v8nB3Me7dEyjoxkNtjr6ywWXFWYK",
+      "token": "wDAI",
+      "decimals": 12
+    },
+    {
+      "address": "KT1HmigpaNyaxx9Zvf7zEPGgqd8bdLTnrgdU",
+      "token": "KALAM",
+      "decimals": 8
+    },
+    {
+      "address": "KT1U2XwrY1oTfxzrcb1ZrQuFrUJTQWAJaHWt",
+      "token": "ETHtz",
+      "decimals": 12
+    },
+    {
+      "address": "KT1L71FDbzYwe9bxY4MnzU3ZUgUzbe3V588Y",
+      "token": "QUIPU",
+      "decimals": 6
+    },
+    {
+      "address": "KT1BZ8Napzts13b9kLGBWCwhMmx6zmAzRMkG",
+      "token": "hDAO",
+      "decimals": 7
+    },
+    {
+      "address": "KT1DornVnLZWu3VaJnDLB2RubSFSPBZaKq4W",
+      "token": "kDAO",
+      "decimals": 6
+    },
+    {
+      "address": "KT1JfEmUp9w2n9aWJweKpEWAESRjrCywcW3M",
+      "token": "wWETH",
+      "decimals": 12
+    },
+    {
+      "address": "KT1VutBNeCNEHtk6jVkY8v3FE848GNsxjT76",
+      "token": "uUSD",
+      "decimals": 9
+    },
+    {
+      "address": "KT1HsdhTQqha8k6WrvhD9d6CQhHGb3XCtLub",
+      "token": "FLAME",
+      "decimals": 6
+    },
+    {
+      "address": "KT1MSWvuDNcjnxP3mBK4mePLpVLfrjZ3i2nH",
+      "token": "SMAK",
+      "decimals": 4
+    },
+    {
+      "address": "KT1BfAAVACnEAb3CMMxPLb1VdDnyuNq5AWEc",
+      "token": "crDAO",
+      "decimals": 7
+    },
+    {
+      "address": "KT1HpcPqU2atG75bpSy6hUzuWdULi7Kx9eaw",
+      "token": "PXL",
+      "decimals": 6
+    },
+    {
+      "address": "KT1Xt9HvkrbzYtaYhD9im37hE69Zit5bvhPw",
+      "token": "UNO",
+      "decimals": 7
+    },
+    {
+      "address": "KT1LPhjjaFaqcgynzewegLckJUmpQQzm1xj2",
+      "token": "WRAP",
+      "decimals": 7
+    },
+    {
+      "address": "KT1VmvPo8bLYh1xVC9TpzwWtrczjzEMS2mEk",
+      "token": "wWBTC",
+      "decimals": 7
+    },
+    {
+      "address": "KT1SQ4fqsxrKwN5mqCi2yNLvb99S6sRGWGZZ",
+      "token": "tzBTC",
+      "decimals": 7
+    },
+    {
+      "address": "KT1K3NERNpLxRmREpmjqt7LsvEr2SbC9Cs6o",
+      "token": "PAUL",
+      "decimals": 7
+    },
+    {
+      "address": "KT1CoCHHKAUE8vobDwaWQDDBzrBkasCuzkwi",
+      "token": "CRUNCH",
+      "decimals": 7
+    }
   ]
 }

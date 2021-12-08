@@ -64,8 +64,10 @@
         dispatch("reset-rewards", invData.id);
         toastStore.addToast({
           type: "success",
+          title: "Success!",
           text: `Successfully harvested ${rewardsToHarvest} PLENTY!`,
-          dismissable: false
+          dismissable: false,
+          icon: "agriculture"
         });
         setTimeout(() => {
           harvestingSuccess = undefined;
@@ -78,8 +80,10 @@
       console.log(error);
       toastStore.addToast({
         type: "error",
+        title: "Harvest error",
         text: "Couldn't harvest PLENTY tokens",
-        dismissable: false
+        dismissable: false,
+        icon: "agriculture"
       });
     } finally {
       harvesting = false;

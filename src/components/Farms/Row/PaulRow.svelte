@@ -57,8 +57,10 @@
         dispatch("reset-rewards", invData.id);
         toastStore.addToast({
           type: "success",
+          title: "Success",
           text: `Successfully harvested ${rewardsToHarvest} PAUL!`,
-          dismissable: false
+          dismissable: false,
+          icon: "agriculture"
         });
         setTimeout(() => {
           harvestingSuccess = undefined;
@@ -71,8 +73,10 @@
       console.log(error);
       toastStore.addToast({
         type: "error",
+        title: "Harvest error",
         text: "Couldn't harvest PAUL tokens",
-        dismissable: false
+        dismissable: false,
+        icon: "agriculture"
       });
     } finally {
       harvesting = false;

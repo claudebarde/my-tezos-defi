@@ -43,7 +43,7 @@ const initialState: State = {
   },
   serviceFee: null, //process.env.NODE_ENV === "development" ? null : 3,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "QmcBmme2UpHaBSeKt3wejzdLdDoUYghft7EE4e3YDB6xG2", //"QmQponA3PsXMdg2HgUmztZXHjGnVKc6k4cfeKz5t6dsa6D",
+  defiData: "QmbCk8grD59eDByAVxwzaKkQPcWPY4VF1cvtkVJTjRskVp", //"QmcBmme2UpHaBSeKt3wejzdLdDoUYghft7EE4e3YDB6xG2",
   liquidityBaking: undefined,
   blurryBalances: false
 };

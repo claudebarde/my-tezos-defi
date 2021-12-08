@@ -200,8 +200,10 @@
       console.log(error);
       toastStore.addToast({
         type: "error",
+        title: "Harvest error",
         text: error.message ? error.message : `Unable to harvest Alien's farms`,
-        dismissable: true
+        dismissable: true,
+        icon: "agriculture"
       });
     } finally {
       harvestingAllPaul = false;
@@ -266,8 +268,10 @@
       console.log(error);
       toastStore.addToast({
         type: "error",
+        title: "Harvest error",
         text: error.message ? error.message : `Unable to harvest Wrap farms`,
-        dismissable: true
+        dismissable: true,
+        icon: "agriculture"
       });
     } finally {
       harvestingAllWrap = false;
@@ -406,6 +410,7 @@
           console.error(error);
           toastStore.addToast({
             type: "error",
+            title: "Balance error",
             text: `Unable to fetch balances for ${platform.toUpperCase()}`,
             dismissable: true
           });
@@ -478,6 +483,7 @@
           console.error(error);
           toastStore.addToast({
             type: "error",
+            title: "Balance error",
             text: `Unable to fetch balances for ${platform.toUpperCase()}`,
             dismissable: true
           });
@@ -522,6 +528,7 @@
           console.error(error);
           toastStore.addToast({
             type: "error",
+            title: "Balance error",
             text: `Unable to fetch balances for ${platform.toUpperCase()}`,
             dismissable: true
           });
@@ -535,6 +542,7 @@
     } else {
       toastStore.addToast({
         type: "error",
+        title: "Error",
         text: `No platform name`,
         dismissable: true
       });

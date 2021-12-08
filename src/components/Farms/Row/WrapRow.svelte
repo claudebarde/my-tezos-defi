@@ -56,8 +56,10 @@
         dispatch("reset-rewards", invData.id);
         toastStore.addToast({
           type: "success",
+          title: "Success!",
           text: `Successfully harvested ${rewardsToHarvest} WRAP!`,
-          dismissable: false
+          dismissable: false,
+          icon: "agriculture"
         });
         setTimeout(() => {
           harvestingSuccess = undefined;
@@ -70,8 +72,10 @@
       console.log(error);
       toastStore.addToast({
         type: "error",
+        title: "Harvest error",
         text: "Couldn't harvest WRAP tokens",
-        dismissable: false
+        dismissable: false,
+        icon: "agriculture"
       });
     } finally {
       harvesting = false;
@@ -135,8 +139,10 @@
         });
         toastStore.addToast({
           type: "success",
+          title: "Success!",
           text: `Successfully harvested and restaked ${rewardsToHarvest} WRAP!`,
-          dismissable: false
+          dismissable: false,
+          icon: "agriculture"
         });
         setTimeout(() => {
           compoundingSuccess = undefined;
@@ -149,8 +155,10 @@
       console.log(error);
       toastStore.addToast({
         type: "error",
+        title: "Harvest error",
         text: "Couldn't harvest WRAP tokens",
-        dismissable: false
+        dismissable: false,
+        icon: "agriculture"
       });
     } finally {
       compounding = false;
@@ -222,6 +230,7 @@
       console.error(error);
       toastStore.addToast({
         type: "error",
+        title: "Error",
         text: JSON.stringify(error),
         dismissable: false
       });

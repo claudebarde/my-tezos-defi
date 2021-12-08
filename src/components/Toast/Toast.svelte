@@ -6,14 +6,14 @@
 
 <style lang="scss">
   .toast {
-    padding: 10px 30px;
+    display: grid;
+    grid-template-columns: 20% 80%;
+    grid-gap: 20px;
+    padding: 10px;
     position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 30px;
     border-radius: 5px;
-    min-height: 25px;
-    min-width: 20%;
-    text-align: center;
+    min-width: 25%;
     color: white;
     z-index: 999;
 
@@ -24,10 +24,47 @@
       background-color: #2563eb;
     }
     &.success {
-      background-color: #059669;
+      background-color: #2563eb;
     }
     &.error {
       background-color: #dc2626;
+    }
+
+    .toast-icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .material-icons {
+        font-size: 40px;
+      }
+
+      img {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    .toast-body__title {
+      font-size: 1.2rem;
+    }
+
+    .toast-body__text {
+      font-size: 1rem;
+    }
+
+    .dismiss-toast {
+      position: absolute;
+      top: -11px;
+      right: -11px;
+      background-color: inherit;
+      border: solid 2px white;
+      border-radius: 50%;
+      padding: 2px;
+
+      .material-icons {
+        font-size: 20px;
+      }
     }
   }
 </style>
@@ -35,13 +72,35 @@
 {#each $toastStore as toast, index (toast.id)}
   <div
     class={`toast ${toast.type}`}
-    transition:fly={{ y: 300, duration: 1000, easing: expoInOut }}
+    transition:fly={{ x: 300, duration: 1000, easing: expoInOut }}
     style={"bottom:" + (index === 0 ? "50px" : 50 + 60 * index + "px")}
   >
-    {toast.text}
+    <div class="toast-icon">
+      {#if toast.token}
+        <img src={`images/${toast.token}.png`} alt="" />
+      {:else if toast.icon}
+        <span class="material-icons"> {toast.icon} </span>
+      {:else if toast.type === "default"}
+        <span class="material-icons"> visibility </span>
+      {:else if toast.type === "success"}
+        <span class="material-icons"> thumb_up </span>
+      {:else if toast.type === "info"}
+        <span class="material-icons"> info </span>
+      {:else if toast.type === "error"}
+        <span class="material-icons"> report </span>
+      {/if}
+    </div>
+    <div class="toast-body">
+      <div class="toast-body__title">
+        {toast.title}
+      </div>
+      <div class="toast-body__text">
+        {toast.text}
+      </div>
+    </div>
     {#if toast.dismissable}
       <span
-        class="material-icons"
+        class="material-icons dismiss-toast"
         style="cursor:pointer;vertical-align:middle;float:right"
         on:click={() => toastStore.removeToast(toast.id)}
       >
