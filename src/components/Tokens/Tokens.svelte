@@ -9,7 +9,8 @@
     formatTokenAmount,
     sortTokensByBalance
   } from "../../utils";
-  import type { State, AvailableToken } from "../../types";
+  import type { State, AvailableToken, TokenContract } from "../../types";
+  import TokensPriceChange from "./TokensPriceChange.svelte";
 
   let showSelectTokens = false;
   let totalHoldingInXtz = 0;
@@ -30,6 +31,10 @@
       }
     | {} = {};
   let tokensStatsRefresh;
+  let tokensStatsChartData: [
+    AvailableToken,
+    { timestamp: string; price: number }[]
+  ][] = [];
 
   const addFavoriteToken = async tokenSymbol => {
     try {
@@ -48,6 +53,8 @@
           ...$store.tokensBalances,
           [tokenSymbol]: userToken[tokenSymbol]
         });
+
+        await fetchTokensStats([[tokenSymbol, $store.tokens[tokenSymbol]]]);
       }
     } catch (error) {
       console.error(error);
@@ -64,11 +71,8 @@
     localStorageStore.removeFavoriteToken(tokenSymbol);
   };
 
-  const fetchTokensStats = async () => {
+  const fetchTokensStats = async (userTokens: [string, TokenContract][]) => {
     // fetches tokens stats
-    const userTokens = Object.entries($store.tokens).filter(tk =>
-      $localStorageStore.favoriteTokens.includes(tk[0])
-    );
     const tokensAggregateWeeklyPromises = await Promise.allSettled(
       // [userTokens.find(tk => tk[0] === AvailableToken.PLENTY)]
       [...userTokens.filter(tk => tk[0] !== "xPLENTY")].map(
@@ -91,19 +95,35 @@
           stats: await (res as PromiseFulfilledResult<any>).value.stats.json()
         }))
     );
-    const tokensWeekly = tokensAggregateWeekly.map(stats => ({
-      tokenId: stats.tokenId,
-      increase:
-        stats.stats[stats.stats.length - 8].t1priceMa <
-        $store.tokens[stats.tokenId].exchangeRate,
-      difference: (() => {
-        const priceBefore = stats.stats[stats.stats.length - 8].t1priceMa;
-        const currentPrice = $store.tokens[stats.tokenId].exchangeRate;
-        const difference =
-          (priceBefore - currentPrice) / ((priceBefore + currentPrice) / 2);
-        return Math.abs(difference * 100);
-      })()
-    }));
+    const tokensWeekly = tokensAggregateWeekly.map(stats => {
+      if (!tokensStatsChartData.find(item => item[0] === stats.tokenId)) {
+        // populates chart
+        tokensStatsChartData = [
+          ...tokensStatsChartData,
+          [
+            stats.tokenId,
+            [...stats.stats.slice(-30)].map(stat => ({
+              timestamp: stat.periodOpen,
+              price: +stat.t1priceOpen
+            }))
+          ]
+        ];
+      }
+
+      return {
+        tokenId: stats.tokenId,
+        increase:
+          stats.stats[stats.stats.length - 8].t1priceMa <
+          $store.tokens[stats.tokenId].exchangeRate,
+        difference: (() => {
+          const priceBefore = stats.stats[stats.stats.length - 8].t1priceMa;
+          const currentPrice = $store.tokens[stats.tokenId].exchangeRate;
+          const difference =
+            (priceBefore - currentPrice) / ((priceBefore + currentPrice) / 2);
+          return Math.abs(difference * 100);
+        })()
+      };
+    });
     tokensWeekly.forEach(item => {
       tokensStatsWeekly[item.tokenId] = {
         difference: item.difference,
@@ -150,8 +170,13 @@
       store.updateTezBalance(balance.toNumber());
     }
 
-    await fetchTokensStats();
-    tokensStatsRefresh = setInterval(fetchTokensStats, 10 * 60000);
+    await fetchTokensStats(userTokens);
+    tokensStatsRefresh = setInterval(async () => {
+      const userTokens = Object.entries($store.tokens).filter(tk =>
+        $localStorageStore.favoriteTokens.includes(tk[0])
+      );
+      await fetchTokensStats(userTokens);
+    }, 10 * 60000);
   });
 
   afterUpdate(async () => {
@@ -467,4 +492,20 @@
       No favorite token yet
     {/each}
   </div>
+  <br />
+  <br />
+  {#if tokensStatsChartData.length > 0}
+    <TokensPriceChange chartData={tokensStatsChartData} priceSize="small" />
+    <br />
+    <br />
+    <TokensPriceChange chartData={tokensStatsChartData} priceSize="medium" />
+    <br />
+    <br />
+    <TokensPriceChange chartData={tokensStatsChartData} priceSize="large" />
+    <br />
+    <br />
+    {#if $localStorageStore.favoriteTokens.includes("wWBTC") || $localStorageStore.favoriteTokens.includes("tzBTC")}
+      <TokensPriceChange chartData={tokensStatsChartData} priceSize="huge" />
+    {/if}
+  {/if}
 </section>
