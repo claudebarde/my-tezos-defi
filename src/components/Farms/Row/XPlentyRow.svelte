@@ -128,18 +128,19 @@
 
 <div class="farm-block">
   <div class="farm-block__name">
-    <div class="icons">
-      <img src={`images/xPLENTY.png`} alt="token-icon" />
-    </div>
-    <br />
-    <div>
-      <a
-        href={`https://better-call.dev/mainnet/${$store.investments["xPLENTY-Staking"].address}/operations`}
-        target="_blank"
-        rel="noopener noreferrer nofollow"
-      >
-        {$store.investments["xPLENTY-Staking"].alias}
-      </a>
+    <div style="text-align:center">
+      <div class="icons">
+        <img src={`images/xPLENTY.png`} alt="token-icon" />
+      </div>
+      <div>
+        <a
+          href={`https://better-call.dev/mainnet/${$store.investments["xPLENTY-Staking"].address}/operations`}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
+          {$store.investments["xPLENTY-Staking"].alias}
+        </a>
+      </div>
     </div>
   </div>
   <div class="farm-block__data">

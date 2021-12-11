@@ -51,7 +51,8 @@ export enum AvailableToken {
   MAG = "MAG",
   PXL = "PXL",
   pxlDAO = "pxlDAO",
-  fDAO = "fDAO"
+  fDAO = "fDAO",
+  BTCtz = "BTCtz"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -101,6 +102,7 @@ export enum AvailableInvestments {
   "wWETH-PAUL" = "wWETH-PAUL",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
+  "KUSD-QL" = "KUSD-QL",
   "WRAP-STACKING" = "WRAP-STACKING",
   "WRAP-XTZ-LM" = "WRAP-XTZ-LM",
   "wAAVE-XTZ-LM" = "wAAVE-XTZ-LM",

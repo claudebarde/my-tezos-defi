@@ -27,6 +27,7 @@ export default {
   },
   kolibriOvenOwnersUrl:
     "https://kolibri-data.s3.amazonaws.com/mainnet/oven-key-data.json",
+  kusdLiquidityPoolAddress: "KT1AxaBxkFLCUi3f8rdDAAxBKHfzY8LfKDRA",
   quipuswapFactories: {
     fa1_2Factory: [
       "KT1FWHLMk5tHbwuSsp31S4Jum4dTVmkXpfJw",

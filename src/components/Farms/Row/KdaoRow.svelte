@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
   import tippy from "tippy.js";
+  import BigNumber from "bignumber.js";
   import type { InvestmentData, AvailableInvestments } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
@@ -110,6 +111,49 @@
           $store.tokens.kUSD.exchangeRate;
 
         stakeInXtz = formatTokenAmount(tezInStakes + tokensInStakes);
+      } else if (invData.id === "KUSD-QL") {
+        // Load kUSD Contract
+        const kUSDContract = await $store.Tezos.wallet.at(
+          $store.tokens.kUSD.address
+        );
+        const kUSDStorage: any = await kUSDContract.storage();
+
+        // Load Liq Pool Contract
+        const liqContract = await $store.Tezos.wallet.at(
+          config.kusdLiquidityPoolAddress
+        );
+        const liqStorage: any = await liqContract.storage();
+
+        // Get number of kUSD in the liquidity pool
+        let poolBalance = await kUSDStorage.balances.get(
+          config.kusdLiquidityPoolAddress
+        );
+        if (poolBalance === undefined) {
+          poolBalance = new BigNumber(0);
+        } else {
+          poolBalance = poolBalance.balance;
+        }
+
+        // Get number of LP tokens outstanding
+        const lpBalance = liqStorage.totalSupply;
+
+        // Changed fixed point numbers into decimals
+        const KUSD_MANTISSA = Math.pow(10, 18); // kUSD has 18 decimals
+        const LP_MANTISSA = Math.pow(10, 36); // LP has 36 decimals
+        const kUSDBalanceDecimal = poolBalance.dividedBy(KUSD_MANTISSA);
+        const lpBalanceDecimal = lpBalance.dividedBy(LP_MANTISSA);
+
+        // Calculate an exchange rate
+        // toFixed() will give you n digits of precision
+        const redeemRate = kUSDBalanceDecimal
+          .dividedBy(lpBalanceDecimal)
+          .toFixed(2);
+
+        stakeInXtz = formatTokenAmount(
+          +(invData.balance / 10 ** invData.decimals) *
+            redeemRate *
+            $store.tokens.kUSD.exchangeRate
+        );
       }
 
       dispatch("update-farm-value", [invName, stakeInXtz]);
@@ -144,20 +188,21 @@
 
 <div class="farm-block">
   <div class="farm-block__name">
-    <div class="icons" id={`farm-${invData.id}`}>
-      {#each invData.icons as icon}
-        <img src={`images/${icon}.png`} alt="token-icon" />
-      {/each}
-    </div>
-    <br />
-    <div>
-      <a
-        href={`https://better-call.dev/mainnet/${invData.address}/operations`}
-        target="_blank"
-        rel="noopener noreferrer nofollow"
-      >
-        {invData.alias}
-      </a>
+    <div style="text-align:center">
+      <div class="icons" id={`farm-${invData.id}`}>
+        {#each invData.icons as icon}
+          <img src={`images/${icon}.png`} alt="token-icon" />
+        {/each}
+      </div>
+      <div>
+        <a
+          href={`https://better-call.dev/mainnet/${invData.address}/operations`}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
+          {invData.alias}
+        </a>
+      </div>
     </div>
   </div>
   <div class="farm-block__data">

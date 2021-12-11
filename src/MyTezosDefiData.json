@@ -530,6 +530,17 @@
       "color": "#019ADA",
       "tokenId": 0,
       "whitelisted": true
+    },
+    "BTCtz": {
+      "address": "KT1T87QbpXEVgkwsNPzz8iRoah3SS3D1MDmh",
+      "dexContractAddress": "KT1B6nXwMpGTjYjVQporXUFDQNDGnfCFsx4a",
+      "decimals": 8,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#FF8824",
+      "tokenId": 0,
+      "whitelisted": true
     }
   },
   "investments": {
@@ -861,50 +872,6 @@
       "alias": "uUSD-uDEFI LP farm",
       "icons": ["uUSD", "uDEFI"],
       "rewardToken": "YOU",
-      "liquidityToken": true
-    },
-    "Ctez-kUSD-LP": {
-      "id": "Ctez-kUSD-LP",
-      "platform": "plenty",
-      "address": "KT1L8N5RZg4CM2VSnuC8t1CGLiQpzVoN6P1u",
-      "decimals": 12,
-      "info": [],
-      "alias": "Ctez-kUSD LP farm",
-      "icons": ["Ctez", "kUSD"],
-      "rewardToken": "PLENTY",
-      "liquidityToken": true
-    },
-    "Ctez-PAUL-LP": {
-      "id": "Ctez-PAUL-LP",
-      "platform": "plenty",
-      "address": "KT1K3NERNpLxRmREpmjqt7LsvEr2SbC9Cs6o",
-      "decimals": 7,
-      "info": [],
-      "alias": "Ctez-PAUL LP farm",
-      "icons": ["Ctez", "PAUL"],
-      "rewardToken": "PLENTY",
-      "liquidityToken": true
-    },
-    "Ctez-wWBTC-LP": {
-      "id": "Ctez-wWBTC-LP",
-      "platform": "plenty",
-      "address": "KT1VmvPo8bLYh1xVC9TpzwWtrczjzEMS2mEk",
-      "decimals": 7,
-      "info": [],
-      "alias": "Ctez-wWBTC LP farm",
-      "icons": ["Ctez", "wWBTC"],
-      "rewardToken": "PLENTY",
-      "liquidityToken": true
-    },
-    "Ctez-kUSD-LP": {
-      "id": "Ctez-kUSD-LP",
-      "platform": "plenty",
-      "address": "KT1L8N5RZg4CM2VSnuC8t1CGLiQpzVoN6P1u",
-      "decimals": 7,
-      "info": [],
-      "alias": "Ctez-kUSD LP farm",
-      "icons": ["Ctez", "kUSD"],
-      "rewardToken": "PLENTY",
       "liquidityToken": true
     },
     "xPLENTY-Staking": {

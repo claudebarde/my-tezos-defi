@@ -4,12 +4,9 @@
   import { push } from "svelte-spa-router";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
-  import {
-    searchUserTokens,
-    formatTokenAmount,
-    sortTokensByBalance
-  } from "../../utils";
+  import { searchUserTokens, sortTokensByBalance } from "../../utils";
   import type { State, AvailableToken, TokenContract } from "../../types";
+  import TokenBox from "./TokenBox.svelte";
   import TokensPriceChange from "./TokensPriceChange.svelte";
 
   let showSelectTokens = false;
@@ -31,10 +28,11 @@
       }
     | {} = {};
   let tokensStatsRefresh;
-  let tokensStatsChartData: [
-    AvailableToken,
-    { timestamp: string; price: number }[]
-  ][] = [];
+  let tokensStatsChartData:
+    | {
+        [p in AvailableToken]: { timestamp: string; price: number }[];
+      }
+    | {} = {};
 
   const addFavoriteToken = async tokenSymbol => {
     try {
@@ -96,18 +94,14 @@
         }))
     );
     const tokensWeekly = tokensAggregateWeekly.map(stats => {
-      if (!tokensStatsChartData.find(item => item[0] === stats.tokenId)) {
+      if (!tokensStatsChartData.hasOwnProperty(stats.tokenId)) {
         // populates chart
-        tokensStatsChartData = [
-          ...tokensStatsChartData,
-          [
-            stats.tokenId,
-            [...stats.stats.slice(-30)].map(stat => ({
-              timestamp: stat.periodOpen,
-              price: +stat.t1priceOpen
-            }))
-          ]
-        ];
+        tokensStatsChartData[stats.tokenId] = [...stats.stats.slice(-30)].map(
+          stat => ({
+            timestamp: stat.periodOpen,
+            price: +stat.t1priceOpen
+          })
+        );
       }
 
       return {
@@ -290,41 +284,6 @@
       align-items: stretch;
       flex-wrap: wrap;
       gap: 30px;
-
-      .favorite-token {
-        /*display: flex;
-        justify-content: space-between;
-        align-items: center;*/
-        display: grid;
-        row-gap: 10px;
-        width: 250px;
-        border: solid 1px $bg-color;
-        border-radius: 10px;
-        padding: 1rem 10px;
-        position: relative;
-        z-index: 10;
-
-        img {
-          height: 2.4rem;
-          position: absolute;
-          top: -1.4rem;
-          left: 10px;
-          background-color: white;
-          padding: 0px 3px;
-        }
-
-        .favorite-token__price {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .favorite-token__stats {
-          border-top: solid 1px $bg-color;
-          padding: 10px 10px 0px 10px;
-          font-size: 0.8rem;
-        }
-      }
     }
   }
 </style>
@@ -384,116 +343,27 @@
   <br />
   <div class="favorite-tokens">
     {#if $store.xtzData.balance}
-      <div class="favorite-token">
-        <img src="images/XTZ.png" alt="XTZ-logo" />
-        <div>XTZ</div>
-        <div>
-          <div>{formatTokenAmount($store.xtzData.balance / 10 ** 6)}</div>
-          <div>
-            {+(
-              ($store.xtzData.balance / 10 ** 6) *
-              $store.xtzData.exchangeRate
-            ).toFixed(2) / 1}
-            {$localStorageStore.preferredFiat}
-          </div>
-        </div>
-      </div>
+      <TokenBox
+        token="XTZ"
+        tokensStatsWeekly={undefined}
+        tokensStatsDaily={undefined}
+        monthlyChartData={undefined}
+      />
     {/if}
-
     {#each $store.tokensBalances ? sortTokensByBalance($localStorageStore.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map(tk => tk[0]) : [] as token (token)}
-      <div class="favorite-token">
-        <img src={`images/${token}.png`} alt={`${token}-logo`} />
-        <div class="favorite-token__price">
-          <div>
-            <div>{token}</div>
-            <div style="font-size:0.8rem">
-              {formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ
-            </div>
-          </div>
-          <div>
-            {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}
-              <div>
-                {#if formatTokenAmount($store.tokensBalances[token]) === 0}
-                  No token
-                {:else}
-                  {formatTokenAmount($store.tokensBalances[token])}
-                {/if}
-              </div>
-              {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[token]) === 0}
-                <div />
-                <div />
-                <div />
-              {:else}
-                <div>
-                  {+(
-                    $store.tokensBalances[token] *
-                    $store.tokens[token].exchangeRate
-                  ).toFixed(3) / 1} ꜩ
-                </div>
-                {#if $localStorageStore}
-                  <div>
-                    {+(
-                      $store.tokensBalances[token] *
-                      $store.tokens[token].exchangeRate *
-                      $store.xtzData.exchangeRate
-                    ).toFixed(3) / 1}
-                    {$localStorageStore.preferredFiat}
-                  </div>
-                {:else}
-                  <div>
-                    {+(
-                      $store.tokensBalances[token] *
-                      $store.tokens[token].exchangeRate *
-                      $store.xtzData.exchangeRate
-                    ).toFixed(3) / 1} USD
-                  </div>
-                {/if}
-              {/if}
-            {:else}
-              <div>---</div>
-              <div>---</div>
-            {/if}
-          </div>
-        </div>
-        {#if tokensStatsWeekly.hasOwnProperty(token) || tokensStatsDaily.hasOwnProperty(token)}
-          <div class="favorite-token__stats">
-            {#if tokensStatsDaily.hasOwnProperty(token)}
-              <div>
-                Price change (24 h):
-                <span
-                  style={`color:${
-                    tokensStatsDaily[token].increase ? "green" : "red"
-                  }`}
-                >
-                  {tokensStatsDaily[token].increase
-                    ? "+"
-                    : "-"}{tokensStatsDaily[token].difference.toFixed(2)}%
-                </span>
-              </div>
-            {/if}
-            {#if tokensStatsWeekly.hasOwnProperty(token)}
-              <div>
-                Price change (7 d):
-                <span
-                  style={`color:${
-                    tokensStatsWeekly[token].increase ? "green" : "red"
-                  }`}
-                >
-                  {tokensStatsWeekly[token].increase
-                    ? "+"
-                    : "-"}{tokensStatsWeekly[token].difference.toFixed(2)}%
-                </span>
-              </div>
-            {/if}
-          </div>
-        {/if}
-      </div>
+      <TokenBox
+        {token}
+        tokensStatsWeekly={tokensStatsWeekly[token]}
+        tokensStatsDaily={tokensStatsDaily[token]}
+        monthlyChartData={tokensStatsChartData[token]}
+      />
     {:else}
       No favorite token yet
     {/each}
   </div>
   <br />
   <br />
+  <!--
   {#if tokensStatsChartData.length > 0}
     <TokensPriceChange chartData={tokensStatsChartData} priceSize="small" />
     <br />
@@ -504,8 +374,8 @@
     <TokensPriceChange chartData={tokensStatsChartData} priceSize="large" />
     <br />
     <br />
-    {#if $localStorageStore.favoriteTokens.includes("wWBTC") || $localStorageStore.favoriteTokens.includes("tzBTC")}
+    {#if $localStorageStore.favoriteTokens.includes("wWBTC") || $localStorageStore.favoriteTokens.includes("tzBTC") || $localStorageStore.favoriteTokens.includes("BTCtz")}
       <TokensPriceChange chartData={tokensStatsChartData} priceSize="huge" />
     {/if}
-  {/if}
+  {/if}-->
 </section>

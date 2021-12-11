@@ -6,7 +6,7 @@
 
   export let chartData: [
       AvailableToken,
-      { timestamp: string; price: number }[]
+      { timestamp: string; price: number | null }[]
     ][],
     priceSize: "small" | "medium" | "large" | "huge";
 
@@ -24,13 +24,60 @@
           } else if (priceSize === "medium") {
             return info.price <= 1 && info.price > 0.1;
           } else if (priceSize === "large") {
-            return info.price > 1 && !["wWBTC", "tzBTC"].includes(tokenId);
+            return (
+              info.price > 1 && !["wWBTC", "tzBTC", "BTCtz"].includes(tokenId)
+            );
           } else if (priceSize === "huge") {
-            return ["wWBTC", "tzBTC"].includes(tokenId);
+            return ["wWBTC", "tzBTC", "BTCtz"].includes(tokenId);
           }
         })
       ].reduce((a, b) => a && b)
     );
+
+    const missingDays = processedChartData.filter(
+      ([_, tokenData]) => tokenData.length !== 30
+    );
+    if (missingDays.length > 0) {
+      // this can happen when data is missing for certain days
+      //console.log(missingDays);
+      const tempChartDataArray = missingDays.map(([tokenId, _]) => [
+        tokenId,
+        Array.from(Array(30))
+          .map((_, index) => ({
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000 * index)
+              .toISOString()
+              .replace(/T.*Z/, "T00:00:00.000Z"),
+            price: null
+          }))
+          .reverse()
+      ]);
+
+      missingDays.forEach(([tokenId, tokenData]) => {
+        tokenData.forEach(data => {
+          const item = tempChartDataArray.find(d => d[0] === tokenId)[1];
+        });
+      });
+      /*const paddedChartData = missingDays.map(([tokenId, tokenData]) => {
+        return tokenData
+          .reverse()
+          .map((data, index) => {
+            const currentDay = new Date(
+              Date.now() - 24 * 60 * 60 * 1000 * index
+            )
+              .toISOString()
+              .replace(/T.*Z/, "");
+            if (data.timestamp.includes(currentDay)) {
+              // first entry is today price
+              return data;
+            } else {
+              return { timestamp: currentDay, price: null };
+            }
+          })
+          .reverse();
+      });
+      console.log(paddedChartData);*/
+    }
+
     if (processedChartData.length > 0) {
       let data = {
         labels: [],

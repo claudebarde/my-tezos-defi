@@ -508,6 +508,12 @@
           });
         }
       } else {
+        toastStore.addToast({
+          type: "error",
+          title: "IPFS Error",
+          text: "Unable to load tokens and investments data from the IPFS",
+          dismissable: true
+        });
         console.error(
           "Unable to load tokens and investments data from the IPFS"
         );

@@ -301,38 +301,41 @@
 
 <div class="farm-block">
   <div class="farm-block__name">
-    <div class="icons" id={`farm-${invData.id}`}>
-      {#each invData.icons as icon}
-        <img src={`images/${icon}.png`} alt="token-icon" />
-      {/each}
+    <div style="text-align:center">
+      <div class="icons" id={`farm-${invData.id}`}>
+        {#each invData.icons as icon}
+          <img src={`images/${icon}.png`} alt="token-icon" />
+        {/each}
+      </div>
+      <div>
+        <a
+          href={`https://better-call.dev/mainnet/${invData.address}/operations`}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+        >
+          {invData.alias}
+        </a>
+      </div>
     </div>
-    <br />
     <div>
-      <a
-        href={`https://better-call.dev/mainnet/${invData.address}/operations`}
-        target="_blank"
-        rel="noopener noreferrer nofollow"
-      >
-        {invData.alias}
-      </a>
-    </div>
-    {#if apr && apy}
-      <br />
-      <div style="font-size:0.7rem">
-        APR: {apr.toFixed(2)}%
-      </div>
-      <div style="font-size:0.7rem">
-        APY: {apy.toFixed(2)}%
-      </div>
-    {/if}
-    <br />
-    {#each invData.icons as token}
-      {#if $store.tokens[token]}
+      {#if apr && apy}
         <div style="font-size:0.7rem">
-          1 {token} = {formatTokenAmount($store.tokens[token].exchangeRate)} XTZ
+          APR: {apr.toFixed(2)}%
+        </div>
+        <div style="font-size:0.7rem">
+          APY: {apy.toFixed(2)}%
         </div>
       {/if}
-    {/each}
+    </div>
+    <div>
+      {#each invData.icons as token}
+        {#if $store.tokens[token]}
+          <div style="font-size:0.7rem">
+            1 {token} = {formatTokenAmount($store.tokens[token].exchangeRate)} XTZ
+          </div>
+        {/if}
+      {/each}
+    </div>
   </div>
   {#if moreOptions}
     <div class="farm-block__data">More options</div>
