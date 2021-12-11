@@ -23,7 +23,7 @@
 
   let chart;
 
-  const generateChart = () => {
+  const generateChart = (chartData: { timestamp: string; price: number }[]) => {
     const data = {
       labels: [],
       datasets: [
@@ -32,19 +32,19 @@
           data: [],
           fill: false,
           borderColor:
-            monthlyChartData[0].price >
-            monthlyChartData[monthlyChartData.length - 1].price
+            chartData[0].price > chartData[chartData.length - 1].price
               ? "red"
               : "green",
+          borderWidth: 2,
           tension: 0.1,
-          pointStyle: "line"
+          pointRadius: 0
         }
       ]
     };
 
-    monthlyChartData.forEach(chartData => {
-      data.datasets[0].data.push(chartData.price);
-      data.labels.push(chartData.timestamp.replace(/T.*Z/, ""));
+    chartData.forEach(d => {
+      data.datasets[0].data.push(d.price);
+      data.labels.push(d.timestamp.replace(/T.*Z/, ""));
     });
     const canvas = document.getElementById(
       `token-price-change-chart-${token}`
@@ -80,8 +80,50 @@
   };
 
   afterUpdate(() => {
-    if (monthlyChartData && monthlyChartData.length > 0 && !chart) {
-      generateChart();
+    if (
+      token !== "XTZ" &&
+      monthlyChartData &&
+      monthlyChartData.length === 30 &&
+      !chart
+    ) {
+      generateChart(monthlyChartData);
+    } else if (
+      token === "XTZ" &&
+      $store.xtzData.historic &&
+      $store.xtzData.historic.length > 0 &&
+      !chart
+    ) {
+      generateChart($store.xtzData.historic);
+      const dailyIncrease =
+        $store.xtzData.historic[$store.xtzData.historic.length - 2].price <
+        $store.xtzData.exchangeRate;
+      const dailyDifference = (() => {
+        const priceBefore =
+          $store.xtzData.historic[$store.xtzData.historic.length - 2].price;
+        const currentPrice = $store.xtzData.exchangeRate;
+        const difference =
+          (priceBefore - currentPrice) / ((priceBefore + currentPrice) / 2);
+        return Math.abs(difference * 100);
+      })();
+      const monthlyIncrease =
+        $store.xtzData.historic[$store.xtzData.historic.length - 30].price <
+        $store.xtzData.exchangeRate;
+      const monthlyDifference = (() => {
+        const priceBefore =
+          $store.xtzData.historic[$store.xtzData.historic.length - 30].price;
+        const currentPrice = $store.xtzData.exchangeRate;
+        const difference =
+          (priceBefore - currentPrice) / ((priceBefore + currentPrice) / 2);
+        return Math.abs(difference * 100);
+      })();
+      tokensStatsDaily = {
+        increase: dailyIncrease,
+        difference: dailyDifference
+      };
+      tokensStatsWeekly = {
+        increase: monthlyIncrease,
+        difference: monthlyDifference
+      };
     }
   });
 </script>
@@ -136,6 +178,37 @@
         {$localStorageStore.preferredFiat}
       </div>
     </div>
+    <div class="favorite-token__stats">
+      {#if tokensStatsDaily}
+        <div>
+          Price change (24 h):
+          <span style={`color:${tokensStatsDaily.increase ? "green" : "red"}`}>
+            {tokensStatsDaily.increase
+              ? "+"
+              : "-"}{tokensStatsDaily.difference.toFixed(2)}%
+          </span>
+        </div>
+      {/if}
+      {#if tokensStatsWeekly}
+        <div>
+          Price change (7 d):
+          <span style={`color:${tokensStatsWeekly.increase ? "green" : "red"}`}>
+            {tokensStatsWeekly.increase
+              ? "+"
+              : "-"}{tokensStatsWeekly.difference.toFixed(2)}%
+          </span>
+        </div>
+      {/if}
+    </div>
+    {#if $store.xtzData.historic}
+      <div class="token-price-change-container">
+        <canvas
+          id={`token-price-change-chart-${token}`}
+          width="250"
+          height="70"
+        />
+      </div>
+    {/if}
   </div>
 {:else}
   <div class="favorite-token">

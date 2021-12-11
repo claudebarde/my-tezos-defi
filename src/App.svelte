@@ -526,17 +526,18 @@
           const preferredFiat = $localStorageStore.preferredFiat
             ? $localStorageStore.preferredFiat.toLowerCase()
             : AvailableFiat.USD;
-          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${preferredFiat}&days=2`;
+          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${preferredFiat}&days=30&interval=daily`;
           const coinGeckoResponse = await fetch(url);
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();
+            console.log(data);
             const prices = data.prices;
             const xtzFiatExchangeRate = prices[prices.length - 1][1];
             store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
             store.updateXtzDataHistoric(
               prices.map(price => ({
-                timestamp: price[0],
-                rate: price[1]
+                timestamp: new Date(price[0]).toISOString(),
+                price: price[1]
               }))
             );
             if ($localStorageStore) {

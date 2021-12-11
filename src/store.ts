@@ -97,7 +97,7 @@ const state = {
     }));
   },
   updateXtzDataHistoric: (
-    newHistoric: { timestamp: number; rate: number }[]
+    newHistoric: { timestamp: string; price: number }[]
   ) => {
     store.update(store => ({
       ...store,

@@ -243,7 +243,7 @@ export interface State {
   xtzData: {
     exchangeRate: number | undefined;
     balance: number;
-    historic: { timestamp: number; rate: number }[];
+    historic: { timestamp: string; price: number }[];
   };
   serviceFee: null | number;
   admin: TezosAccountAddress;
