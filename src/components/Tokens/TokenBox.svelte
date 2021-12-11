@@ -28,7 +28,7 @@
       labels: [],
       datasets: [
         {
-          label: "test",
+          label: "Price",
           data: [],
           fill: false,
           borderColor:
@@ -44,7 +44,7 @@
 
     monthlyChartData.forEach(chartData => {
       data.datasets[0].data.push(chartData.price);
-      data.labels.push(chartData.timestamp);
+      data.labels.push(chartData.timestamp.replace(/T.*Z/, ""));
     });
     const canvas = document.getElementById(
       `token-price-change-chart-${token}`
