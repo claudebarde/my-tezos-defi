@@ -530,7 +530,6 @@
           const coinGeckoResponse = await fetch(url);
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();
-            console.log(data);
             const prices = data.prices;
             const xtzFiatExchangeRate = prices[prices.length - 1][1];
             store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);

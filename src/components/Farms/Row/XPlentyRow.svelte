@@ -5,87 +5,12 @@
   import "tippy.js/themes/light-border.css";
   import store from "../../../store";
   import { formatTokenAmount } from "../../../utils";
+  import { getExpectedPlenty } from "../../../tokenUtils/plentyUtils";
   import localStorageStore from "../../../localStorage";
   import config from "../../../config";
 
-  const rewardManagerAddress = "KT1MCgouivQ2rzam5hA2gqF1eMtY5i6ndJvT";
-  const xPlentyCurveAddress = "KT1PxkrCckgh5fA5v2cZEE2bX5q2RV1rv8dj";
   let expectedPlentyTokens: null | number = null;
-
-  const xPlentyComputation = async () => {
-    try {
-      const plentyTokenContract = await $store.Tezos.wallet.at(
-        $store.tokens.PLENTY.address
-      );
-      const xPlentyCurveContract = await $store.Tezos.wallet.at(
-        xPlentyCurveAddress
-      );
-      const rewardManagerContract = await $store.Tezos.wallet.at(
-        rewardManagerAddress
-      );
-      // Accessing Contract Storage
-      const plentyStorage: any = await plentyTokenContract.storage();
-      const rewardManagerStorage: any = await rewardManagerContract.storage();
-      const xPlentyCurveStorage: any = await xPlentyCurveContract.storage();
-      // get current block level
-      const currentBlockLevel = await getCurrentBlockLevel();
-      // Compute xPlentyCurve Contract's plenty balance
-      let plentyBalance = await plentyStorage.balances.get(xPlentyCurveAddress);
-      plentyBalance = plentyBalance.balance.toNumber();
-
-      const balanceUpdate =
-        Math.min(
-          currentBlockLevel,
-          rewardManagerStorage.periodFinish.toNumber()
-        ) - rewardManagerStorage.lastUpdate.toNumber();
-
-      if (balanceUpdate > 0) {
-        plentyBalance +=
-          balanceUpdate * rewardManagerStorage.rewardRate.toNumber();
-      }
-
-      const totalSupply = xPlentyCurveStorage.totalSupply.toNumber();
-      return {
-        plentyBalance,
-        totalSupply
-      };
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const getExpectedxPlenty = async (plentyAmount: number) => {
-    const results = await xPlentyComputation();
-    return (
-      ((plentyAmount * results.totalSupply) / results.plentyBalance) * 0.995
-    );
-  };
-  const getExpectedPlenty = async (xPlentyAmount: number) => {
-    const results = await xPlentyComputation();
-    try {
-      if (results.totalSupply < xPlentyAmount) {
-        throw "Invalid Request";
-      }
-      return (
-        ((xPlentyAmount * results.plentyBalance) / results.totalSupply) * 0.995
-      );
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const getCurrentBlockLevel = async () => {
-    try {
-      const response = await $store.Tezos.rpc.getBlockHeader();
-      return response.level;
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  /*getExpectedxPlenty(
-    plentyInvesment
-  );
-  getExpectedPlenty(
-    plentyInvesment
-  );*/
+  let xPlentyExchangeRate: null | number = null;
 
   onMount(async () => {
     const contract = await $store.Tezos.wallet.at(
@@ -104,9 +29,14 @@
         }
       });
 
-      expectedPlentyTokens = await getExpectedPlenty(
-        balance.toNumber() / 10 ** $store.tokens.xPLENTY.decimals
+      xPlentyExchangeRate = await getExpectedPlenty(
+        $store.Tezos,
+        10 ** $store.tokens.xPLENTY.decimals,
+        $store.currentLevel
       );
+      expectedPlentyTokens =
+        (balance.toNumber() / 10 ** $store.tokens.xPLENTY.decimals) *
+        (xPlentyExchangeRate / 10 ** $store.tokens.PLENTY.decimals);
     } else {
       store.updateInvestments({
         ...$store.investments,
@@ -142,6 +72,20 @@
         </a>
       </div>
     </div>
+    {#if xPlentyExchangeRate}
+      <div>
+        <div style="font-size:0.7rem">
+          1 xPLENTY = {formatTokenAmount(
+            xPlentyExchangeRate / 10 ** $store.tokens.PLENTY.decimals
+          )} PLENTY
+        </div>
+        <div style="font-size:0.7rem">
+          1 PLENTY = {formatTokenAmount(
+            1 / (xPlentyExchangeRate / 10 ** $store.tokens.PLENTY.decimals)
+          )} xPLENTY
+        </div>
+      </div>
+    {/if}
   </div>
   <div class="farm-block__data">
     <div class="farm-block__data__info">
@@ -153,26 +97,35 @@
       <br />
       <span class="title">Stake in XTZ:</span>
       <br />
-      <div class:blurry-text={$store.blurryBalances}>
-        {formatTokenAmount(
-          $store.investments["xPLENTY-Staking"].balance *
-            $store.tokens.xPLENTY.exchangeRate
-        )} ꜩ
-      </div>
+      {#if expectedPlentyTokens}
+        <div class:blurry-text={$store.blurryBalances}>
+          {formatTokenAmount(
+            expectedPlentyTokens *
+              10 ** $store.tokens.PLENTY.exchangeRate *
+              $store.tokens.PLENTY.exchangeRate
+          )} ꜩ
+        </div>
+      {:else}
+        <div>N/A</div>
+      {/if}
       <br />
       <span class="title">Stake in {$localStorageStore.preferredFiat}:</span>
       <br />
-      <div class:blurry-text={$store.blurryBalances}>
-        {formatTokenAmount(
-          $store.investments["xPLENTY-Staking"].balance *
-            $store.tokens.xPLENTY.exchangeRate *
-            $store.xtzData.exchangeRate,
-          2
-        )}
-        {config.validFiats.find(
-          fiat => fiat.code === $localStorageStore.preferredFiat
-        ).symbol}
-      </div>
+      {#if expectedPlentyTokens}
+        <div class:blurry-text={$store.blurryBalances}>
+          {formatTokenAmount(
+            expectedPlentyTokens *
+              10 ** $store.tokens.PLENTY.exchangeRate *
+              $store.tokens.PLENTY.exchangeRate *
+              $store.xtzData.exchangeRate
+          )}
+          {config.validFiats.find(
+            fiat => fiat.code === $localStorageStore.preferredFiat
+          ).symbol}
+        </div>
+      {:else}
+        <div>N/A</div>
+      {/if}
     </div>
   </div>
   <div class="farm-block__actions">
