@@ -1,8 +1,5 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import tippy from "tippy.js";
-  import "tippy.js/dist/tippy.css";
-  import "tippy.js/themes/light-border.css";
   import store from "../../../store";
   import { formatTokenAmount } from "../../../utils";
   import { getExpectedPlenty } from "../../../tokenUtils/plentyUtils";
@@ -46,13 +43,6 @@
         }
       });
     }
-
-    tippy(`#xplenty-stake-button`, {
-      content: "Stake"
-    });
-    tippy(`#xplenty-unstake-button`, {
-      content: "Unstake"
-    });
   });
 </script>
 

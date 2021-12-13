@@ -2,7 +2,11 @@
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
   import { slide } from "svelte/transition";
   import tippy from "tippy.js";
-  import type { InvestmentData, AvailableInvestments } from "../../../types";
+  import type {
+    InvestmentData,
+    AvailableInvestments,
+    TezosContractAddress
+  } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
@@ -29,13 +33,29 @@
   let compounding = false;
   let compoundingSuccess = undefined;
   let stakeInXtz: null | number = null;
-  let openSettingsModal = false;
   let apy: null | number = null;
   let apr: null | number = null;
   let totalStaked: null | number = null;
   const dispatch = createEventDispatcher();
   let moreOptions = false;
   let roiPerWeek: number | null = null;
+  let newStake: {
+    token: string | undefined;
+    staked: number | undefined;
+    available: number | undefined;
+  } = {
+    token: undefined,
+    staked: undefined,
+    available: undefined
+  };
+  let tokensToStake = "";
+  let newUnstake: { token: string | undefined; balance: number | undefined } = {
+    token: undefined,
+    balance: undefined
+  };
+  let tokensToUnstake = "";
+  let openStakeModal = false;
+  let openUnstakeModal = false;
 
   const harvest = async () => {
     harvesting = true;
@@ -224,7 +244,7 @@
 
       // calculates ROI per week
       if (stakeInXtz) {
-        roiPerWeek = (stakeInXtz * apr) / 100 / 52;
+        roiPerWeek = formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
       }
     } catch (error) {
       console.error(error);
@@ -235,6 +255,154 @@
         dismissable: false
       });
     }
+  };
+
+  const stake = async () => {
+    if (!tokensToStake) return;
+
+    try {
+      const contract = await $store.Tezos.wallet.at(invData.address);
+      const storage: any = await contract.storage();
+      // gets the address of the LP token contract
+      let lpTokenAddress: TezosContractAddress;
+      if (invData.type === "staking") {
+        lpTokenAddress = storage.addresses.lpTokenContract;
+      } else {
+        lpTokenAddress = $store.tokens.WRAP.address;
+      }
+      const lpContract = await $store.Tezos.wallet.at(lpTokenAddress);
+
+      const batch = await $store.Tezos.wallet
+        .batch()
+        .withContractCall(
+          lpContract.methods.update_operators([
+            {
+              add_operator: {
+                owner: $store.userAddress,
+                operator: invData.address,
+                token_id: 0
+              }
+            }
+          ])
+        )
+        .withContractCall(
+          contract.methods[invData.type === "staking" ? "deposit" : "stake"](
+            tokensToStake
+          )
+        )
+        .withContractCall(
+          lpContract.methods.update_operators([
+            {
+              remove_operator: {
+                owner: $store.userAddress,
+                operator: invData.address,
+                token_id: 0
+              }
+            }
+          ])
+        );
+
+      const batchOp = await batch.send();
+      await batchOp.confirmation();
+      // updates balance
+      invData = {
+        ...invData,
+        balance: invData.balance + +tokensToStake
+      };
+      toastStore.addToast({
+        type: "success",
+        title: "Success!",
+        text: `Successfully staked ${tokensToStake} ${
+          invData.type === "staking" ? "LP tokens" : "WRAP tokens"
+        }`,
+        dismissable: false,
+        icon: "file_download"
+      });
+    } catch (error) {
+      console.error(error);
+      toastStore.addToast({
+        type: "error",
+        title: "Error",
+        text: error.hasOwnProperty("message")
+          ? error.message
+          : JSON.stringify(error),
+        dismissable: false
+      });
+    }
+  };
+
+  const processNewStake = async () => {
+    if (["stacking", "staking", "fee-farming"].includes(invData.type)) {
+      newStake = {
+        token: undefined,
+        staked: undefined,
+        available: undefined
+      };
+      tokensToStake = "";
+      openStakeModal = true;
+    }
+
+    if (invData.type === "stacking" || invData.type === "fee-farming") {
+      // stacking and fee farming
+      const contract = await $store.Tezos.wallet.at($store.tokens.WRAP.address);
+      const storage: any = await contract.storage();
+      const balance = await storage.assets.ledger.get($store.userAddress);
+      if (balance) {
+        newStake = {
+          ...newStake,
+          token: "WRAP",
+          available: balance.toNumber() / 10 ** $store.tokens.WRAP.decimals,
+          staked: invData.balance / 10 ** $store.tokens.WRAP.decimals
+        };
+      } else {
+        newStake = {
+          ...newStake,
+          token: "WRAP",
+          available: 0,
+          staked: invData.balance / 10 ** $store.tokens.WRAP.decimals
+        };
+      }
+    } else if (invData.type === "staking") {
+      // liquidity farming
+      const contract = await $store.Tezos.wallet.at(invData.address);
+      const storage: any = await contract.storage();
+      const { lpTokenContract } = storage.addresses;
+      // determines current stake
+      const balance = await storage.delegators.get($store.userAddress);
+      if (balance) {
+        newStake = {
+          ...newStake,
+          token: "LPT",
+          staked: balance.lpTokenBalance.toNumber() / 10 ** invData.decimals
+        };
+      } else {
+        newStake = { ...newStake, token: "LPT", staked: 0 };
+      }
+
+      // determines available LP tokens
+      const lptContract = await $store.Tezos.wallet.at(lpTokenContract);
+      const lptStorage: any = await lptContract.storage();
+      const availableBalance = await lptStorage.storage.ledger.get(
+        $store.userAddress
+      );
+      if (availableBalance && availableBalance.balance) {
+        newStake = {
+          ...newStake,
+          available:
+            availableBalance.balance.toNumber() / 10 ** invData.decimals
+        };
+      } else {
+        newStake = { ...newStake, available: 0 };
+      }
+    } else {
+      return;
+    }
+  };
+
+  const processNewUnstake = async () => {
+    console.log("new unstake");
+
+    openUnstakeModal = true;
   };
 
   onMount(async () => {
@@ -280,7 +448,7 @@
   });
 
   afterUpdate(() => {
-    if (rewards && rewards.amount && invData.platform === "wrap") {
+    /*if (rewards && rewards.amount && invData.platform === "wrap") {
       tippy(`#rewards-${invData.id}`, {
         content: `<div>${
           +(
@@ -295,7 +463,7 @@
         } ${$localStorageStore.preferredFiat || "USD"}</div>`,
         allowHTML: true
       });
-    }
+    }*/
   });
 </script>
 
@@ -337,72 +505,84 @@
       {/each}
     </div>
   </div>
-  {#if moreOptions}
-    <div class="farm-block__data">More options</div>
-  {:else}
-    <div class="farm-block__data">
-      <div class="farm-block__data__info">
-        <span class="title">Stake:</span>
-        <br />
-        <div>
-          <span class:blurry-text={$store.blurryBalances}>
-            {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1} LPT
-          </span>
-        </div>
-        {#if stakeInXtz}
-          <br />
-          <span class="title">Value in XTZ:</span>
-          <br />
-          <div class:blurry-text={$store.blurryBalances}>
-            {+stakeInXtz.toFixed(5) / 1} ꜩ
-          </div>
-          <br />
-          <span class="title">
-            Value in {$localStorageStore.preferredFiat}:
-          </span>
-          <br />
-          <div class:blurry-text={$store.blurryBalances}>
-            {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(2) / 1}
-            {config.validFiats.find(
-              fiat => fiat.code === $localStorageStore.preferredFiat
-            ).symbol}
-          </div>
-        {:else}
-          <span class="material-icons"> hourglass_empty </span>
-        {/if}
-      </div>
-    </div>
-  {/if}
-  <div class="farm-block__actions">
-    <div>
-      <span class="title">Available rewards:</span>
+  <div class="farm-block__data">
+    <div class="farm-block__data__info">
+      <span class="title">Stake:</span>
       <br />
-      {#if !rewards}
-        <span class="material-icons"> hourglass_empty </span>
-      {:else}
-        <span id={`rewards-${invData.id}`}>
-          {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
-          {$store.investments[invData.id].rewardToken}
+      <div>
+        <span class:blurry-text={$store.blurryBalances}>
+          {#if invData.type === "stacking" || invData.type === "fee-farming"}
+            {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1} WRAP
+          {:else}
+            {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1} LPT
+          {/if}
         </span>
-      {/if}
-      {#if rewards?.amount}
+      </div>
+      {#if stakeInXtz}
         <br />
-        <span style="font-size:0.7rem">
-          ({formatTokenAmount(
-            rewards.amount * $store.tokens[invData.rewardToken].exchangeRate
-          )} ꜩ / {formatTokenAmount(
-            rewards.amount *
-              $store.tokens[invData.rewardToken].exchangeRate *
-              $store.xtzData.exchangeRate,
-            2
-          )}
+        <span class="title">Value in XTZ:</span>
+        <br />
+        <div class:blurry-text={$store.blurryBalances}>
+          {+stakeInXtz.toFixed(5) / 1} ꜩ
+        </div>
+        <br />
+        <span class="title">
+          Value in {$localStorageStore.preferredFiat}:
+        </span>
+        <br />
+        <div class:blurry-text={$store.blurryBalances}>
+          {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(2) / 1}
           {config.validFiats.find(
             fiat => fiat.code === $localStorageStore.preferredFiat
-          ).symbol})
-        </span>
+          ).symbol}
+        </div>
+      {:else}
+        <span class="material-icons"> hourglass_empty </span>
       {/if}
     </div>
-    <br />
+    {#if roiPerWeek || roiPerWeek === 0}
+      <br />
+      <div class="farm-block__data__info">
+        <span class="title">Estimated ROI/week:</span>
+        <br />
+        <div>
+          {roiPerWeek} ꜩ
+        </div>
+      </div>
+    {/if}
+  </div>
+  <div class="farm-block__actions">
+    {#if !moreOptions}
+      <div>
+        <span class="title">Available rewards:</span>
+        <br />
+        {#if !rewards}
+          <span class="material-icons"> hourglass_empty </span>
+        {:else}
+          <span id={`rewards-${invData.id}`}>
+            {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
+            {$store.investments[invData.id].rewardToken}
+          </span>
+        {/if}
+        {#if rewards?.amount}
+          <br />
+          <span style="font-size:0.7rem">
+            ({formatTokenAmount(
+              rewards.amount * $store.tokens[invData.rewardToken].exchangeRate
+            )} ꜩ / {formatTokenAmount(
+              rewards.amount *
+                $store.tokens[invData.rewardToken].exchangeRate *
+                $store.xtzData.exchangeRate,
+              2
+            )}
+            {config.validFiats.find(
+              fiat => fiat.code === $localStorageStore.preferredFiat
+            ).symbol})
+          </span>
+        {/if}
+      </div>
+      <br />
+    {/if}
     <div class="buttons stack">
       {#if harvesting}
         <button class="primary loading">
@@ -444,6 +624,16 @@
           <span class="material-icons"> save_alt </span>
         </button>
       {/if}
+      {#if moreOptions}
+        <button class="primary" on:click={processNewStake}>
+          Stake &nbsp;
+          <span class="material-icons"> file_download </span>
+        </button>
+        <button class="primary" on:click={processNewUnstake}>
+          Unstake &nbsp;
+          <span class="material-icons"> file_upload </span>
+        </button>
+      {/if}
       {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
         <button
           class="primary"
@@ -452,7 +642,7 @@
           }}
         >
           {#if moreOptions}
-            Show less options &nbsp;
+            Show rewards &nbsp;
             <span class="material-icons"> expand_less </span>
           {:else}
             Show more options &nbsp;
@@ -463,77 +653,111 @@
     </div>
   </div>
 </div>
-{#if openSettingsModal}
-  <Modal type="default" on:close={() => (openSettingsModal = false)}>
+{#if openStakeModal || openUnstakeModal}
+  <Modal
+    type="default"
+    on:close={() => {
+      openStakeModal = false;
+      openUnstakeModal = false;
+    }}
+  >
     <div slot="modal-title" class="modal-title">
-      <div>Settings</div>
-      <div>{invData.alias}</div>
+      <div>
+        {#if openStakeModal}
+          {#if invData.type === "staking"}
+            <div>Stake {invData.icons.join("-")} LP tokens</div>
+          {:else}
+            <div>Stake WRAP tokens</div>
+          {/if}
+        {:else if openUnstakeModal}
+          {#if invData.type === "fee-farming"}
+            <div>Unstake {invData.rewardToken} tokens</div>
+          {:else if invData.type === "staking"}
+            <div>Unstake {invData.icons.join("-")} LP tokens</div>
+          {:else}
+            <div>Unstake WRAP tokens</div>
+          {/if}
+        {/if}
+      </div>
+      <div>
+        <div class="icons">
+          {#each invData.icons as icon}
+            <img src={`images/${icon}.png`} alt="token-icon" />
+          {/each}
+        </div>
+      </div>
     </div>
     <div slot="modal-body" class="modal-body">
-      <div class="modal-line">
-        <div>APR: {apr ? `${apr.toFixed(3)}%` : "--"}</div>
-        <div>APY: {apy ? `${apy.toFixed(3)}%` : "--"}</div>
-      </div>
-      <br />
-      <div class="modal-line" style="text-align: center">
-        <div>
-          {#if invData.type === "staking"}
-            Total Value Staked: <br />
-            {totalStaked
-              ? `${(+totalStaked.toFixed(3)).toLocaleString("en-US")} XTZ (${(+(
-                  totalStaked * $store.xtzData.exchangeRate
-                ).toFixed(3)).toLocaleString("en-US")} ${
-                  $localStorageStore.preferredFiat
-                })`
-              : "--"}
-          {:else}
-            Total Token Staked: <br />
-            {totalStaked
-              ? `${(+totalStaked.toFixed(3)).toLocaleString(
-                  "en-US"
-                )} WRAP (${(+(
-                  totalStaked *
-                  $store.tokens.WRAP.exchangeRate *
-                  $store.xtzData.exchangeRate
-                ).toFixed(2)).toLocaleString("en-US")} ${
-                  $localStorageStore.preferredFiat
-                })`
-              : "--"}
-          {/if}
-        </div>
-      </div>
-      <br />
-      <div class="modal-line" style="text-align: center">
-        <div>
-          Total rewards available:
-          <br />
-          {#if !rewards}
-            Unavailable
-          {:else}
-            <span>
-              {+rewards.amount.toFixed(5) / 1} WRAP ({`${formatTokenAmount(
-                rewards.amount * $store.tokens.WRAP.exchangeRate
-              )} XTZ / ${formatTokenAmount(
-                rewards.amount *
-                  $store.tokens.WRAP.exchangeRate *
-                  $store.xtzData.exchangeRate,
-                2
-              )} ${$localStorageStore.preferredFiat}`})
-            </span>
-          {/if}
-        </div>
-      </div>
+      {#if openStakeModal}
+        {#if newStake.available || newStake.available === 0}
+          <div class="modal-line">
+            <div>
+              Your balance: {formatTokenAmount(newStake.available)}
+              {newStake.token}
+            </div>
+          </div>
+          <div class="modal-line">
+            <div class="input-with-button">
+              <input
+                type="text"
+                placeholder="Tokens to stake"
+                bind:value={tokensToStake}
+              />
+              <button
+                on:click={() => (tokensToStake = newStake.available.toString())}
+              >
+                Max: {formatTokenAmount(newStake.available)}
+              </button>
+            </div>
+          </div>
+          <div class="modal-line">
+            Current stake: {formatTokenAmount(
+              invData.balance / 10 ** invData.decimals
+            )}
+            {invData.type === "stacking" || invData.type === "fee-farming"
+              ? "WRAP"
+              : "LPT"}
+          </div>
+          <div class="modal-line">
+            New stake:
+            {#if tokensToStake && +tokensToStake > 0}
+              {formatTokenAmount(
+                invData.balance / 10 ** invData.decimals + +tokensToStake
+              )}
+              {invData.type === "stacking" || invData.type === "fee-farming"
+                ? "WRAP"
+                : "LPT"}
+            {:else}
+              No change
+            {/if}
+          </div>
+        {:else}
+          <div>Loading...</div>
+        {/if}
+      {:else if openUnstakeModal}
+        <div class="modal-line">unstake</div>
+      {/if}
     </div>
     <div slot="modal-footer" class="modal-footer">
       <div />
-      <button
-        class="primary"
-        on:click={() => {
-          openSettingsModal = false;
-        }}
-      >
-        Close
-      </button>
+      <div class="buttons">
+        {#if openStakeModal}
+          <button class="primary" disabled={!tokensToStake} on:click={stake}>
+            Stake
+          </button>
+        {:else if openUnstakeModal}
+          <button class="primary" disabled={!tokensToUnstake}> Unstake </button>
+        {/if}
+        <button
+          class="primary"
+          on:click={() => {
+            openStakeModal = false;
+            openUnstakeModal = false;
+          }}
+        >
+          Close
+        </button>
+      </div>
     </div>
   </Modal>
 {/if}

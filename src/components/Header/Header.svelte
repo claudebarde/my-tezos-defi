@@ -221,7 +221,7 @@
       {#if $store.xtzData.exchangeRate && Object.values(config.validFiats)
           .map(fiat => fiat.code)
           .includes($localStorageStore.preferredFiat)}
-        <button class="primary" disabled>
+        <button class="primary">
           {+$store.xtzData.exchangeRate.toFixed(3) / 1}
           {$localStorageStore.preferredFiat}
         </button>

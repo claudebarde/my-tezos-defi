@@ -24,7 +24,7 @@
       background-color: #2563eb;
     }
     &.success {
-      background-color: #2563eb;
+      background-color: #16a34a;
     }
     &.error {
       background-color: #dc2626;
