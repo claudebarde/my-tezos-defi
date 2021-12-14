@@ -1,12 +1,6 @@
 <script lang="ts">
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
-  import { slide } from "svelte/transition";
-  import tippy from "tippy.js";
-  import type {
-    InvestmentData,
-    AvailableInvestments,
-    TezosContractAddress
-  } from "../../../types";
+  import type { InvestmentData, AvailableInvestments } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
@@ -16,7 +10,7 @@
     formatTokenAmount
   } from "../../../utils";
   import toastStore from "../../Toast/toastStore";
-  import Modal from "../../Modal/Modal.svelte";
+  import WrapStakeUnstake from "../Modals/WrapStakeUnstake.svelte";
   import { calcTokenStakesInWrapFarms } from "../../../tokenUtils/wrapUtils";
   import config from "../../../config";
 
@@ -39,21 +33,6 @@
   const dispatch = createEventDispatcher();
   let moreOptions = false;
   let roiPerWeek: number | null = null;
-  let newStake: {
-    token: string | undefined;
-    staked: number | undefined;
-    available: number | undefined;
-  } = {
-    token: undefined,
-    staked: undefined,
-    available: undefined
-  };
-  let tokensToStake = "";
-  let newUnstake: { token: string | undefined; balance: number | undefined } = {
-    token: undefined,
-    balance: undefined
-  };
-  let tokensToUnstake = "";
   let openStakeModal = false;
   let openUnstakeModal = false;
 
@@ -255,154 +234,6 @@
         dismissable: false
       });
     }
-  };
-
-  const stake = async () => {
-    if (!tokensToStake) return;
-
-    try {
-      const contract = await $store.Tezos.wallet.at(invData.address);
-      const storage: any = await contract.storage();
-      // gets the address of the LP token contract
-      let lpTokenAddress: TezosContractAddress;
-      if (invData.type === "staking") {
-        lpTokenAddress = storage.addresses.lpTokenContract;
-      } else {
-        lpTokenAddress = $store.tokens.WRAP.address;
-      }
-      const lpContract = await $store.Tezos.wallet.at(lpTokenAddress);
-
-      const batch = await $store.Tezos.wallet
-        .batch()
-        .withContractCall(
-          lpContract.methods.update_operators([
-            {
-              add_operator: {
-                owner: $store.userAddress,
-                operator: invData.address,
-                token_id: 0
-              }
-            }
-          ])
-        )
-        .withContractCall(
-          contract.methods[invData.type === "staking" ? "deposit" : "stake"](
-            tokensToStake
-          )
-        )
-        .withContractCall(
-          lpContract.methods.update_operators([
-            {
-              remove_operator: {
-                owner: $store.userAddress,
-                operator: invData.address,
-                token_id: 0
-              }
-            }
-          ])
-        );
-
-      const batchOp = await batch.send();
-      await batchOp.confirmation();
-      // updates balance
-      invData = {
-        ...invData,
-        balance: invData.balance + +tokensToStake
-      };
-      toastStore.addToast({
-        type: "success",
-        title: "Success!",
-        text: `Successfully staked ${tokensToStake} ${
-          invData.type === "staking" ? "LP tokens" : "WRAP tokens"
-        }`,
-        dismissable: false,
-        icon: "file_download"
-      });
-    } catch (error) {
-      console.error(error);
-      toastStore.addToast({
-        type: "error",
-        title: "Error",
-        text: error.hasOwnProperty("message")
-          ? error.message
-          : JSON.stringify(error),
-        dismissable: false
-      });
-    }
-  };
-
-  const processNewStake = async () => {
-    if (["stacking", "staking", "fee-farming"].includes(invData.type)) {
-      newStake = {
-        token: undefined,
-        staked: undefined,
-        available: undefined
-      };
-      tokensToStake = "";
-      openStakeModal = true;
-    }
-
-    if (invData.type === "stacking" || invData.type === "fee-farming") {
-      // stacking and fee farming
-      const contract = await $store.Tezos.wallet.at($store.tokens.WRAP.address);
-      const storage: any = await contract.storage();
-      const balance = await storage.assets.ledger.get($store.userAddress);
-      if (balance) {
-        newStake = {
-          ...newStake,
-          token: "WRAP",
-          available: balance.toNumber() / 10 ** $store.tokens.WRAP.decimals,
-          staked: invData.balance / 10 ** $store.tokens.WRAP.decimals
-        };
-      } else {
-        newStake = {
-          ...newStake,
-          token: "WRAP",
-          available: 0,
-          staked: invData.balance / 10 ** $store.tokens.WRAP.decimals
-        };
-      }
-    } else if (invData.type === "staking") {
-      // liquidity farming
-      const contract = await $store.Tezos.wallet.at(invData.address);
-      const storage: any = await contract.storage();
-      const { lpTokenContract } = storage.addresses;
-      // determines current stake
-      const balance = await storage.delegators.get($store.userAddress);
-      if (balance) {
-        newStake = {
-          ...newStake,
-          token: "LPT",
-          staked: balance.lpTokenBalance.toNumber() / 10 ** invData.decimals
-        };
-      } else {
-        newStake = { ...newStake, token: "LPT", staked: 0 };
-      }
-
-      // determines available LP tokens
-      const lptContract = await $store.Tezos.wallet.at(lpTokenContract);
-      const lptStorage: any = await lptContract.storage();
-      const availableBalance = await lptStorage.storage.ledger.get(
-        $store.userAddress
-      );
-      if (availableBalance && availableBalance.balance) {
-        newStake = {
-          ...newStake,
-          available:
-            availableBalance.balance.toNumber() / 10 ** invData.decimals
-        };
-      } else {
-        newStake = { ...newStake, available: 0 };
-      }
-    } else {
-      return;
-    }
-  };
-
-  const processNewUnstake = async () => {
-    console.log("new unstake");
-
-    openUnstakeModal = true;
   };
 
   onMount(async () => {
@@ -625,11 +456,11 @@
         </button>
       {/if}
       {#if moreOptions}
-        <button class="primary" on:click={processNewStake}>
+        <button class="primary" on:click={() => (openStakeModal = true)}>
           Stake &nbsp;
           <span class="material-icons"> file_download </span>
         </button>
-        <button class="primary" on:click={processNewUnstake}>
+        <button class="primary" on:click={() => (openUnstakeModal = true)}>
           Unstake &nbsp;
           <span class="material-icons"> file_upload </span>
         </button>
@@ -654,110 +485,12 @@
   </div>
 </div>
 {#if openStakeModal || openUnstakeModal}
-  <Modal
-    type="default"
+  <WrapStakeUnstake
     on:close={() => {
       openStakeModal = false;
       openUnstakeModal = false;
     }}
-  >
-    <div slot="modal-title" class="modal-title">
-      <div>
-        {#if openStakeModal}
-          {#if invData.type === "staking"}
-            <div>Stake {invData.icons.join("-")} LP tokens</div>
-          {:else}
-            <div>Stake WRAP tokens</div>
-          {/if}
-        {:else if openUnstakeModal}
-          {#if invData.type === "fee-farming"}
-            <div>Unstake {invData.rewardToken} tokens</div>
-          {:else if invData.type === "staking"}
-            <div>Unstake {invData.icons.join("-")} LP tokens</div>
-          {:else}
-            <div>Unstake WRAP tokens</div>
-          {/if}
-        {/if}
-      </div>
-      <div>
-        <div class="icons">
-          {#each invData.icons as icon}
-            <img src={`images/${icon}.png`} alt="token-icon" />
-          {/each}
-        </div>
-      </div>
-    </div>
-    <div slot="modal-body" class="modal-body">
-      {#if openStakeModal}
-        {#if newStake.available || newStake.available === 0}
-          <div class="modal-line">
-            <div>
-              Your balance: {formatTokenAmount(newStake.available)}
-              {newStake.token}
-            </div>
-          </div>
-          <div class="modal-line">
-            <div class="input-with-button">
-              <input
-                type="text"
-                placeholder="Tokens to stake"
-                bind:value={tokensToStake}
-              />
-              <button
-                on:click={() => (tokensToStake = newStake.available.toString())}
-              >
-                Max: {formatTokenAmount(newStake.available)}
-              </button>
-            </div>
-          </div>
-          <div class="modal-line">
-            Current stake: {formatTokenAmount(
-              invData.balance / 10 ** invData.decimals
-            )}
-            {invData.type === "stacking" || invData.type === "fee-farming"
-              ? "WRAP"
-              : "LPT"}
-          </div>
-          <div class="modal-line">
-            New stake:
-            {#if tokensToStake && +tokensToStake > 0}
-              {formatTokenAmount(
-                invData.balance / 10 ** invData.decimals + +tokensToStake
-              )}
-              {invData.type === "stacking" || invData.type === "fee-farming"
-                ? "WRAP"
-                : "LPT"}
-            {:else}
-              No change
-            {/if}
-          </div>
-        {:else}
-          <div>Loading...</div>
-        {/if}
-      {:else if openUnstakeModal}
-        <div class="modal-line">unstake</div>
-      {/if}
-    </div>
-    <div slot="modal-footer" class="modal-footer">
-      <div />
-      <div class="buttons">
-        {#if openStakeModal}
-          <button class="primary" disabled={!tokensToStake} on:click={stake}>
-            Stake
-          </button>
-        {:else if openUnstakeModal}
-          <button class="primary" disabled={!tokensToUnstake}> Unstake </button>
-        {/if}
-        <button
-          class="primary"
-          on:click={() => {
-            openStakeModal = false;
-            openUnstakeModal = false;
-          }}
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  </Modal>
+    type={openStakeModal ? "stake" : "unstake"}
+    {invData}
+  />
 {/if}

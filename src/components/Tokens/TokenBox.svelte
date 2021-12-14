@@ -209,6 +209,9 @@
         />
       </div>
     {/if}
+    <span style="font-size:0.5rem;text-align:center">
+      Price changes over the last 30 days
+    </span>
   </div>
 {:else}
   <div class="favorite-token">
@@ -301,5 +304,8 @@
         />
       </div>
     {/if}
+    <span style="font-size:0.5rem;text-align:center">
+      Price changes over the last 30 days
+    </span>
   </div>
 {/if}
