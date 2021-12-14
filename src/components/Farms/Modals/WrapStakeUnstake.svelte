@@ -9,6 +9,7 @@
   export let type: "stake" | "unstake", invData: InvestmentData;
 
   const dispatch = createEventDispatcher();
+  let loading = false;
   let newStake: {
     token: string | undefined;
     staked: number | undefined;
@@ -29,6 +30,8 @@
 
   const stake = async () => {
     if (!tokensToStake) return;
+
+    loading = true;
 
     try {
       const contract = await $store.Tezos.wallet.at(invData.address);
@@ -57,7 +60,7 @@
         )
         .withContractCall(
           contract.methods[invData.type === "staking" ? "deposit" : "stake"](
-            tokensToStake
+            +tokensToStake * 10 ** invData.decimals
           )
         )
         .withContractCall(
@@ -98,11 +101,15 @@
           : JSON.stringify(error),
         dismissable: false
       });
+    } finally {
+      loading = false;
     }
   };
 
   const unstake = async () => {
     if (!tokensToUnstake) return;
+
+    loading = true;
 
     try {
       const contract = await $store.Tezos.wallet.at(invData.address);
@@ -225,6 +232,8 @@
           : JSON.stringify(error),
         dismissable: false
       });
+    } finally {
+      loading = false;
     }
   };
 
@@ -449,21 +458,35 @@
     <div />
     <div class="buttons">
       {#if type === "stake"}
-        <button
-          class="primary"
-          disabled={!tokensToStake || insuffTokensToStake}
-          on:click={stake}
-        >
-          Stake
-        </button>
+        {#if loading}
+          <button class="primary loading">
+            <span class="material-icons"> sync </span>
+            &nbsp Staking
+          </button>
+        {:else}
+          <button
+            class="primary"
+            disabled={!tokensToStake || insuffTokensToStake}
+            on:click={stake}
+          >
+            Stake
+          </button>
+        {/if}
       {:else if type === "unstake"}
-        <button
-          class="primary"
-          disabled={!tokensToUnstake || insuffTokensToUnstake}
-          on:click={unstake}
-        >
-          Unstake
-        </button>
+        {#if loading}
+          <button class="primary loading">
+            <span class="material-icons"> sync </span>
+            &nbsp Unstaking
+          </button>
+        {:else}
+          <button
+            class="primary"
+            disabled={!tokensToUnstake || insuffTokensToUnstake}
+            on:click={unstake}
+          >
+            Unstake
+          </button>
+        {/if}
       {/if}
       <button class="primary" on:click={() => dispatch("close")}>
         Close
