@@ -54,7 +54,7 @@
   });
 </script>
 
-<div class="vault-row">
+<div class="vault-row has-sub-row">
   <div class="icon">
     <img src="images/Ctez.png" alt="token-icon" />
   </div>

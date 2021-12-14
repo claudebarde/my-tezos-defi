@@ -9,10 +9,10 @@
   background-color: lighten($container-bg-color, 65);
   margin-top: 10px;
 
-  &:not(.ctez-row) {
+  &:not(.has-sub-row) {
     border-radius: 10px;
   }
-  &.ctez-row {
+  &.has-sub-row {
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
   }
@@ -37,6 +37,7 @@
 .vault-sub-row {
   display: grid;
   grid-template-columns: 10% 80% 10%;
+  grid-template-rows: auto;
   padding: 10px;
   align-items: center;
   transition: 0.3s;
@@ -45,9 +46,22 @@
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
 
-  .stats {
+  .stats,
+  .actions {
     display: flex;
     justify-content: space-around;
     align-items: center;
+    padding: 10px;
+
+    .stats__stat-block {
+      display: flex;
+      flex-direction: column;
+      justify-content: start;
+      align-items: center;
+
+      & > div {
+        padding: 5px;
+      }
+    }
   }
 }

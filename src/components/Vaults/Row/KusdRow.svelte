@@ -16,6 +16,7 @@
   let lockedAmount: number | null = null;
   let kusdOutstanding: number | null = null;
   let kusdCollatUtilization: number | null = null;
+  let stabilityFees: number | null = null;
   let kusdLastUpdate = 0;
 
   onMount(async () => {
@@ -55,6 +56,7 @@
     );
 
     kusdOutstanding = (await ovenClient.getBorrowedTokens()).toNumber();
+    stabilityFees = (await ovenClient.getStabilityFees()).toNumber();
     const collat = await ovenClient.getCollateralizationRatio();
     console.log(kusdOutstanding, collat.toNumber() / 10 ** 18);
   });
@@ -66,7 +68,7 @@
   });
 </script>
 
-<div class="vault-row">
+<div class="vault-row has-sub-row">
   <div class="icon">
     <img src="images/kUSD.png" alt="token-icon" />
   </div>
@@ -105,12 +107,48 @@
 <div class="vault-sub-row">
   <div />
   <div class="stats">
-    <div>
-      Minted kUSD: {kusdOutstanding
-        ? formatTokenAmount(kusdOutstanding / 10 ** $store.tokens.kUSD.decimals)
-        : "---"} kUSD
+    <div class="stats__stat-block">
+      <div>Minted kUSD</div>
+      <div>
+        {kusdOutstanding
+          ? formatTokenAmount(
+              kusdOutstanding / 10 ** $store.tokens.kUSD.decimals
+            )
+          : "---"} kUSD
+      </div>
     </div>
-    <div>Collateral utilization: {kusdCollatUtilization ?? "---"}%</div>
+    <div class="stats__stat-block">
+      <div>Stability fees</div>
+      <div>
+        {stabilityFees
+          ? `${formatTokenAmount(
+              stabilityFees / 10 ** $store.tokens.kUSD.decimals
+            )} kUSD`
+          : "N/A"}
+      </div>
+    </div>
+    <div class="stats__stat-block">
+      <div>Collateral utilization</div>
+      <div>
+        {kusdCollatUtilization ?? "---"}%
+      </div>
+    </div>
     <div>:)</div>
+  </div>
+  <div />
+  <div />
+  <div class="actions">
+    <div>
+      <button class="primary">Borrow kUSD</button>
+    </div>
+    <div>
+      <button class="primary">Pay back kUSD</button>
+    </div>
+    <div>
+      <button class="primary">Withdraw XTZ</button>
+    </div>
+    <div>
+      <button class="primary">Deposit XTZ</button>
+    </div>
   </div>
 </div>

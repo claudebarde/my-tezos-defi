@@ -116,48 +116,88 @@
       }
       const lpContract = await $store.Tezos.wallet.at(lpTokenAddress);
 
+      // prepares batching operation
+      let batch = await $store.Tezos.wallet.batch().withContractCall(
+        lpContract.methods.update_operators([
+          {
+            add_operator: {
+              owner: $store.userAddress,
+              operator: invData.address,
+              token_id: 0
+            }
+          }
+        ])
+      );
+
       // if WRAP stacking farm, must find a stake with enough tokens to subtract
       if (invData.type === "stacking") {
         const balance = await storage.ledger.delegators.get($store.userAddress);
         if (balance) {
-          const stakes: { level: number; amount: number }[] = [];
+          const stakes: { level: number; amount: number; index: number }[] = [];
           const entries = balance.stakes.entries();
           for (let entry of entries) {
             stakes.push({
+              index: entry[0],
               level: entry[1].level.toNumber(),
               amount:
                 entry[1].amount.toNumber() / 10 ** $store.tokens.WRAP.decimals
             });
           }
           console.log(stakes);
+          if (
+            +tokensToUnstake ===
+            balance.balance.toNumber() / 10 ** invData.decimals
+          ) {
+            // user wants to unstake all their tokens
+            stakes.forEach(stake => {
+              batch = batch.withContractCall(
+                contract.methods.withdraw(
+                  stake.index,
+                  Math.floor(stake.amount * 10 ** invData.decimals)
+                )
+              );
+            });
+          } else {
+            // user wants to unstake parts of their tokens
+            let tempTokensToUnstake = +tokensToUnstake;
+            for (let stake of stakes) {
+              if (tempTokensToUnstake - stake.amount >= 0) {
+                batch = batch.withContractCall(
+                  contract.methods.withdraw(
+                    stake.index,
+                    Math.floor(stake.amount * 10 ** invData.decimals)
+                  )
+                );
+                tempTokensToUnstake -= stake.amount;
+              } else {
+                batch = batch.withContractCall(
+                  contract.methods.withdraw(
+                    stake.index,
+                    Math.floor(tempTokensToUnstake * 10 ** invData.decimals)
+                  )
+                );
+                break;
+              }
+            }
+          }
         }
+      } else {
+        batch = batch.withContractCall(
+          contract.methods.withdraw(+tokensToUnstake * 10 ** invData.decimals)
+        );
       }
 
-      /*const batch = await $store.Tezos.wallet
-        .batch()
-        .withContractCall(
-          lpContract.methods.update_operators([
-            {
-              add_operator: {
-                owner: $store.userAddress,
-                operator: invData.address,
-                token_id: 0
-              }
+      batch = batch.withContractCall(
+        lpContract.methods.update_operators([
+          {
+            remove_operator: {
+              owner: $store.userAddress,
+              operator: invData.address,
+              token_id: 0
             }
-          ])
-        )
-        .withContractCall(invData.type === "stacking" ?  : contract.methods.withdraw(tokensToUnstake))
-        .withContractCall(
-          lpContract.methods.update_operators([
-            {
-              remove_operator: {
-                owner: $store.userAddress,
-                operator: invData.address,
-                token_id: 0
-              }
-            }
-          ])
-        );
+          }
+        ])
+      );
 
       const batchOp = await batch.send();
       await batchOp.confirmation();
@@ -174,7 +214,7 @@
         }`,
         dismissable: false,
         icon: "file_upload"
-      });*/
+      });
     } catch (error) {
       console.error(error);
       toastStore.addToast({
