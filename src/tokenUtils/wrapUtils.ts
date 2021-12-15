@@ -7,7 +7,8 @@ import {
   AvailableInvestments,
   InvestmentData,
   TezosContractAddress,
-  TezosAccountAddress
+  TezosAccountAddress,
+  TokenAmount
 } from "../types";
 import {
   formatTokenAmount,
@@ -210,5 +211,42 @@ export const calcTokenStakesInWrapFarms = async (param: {
     }
   } else {
     return null;
+  }
+};
+
+export const calcWrapUnstakingFee = (
+  currentLevel: number,
+  amounts: {
+    stakingLevel: number;
+    amount: TokenAmount;
+  }[]
+): { amount: TokenAmount; fee: TokenAmount; percent: number }[] | null => {
+  // fee schema = {[number of levels]: percentage for fee}
+  const feeSchema = {
+    20160: 25,
+    80640: 12.5,
+    241920: 6.25,
+    [currentLevel + 1]: 4
+  };
+
+  const results = amounts.map(el => {
+    const fee = Object.entries(feeSchema).find(
+      ([level, _]) => currentLevel - el.stakingLevel < +level
+    );
+    if (fee) {
+      const [_, percent] = fee;
+      return {
+        amount: el.amount,
+        fee: (el.amount * percent) / 100,
+        percent
+      };
+    } else {
+      return null;
+    }
+  });
+  if (results.some(el => el === null)) {
+    return null;
+  } else {
+    return results;
   }
 };

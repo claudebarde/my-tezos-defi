@@ -1,10 +1,15 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
   import Modal from "../../Modal/Modal.svelte";
-  import type { InvestmentData, TezosContractAddress } from "../../../types";
+  import type {
+    InvestmentData,
+    TezosContractAddress,
+    TokenAmount
+  } from "../../../types";
   import store from "../../../store";
   import { formatTokenAmount } from "../../../utils";
   import toastStore from "../../Toast/toastStore";
+  import { calcWrapUnstakingFee } from "../../../tokenUtils/wrapUtils";
 
   export let type: "stake" | "unstake", invData: InvestmentData;
 
@@ -27,6 +32,94 @@
     balance: undefined
   };
   let tokensToUnstake = "";
+  let wrapUnstakingFees:
+    | { amount: TokenAmount; fee: TokenAmount; percent: number }[]
+    | null;
+
+  const setUpUnstake = async (ev?) => {
+    const val = ev ? ev.target.value : newUnstake.balance;
+    // non numeric values
+    if (isNaN(+val)) {
+      tokensToUnstake = "";
+      return;
+    }
+    // value exceeds the tokens already staked
+    if (+val > newUnstake.balance) {
+      insuffTokensToUnstake = true;
+      return;
+    } else {
+      insuffTokensToUnstake = false;
+    }
+    // calculates unstaking fee for WRAP stacking
+    if (invData.type === "stacking") {
+      const contract = await $store.Tezos.wallet.at(invData.address);
+      const storage: any = await contract.storage();
+      const balance = await storage.ledger.delegators.get($store.userAddress);
+      if (balance) {
+        let stakes: { level: number; amount: number; index: number }[] = [];
+        const entries = balance.stakes.entries();
+        for (let entry of entries) {
+          stakes.push({
+            index: entry[0],
+            level: entry[1].level.toNumber(),
+            amount:
+              entry[1].amount.toNumber() / 10 ** $store.tokens.WRAP.decimals
+          });
+        }
+        stakes = stakes.sort((a, b) => a.level - b.level);
+        let stakesForFeeCalculation: {
+          stakingLevel: number;
+          amount: TokenAmount;
+        }[] = [];
+        if (
+          +tokensToUnstake ===
+          balance.balance.toNumber() / 10 ** invData.decimals
+        ) {
+          // user wants to unstake all their tokens
+          stakes.forEach(stake => {
+            stakesForFeeCalculation.push({
+              stakingLevel: stake.level,
+              amount: stake.amount
+            });
+          });
+        } else {
+          // user wants to unstake parts of their tokens
+          let tempTokensToUnstake = +tokensToUnstake;
+          for (let stake of stakes) {
+            if (tempTokensToUnstake - stake.amount >= 0) {
+              tempTokensToUnstake -= stake.amount;
+              stakesForFeeCalculation.push({
+                stakingLevel: stake.level,
+                amount: stake.amount
+              });
+            } else {
+              stakesForFeeCalculation.push({
+                stakingLevel: stake.level,
+                amount: stake.amount
+              });
+              break;
+            }
+          }
+        }
+        // calculates fees
+        const unstakingFees = calcWrapUnstakingFee(
+          $store.currentLevel,
+          stakesForFeeCalculation
+        );
+        if (unstakingFees) {
+          wrapUnstakingFees = [...unstakingFees];
+        } else {
+          wrapUnstakingFees = null;
+        }
+
+        /*console.log(
+          wrapUnstakingFees
+            .map(el => Math.ceil(el.fee * 10 ** $store.tokens.WRAP.decimals))
+            .reduce((a, b) => a + b)
+        );*/
+      }
+    }
+  };
 
   const stake = async () => {
     if (!tokensToStake) return;
@@ -140,7 +233,7 @@
       if (invData.type === "stacking") {
         const balance = await storage.ledger.delegators.get($store.userAddress);
         if (balance) {
-          const stakes: { level: number; amount: number; index: number }[] = [];
+          let stakes: { level: number; amount: number; index: number }[] = [];
           const entries = balance.stakes.entries();
           for (let entry of entries) {
             stakes.push({
@@ -150,7 +243,7 @@
                 entry[1].amount.toNumber() / 10 ** $store.tokens.WRAP.decimals
             });
           }
-          console.log(stakes);
+          stakes = stakes.sort((a, b) => a.level - b.level);
           if (
             +tokensToUnstake ===
             balance.balance.toNumber() / 10 ** invData.decimals
@@ -414,31 +507,33 @@
             type="text"
             placeholder="Tokens to unstake"
             bind:value={tokensToUnstake}
-            on:input={ev => {
-              const val = ev.target.value;
-              // non numeric values
-              if (isNaN(+val)) {
-                tokensToUnstake = "";
-                return;
-              }
-              // value exceeds the tokens already staked
-              if (+val > newUnstake.balance) {
-                insuffTokensToUnstake = true;
-              } else {
-                insuffTokensToUnstake = false;
-              }
-            }}
+            on:input={setUpUnstake}
           />
           <button
-            on:click={() => {
+            on:click={async () => {
               tokensToUnstake = newUnstake.balance.toString();
               insuffTokensToUnstake = false;
+              await setUpUnstake();
             }}
           >
             Max: {formatTokenAmount(newUnstake.balance)}
           </button>
         </div>
       </div>
+      {#if invData.type === "stacking" && wrapUnstakingFees && wrapUnstakingFees.length > 0}
+        <div class="modal-line small error">
+          Unstaking fee: {formatTokenAmount(
+            [
+              0,
+              0,
+              ...wrapUnstakingFees.map(el =>
+                Math.ceil(el.fee * 10 ** $store.tokens.WRAP.decimals)
+              )
+            ].reduce((a, b) => a + b) /
+              10 ** $store.tokens.WRAP.decimals
+          )} WRAP
+        </div>
+      {/if}
       <div class="modal-line">
         Current stake: {formatTokenAmount(newUnstake.balance)}
         {newUnstake.token}

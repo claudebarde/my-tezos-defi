@@ -102,6 +102,13 @@
             color: $container-bg-color;
           }
         }
+
+        &.small {
+          font-size: 0.7rem;
+        }
+        &.error {
+          color: red;
+        }
       }
 
       .modal-find-stakes-line {
