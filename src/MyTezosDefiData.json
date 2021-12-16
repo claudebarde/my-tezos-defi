@@ -541,6 +541,28 @@
       "color": "#FF8824",
       "tokenId": 0,
       "whitelisted": true
+    },
+    "TezID": {
+      "address": "KT1WapdVeFqhCfqwdHWwTzSTX7yXoHgiPRPU",
+      "dexContractAddress": "KT18rJtJNmwTfbJMinWqHzpkLeBQa4BVqGoJ",
+      "decimals": 8,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address"],
+      "type": "fa2",
+      "color": "#FF6F4A",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "GIF": {
+      "address": "KT1XTxpQvo7oRCqp85LikEZgAZ22uDxhbWJv",
+      "dexContractAddress": "KT1LuXT6jZPhUH1qCnSUqAzFedjoBwePLQnF",
+      "decimals": 9,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address"],
+      "type": "fa2",
+      "color": "#A378F5",
+      "tokenId": 0,
+      "whitelisted": true
     }
   },
   "investments": {

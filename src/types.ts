@@ -53,7 +53,9 @@ export enum AvailableToken {
   PXL = "PXL",
   pxlDAO = "pxlDAO",
   fDAO = "fDAO",
-  BTCtz = "BTCtz"
+  BTCtz = "BTCtz",
+  IDZ = "IDZ",
+  GIF = "GIF"
 }
 export enum AvailableFiat {
   USD = "USD",
