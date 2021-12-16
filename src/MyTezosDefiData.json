@@ -542,7 +542,7 @@
       "tokenId": 0,
       "whitelisted": true
     },
-    "TezID": {
+    "IDZ": {
       "address": "KT1WapdVeFqhCfqwdHWwTzSTX7yXoHgiPRPU",
       "dexContractAddress": "KT18rJtJNmwTfbJMinWqHzpkLeBQa4BVqGoJ",
       "decimals": 8,
