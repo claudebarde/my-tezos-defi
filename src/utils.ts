@@ -214,8 +214,8 @@ export const searchUserTokens = async ({
       }
     }
     // cTEZ
-    if (tokens.find(tk => tk[0] === "cTEZ")) {
-      const token = tokens.find(tk => tk[0] === "cTEZ");
+    if (tokens.find(tk => tk[0] === "Ctez")) {
+      const token = tokens.find(tk => tk[0] === "Ctez");
       const balanceResponse = await fetch(
         url(token[1].address, token[1].ledgerPath, userAddress)
       );

@@ -471,7 +471,7 @@
       "decimals": 6,
       "ledgerPath": "tokens",
       "ledgerKey": ["address"],
-      "type": "fa12",
+      "type": "fa1.2",
       "color": "#615BD8",
       "tokenId": 0,
       "whitelisted": true
@@ -482,7 +482,7 @@
       "decimals": 6,
       "ledgerPath": "ledger",
       "ledgerKey": ["address"],
-      "type": "fa12",
+      "type": "fa1.2",
       "color": "#FF56E2",
       "tokenId": 0,
       "whitelisted": true
