@@ -2,7 +2,7 @@
   import { createEventDispatcher } from "svelte";
   import { fly, fade } from "svelte/transition";
 
-  export let type: "default" | "graph";
+  export let type: "default" | "graph" | "small";
 
   const dispatch = createEventDispatcher();
 </script>
@@ -16,6 +16,7 @@
   <div
     class="modal"
     class:graph={type === "graph"}
+    class:small={type === "small"}
     transition:fly={{ duration: 500, y: 400 }}
   >
     <slot name="modal-title" />

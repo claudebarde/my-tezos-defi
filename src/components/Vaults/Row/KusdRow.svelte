@@ -10,6 +10,7 @@
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
   import { shortenHash, formatTokenAmount } from "../../../utils";
+  import Modal from "../../Modal/Modal.svelte";
 
   export let address;
 
@@ -18,6 +19,8 @@
   let kusdCollatUtilization: number | null = null;
   let stabilityFees: number | null = null;
   let kusdLastUpdate = 0;
+  let openModal = false;
+  let ovenAction: "borrow" | "payBack" | "withdraw" | "deposit";
 
   onMount(async () => {
     const getBalance = await $store.Tezos.tz.getBalance(address);
@@ -58,7 +61,7 @@
     kusdOutstanding = (await ovenClient.getBorrowedTokens()).toNumber();
     stabilityFees = (await ovenClient.getStabilityFees()).toNumber();
     const collat = await ovenClient.getCollateralizationRatio();
-    console.log(kusdOutstanding, collat.toNumber() / 10 ** 18);
+    console.log(collat.toNumber() / 10 ** 18);
   });
 
   afterUpdate(async () => {
@@ -139,16 +142,93 @@
   <div />
   <div class="actions">
     <div>
-      <button class="primary">Borrow kUSD</button>
+      <button
+        class="primary"
+        on:click={() => {
+          ovenAction = "borrow";
+          openModal = true;
+        }}
+      >
+        Borrow kUSD
+      </button>
     </div>
     <div>
-      <button class="primary">Pay back kUSD</button>
+      <button
+        class="primary"
+        on:click={() => {
+          ovenAction = "payBack";
+          openModal = true;
+        }}
+      >
+        Pay back kUSD
+      </button>
     </div>
     <div>
-      <button class="primary">Withdraw XTZ</button>
+      <button
+        class="primary"
+        on:click={() => {
+          ovenAction = "deposit";
+          openModal = true;
+        }}
+      >
+        Deposit XTZ
+      </button>
     </div>
     <div>
-      <button class="primary">Deposit XTZ</button>
+      <button
+        class="primary"
+        on:click={() => {
+          ovenAction = "withdraw";
+          openModal = true;
+        }}
+      >
+        Withdraw XTZ
+      </button>
     </div>
   </div>
 </div>
+{#if openModal}
+  <Modal type="small" on:close={() => (openModal = false)}>
+    <div slot="modal-title" class="modal-title">
+      <div>
+        {#if ovenAction === "borrow"}
+          Borrow kUSD
+        {:else if ovenAction === "deposit"}
+          Deposit XTZ
+        {:else if ovenAction === "payBack"}
+          Pay back kUSD
+        {:else if ovenAction === "withdraw"}
+          Withdraw XTZ
+        {/if}
+      </div>
+    </div>
+    <div slot="modal-body" class="modal-body">
+      {#if ovenAction === "borrow"}
+        <div class="modal-line">
+          <input type="text" placeholder="Amount of kUSD to borrow" />
+        </div>
+      {:else if ovenAction === "deposit"}
+        <div class="modal-line">
+          <input type="text" placeholder="Amount of XTZ to deposit" />
+        </div>
+      {:else if ovenAction === "payBack"}
+        <div class="modal-line">
+          <input type="text" placeholder="Amount of kUSD to pay back" />
+        </div>
+      {:else if ovenAction === "withdraw"}
+        <div class="modal-line">
+          <input type="text" placeholder="Amount of XTZ to withdraw" />
+        </div>
+      {/if}
+    </div>
+    <div slot="modal-footer" class="modal-footer">
+      <div />
+      <div class="buttons">
+        <button class="primary">Confirm</button>
+        <button class="primary" on:click={() => (openModal = false)}>
+          Close
+        </button>
+      </div>
+    </div>
+  </Modal>
+{/if}

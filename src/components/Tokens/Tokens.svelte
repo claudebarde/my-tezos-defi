@@ -4,10 +4,13 @@
   import { push } from "svelte-spa-router";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
-  import { searchUserTokens, sortTokensByBalance } from "../../utils";
+  import {
+    searchUserTokens,
+    sortTokensByBalance,
+    formatTokenAmount
+  } from "../../utils";
   import type { State, AvailableToken, TokenContract } from "../../types";
   import TokenBox from "./TokenBox.svelte";
-  import TokensPriceChange from "./TokensPriceChange.svelte";
 
   let showSelectTokens = false;
   let totalHoldingInXtz = 0;
@@ -292,7 +295,7 @@
   <div class="user-tokens-stats">
     <div class="total-value">
       <div>Total value of tokens</div>
-      <div>ꜩ {totalHoldingInXtz ? +totalHoldingInXtz.toFixed(3) / 1 : 0}</div>
+      <div>{totalHoldingInXtz ? +totalHoldingInXtz.toFixed(3) / 1 : 0} ꜩ</div>
       <div>
         {(totalHoldingInXtz
           ? +(totalHoldingInXtz * $store.xtzData.exchangeRate).toFixed(2) / 1
@@ -301,6 +304,28 @@
         {$localStorageStore.preferredFiat}
       </div>
     </div>
+    {#if $store.tokensBalances}
+      <div>
+        <div>
+          {Object.values($store.tokensBalances).filter(b => b && b > 0).length} tokens
+          with balance
+        </div>
+        <div>
+          Total value: {formatTokenAmount(
+            [
+              0,
+              0,
+              ...Object.entries($store.tokensBalances)
+                .filter(([_, tokenBalance]) => tokenBalance && tokenBalance > 0)
+                .map(
+                  ([tokenId, tokenBalance]) =>
+                    tokenBalance * $store.tokens[tokenId].exchangeRate
+                )
+            ].reduce((a, b) => a + b)
+          )} ꜩ
+        </div>
+      </div>
+    {/if}
   </div>
   <br />
   <div id="select-user-token">

@@ -227,7 +227,7 @@
         {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}
           <div>
             {#if formatTokenAmount($store.tokensBalances[token]) === 0}
-              No token
+              No balance
             {:else}
               {formatTokenAmount($store.tokensBalances[token])}
             {/if}
@@ -248,7 +248,7 @@
                   $store.tokensBalances[token] *
                   $store.tokens[token].exchangeRate *
                   $store.xtzData.exchangeRate
-                ).toFixed(3) / 1}
+                ).toFixed(2) / 1}
                 {$localStorageStore.preferredFiat}
               </div>
             {:else}
@@ -257,7 +257,7 @@
                   $store.tokensBalances[token] *
                   $store.tokens[token].exchangeRate *
                   $store.xtzData.exchangeRate
-                ).toFixed(3) / 1} USD
+                ).toFixed(2) / 1} USD
               </div>
             {/if}
           {/if}

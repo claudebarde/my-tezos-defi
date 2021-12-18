@@ -38,6 +38,12 @@
       width: 75%;
     }
 
+    &.small {
+      width: 30%;
+      min-height: 20%;
+      max-height: 20%;
+    }
+
     .modal-title {
       font-size: 1.5rem;
       position: relative;
@@ -59,6 +65,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       max-height: 400px;
       overflow: auto;
       padding: 20px 0px;
@@ -74,6 +81,15 @@
         align-items: center;
         width: 100%;
         padding: 5px;
+
+        input {
+          border: solid 1px $container-bg-color;
+          border-radius: 10px;
+          padding: 5px;
+          width: 80%;
+          font-size: 1rem;
+          outline: none;
+        }
 
         .input-with-button {
           display: grid;
