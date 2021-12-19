@@ -107,86 +107,88 @@
     </button>
   </div>
 </div>
-<div class="vault-sub-row">
-  <div />
-  <div class="stats">
-    <div class="stats__stat-block">
-      <div>Minted kUSD</div>
+{#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+  <div class="vault-sub-row">
+    <div />
+    <div class="stats">
+      <div class="stats__stat-block">
+        <div>Minted kUSD</div>
+        <div>
+          {kusdOutstanding
+            ? formatTokenAmount(
+                kusdOutstanding / 10 ** $store.tokens.kUSD.decimals
+              )
+            : "---"} kUSD
+        </div>
+      </div>
+      <div class="stats__stat-block">
+        <div>Stability fees</div>
+        <div>
+          {stabilityFees
+            ? `${formatTokenAmount(
+                stabilityFees / 10 ** $store.tokens.kUSD.decimals
+              )} kUSD`
+            : "N/A"}
+        </div>
+      </div>
+      <div class="stats__stat-block">
+        <div>Collateral utilization</div>
+        <div>
+          {kusdCollatUtilization ?? "---"}%
+        </div>
+      </div>
+      <div>:)</div>
+    </div>
+    <div />
+    <div />
+    <div class="actions">
       <div>
-        {kusdOutstanding
-          ? formatTokenAmount(
-              kusdOutstanding / 10 ** $store.tokens.kUSD.decimals
-            )
-          : "---"} kUSD
+        <button
+          class="primary"
+          on:click={() => {
+            ovenAction = "borrow";
+            openModal = true;
+          }}
+        >
+          Borrow kUSD
+        </button>
+      </div>
+      <div>
+        <button
+          class="primary"
+          on:click={() => {
+            ovenAction = "payBack";
+            openModal = true;
+          }}
+        >
+          Pay back kUSD
+        </button>
+      </div>
+      <div>
+        <button
+          class="primary"
+          on:click={() => {
+            ovenAction = "deposit";
+            openModal = true;
+          }}
+        >
+          Deposit XTZ
+        </button>
+      </div>
+      <div>
+        <button
+          class="primary"
+          on:click={() => {
+            ovenAction = "withdraw";
+            openModal = true;
+          }}
+        >
+          Withdraw XTZ
+        </button>
       </div>
     </div>
-    <div class="stats__stat-block">
-      <div>Stability fees</div>
-      <div>
-        {stabilityFees
-          ? `${formatTokenAmount(
-              stabilityFees / 10 ** $store.tokens.kUSD.decimals
-            )} kUSD`
-          : "N/A"}
-      </div>
-    </div>
-    <div class="stats__stat-block">
-      <div>Collateral utilization</div>
-      <div>
-        {kusdCollatUtilization ?? "---"}%
-      </div>
-    </div>
-    <div>:)</div>
   </div>
-  <div />
-  <div />
-  <div class="actions">
-    <div>
-      <button
-        class="primary"
-        on:click={() => {
-          ovenAction = "borrow";
-          openModal = true;
-        }}
-      >
-        Borrow kUSD
-      </button>
-    </div>
-    <div>
-      <button
-        class="primary"
-        on:click={() => {
-          ovenAction = "payBack";
-          openModal = true;
-        }}
-      >
-        Pay back kUSD
-      </button>
-    </div>
-    <div>
-      <button
-        class="primary"
-        on:click={() => {
-          ovenAction = "deposit";
-          openModal = true;
-        }}
-      >
-        Deposit XTZ
-      </button>
-    </div>
-    <div>
-      <button
-        class="primary"
-        on:click={() => {
-          ovenAction = "withdraw";
-          openModal = true;
-        }}
-      >
-        Withdraw XTZ
-      </button>
-    </div>
-  </div>
-</div>
+{/if}
 {#if openModal}
   <Modal type="small" on:close={() => (openModal = false)}>
     <div slot="modal-title" class="modal-title">
