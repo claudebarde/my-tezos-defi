@@ -10,6 +10,8 @@ export const formatPlentyLpAmount = (
   exchangePair: string
 ): number => {
   switch (exchangePair) {
+    case "Ctez-wDAI-LP":
+      return lpAmount / 10 ** 18;
     case "Ctez-PAUL-LP":
     case "Ctez-wWBTC-LP":
       return lpAmount / 10 ** 11;
