@@ -34,7 +34,11 @@ export const formatPlentyLpAmount = (
     case "PLENTY-YOU-LP":
       return lpAmount / 10 ** 3;
     default:
-      return lpAmount;
+      if (exchangePair.match(/Ctez-[a-zA-Z]+-LP/)) {
+        return lpAmount / 10 ** 12;
+      } else {
+        return lpAmount;
+      }
   }
 };
 

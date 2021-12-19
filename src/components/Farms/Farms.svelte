@@ -1362,7 +1362,11 @@
         <div>kDAO farms</div>
       {/if}
     </div>
-    <div slot="modal-body" class="modal-body">
+    <div
+      slot="modal-body"
+      class="modal-body"
+      style="justify-content:flex-start"
+    >
       <div class="farm-selection-modal">
         {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0}
           <!-- favorite farms -->
