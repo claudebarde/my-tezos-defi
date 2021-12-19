@@ -471,7 +471,7 @@
       "decimals": 6,
       "ledgerPath": "tokens",
       "ledgerKey": ["address"],
-      "type": "fa12",
+      "type": "fa1.2",
       "color": "#615BD8",
       "tokenId": 0,
       "whitelisted": true
@@ -482,7 +482,7 @@
       "decimals": 6,
       "ledgerPath": "ledger",
       "ledgerKey": ["address"],
-      "type": "fa12",
+      "type": "fa1.2",
       "color": "#FF56E2",
       "tokenId": 0,
       "whitelisted": true
@@ -528,6 +528,39 @@
       "ledgerKey": ["address"],
       "type": "fa2",
       "color": "#019ADA",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "BTCtz": {
+      "address": "KT1T87QbpXEVgkwsNPzz8iRoah3SS3D1MDmh",
+      "dexContractAddress": "KT1B6nXwMpGTjYjVQporXUFDQNDGnfCFsx4a",
+      "decimals": 8,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#FF8824",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "IDZ": {
+      "address": "KT1WapdVeFqhCfqwdHWwTzSTX7yXoHgiPRPU",
+      "dexContractAddress": "KT18rJtJNmwTfbJMinWqHzpkLeBQa4BVqGoJ",
+      "decimals": 8,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address"],
+      "type": "fa2",
+      "color": "#FF6F4A",
+      "tokenId": 0,
+      "whitelisted": true
+    },
+    "GIF": {
+      "address": "KT1XTxpQvo7oRCqp85LikEZgAZ22uDxhbWJv",
+      "dexContractAddress": "KT1LuXT6jZPhUH1qCnSUqAzFedjoBwePLQnF",
+      "decimals": 9,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address"],
+      "type": "fa2",
+      "color": "#A378F5",
       "tokenId": 0,
       "whitelisted": true
     }
@@ -1088,5 +1121,122 @@
     { "contract": "KT18oo99LkMMdH8aXTMbCBD9ZunLqtkCVUUi", "token": "wUSDT" },
     { "contract": "KT1C27Kz1maYphYZ5SLv821iumNQbgn95bRa", "token": "wWBTC" },
     { "contract": "KT1KsP1tyN7HvUD1TaCkP7X8nBGkvejuvEk8", "token": "wWETH" }
+  ],
+  "plenty-ctez-farms": [
+    {
+      "address": "KT1L8N5RZg4CM2VSnuC8t1CGLiQpzVoN6P1u",
+      "token": "kUSD",
+      "decimals": 12
+    },
+    {
+      "address": "KT1MeeKpbSaAP9YDb6B7qBDvEGZq274715s2",
+      "token": "USDtz",
+      "decimals": 6
+    },
+    {
+      "address": "KT1V71rxAhuHCggnBUXfceBM6RpHzUUJMYyK",
+      "token": "wUSDC",
+      "decimals": 6
+    },
+    {
+      "address": "KT1PYtm173zVdPEMoNecUBRhqgFbdVHPDj3p",
+      "token": "wUSDT",
+      "decimals": 6
+    },
+    {
+      "address": "KT1MCtUoNZTpGsPNyEvCZ88i6aRVow91axPr",
+      "token": "wBUSD",
+      "decimals": 12
+    },
+    {
+      "address": "KT1ELuj8v8nB3Me7dEyjoxkNtjr6ywWXFWYK",
+      "token": "wDAI",
+      "decimals": 12
+    },
+    {
+      "address": "KT1HmigpaNyaxx9Zvf7zEPGgqd8bdLTnrgdU",
+      "token": "KALAM",
+      "decimals": 8
+    },
+    {
+      "address": "KT1U2XwrY1oTfxzrcb1ZrQuFrUJTQWAJaHWt",
+      "token": "ETHtz",
+      "decimals": 12
+    },
+    {
+      "address": "KT1L71FDbzYwe9bxY4MnzU3ZUgUzbe3V588Y",
+      "token": "QUIPU",
+      "decimals": 6
+    },
+    {
+      "address": "KT1BZ8Napzts13b9kLGBWCwhMmx6zmAzRMkG",
+      "token": "hDAO",
+      "decimals": 7
+    },
+    {
+      "address": "KT1DornVnLZWu3VaJnDLB2RubSFSPBZaKq4W",
+      "token": "kDAO",
+      "decimals": 6
+    },
+    {
+      "address": "KT1JfEmUp9w2n9aWJweKpEWAESRjrCywcW3M",
+      "token": "wWETH",
+      "decimals": 12
+    },
+    {
+      "address": "KT1VutBNeCNEHtk6jVkY8v3FE848GNsxjT76",
+      "token": "uUSD",
+      "decimals": 9
+    },
+    {
+      "address": "KT1HsdhTQqha8k6WrvhD9d6CQhHGb3XCtLub",
+      "token": "FLAME",
+      "decimals": 6
+    },
+    {
+      "address": "KT1MSWvuDNcjnxP3mBK4mePLpVLfrjZ3i2nH",
+      "token": "SMAK",
+      "decimals": 4
+    },
+    {
+      "address": "KT1BfAAVACnEAb3CMMxPLb1VdDnyuNq5AWEc",
+      "token": "crDAO",
+      "decimals": 7
+    },
+    {
+      "address": "KT1HpcPqU2atG75bpSy6hUzuWdULi7Kx9eaw",
+      "token": "PXL",
+      "decimals": 6
+    },
+    {
+      "address": "KT1Xt9HvkrbzYtaYhD9im37hE69Zit5bvhPw",
+      "token": "UNO",
+      "decimals": 7
+    },
+    {
+      "address": "KT1LPhjjaFaqcgynzewegLckJUmpQQzm1xj2",
+      "token": "WRAP",
+      "decimals": 7
+    },
+    {
+      "address": "KT1VmvPo8bLYh1xVC9TpzwWtrczjzEMS2mEk",
+      "token": "wWBTC",
+      "decimals": 7
+    },
+    {
+      "address": "KT1SQ4fqsxrKwN5mqCi2yNLvb99S6sRGWGZZ",
+      "token": "tzBTC",
+      "decimals": 7
+    },
+    {
+      "address": "KT1K3NERNpLxRmREpmjqt7LsvEr2SbC9Cs6o",
+      "token": "PAUL",
+      "decimals": 7
+    },
+    {
+      "address": "KT1CoCHHKAUE8vobDwaWQDDBzrBkasCuzkwi",
+      "token": "CRUNCH",
+      "decimals": 7
+    }
   ]
 }

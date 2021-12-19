@@ -1,10 +1,14 @@
 import { writable } from "svelte/store";
+import type { AvailableToken } from "../../types";
 
 interface Toast {
   id: number;
   type: "default" | "info" | "success" | "error";
+  title: string;
   text: string;
   dismissable: boolean;
+  token?: AvailableToken;
+  icon?: string;
 }
 let initialState: Toast[] = [];
 const delay = 6000;
@@ -15,11 +19,14 @@ const state = {
   subscribe: store.subscribe,
   addToast: (newToast: Omit<Toast, "id">) => {
     store.update(store => {
-      if (!store.find(toast => newToast.text === toast.text)) {
-        const newId = Math.floor(Math.random() * Date.now());
-        setTimeout(() => state.removeToast(newId), delay);
-        return [...store, { ...newToast, id: newId }];
+      const identicalToast = store.find(toast => newToast.text === toast.text);
+      if (identicalToast) {
+        state.removeToast(identicalToast.id);
       }
+
+      const newId = Math.floor(Math.random() * Date.now());
+      setTimeout(() => state.removeToast(newId), delay);
+      return [...store, { ...newToast, id: newId }];
     });
   },
   removeToast: (id: number) => {

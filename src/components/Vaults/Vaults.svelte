@@ -5,6 +5,8 @@
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import Row from "./Row.svelte";
+  import CtezRow from "./Row/CtezRow.svelte";
+  import KusdRow from "./Row/KusdRow.svelte";
 
   let selectKusdVaults = false;
   let selectWxtzVaults = false;
@@ -224,7 +226,7 @@
               class="mini"
               on:click={() => {
                 if (validateContractAddress(kusdNewVault) === 3) {
-                  localStorageStore.addVault("kusd", kusdNewVault);
+                  localStorageStore.addVault("kusd", kusdNewVault.trim());
                   kusdNewVault = "";
                   selectKusdVaults = false;
                 }
@@ -263,7 +265,7 @@
               class="mini"
               on:click={() => {
                 if (validateContractAddress(wxtzNewVault) === 3) {
-                  localStorageStore.addVault("wxtz", wxtzNewVault);
+                  localStorageStore.addVault("wxtz", wxtzNewVault.trim());
                   wxtzNewVault = "";
                   selectWxtzVaults = false;
                 }
@@ -302,7 +304,7 @@
               class="mini"
               on:click={() => {
                 if (validateContractAddress(uusdNewVault) === 3) {
-                  localStorageStore.addVault("uusd", uusdNewVault);
+                  localStorageStore.addVault("uusd", uusdNewVault.trim());
                   uusdNewVault = "";
                   selectUusdVaults = false;
                 }
@@ -341,7 +343,7 @@
               class="mini"
               on:click={() => {
                 if (validateContractAddress(ctezNewVault) === 3) {
-                  localStorageStore.addVault("ctez", ctezNewVault);
+                  localStorageStore.addVault("ctez", ctezNewVault.trim());
                   ctezNewVault = "";
                   selectCtezVaults = false;
                 }
@@ -378,7 +380,7 @@
       <div>Locked</div>
     </div>
     {#each $localStorageStore.kUsdVaults as address}
-      <Row {address} platform="kusd" />
+      <KusdRow {address} />
     {/each}
   {/if}
   <br />
@@ -402,7 +404,7 @@
       <div>Locked</div>
     </div>
     {#each $localStorageStore.ctezVaults as address}
-      <Row {address} platform="ctez" />
+      <CtezRow {address} />
     {/each}
   {/if}
 </section>

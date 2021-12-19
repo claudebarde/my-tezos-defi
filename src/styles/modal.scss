@@ -38,18 +38,34 @@
       width: 75%;
     }
 
+    &.small {
+      width: 30%;
+      min-height: 20%;
+      max-height: 20%;
+    }
+
     .modal-title {
       font-size: 1.5rem;
       position: relative;
       display: flex;
       justify-content: space-between;
       align-items: center;
+
+      .icons {
+        margin: 0 auto;
+
+        img {
+          width: 32px;
+          height: 32px;
+        }
+      }
     }
 
     .modal-body {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       max-height: 400px;
       overflow: auto;
       padding: 20px 0px;
@@ -65,6 +81,50 @@
         align-items: center;
         width: 100%;
         padding: 5px;
+
+        input {
+          border: solid 1px $container-bg-color;
+          border-radius: 10px;
+          padding: 5px;
+          width: 80%;
+          font-size: 1rem;
+          outline: none;
+        }
+
+        .input-with-button {
+          display: grid;
+          grid-template-columns: 70% 30%;
+          grid-gap: 0px;
+          justify-items: stretch;
+          border: solid 1px $container-bg-color;
+          border-radius: 10px;
+          padding: 5px;
+          width: 50%;
+
+          &.error {
+            border: solid 1px red;
+          }
+
+          input {
+            border: none;
+            outline: none;
+            font-size: 1rem;
+          }
+
+          button {
+            border: none;
+            background-color: transparent;
+            font-size: 0.7rem;
+            color: $container-bg-color;
+          }
+        }
+
+        &.small {
+          font-size: 0.7rem;
+        }
+        &.error {
+          color: red;
+        }
       }
 
       .modal-find-stakes-line {

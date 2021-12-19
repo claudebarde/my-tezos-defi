@@ -65,7 +65,7 @@
           localStorageStore.updateFiat(newFiat, 0);
 
           const coinGeckoResponse = await fetch(
-            `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${newFiat}&days=2`
+            `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${newFiat}&days=30&interval=daily`
           );
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();
@@ -74,8 +74,8 @@
             store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
             store.updateXtzDataHistoric(
               prices.map(price => ({
-                timestamp: price[0],
-                rate: price[1]
+                timestamp: new Date(price[0]).toISOString(),
+                price: price[1]
               }))
             );
             if ($localStorageStore && $store.userAddress) {

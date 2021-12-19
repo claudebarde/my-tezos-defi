@@ -12,73 +12,24 @@
   onMount(async () => {
     if (platform == "wxtz") {
       iconPath = "images/wXTZ.png";
-      const getBalance = await $store.Tezos.tz.getBalance(address);
-      if (getBalance) {
-        lockedAmount = getBalance.toNumber() / 10 ** 6;
-      } else {
-        lockedAmount = 0;
-      }
     } else if (platform == "kusd") {
       iconPath = "images/kUSD.png";
-      const getBalance = await $store.Tezos.tz.getBalance(address);
-      if (getBalance) {
-        lockedAmount = getBalance.toNumber() / 10 ** 6;
-      } else {
-        lockedAmount = 0;
-      }
     } else if (platform == "uusd") {
       iconPath = "images/uUSD.png";
-      const getBalance = await $store.Tezos.tz.getBalance(address);
-      if (getBalance) {
-        lockedAmount = getBalance.toNumber() / 10 ** 6;
-      } else {
-        lockedAmount = 0;
-      }
     } else if (platform == "ctez") {
       iconPath = "images/Ctez.png";
-      const getBalance = await $store.Tezos.tz.getBalance(address);
-      if (getBalance) {
-        lockedAmount = getBalance.toNumber() / 10 ** 6;
-      } else {
-        lockedAmount = 0;
-      }
+    }
+
+    const getBalance = await $store.Tezos.tz.getBalance(address);
+    if (getBalance) {
+      lockedAmount = getBalance.toNumber() / 10 ** 6;
+    } else {
+      lockedAmount = 0;
     }
   });
 </script>
 
-<style lang="scss">
-  @import "../../styles/settings.scss";
-
-  .row {
-    display: grid;
-    grid-template-columns: 10% 25% 37% 16% 12%;
-    padding: 10px;
-    align-items: center;
-    transition: 0.3s;
-
-    &:hover {
-      background-color: lighten($container-bg-color, 65);
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-
-    .icon {
-      img {
-        width: 25px;
-        height: 25px;
-      }
-    }
-  }
-</style>
-
-<div class="row">
+<div class="vault-row" class:ctez-row={platform === "ctez"}>
   <div class="icon">
     <img src={iconPath} alt="token-icon" />
   </div>

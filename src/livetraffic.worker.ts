@@ -24,14 +24,18 @@ async function init() {
   if (headResponse) {
     const head = await headResponse.json();
     const currentLevel = head.level;
-    const lastTxsResponse = await fetch(
-      `https://api.mainnet.tzkt.io/v1/operations/transactions?level.ge=${
-        currentLevel - 5
-      }&target.in=${contractsToWatch.join(",")}`
-    );
-    if (lastTxsResponse) {
-      const lastTxs = await lastTxsResponse.json();
-      ctx.postMessage({ type: "init-last-ops", msg: lastTxs });
+    try {
+      const lastTxsResponse = await fetch(
+        `https://api.mainnet.tzkt.io/v1/operations/transactions?level.ge=${
+          currentLevel - 5
+        }&target.in=${contractsToWatch.slice(0, 150).join(",")}`
+      );
+      if (lastTxsResponse) {
+        const lastTxs = await lastTxsResponse.json();
+        ctx.postMessage({ type: "init-last-ops", msg: lastTxs });
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 }

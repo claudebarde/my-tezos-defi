@@ -71,6 +71,7 @@
   const handleLiveTrafficWorker = async (msg: MessageEvent) => {
     if (msg.data.type === "live-traffic" && msg.data.msg) {
       const ops: Operation[] = [];
+      let transfersTotal: { token: AvailableToken; amount: number }[] = [];
       msg.data.msg.forEach(op => {
         if (!$store.tokens) return;
         //console.log("Operation:", op);
@@ -87,39 +88,58 @@
           // a transaction was sent to a token contract
           //console.log("Transfer operation:", op);
           let updatedTokensBalances = { ...$store.tokensBalances };
-          let token = Object.entries($store.tokens).find(
-            tk => tk[1].address === op.target.address
-          );
-          if (!token) return;
+          let token: [string, TokenContract];
 
           const paramValue = op.parameter.value;
-          let userBalance = updatedTokensBalances[token[0]];
           if (Array.isArray(paramValue)) {
             // FA2
             paramValue.forEach(op => {
               if (op.from_ === $store.userAddress) {
                 console.log("FA2 operation from user account:", op);
                 // token transfer from the user
-                op.txs.forEach(
-                  tx => (userBalance -= +tx.amount / 10 ** token[1].decimals)
-                );
+                op.txs.forEach(tx => {
+                  token = Object.entries($store.tokens).find(
+                    tk =>
+                      tk[1].address === op.target.address &&
+                      tk[1].tokenId === tx.token_id
+                  );
+                  let userBalance = updatedTokensBalances[token[0]];
+                  userBalance -= +tx.amount / 10 ** token[1].decimals;
+                  // updates balance
+                  updatedTokensBalances[token[0]] =
+                    userBalance < 0 ? 0 : userBalance;
+                  // updates balances
+                  store.updateTokensBalances(updatedTokensBalances);
+                });
               } else {
                 // token transfer to the user
                 let totalTokens = 0;
                 op.txs.forEach(tx => {
                   if (tx.to_ === $store.userAddress) {
                     console.log("FA2 operation to user account:", op);
+                    token = Object.entries($store.tokens).find(
+                      tk =>
+                        tk[1].address === op.target.address &&
+                        tk[1].tokenId === tx.token_id
+                    );
+                    let userBalance = updatedTokensBalances[token[0]];
                     totalTokens += +tx.amount;
                     userBalance += +tx.amount / 10 ** token[1].decimals;
+                    // updates balance
+                    updatedTokensBalances[token[0]] =
+                      userBalance < 0 ? 0 : userBalance;
+                    // updates balances
+                    store.updateTokensBalances(updatedTokensBalances);
                   }
                 });
                 // only displays transactions involving the user
                 if (totalTokens > 0) {
                   toastStore.addToast({
                     type: "info",
-                    text: `Incoming ${token[0]} tokens: ${formatTokenAmount(
+                    title: `Incoming tokens`,
+                    text: `${formatTokenAmount(
                       totalTokens / 10 ** token[1].decimals
-                    )}`,
+                    )} ${token[0]}`,
                     dismissable: true
                   });
                 }
@@ -131,26 +151,70 @@
             paramValue.hasOwnProperty("value")
           ) {
             // FA1.2
+            // finds token
+            token = Object.entries($store.tokens).find(
+              tk => tk[1].address === op.target.address
+            );
+            if (!token) return;
+            let userBalance = updatedTokensBalances[token[0]];
             if (paramValue.from === $store.userAddress) {
               console.log("FA1.2 operation from user account:", op);
               // token transfer from the user
               userBalance -= +paramValue.value / 10 ** token[1].decimals;
+              // creates toast
+              toastStore.addToast({
+                type: "info",
+                title: `Outgoing tokens`,
+                text: `${+paramValue.value / 10 ** token[1].decimals} ${
+                  token[0]
+                }`,
+                dismissable: true,
+                token: token[0] as AvailableToken
+              });
             } else if (paramValue.to === $store.userAddress) {
               const totalTokens = +paramValue.value / 10 ** token[1].decimals;
               console.log("FA1.2 operation to user account:", op);
-              toastStore.addToast({
-                type: "info",
-                text: `Incoming ${token[0]} tokens: ${totalTokens}`,
-                dismissable: true
-              });
+              // saves transfer info in transfers array
+              // to prevent displaying multiple toasts for the same token
+              // in case of multiple transfers
+              const previousTransfers = transfersTotal.find(
+                trsf => trsf.token === token[0]
+              );
+              if (previousTransfers) {
+                const newTransfer = {
+                  ...previousTransfers,
+                  amount: previousTransfers.amount + totalTokens
+                };
+                transfersTotal = [
+                  ...transfersTotal.filter(trsf => trsf.token === token[0]),
+                  newTransfer
+                ];
+              } else {
+                transfersTotal = [
+                  ...transfersTotal,
+                  { token: token[0] as AvailableToken, amount: totalTokens }
+                ];
+              }
               // token transfer to the user
               userBalance += totalTokens;
             }
+            // updates balance
+            updatedTokensBalances[token[0]] = userBalance < 0 ? 0 : userBalance;
+            // updates balances
+            store.updateTokensBalances(updatedTokensBalances);
           }
-          // updates balance
-          updatedTokensBalances[token[0]] = userBalance < 0 ? 0 : userBalance;
-          // updates balances
-          store.updateTokensBalances(updatedTokensBalances);
+          // shows transfers toast
+          if (transfersTotal.length > 0) {
+            transfersTotal.forEach(transfer => {
+              toastStore.addToast({
+                type: "info",
+                title: `Incoming tokens`,
+                text: `${transfer.amount} ${transfer.token}`,
+                dismissable: true,
+                token: transfer.token
+              });
+            });
+          }
         } else if (
           op.status === "applied" &&
           Object.values($store.investments)
@@ -299,8 +363,8 @@
     try {
       // fetches data from the IPFS
       const defiDataResponse = await fetch(
-        //`https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
-        `https://gateway.pinata.cloud/ipfs/${$store.defiData}`
+        `https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
+        //`https://gateway.pinata.cloud/ipfs/${$store.defiData}`
       );
       if (defiDataResponse) {
         const defiData: {
@@ -328,40 +392,6 @@
         }
 
         if (defiData.investments) {
-          defiData.investments["Ctez-kUSD-LP"] = {
-            id: "Ctez-kUSD-LP",
-            platform: "plenty",
-            address: "KT1L8N5RZg4CM2VSnuC8t1CGLiQpzVoN6P1u",
-            decimals: 12,
-            info: [],
-            alias: "Ctez-kUSD LP farm",
-            icons: ["Ctez", "kUSD"],
-            rewardToken: "PLENTY",
-            liquidityToken: true
-          };
-          defiData.investments["Ctez-PAUL-LP"] = {
-            id: "Ctez-PAUL-LP",
-            platform: "plenty",
-            address: "KT1K3NERNpLxRmREpmjqt7LsvEr2SbC9Cs6o",
-            decimals: 7,
-            info: [],
-            alias: "Ctez-PAUL LP farm",
-            icons: ["Ctez", "PAUL"],
-            rewardToken: "PLENTY",
-            liquidityToken: true
-          };
-          defiData.investments["Ctez-wWBTC-LP"] = {
-            id: "Ctez-wWBTC-LP",
-            platform: "plenty",
-            address: "KT1VmvPo8bLYh1xVC9TpzwWtrczjzEMS2mEk",
-            decimals: 7,
-            info: [],
-            alias: "Ctez-wWBTC LP farm",
-            icons: ["Ctez", "wWBTC"],
-            rewardToken: "PLENTY",
-            liquidityToken: true
-          };
-
           Object.keys(defiData.investments).forEach(key => {
             defiData.investments[key].balance = 0;
             defiData.investments[key].favorite =
@@ -421,7 +451,35 @@
             ...investmentsWithWrapFeeFarming
           });
         }
+
+        if (defiData["plenty-ctez-farms"]) {
+          // builds investment data for Ctez farms on Plenty
+          const investmentsWithCtezFarms = { ...$store.investments };
+          defiData["plenty-ctez-farms"].forEach(
+            farm =>
+              (investmentsWithCtezFarms[`Ctez-${farm.token}-LP`] = {
+                id: `Ctez-${farm.token}-LP`,
+                platform: "plenty",
+                address: farm.address,
+                decimals: farm.decimals,
+                info: [],
+                alias: `Ctez-${farm.token} LP farm`,
+                icons: ["Ctez", farm.token],
+                rewardToken: "PLENTY",
+                liquidityToken: true
+              })
+          );
+          store.updateInvestments({
+            ...investmentsWithCtezFarms
+          });
+        }
       } else {
+        toastStore.addToast({
+          type: "error",
+          title: "IPFS Error",
+          text: "Unable to load tokens and investments data from the IPFS",
+          dismissable: true
+        });
         console.error(
           "Unable to load tokens and investments data from the IPFS"
         );
@@ -434,7 +492,7 @@
           const preferredFiat = $localStorageStore.preferredFiat
             ? $localStorageStore.preferredFiat.toLowerCase()
             : AvailableFiat.USD;
-          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${preferredFiat}&days=2`;
+          const url = `https://api.coingecko.com/api/v3/coins/tezos/market_chart?vs_currency=${preferredFiat}&days=30&interval=daily`;
           const coinGeckoResponse = await fetch(url);
           if (coinGeckoResponse) {
             const data = await coinGeckoResponse.json();
@@ -443,8 +501,8 @@
             store.updateXtzFiatExchangeRate(xtzFiatExchangeRate);
             store.updateXtzDataHistoric(
               prices.map(price => ({
-                timestamp: price[0],
-                rate: price[1]
+                timestamp: new Date(price[0]).toISOString(),
+                price: price[1]
               }))
             );
             if ($localStorageStore) {
@@ -493,14 +551,23 @@
   });
 
   afterUpdate(async () => {
-    if (!liveTrafficWorker && $store.tokens && $store.investments) {
+    if (
+      !liveTrafficWorker &&
+      $store.tokens &&
+      $store.investments &&
+      $localStorageStore
+    ) {
       // inits live traffic worker
       liveTrafficWorker = new LiveTrafficWorker();
       liveTrafficWorker.postMessage({
         type: "init",
         payload: [
           ...Object.values($store.tokens).map(tk => tk.address),
-          ...Object.values($store.investments).map(inv => inv.address),
+          ...Object.values($store.investments)
+            .filter(inv =>
+              $localStorageStore.favoriteInvestments.includes(inv.id)
+            )
+            .map(inv => inv.address),
           ...config.lbContracts
         ]
       });
@@ -530,3 +597,12 @@
   </div>
 </main>
 <Toast />
+<div class="snowflakes" aria-hidden="true">
+  {#each Array(15) as _, index}
+    {#if index % 2 === 0}
+      <div class="snowflake">❅</div>
+    {:else}
+      <div class="snowflake">❆</div>
+    {/if}
+  {/each}
+</div>

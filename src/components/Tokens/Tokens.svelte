@@ -1,18 +1,41 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from "svelte";
+  import { onMount, afterUpdate, onDestroy } from "svelte";
   import { slide } from "svelte/transition";
   import { push } from "svelte-spa-router";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import {
     searchUserTokens,
-    formatTokenAmount,
-    sortTokensByBalance
+    sortTokensByBalance,
+    formatTokenAmount
   } from "../../utils";
-  import type { State } from "../../types";
+  import type { State, AvailableToken, TokenContract } from "../../types";
+  import TokenBox from "./TokenBox.svelte";
 
   let showSelectTokens = false;
   let totalHoldingInXtz = 0;
+  let tokensStatsDaily:
+    | {
+        [p in AvailableToken]: {
+          difference: number;
+          increase: boolean;
+        };
+      }
+    | {} = {};
+  let tokensStatsWeekly:
+    | {
+        [p in AvailableToken]: {
+          difference: number;
+          increase: boolean;
+        };
+      }
+    | {} = {};
+  let tokensStatsRefresh;
+  let tokensStatsChartData:
+    | {
+        [p in AvailableToken]: { timestamp: string; price: number }[];
+      }
+    | {} = {};
 
   const addFavoriteToken = async tokenSymbol => {
     try {
@@ -31,6 +54,8 @@
           ...$store.tokensBalances,
           [tokenSymbol]: userToken[tokenSymbol]
         });
+
+        await fetchTokensStats([[tokenSymbol, $store.tokens[tokenSymbol]]]);
       }
     } catch (error) {
       console.error(error);
@@ -47,15 +72,92 @@
     localStorageStore.removeFavoriteToken(tokenSymbol);
   };
 
+  const fetchTokensStats = async (userTokens: [string, TokenContract][]) => {
+    // fetches tokens stats
+    const tokensAggregateWeeklyPromises = await Promise.allSettled(
+      // [userTokens.find(tk => tk[0] === AvailableToken.PLENTY)]
+      [...userTokens.filter(tk => tk[0] !== "xPLENTY")].map(
+        async ([tokenId, tokenInfo]) => {
+          if (tokenInfo.type === "fa1.2") {
+            const url = `https://api.teztools.io/v1/${tokenInfo.address}/pools/${tokenInfo.dexContractAddress}/aggregate_daily`;
+            return { tokenId, stats: await fetch(url) };
+          } else if (tokenInfo.type === "fa2") {
+            const url = `https://api.teztools.io/v1/${tokenInfo.address}_${tokenInfo.tokenId}/pools/${tokenInfo.dexContractAddress}/aggregate_daily`;
+            return { tokenId, stats: await fetch(url) };
+          }
+        }
+      )
+    );
+    const tokensAggregateWeekly = await Promise.all(
+      tokensAggregateWeeklyPromises
+        .filter(settled => settled.status === "fulfilled" && !!settled.value)
+        .map(async res => ({
+          tokenId: (res as PromiseFulfilledResult<any>).value.tokenId,
+          stats: await (res as PromiseFulfilledResult<any>).value.stats.json()
+        }))
+    );
+    const tokensWeekly = tokensAggregateWeekly.map(stats => {
+      if (!tokensStatsChartData.hasOwnProperty(stats.tokenId)) {
+        // populates chart
+        tokensStatsChartData[stats.tokenId] = [...stats.stats.slice(-30)].map(
+          stat => ({
+            timestamp: stat.periodOpen,
+            price: +stat.t1priceOpen
+          })
+        );
+      }
+
+      return {
+        tokenId: stats.tokenId,
+        increase:
+          stats.stats[stats.stats.length - 8].t1priceMa <
+          $store.tokens[stats.tokenId].exchangeRate,
+        difference: (() => {
+          const priceBefore = stats.stats[stats.stats.length - 8].t1priceMa;
+          const currentPrice = $store.tokens[stats.tokenId].exchangeRate;
+          const difference =
+            (priceBefore - currentPrice) / ((priceBefore + currentPrice) / 2);
+          return Math.abs(difference * 100);
+        })()
+      };
+    });
+    tokensWeekly.forEach(item => {
+      tokensStatsWeekly[item.tokenId] = {
+        difference: item.difference,
+        increase: item.increase
+      };
+    });
+    const tokensDaily = tokensAggregateWeekly.map(stats => ({
+      tokenId: stats.tokenId,
+      increase:
+        stats.stats[stats.stats.length - 2].t1priceMa <
+        $store.tokens[stats.tokenId].exchangeRate,
+      difference: (() => {
+        const priceBefore = stats.stats[stats.stats.length - 2].t1priceMa;
+        const currentPrice = $store.tokens[stats.tokenId].exchangeRate;
+        const difference =
+          (priceBefore - currentPrice) / ((priceBefore + currentPrice) / 2);
+        return Math.abs(difference * 100);
+      })()
+    }));
+    tokensDaily.forEach(item => {
+      tokensStatsDaily[item.tokenId] = {
+        difference: item.difference,
+        increase: item.increase
+      };
+    });
+  };
+
   onMount(async () => {
     if (!$store.userAddress) push("/");
 
+    const userTokens = Object.entries($store.tokens).filter(tk =>
+      $localStorageStore.favoriteTokens.includes(tk[0])
+    );
     const newBalances = await searchUserTokens({
       Tezos: $store.Tezos,
       userAddress: $store.userAddress,
-      tokens: Object.entries($store.tokens).filter(tk =>
-        $localStorageStore.favoriteTokens.includes(tk[0])
-      )
+      tokens: userTokens
     });
     store.updateTokensBalances(newBalances as State["tokensBalances"]);
 
@@ -64,6 +166,14 @@
     if (balance) {
       store.updateTezBalance(balance.toNumber());
     }
+
+    await fetchTokensStats(userTokens);
+    tokensStatsRefresh = setInterval(async () => {
+      const userTokens = Object.entries($store.tokens).filter(tk =>
+        $localStorageStore.favoriteTokens.includes(tk[0])
+      );
+      await fetchTokensStats(userTokens);
+    }, 10 * 60000);
   });
 
   afterUpdate(async () => {
@@ -95,6 +205,10 @@
         totalHoldingInXtz += $store.xtzData.balance / 10 ** 6;
       }
     }
+  });
+
+  onDestroy(() => {
+    clearInterval(tokensStatsRefresh);
   });
 </script>
 
@@ -173,27 +287,6 @@
       align-items: stretch;
       flex-wrap: wrap;
       gap: 30px;
-
-      .favorite-token {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 250px;
-        border: solid 1px $bg-color;
-        border-radius: 10px;
-        padding: 1rem 10px;
-        position: relative;
-        z-index: 10;
-
-        img {
-          height: 2.4rem;
-          position: absolute;
-          top: -1.4rem;
-          left: 10px;
-          background-color: white;
-          padding: 0px 3px;
-        }
-      }
     }
   }
 </style>
@@ -202,7 +295,7 @@
   <div class="user-tokens-stats">
     <div class="total-value">
       <div>Total value of tokens</div>
-      <div>ꜩ {totalHoldingInXtz ? +totalHoldingInXtz.toFixed(3) / 1 : 0}</div>
+      <div>{totalHoldingInXtz ? +totalHoldingInXtz.toFixed(3) / 1 : 0} ꜩ</div>
       <div>
         {(totalHoldingInXtz
           ? +(totalHoldingInXtz * $store.xtzData.exchangeRate).toFixed(2) / 1
@@ -211,6 +304,28 @@
         {$localStorageStore.preferredFiat}
       </div>
     </div>
+    {#if $store.tokensBalances}
+      <div>
+        <div>
+          {Object.values($store.tokensBalances).filter(b => b && b > 0).length} tokens
+          with balance
+        </div>
+        <div>
+          Total value: {formatTokenAmount(
+            [
+              0,
+              0,
+              ...Object.entries($store.tokensBalances)
+                .filter(([_, tokenBalance]) => tokenBalance && tokenBalance > 0)
+                .map(
+                  ([tokenId, tokenBalance]) =>
+                    tokenBalance * $store.tokens[tokenId].exchangeRate
+                )
+            ].reduce((a, b) => a + b)
+          )} ꜩ
+        </div>
+      </div>
+    {/if}
   </div>
   <br />
   <div id="select-user-token">
@@ -253,78 +368,39 @@
   <br />
   <div class="favorite-tokens">
     {#if $store.xtzData.balance}
-      <div class="favorite-token">
-        <img src="images/XTZ.png" alt="XTZ-logo" />
-        <div>XTZ</div>
-        <div>
-          <div>{formatTokenAmount($store.xtzData.balance / 10 ** 6)}</div>
-          <div>
-            {+(
-              ($store.xtzData.balance / 10 ** 6) *
-              $store.xtzData.exchangeRate
-            ).toFixed(2) / 1}
-            {$localStorageStore.preferredFiat}
-          </div>
-        </div>
-      </div>
+      <TokenBox
+        token="XTZ"
+        tokensStatsWeekly={undefined}
+        tokensStatsDaily={undefined}
+        monthlyChartData={undefined}
+      />
     {/if}
-
     {#each $store.tokensBalances ? sortTokensByBalance($localStorageStore.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map(tk => tk[0]) : [] as token (token)}
-      <div class="favorite-token">
-        <img src={`images/${token}.png`} alt={`${token}-logo`} />
-        <div>
-          <div>{token}</div>
-          <div style="font-size:0.8rem">
-            {formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ
-          </div>
-        </div>
-        <div>
-          {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}
-            <div>
-              {#if formatTokenAmount($store.tokensBalances[token]) === 0}
-                No token
-              {:else}
-                {formatTokenAmount($store.tokensBalances[token])}
-              {/if}
-            </div>
-            {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[token]) === 0}
-              <div />
-              <div />
-              <div />
-            {:else}
-              <div>
-                {+(
-                  $store.tokensBalances[token] *
-                  $store.tokens[token].exchangeRate
-                ).toFixed(3) / 1} ꜩ
-              </div>
-              {#if $localStorageStore}
-                <div>
-                  {+(
-                    $store.tokensBalances[token] *
-                    $store.tokens[token].exchangeRate *
-                    $store.xtzData.exchangeRate
-                  ).toFixed(3) / 1}
-                  {$localStorageStore.preferredFiat}
-                </div>
-              {:else}
-                <div>
-                  {+(
-                    $store.tokensBalances[token] *
-                    $store.tokens[token].exchangeRate *
-                    $store.xtzData.exchangeRate
-                  ).toFixed(3) / 1} USD
-                </div>
-              {/if}
-            {/if}
-          {:else}
-            <div>---</div>
-            <div>---</div>
-          {/if}
-        </div>
-      </div>
+      <TokenBox
+        {token}
+        tokensStatsWeekly={tokensStatsWeekly[token]}
+        tokensStatsDaily={tokensStatsDaily[token]}
+        monthlyChartData={tokensStatsChartData[token]}
+      />
     {:else}
       No favorite token yet
     {/each}
   </div>
+  <br />
+  <br />
+  <!--
+  {#if tokensStatsChartData.length > 0}
+    <TokensPriceChange chartData={tokensStatsChartData} priceSize="small" />
+    <br />
+    <br />
+    <TokensPriceChange chartData={tokensStatsChartData} priceSize="medium" />
+    <br />
+    <br />
+    <TokensPriceChange chartData={tokensStatsChartData} priceSize="large" />
+    <br />
+    <br />
+    {#if $localStorageStore.favoriteTokens.includes("wWBTC") || $localStorageStore.favoriteTokens.includes("tzBTC") || $localStorageStore.favoriteTokens.includes("BTCtz")}
+      <TokensPriceChange chartData={tokensStatsChartData} priceSize="huge" />
+    {/if}
+  {/if}-->
 </section>

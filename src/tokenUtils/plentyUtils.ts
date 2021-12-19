@@ -22,6 +22,7 @@ export const formatPlentyLpAmount = (
     case "PLENTY-wUSDT-LP":
     case "PLENTY-Ctez-LP":
     case "Ctez-kUSD-LP":
+    case "Ctez-wDAI-LP":
       return lpAmount / 10 ** 6;
     case "PLENTY-wWBTC":
     case "PLENTY-tzBTC-LP":
@@ -34,7 +35,11 @@ export const formatPlentyLpAmount = (
     case "PLENTY-YOU-LP":
       return lpAmount / 10 ** 3;
     default:
-      return lpAmount;
+      if (exchangePair.match(/Ctez-[a-zA-Z]+-LP/)) {
+        return lpAmount / 10 ** 12;
+      } else {
+        return lpAmount;
+      }
   }
 };
 
@@ -251,4 +256,72 @@ export const calcPlentyAprApy = async (params: {
   }
 
   return { apr, apy };
+};
+
+const xPlentyComputation = async (
+  Tezos: TezosToolkit,
+  currentBlockLevel: number
+) => {
+  const localStore = get(store);
+  const rewardManagerAddress = "KT1MCgouivQ2rzam5hA2gqF1eMtY5i6ndJvT";
+  const xPlentyCurveAddress = "KT1PxkrCckgh5fA5v2cZEE2bX5q2RV1rv8dj";
+
+  try {
+    const plentyTokenContract = await Tezos.contract.at(
+      localStore.tokens.PLENTY.address
+    );
+    const xPlentyCurveContract = await Tezos.contract.at(xPlentyCurveAddress);
+    const rewardManagerContract = await Tezos.contract.at(rewardManagerAddress);
+    // Accessing Contract Storage
+    const plentyStorage: any = await plentyTokenContract.storage();
+    const rewardManagerStorage: any = await rewardManagerContract.storage();
+    const xPlentyCurveStorage: any = await xPlentyCurveContract.storage();
+    // Compute xPlentyCurve Contract's plenty balance
+    let plentyBalance = await plentyStorage.balances.get(xPlentyCurveAddress);
+    plentyBalance = plentyBalance.balance.toNumber();
+    const balanceUpdate =
+      Math.min(
+        currentBlockLevel,
+        rewardManagerStorage.periodFinish.toNumber()
+      ) - rewardManagerStorage.lastUpdate.toNumber();
+    if (balanceUpdate > 0) {
+      plentyBalance +=
+        balanceUpdate * rewardManagerStorage.rewardRate.toNumber();
+    }
+
+    const totalSupply = xPlentyCurveStorage.totalSupply.toNumber();
+    return {
+      plentyBalance,
+      totalSupply
+    };
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+export const getExpectedxPlenty = async (
+  Tezos: TezosToolkit,
+  plentyAmount: number,
+  currentBlockLevel: number
+) => {
+  const results = await xPlentyComputation(Tezos, currentBlockLevel);
+  return ((plentyAmount * results.totalSupply) / results.plentyBalance) * 0.995;
+};
+
+export const getExpectedPlenty = async (
+  Tezos: TezosToolkit,
+  xPlentyAmount: number,
+  currentBlockLevel: number
+) => {
+  const results = await xPlentyComputation(Tezos, currentBlockLevel);
+  try {
+    if (results.totalSupply < xPlentyAmount) {
+      throw "Invalid Request";
+    }
+    return (
+      ((xPlentyAmount * results.plentyBalance) / results.totalSupply) * 0.995
+    );
+  } catch (error) {
+    console.log(error);
+  }
 };
