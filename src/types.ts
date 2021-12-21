@@ -103,6 +103,7 @@ export enum AvailableInvestments {
   "wWBTC-PAUL" = "wWBTC-PAUL",
   "wUSDC-PAUL" = "wUSDC-PAUL",
   "wWETH-PAUL" = "wWETH-PAUL",
+  "PAUL-uUSD" = "PAUL-uUSD",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
   "KUSD-QL" = "KUSD-QL",

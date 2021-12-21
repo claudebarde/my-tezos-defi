@@ -1050,6 +1050,17 @@
       "rewardToken": "PAUL",
       "liquidityToken": true
     },
+    "PAUL-uUSD": {
+      "id": "PAUL-uUSD",
+      "platform": "paul",
+      "address": "KT1D5VoidRrC4G2HDXpSUfAVaccGpzWJsE3r",
+      "decimals": 6,
+      "info": ["paul-lqt"],
+      "alias": "PAUL/uUSD farm",
+      "icons": ["PAUL", "uUSD"],
+      "rewardToken": "PAUL",
+      "liquidityToken": true
+    },
     "KUSD-QUIPU-LP": {
       "id": "KUSD-QUIPU-LP",
       "platform": "kdao",

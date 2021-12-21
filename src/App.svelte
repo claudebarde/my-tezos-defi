@@ -363,8 +363,8 @@
     try {
       // fetches data from the IPFS
       const defiDataResponse = await fetch(
-        `https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
-        //`https://gateway.pinata.cloud/ipfs/${$store.defiData}`
+        //`https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
+        `https://gateway.pinata.cloud/ipfs/${$store.defiData}`
       );
       if (defiDataResponse) {
         const defiData: {

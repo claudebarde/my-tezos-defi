@@ -107,40 +107,40 @@
     </button>
   </div>
 </div>
-<div class="vault-sub-row">
-  <div />
-  <div class="stats">
-    <div class="stats__stat-block">
-      <div>Minted kUSD</div>
-      <div>
-        {kusdOutstanding
-          ? formatTokenAmount(
-              kusdOutstanding / 10 ** $store.tokens.kUSD.decimals
-            )
-          : "---"} kUSD
+{#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+  <div class="vault-sub-row">
+    <div />
+    <div class="stats">
+      <div class="stats__stat-block">
+        <div>Minted kUSD</div>
+        <div>
+          {kusdOutstanding
+            ? formatTokenAmount(
+                kusdOutstanding / 10 ** $store.tokens.kUSD.decimals
+              )
+            : "---"} kUSD
+        </div>
       </div>
-    </div>
-    <div class="stats__stat-block">
-      <div>Stability fees</div>
-      <div>
-        {stabilityFees
-          ? `${formatTokenAmount(
-              stabilityFees / 10 ** $store.tokens.kUSD.decimals
-            )} kUSD`
-          : "N/A"}
+      <div class="stats__stat-block">
+        <div>Stability fees</div>
+        <div>
+          {stabilityFees
+            ? `${formatTokenAmount(
+                stabilityFees / 10 ** $store.tokens.kUSD.decimals
+              )} kUSD`
+            : "N/A"}
+        </div>
       </div>
-    </div>
-    <div class="stats__stat-block">
-      <div>Collateral utilization</div>
-      <div>
-        {kusdCollatUtilization ?? "---"}%
+      <div class="stats__stat-block">
+        <div>Collateral utilization</div>
+        <div>
+          {kusdCollatUtilization ?? "---"}%
+        </div>
       </div>
+      <div>:)</div>
     </div>
-    <div>:)</div>
-  </div>
-  <div />
-  <div />
-  {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+    <div />
+    <div />
     <div class="actions">
       <div>
         <button
@@ -187,8 +187,8 @@
         </button>
       </div>
     </div>
-  {/if}
-</div>
+  </div>
+{/if}
 {#if openModal}
   <Modal type="small" on:close={() => (openModal = false)}>
     <div slot="modal-title" class="modal-title">

@@ -143,8 +143,9 @@ export const calcPaulFarmApr = async ({
     case AvailableInvestments["wUSDC-PAUL"]:
     case AvailableInvestments["QUIPU-PAUL"]:
     case AvailableInvestments["wWETH-PAUL"]:
+    case AvailableInvestments["PAUL-uUSD"]:
       const invData = localStore.investments[farmId];
-      const { tokenBAmount } = await calcTokenStakesInAlienFarm({
+      const { tokenAAmount, tokenBAmount } = await calcTokenStakesInAlienFarm({
         Tezos,
         amountOfTokens: 10 ** 4,
         tokens: invData.icons.map(icon => ({
@@ -153,11 +154,19 @@ export const calcPaulFarmApr = async ({
           tokenType: localStore.tokens[icon as AvailableToken].type
         }))
       });
-      lpTokenPrice =
-        (((tokenBAmount / 10 ** localStore.tokens.PAUL.decimals) *
-          localStore.tokens.PAUL.exchangeRate) /
-          10 ** 6) *
-        2;
+      if (invData.icons[0] === "PAUL") {
+        lpTokenPrice =
+          (((tokenAAmount / 10 ** localStore.tokens.PAUL.decimals) *
+            localStore.tokens.PAUL.exchangeRate) /
+            10 ** 6) *
+          2;
+      } else {
+        lpTokenPrice =
+          (((tokenBAmount / 10 ** localStore.tokens.PAUL.decimals) *
+            localStore.tokens.PAUL.exchangeRate) /
+            10 ** 6) *
+          2;
+      }
       break;
     default:
       lpTokenPrice = null;
