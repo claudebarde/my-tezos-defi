@@ -151,7 +151,7 @@
         <div class="tvl-details">
           <span>Locked tzBTC</span>
           <div class="tvl-details-info">
-            <img src={$store.tokens.tzBTC.thumbnail} alt="tzbtc" />
+            <img src="images/tzBTC.png" alt="tzbtc" />
             &nbsp;
             {(+(tokenPool / 10 ** 8).toFixed(5) / 1).toLocaleString("en-US")}
           </div>

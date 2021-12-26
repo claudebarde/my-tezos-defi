@@ -182,7 +182,7 @@
 </div>
 <br />
 <div class="trade-inputs">
-  <img src={$store.tokens.tzBTC.thumbnail} alt="tzBTC-logo" />
+  <img src="images/tzBTC.png" alt="tzBTC-logo" />
   <div>
     <input
       type="text"

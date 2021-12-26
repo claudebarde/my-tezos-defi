@@ -175,7 +175,7 @@
 <br />
 <div class="trade-inputs">
   {#if left === "tzbtc"}
-    <img src={$store.tokens.tzBTC.thumbnail} alt="tzBTC-logo" />
+    <img src="images/tzBTC.png" alt="tzBTC-logo" />
     <div>
       <input
         type="text"
@@ -279,7 +279,7 @@
         Your balance: {+userTzbtcBalance.toFixed(5) / 1}
       </div>
     </div>
-    <img src={$store.tokens.tzBTC.thumbnail} alt="tzBTC-logo" />
+    <img src="images/tzBTC.png" alt="tzBTC-logo" />
   {/if}
 </div>
 <br />

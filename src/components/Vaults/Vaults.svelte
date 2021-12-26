@@ -7,6 +7,7 @@
   import Row from "./Row.svelte";
   import CtezRow from "./Row/CtezRow.svelte";
   import KusdRow from "./Row/KusdRow.svelte";
+  import UusdRow from "./Row/UusdRow.svelte";
 
   let selectKusdVaults = false;
   let selectWxtzVaults = false;
@@ -392,7 +393,7 @@
       <div>Locked</div>
     </div>
     {#each $localStorageStore.uUsdVaults as address}
-      <Row {address} platform="uusd" />
+      <UusdRow {address} />
     {/each}
   {/if}
   <br />

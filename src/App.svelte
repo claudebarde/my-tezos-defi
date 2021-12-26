@@ -119,7 +119,7 @@
                     console.log("FA2 operation to user account:", op);
                     token = Object.entries($store.tokens).find(
                       tk =>
-                        tk[1].address === op.target.address &&
+                        tk[1].address === op.from_ &&
                         tk[1].tokenId === tx.token_id
                     );
                     let userBalance = updatedTokensBalances[token[0]];

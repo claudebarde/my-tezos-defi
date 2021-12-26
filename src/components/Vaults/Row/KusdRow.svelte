@@ -61,7 +61,7 @@
     kusdOutstanding = (await ovenClient.getBorrowedTokens()).toNumber();
     stabilityFees = (await ovenClient.getStabilityFees()).toNumber();
     const collat = await ovenClient.getCollateralizationRatio();
-    console.log(collat.toNumber() / 10 ** 18);
+    //console.log(collat.toNumber() / 10 ** 18);
   });
 
   afterUpdate(async () => {

@@ -348,6 +348,12 @@
           <span class="material-icons"> agriculture </span>
         </button>
       {/if}
+      {#if $store.tokensBalances && $store.tokensBalances[invData.icons[0]] && $store.tokensBalances[invData.icons[1]]}
+        <button class="primary">
+          Stake &nbsp;
+          <span class="material-icons"> file_download </span>
+        </button>
+      {/if}
       {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
         <button
           class="primary"
