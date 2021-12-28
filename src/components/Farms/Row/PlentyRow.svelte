@@ -25,6 +25,7 @@
   import toastStore from "../../Toast/toastStore";
   import Modal from "../../Modal/Modal.svelte";
   import config from "../../../config";
+  import PlentyStakeUnstake from "../Modals/PlentyStakeUnstake.svelte";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -38,6 +39,7 @@
   let harvestingSuccess = undefined;
   let stakeInXtz: null | number = null;
   let openSettingsModal = false;
+  let openStakingModal = false;
   const dispatch = createEventDispatcher();
   let apy: null | number = null;
   let apr: null | number = null;
@@ -349,7 +351,10 @@
         </button>
       {/if}
       {#if $store.tokensBalances && $store.tokensBalances[invData.icons[0]] && $store.tokensBalances[invData.icons[1]]}
-        <button class="primary">
+        <button
+          class="primary"
+          on:click={() => (openStakingModal = !openStakingModal)}
+        >
           Stake &nbsp;
           <span class="material-icons"> file_download </span>
         </button>
@@ -392,4 +397,7 @@
       </button>
     </div>
   </Modal>
+{/if}
+{#if openStakingModal}
+  <PlentyStakeUnstake {invData} on:close={() => (openStakingModal = false)} />
 {/if}
