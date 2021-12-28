@@ -10,22 +10,7 @@ interface Toast {
   token?: AvailableToken;
   icon?: string;
 }
-let initialState: Toast[] = [
-  {
-    id: 333,
-    type: "info",
-    title: "Test",
-    text: "this is a test",
-    dismissable: true
-  },
-  {
-    id: 334,
-    type: "info",
-    title: "Test",
-    text: "this is a test",
-    dismissable: true
-  }
-];
+let initialState: Toast[] = [];
 const delay = 6000;
 
 const store = writable(initialState);
