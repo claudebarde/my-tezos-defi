@@ -325,3 +325,33 @@ export const getExpectedPlenty = async (
     console.log(error);
   }
 };
+
+export const estimateLpTokenOutput = ({
+  tokenIn_amount,
+  tokenOut_amount,
+  tokenIn_supply,
+  tokenOut_supply,
+  lpTokenSupply
+}: {
+  tokenIn_amount: number;
+  tokenOut_amount: number;
+  tokenIn_supply: number;
+  tokenOut_supply: number;
+  lpTokenSupply: number;
+} | null) => {
+  try {
+    const lpOutputBasedOnTokenIn =
+      (tokenIn_amount * lpTokenSupply) / tokenIn_supply;
+    const lpOutputBasedOnTokenOut =
+      (tokenOut_amount * lpTokenSupply) / tokenOut_supply;
+    let estimatedLpOutput = 0;
+    estimatedLpOutput =
+      lpOutputBasedOnTokenIn < lpOutputBasedOnTokenOut
+        ? lpOutputBasedOnTokenIn
+        : lpOutputBasedOnTokenOut;
+    return estimatedLpOutput;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};

@@ -358,6 +358,7 @@
     Tezos.setPackerProvider(new MichelCodecPacker());
     Tezos.addExtension(new Tzip16Module());
     store.updateTezos(Tezos);
+    console.info(`Connected to ${rpcUrl}`);
 
     let tokens: [AvailableToken, TokenContract][] = [];
     try {

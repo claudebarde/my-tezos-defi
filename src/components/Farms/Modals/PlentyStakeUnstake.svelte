@@ -2,9 +2,12 @@
   import { createEventDispatcher } from "svelte";
   import Modal from "../../Modal/Modal.svelte";
   import store from "../../../store";
-  import type { InvestmentData, IconValue } from "../../../types";
+  import type { InvestmentData } from "../../../types";
   import { formatTokenAmount } from "../../../utils";
-  import { getPlentyLqtValue } from "../../../tokenUtils/plentyUtils";
+  import {
+    estimateLpTokenOutput,
+    formatPlentyLpAmount
+  } from "../../../tokenUtils/plentyUtils";
   import config from "../../../config";
 
   export let invData: InvestmentData;
@@ -13,26 +16,45 @@
 
   let tokenAAmount = "";
   let tokenBAmount = "";
+  let totalLpTokens = 0;
 
   // calculates the necessary amount of the second token + LP token output
   const calcLPTvalue = async (val: string, tokenInput: "tokenA" | "tokenB") => {
     const tokenVal = +val;
     if (!isNaN(tokenVal)) {
-      console.log(tokenVal, tokenInput);
-      const pricesForOneLPtoken = await getPlentyLqtValue(
-        invData.id,
-        config.plentyDexAddresses[invData.id],
-        1,
-        $store.Tezos
-      );
-      if (pricesForOneLPtoken) {
-        console.log(pricesForOneLPtoken);
-        const { token1Amount, token2Amount } = pricesForOneLPtoken;
-        if (tokenInput === "tokenA") {
-          tokenBAmount = formatTokenAmount(
-            (tokenVal / token1Amount) * token2Amount
-          ).toString();
-        }
+      const dexAddress = config.plentyDexAddresses[invData.id];
+      const contract = await $store.Tezos.wallet.at(dexAddress);
+      const storage: any = await contract.storage();
+      if (tokenInput === "tokenA") {
+        // value from first input
+        const otherToken =
+          (tokenVal *
+            10 ** $store.tokens[invData.icons[0]].decimals *
+            storage.token2_pool.toNumber()) /
+          storage.token1_pool.toNumber() /
+          10 ** $store.tokens[invData.icons[1]].decimals;
+        tokenBAmount = formatTokenAmount(otherToken, 9).toString();
+        const estimatedLptOutput = estimateLpTokenOutput({
+          tokenIn_amount:
+            tokenVal * 10 ** $store.tokens[invData.icons[0]].decimals,
+          tokenOut_amount:
+            otherToken * 10 ** $store.tokens[invData.icons[1]].decimals,
+          tokenIn_supply: storage.token1_pool.toNumber(),
+          tokenOut_supply: storage.token2_pool.toNumber(),
+          lpTokenSupply: storage.totalSupply
+        });
+        totalLpTokens = formatTokenAmount(
+          estimatedLptOutput / 10 ** invData.decimals
+        );
+      } else {
+        // value from second input
+        const otherToken =
+          (tokenVal *
+            10 ** $store.tokens[invData.icons[1]].decimals *
+            storage.token1_pool.toNumber()) /
+          storage.token2_pool.toNumber() /
+          10 ** $store.tokens[invData.icons[0]].decimals;
+        tokenAAmount = formatTokenAmount(otherToken, 9).toString();
       }
     }
   };
@@ -75,7 +97,7 @@
           </div>
         </div>
       {/each}
-      <div>Total LP tokens: 0</div>
+      <div>Total LP tokens: {totalLpTokens}</div>
     </div>
   </div>
   <div slot="modal-footer" class="modal-footer">

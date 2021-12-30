@@ -9,13 +9,14 @@
   import "tippy.js/dist/tippy.css";
   import "tippy.js/themes/light-border.css";
   import type { AvailableInvestments, InvestmentData } from "../../../types";
-  import { AvailableToken } from "../../../types";
+  import { AvailableToken, State } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
   import {
     prepareOperation,
     loadInvestment,
-    formatTokenAmount
+    formatTokenAmount,
+    searchUserTokens
   } from "../../../utils";
   import {
     calcPlentyStakeInXtz,
@@ -149,18 +150,37 @@
       }
     }
 
+    const [token1, token2] = invData.icons;
+
+    // find balances for tokens in pair
+    let balances: Partial<State["tokensBalances"]> = await searchUserTokens({
+      Tezos: $store.Tezos,
+      userAddress: $store.userAddress,
+      tokens: [
+        [token1, $store.tokens[token1]],
+        [token2, $store.tokens[token2]]
+      ]
+    });
+    if (balances && Object.values(balances).length > 0) {
+      let newBalances = { ...$store.tokensBalances };
+      Object.entries(balances).forEach(
+        ([token, tokenBalance]) => (newBalances[token] = tokenBalance)
+      );
+      store.updateTokensBalances(newBalances);
+    }
+
     await fetchStatistics(
       invData.id,
-      invData.icons[0] as AvailableToken,
-      invData.icons[1] as AvailableToken
+      token1 as AvailableToken,
+      token2 as AvailableToken
     );
 
     refreshStats = setInterval(
       async () =>
         await fetchStatistics(
           invData.id,
-          invData.icons[0] as AvailableToken,
-          invData.icons[1] as AvailableToken
+          token1 as AvailableToken,
+          token2 as AvailableToken
         ),
       600000
     );
