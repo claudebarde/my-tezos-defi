@@ -540,7 +540,7 @@
             await fetchTezToolsPrices(
               Object.entries($store.tokens) as [AvailableToken, TokenContract][]
             );
-            console.log("refreshes data");
+            console.log("refreshes data", Date.now(), lastVisit);
           }
         });
 

@@ -355,3 +355,193 @@ export const estimateLpTokenOutput = ({
     return null;
   }
 };
+
+// estimate token output for a swap
+export const computeTokenOutput = (
+  tokenIn_amount,
+  tokenIn_supply,
+  tokenOut_supply,
+  exchangeFee,
+  slippage
+) => {
+  try {
+    let tokenOut_amount = 0;
+    tokenOut_amount = (1 - exchangeFee) * tokenOut_supply * tokenIn_amount;
+    tokenOut_amount /= tokenIn_supply + (1 - exchangeFee) * tokenIn_amount;
+    const fees = tokenIn_amount * exchangeFee;
+    const minimum_Out = tokenOut_amount - (slippage * tokenOut_amount) / 100;
+
+    const updated_TokenIn_Supply = tokenIn_supply - tokenIn_amount;
+    const updated_TokenOut_Supply = tokenOut_supply - tokenOut_amount;
+    let next_tokenOut_Amount =
+      (1 - exchangeFee) * updated_TokenOut_Supply * tokenIn_amount;
+    next_tokenOut_Amount /=
+      updated_TokenIn_Supply + (1 - exchangeFee) * tokenIn_amount;
+    let priceImpact =
+      (tokenOut_amount - next_tokenOut_Amount) / tokenOut_amount;
+    priceImpact = priceImpact * 100;
+    priceImpact = +priceImpact.toFixed(5);
+    priceImpact = Math.abs(priceImpact);
+    priceImpact = priceImpact * 100;
+
+    return {
+      tokenOut_amount,
+      fees,
+      minimum_Out,
+      priceImpact
+    };
+  } catch (error) {
+    return {
+      tokenOut_amount: 0,
+      fees: 0,
+      minimum_Out: 0,
+      priceImpact: 0
+    };
+  }
+};
+
+/*export const loadSwapData = async (
+  Tezos: TezosToolkit,
+  tokenIn: AvailableToken,
+  tokenOut: AvailableToken
+) => {
+  const localStore = get(store);
+
+  try {
+    const dexAddresses = Object.keys(config.plentyDexAddresses);
+    const dexName = dexAddresses.find(name =>
+      name.includes(`${tokenIn}-${tokenOut}`)
+    );
+    if (dexName) {
+      const dexContractAddress = config.plentyDexAddresses[dexName];
+
+      const dexContractInstance = await Tezos.contract.at(dexContractAddress);
+      const dexStorage: any = await dexContractInstance.storage();
+      let systemFee = await dexStorage.systemFee;
+      systemFee = systemFee.toNumber();
+      let lpFee = await dexStorage.lpFee;
+      lpFee = lpFee.toNumber();
+      let token1_pool = await dexStorage.token1_pool;
+      token1_pool = token1_pool.toNumber();
+      let token2_pool = await dexStorage.token2_pool;
+      token2_pool = token2_pool.toNumber();
+      let lpTokenSupply = await dexStorage.totalSupply;
+      lpTokenSupply = lpTokenSupply.toNumber();
+      const lpToken = dexName;
+      let tokenIn_supply = 0;
+      let tokenOut_supply = 0;
+      if (
+        CONFIG.AMM[connectedNetwork][tokenIn].DEX_PAIRS[tokenOut].property ===
+        "token2_pool"
+      ) {
+        tokenOut_supply = token2_pool;
+        tokenIn_supply = token1_pool;
+      } else {
+        tokenOut_supply = token1_pool;
+        tokenIn_supply = token2_pool;
+      }
+      const tokenIn_Decimal = localStore.tokens[tokenIn].decimals;
+      const tokenOut_Decimal = localStore.tokens[tokenOut].decimals;
+      const liquidityToken_Decimal = localStore.investments[dexName].decimals;
+      tokenIn_supply = tokenIn_supply / Math.pow(10, tokenIn_Decimal);
+      tokenOut_supply = tokenOut_supply / Math.pow(10, tokenOut_Decimal);
+      lpTokenSupply = lpTokenSupply / Math.pow(10, liquidityToken_Decimal);
+      const exchangeFee = 1 / lpFee + 1 / systemFee;
+      const tokenOutPerTokenIn = tokenOut_supply / tokenIn_supply;
+      return {
+        success: true,
+        tokenIn,
+        tokenIn_supply,
+        tokenOut,
+        tokenOut_supply,
+        exchangeFee,
+        tokenOutPerTokenIn,
+        lpTokenSupply,
+        lpToken,
+        dexContractInstance
+      };
+    } else {
+      throw "Unable to find DEX address";
+    }
+  } catch (error) {
+    console.log({ message: "swap data error", error });
+    return {
+      success: true,
+      tokenIn,
+      tokenIn_supply: 0,
+      tokenOut,
+      tokenOut_supply: 0,
+      exchangeFee: 0,
+      tokenOutPerTokenIn: 0,
+      lpTokenSupply: 0,
+      lpToken: null,
+      dexContractInstance: null
+    };
+  }
+};
+
+export const getRouteSwapData = async (tokenIn, tokenOut, middleToken) => {
+  try {
+    const response = await Promise.all([
+      loadSwapData(tokenIn, middleToken[0].name),
+      loadSwapData(middleToken[0].name, tokenOut)
+    ]);
+    const tokenOutPerTokenIn =
+      (response[0].tokenOut_supply / response[0].tokenIn_supply) *
+      (response[1].tokenOut_supply / response[1].tokenIn_supply);
+    return {
+      success: true,
+      inToMid: response[0],
+      midToOut: response[1],
+      tokenOutPerTokenIn: tokenOutPerTokenIn
+    };
+  } catch (error) {
+    return {
+      success: false,
+      inToMid: null,
+      midToOut: null,
+      tokenOutPerTokenIn: 0
+    };
+  }
+};
+
+export const computeTokenOutForRouteBase = (
+  inputAmount,
+  swapData,
+  slippage
+) => {
+  try {
+    const inToMidOutput = computeTokenOutput(
+      inputAmount,
+      swapData.inToMid.tokenIn_supply,
+      swapData.inToMid.tokenOut_supply,
+      swapData.inToMid.exchangeFee,
+      slippage
+    );
+
+    const midToOutOutput = computeTokenOutput(
+      inToMidOutput.tokenOut_amount,
+      swapData.midToOut.tokenIn_supply,
+      swapData.midToOut.tokenOut_supply,
+      swapData.midToOut.exchangeFee,
+      slippage
+    );
+
+    return {
+      tokenOut_amount: midToOutOutput.tokenOut_amount,
+      fees: inToMidOutput.fees,
+      addtPlentyFee: inToMidOutput.tokenOut_amount / 400,
+      minimum_Out: midToOutOutput.minimum_Out,
+      minimum_Out_Plenty: inToMidOutput.minimum_Out,
+      priceImpact: inToMidOutput.priceImpact + midToOutOutput.priceImpact
+    };
+  } catch (err) {
+    console.log(err);
+    return {
+      tokenOut_amount: 0,
+      fees: 0,
+      minimum_Out: 0,
+      priceImpact: 0
+    };
+  }
+};*/

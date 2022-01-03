@@ -150,9 +150,18 @@
           padding: 10px 20px;
           margin: 10px;
           border-radius: 10px;
+
+          img.loading {
+            -webkit-animation: heartbeat 1.5s ease-in-out infinite both;
+            animation: heartbeat 1.5s ease-in-out infinite both;
+          }
         }
 
         .modal-body__add-stake__available-balance {
+          background-color: transparent;
+          border: none;
+          color: inherit;
+          font-family: inherit;
           font-size: 0.7rem;
           text-align: right;
           padding-top: 6px;

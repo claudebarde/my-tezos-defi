@@ -19,10 +19,9 @@
       const balance = await searchUserTokens({
         Tezos: $store.Tezos,
         userAddress: $store.userAddress,
-        tokens: [token, $store.tokens[token]]
+        tokens: [[token, $store.tokens[token]]]
       });
-      console.log(balance);
-      dispatch("token-select", { token, balance });
+      dispatch("token-select", { token, balance: Object.values(balance)[0] });
     } else {
       dispatch("token-select", {
         token,
@@ -30,6 +29,23 @@
       });
     }
   };
+
+  /** Dispatch event on click outside of node */
+  export function clickOutside(node) {
+    const handleClick = event => {
+      if (node && !node.contains(event.target) && !event.defaultPrevented) {
+        node.dispatchEvent(new CustomEvent("click_outside", node));
+      }
+    };
+
+    document.addEventListener("click", handleClick, true);
+
+    return {
+      destroy() {
+        document.removeEventListener("click", handleClick, true);
+      }
+    };
+  }
 </script>
 
 <style lang="scss">
@@ -107,8 +123,19 @@
   }
 </style>
 
-<div class="token-select-container">
-  <button class="token-select" class:active on:click={() => (active = !active)}>
+<div
+  class="token-select-container"
+  use:clickOutside
+  on:click_outside={() => (active = false)}
+>
+  <button
+    class="token-select"
+    class:active
+    on:click={() => {
+      active = !active;
+      dispatch("click");
+    }}
+  >
     {#if selectedToken}
       <div class="selected-token">
         <img
@@ -131,7 +158,7 @@
         <img src="images/XTZ.png" alt="XTZ-icon" />
         XTZ
       </div>
-      {#each Object.keys($store.tokens).sort( (a, b) => (a > b ? 1 : b > a ? -1 : 0) ) as token}
+      {#each Object.keys($store.tokens).sort( (a, b) => (a.toLowerCase() > b.toLowerCase() ? 1 : b.toLowerCase() > a.toLowerCase() ? -1 : 0) ) as token}
         <div
           class="tokens-list-item"
           on:click={async () => await selectToken(token)}
