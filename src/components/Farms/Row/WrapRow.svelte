@@ -437,19 +437,19 @@
           <span class="material-icons"> agriculture </span>
         </button>
       {/if}
-      {#if compounding}
+      {#if invData.type !== "fee-farming" && compounding}
         <button class="primary loading">
           Harvesting &nbsp;
           <span class="material-icons"> sync </span>
         </button>
-      {:else if compoundingSuccess === true}
+      {:else if invData.type !== "fee-farming" && compoundingSuccess === true}
         <button class="primary success">
           Success &nbsp;
           <span class="material-icons"> thumb_up </span>
         </button>
-      {:else if compoundingSuccess === false}
+      {:else if invData.type !== "fee-farming" && compoundingSuccess === false}
         <button class="mini error" on:click={compound}> Retry </button>
-      {:else}
+      {:else if invData.type !== "fee-farming"}
         <button
           class="primary"
           on:click={compound}

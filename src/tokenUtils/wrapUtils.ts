@@ -190,7 +190,6 @@ export const calcTokenStakesInWrapFarms = async (param: {
   tokenDecimals: number;
 }): Promise<number | null> => {
   let { invData, balance, Tezos, tokenExchangeRate, tokenDecimals } = param;
-  console.log(invData);
   if (invData && balance && Tezos) {
     const sharesInXtz = await estimateQuipuTezInShares(
       Tezos,
