@@ -196,9 +196,9 @@
         totalStaked = +stats[0].totalStaked;
       } else if (type === "staking" && Array.isArray(stats)) {
         const token =
-          farm === "WRAP-XTZ-FM"
+          farm === "WRAP-XTZ-LM"
             ? AvailableToken.WRAP
-            : $store.investments[farm].rewardToken;
+            : invData.icons[0].slice(1);
         const farmStats = stats.find(st => st.base === token);
         if (farmStats) {
           apy = +farmStats.apy;
@@ -264,7 +264,11 @@
           Tezos: $store.Tezos
         });
 
-        stakeInXtz = +stakes.toFixed(5) / 1;
+        if (stakes) {
+          stakeInXtz = +stakes.toFixed(5) / 1;
+        } else {
+          stakeInXtz = null;
+        }
       } else {
         stakeInXtz =
           +(

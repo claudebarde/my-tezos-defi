@@ -182,11 +182,11 @@ export default {
   },
   wrapLiquidityMiningDexAddress: {
     "WRAP-XTZ-LM": "KT1FG63hhFtMEEEtmBSX2vuFmP87t9E7Ab4t",
-    "WRAP-wBUSD-LM": "KT1UMAE2PBskeQayP5f2ZbGiVYF7h8bZ2gyp",
-    "WRAP-wDAI-LM": "KT1PQ8TMzGMfViRq4tCMFKD2QF5zwJnY67Xn",
-    "WRAP-wUSDC-LM": "KT1U2hs5eNdeCpHouAvQXGMzGFGJowbhjqmo",
-    "WRAP-wUSDT-LM": "KT1T4pfr6NL8dUiz8ibesjEvH2Ne3k6AuXgn",
-    "WRAP-wWBTC-LM": "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
-    "WRAP-wWETH-LM": "KT1DuYujxrmgepwSDHtADthhKBje9BosUs1w"
+    "wBUSD-XTZ-LM": "KT1UMAE2PBskeQayP5f2ZbGiVYF7h8bZ2gyp",
+    "wDAI-XTZ-LM": "KT1PQ8TMzGMfViRq4tCMFKD2QF5zwJnY67Xn",
+    "wUSDC-XTZ-LM": "KT1U2hs5eNdeCpHouAvQXGMzGFGJowbhjqmo",
+    "wUSDT-XTZ-LM": "KT1T4pfr6NL8dUiz8ibesjEvH2Ne3k6AuXgn",
+    "wWBTC-XTZ-LM": "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
+    "wWETH-XTZ-LM": "KT1DuYujxrmgepwSDHtADthhKBje9BosUs1w"
   }
 };

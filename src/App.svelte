@@ -419,7 +419,7 @@
                 info: [],
                 alias: `${farm.token}-XTZ LM pool`,
                 icons: [farm.token, "XTZ"],
-                rewardToken: farm.token,
+                rewardToken: AvailableToken.WRAP,
                 liquidityToken: true
               })
           );
