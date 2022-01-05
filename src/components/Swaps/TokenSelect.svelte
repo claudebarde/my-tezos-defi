@@ -4,6 +4,8 @@
   import { searchUserTokens } from "../../utils";
   import type { AvailableToken } from "../../types";
 
+  export let tokensToIgnore: (AvailableToken | "XTZ")[];
+
   let active = false;
   let selectedToken: AvailableToken | string;
   const dispatch = createEventDispatcher();
@@ -12,9 +14,10 @@
     active = false;
     selectedToken = token;
     if (
-      $store.tokensBalances &&
-      (!$store.tokensBalances.hasOwnProperty(token) ||
-        !$store.tokensBalances[token])
+      !$store.tokensBalances ||
+      ($store.tokensBalances &&
+        (!$store.tokensBalances.hasOwnProperty(token) ||
+          !$store.tokensBalances[token]))
     ) {
       const balance = await searchUserTokens({
         Tezos: $store.Tezos,
@@ -22,7 +25,7 @@
         tokens: [[token, $store.tokens[token]]]
       });
       dispatch("token-select", { token, balance: Object.values(balance)[0] });
-    } else {
+    } else if ($store.tokensBalances && $store.tokensBalances[token]) {
       dispatch("token-select", {
         token,
         balance: $store.tokensBalances[token]
@@ -61,7 +64,7 @@
       align-items: center;
       font-size: 0.9rem;
       border: solid 2px $container-bg-color;
-      background-color: transparent;
+      background-color: lighten($container-bg-color, 60);
       color: inherit;
       padding: 5px 10px;
       margin: 0px;
@@ -151,14 +154,18 @@
   </button>
   {#if active}
     <div class="tokens-list">
-      <div
-        class="tokens-list-item"
-        on:click={async () => await selectToken("XTZ")}
-      >
-        <img src="images/XTZ.png" alt="XTZ-icon" />
-        XTZ
-      </div>
-      {#each Object.keys($store.tokens).sort( (a, b) => (a.toLowerCase() > b.toLowerCase() ? 1 : b.toLowerCase() > a.toLowerCase() ? -1 : 0) ) as token}
+      {#if !tokensToIgnore.includes("XTZ")}
+        <div
+          class="tokens-list-item"
+          on:click={async () => await selectToken("XTZ")}
+        >
+          <img src="images/XTZ.png" alt="XTZ-icon" />
+          XTZ
+        </div>
+      {/if}
+      {#each Object.keys($store.tokens)
+        .filter(token => !tokensToIgnore.includes(token))
+        .sort( (a, b) => (a.toLowerCase() > b.toLowerCase() ? 1 : b.toLowerCase() > a.toLowerCase() ? -1 : 0) ) as token}
         <div
           class="tokens-list-item"
           on:click={async () => await selectToken(token)}

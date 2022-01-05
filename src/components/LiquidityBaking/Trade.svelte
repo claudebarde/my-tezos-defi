@@ -137,6 +137,8 @@
 </script>
 
 <style lang="scss">
+  @import "../../styles/settings.scss";
+
   .material-icons {
     vertical-align: bottom;
   }
@@ -150,6 +152,14 @@
     img {
       width: 30px;
       height: 30px;
+    }
+
+    input[type="text"] {
+      border: solid 1px $container-bg-color;
+      border-radius: 10px;
+      padding: 5px;
+      font-size: 1rem;
+      outline: none;
     }
 
     .trade-input-balance {

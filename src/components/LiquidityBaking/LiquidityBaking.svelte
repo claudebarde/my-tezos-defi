@@ -61,11 +61,11 @@
   .title {
     text-align: center;
     padding: 20px;
+    font-size: 1.4rem;
   }
 
   .container-lb {
     .row {
-      padding: 15px 10px;
       justify-content: space-around;
       align-items: center;
 
@@ -73,14 +73,18 @@
         display: flex;
       }
 
-      &:not(:first-child) {
-        border-top: solid 4px $border-color;
+      &:first-child {
+        border-bottom: solid 4px $border-color;
       }
 
       .tvl-details {
         display: flex;
         flex-direction: column;
         text-align: center;
+        background-color: lighten($container-bg-color, 65);
+        padding: 10px 20px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
 
         span {
           font-size: 0.8rem;
@@ -137,7 +141,11 @@
     .interact {
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
+      background-color: lighten($container-bg-color, 65);
+      border-radius: 10px;
+      padding: 20px 10px;
     }
   }
 </style>
@@ -183,6 +191,8 @@
           </div>
         {/if}
       </div>
+      <br />
+      <br />
       {#if $store.userAddress}
         <div class="row">
           <div class="tabs">
@@ -226,8 +236,6 @@
               Remove liquidity
             </label>
           </div>
-          <br />
-          <br />
           <div class="interact">
             {#if selectedTab === "trade"}
               <Trade {lbContractAddress} {tokenPool} {xtzPool} />

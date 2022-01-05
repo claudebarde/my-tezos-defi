@@ -92,6 +92,8 @@
 </script>
 
 <style lang="scss">
+  @import "../../styles/settings.scss";
+
   .material-icons {
     vertical-align: bottom;
   }
@@ -105,15 +107,24 @@
       width: 28px;
       height: 28px;
       vertical-align: bottom;
-      border: solid 2px white;
+      border: solid 2px $container-bg-color;
       border-radius: 50%;
       line-height: 28px;
       text-align: center;
+      margin-right: 10px;
     }
 
     .remove-input-balance {
       padding: 0px 15px;
       font-size: 0.7rem;
+    }
+
+    input[type="text"] {
+      border: solid 1px $container-bg-color;
+      border-radius: 10px;
+      padding: 5px;
+      font-size: 1rem;
+      outline: none;
     }
   }
 

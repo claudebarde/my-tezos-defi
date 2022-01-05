@@ -1,9 +1,11 @@
 <script lang="ts">
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import TokenSelect from "./TokenSelect.svelte";
   import { formatTokenAmount, findTokenTotalSupply } from "../../utils";
   import type { AvailableToken } from "../../types";
-  import { getRouteSwapData } from "../../tokenUtils/plentyUtils";
+  import { computeTokenOutput } from "../../tokenUtils/plentyUtils";
+  import config from "../../config";
 
   let maxTokenLeft: number | null = null;
   let maxTokenRight: number | null = null;
@@ -14,6 +16,8 @@
   let tokenRightPlentyVal = "";
   let tokenRightPlentydetails: { minimumOut: number; fee: number };
   let loadingPlentyResults = false;
+  let tokensToIgnore = { left: [], right: [] };
+  let mtdFee: null | number = null;
 
   const selectToken = async (arg: {
     token: AvailableToken | string;
@@ -24,10 +28,12 @@
     if (tokenSide === "left") {
       maxTokenLeft = formatTokenAmount(balance);
       tokenLeft = token;
+      tokensToIgnore.right = [token];
       await estimateSwap("left", null);
     } else {
       maxTokenRight = formatTokenAmount(balance);
       tokenRight = token;
+      tokensToIgnore.left = [token];
       await estimateSwap("right", null);
     }
   };
@@ -47,7 +53,6 @@
 
     // TODO: handle cases with XTZ for PlentySwap
     if (tokenLeft && tokenRight && tokenLeftVal) {
-      const exchangeFee = (+tokenLeftVal * 0.25) / 100;
       const tokenLeftContract = await $store.Tezos.wallet.at(
         $store.tokens[tokenLeft].address
       );
@@ -69,14 +74,23 @@
           ? $store.tokens[tokenRight].tokenId
           : undefined
       );
+      // loads DEX data
+      const dexAddressVal = Object.entries(config.plentyDexAddresses).find(
+        val => val[0].includes(tokenLeft) && val[0].includes(tokenRight)
+      );
 
-      if (tokenLeftTotalSupply && tokenRightTotalSupply) {
-        /*const plentyOutput = await computeTokenOutput(
+      if (tokenLeftTotalSupply && tokenRightTotalSupply && dexAddressVal) {
+        const [_, dexAddress] = dexAddressVal;
+        const dexContract = await $store.Tezos.wallet.at(dexAddress);
+        const dexStorage: any = await dexContract.storage();
+        const { lpFee, systemFee } = dexStorage;
+        const exchangeFee = 1 / lpFee.toNumber() + 1 / systemFee.toNumber();
+        const plentyOutput = await computeTokenOutput(
           +tokenLeftVal,
           tokenLeftTotalSupply / 10 ** $store.tokens[tokenLeft].decimals,
           tokenRightTotalSupply / 10 ** $store.tokens[tokenRight].decimals,
           exchangeFee,
-          0.5
+          0.005
         );
         if (plentyOutput && plentyOutput.tokenOut_amount > 0) {
           tokenRightPlentyVal = formatTokenAmount(
@@ -86,9 +100,14 @@
             minimumOut: plentyOutput.minimum_Out,
             fee: plentyOutput.fees
           };
+          mtdFee =
+            (plentyOutput.minimum_Out *
+              $store.tokens[tokenLeft].exchangeRate *
+              0.3) /
+            100;
         } else {
           console.error("Unable to estimate token output");
-        }*/
+        }
       } else {
         console.error(
           `Unable to find token supply: token left (${tokenLeftTotalSupply}) / token right (${tokenRightTotalSupply})`
@@ -114,7 +133,7 @@
       flex-direction: column;
       justify-content: space-around;
       align-items: stretch;
-      width: 70%;
+      width: 80%;
       margin: 0 auto;
 
       .swaps-inputs__input {
@@ -122,7 +141,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        background-color: lighten($container-bg-color, 60);
+        background-color: lighten($container-bg-color, 65);
         padding: 20px;
         margin: 10px;
         border-radius: 10px;
@@ -133,7 +152,7 @@
           outline: none;
           font-size: 1rem;
           padding: 5px 10px;
-          background-color: lighten($container-bg-color, 65);
+          background-color: lighten($container-bg-color, 70);
           text-align: right;
         }
 
@@ -143,21 +162,30 @@
           justify-content: center;
           align-items: flex-start;
 
-          .swaps-inputs__input__text__available-balance {
-            border: none;
-            background-color: transparent;
-            color: inherit;
-            font-family: inherit;
+          .swaps-inputs__input__text__details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-size: 0.7rem;
-            text-align: right;
+            width: 100%;
             padding-top: 6px;
-            cursor: pointer;
+
+            button {
+              border: none;
+              background-color: transparent;
+              color: inherit;
+              font-family: inherit;
+              font-size: inherit;
+              text-align: right;
+              cursor: pointer;
+            }
           }
         }
 
         .swaps-inputs__input__result {
           display: grid;
-          grid-template-columns: 25% 40% 35%;
+          grid-template-columns: 20% 40% 40%;
+          gap: 20px;
           justify-items: center;
           width: 100%;
 
@@ -182,9 +210,14 @@
             flex-direction: column;
             justify-content: space-around;
             align-items: center;
+            width: 100%;
+
+            input {
+              width: 90%;
+            }
           }
 
-          .swaps-inputs__input__result__details {
+          .swaps-inputs__input__result__info {
             display: flex;
             flex-direction: column;
             justify-content: space-around;
@@ -192,15 +225,23 @@
             font-size: 0.8rem;
           }
 
-          .swaps-inputs__input__result__available-balance {
-            border: none;
-            background-color: transparent;
-            color: inherit;
-            font-family: inherit;
+          .swaps-inputs__input__result__details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-size: 0.7rem;
-            text-align: left;
+            width: 100%;
             padding-top: 6px;
-            cursor: pointer;
+
+            button {
+              border: none;
+              background-color: transparent;
+              color: inherit;
+              font-family: inherit;
+              font-size: inherit;
+              text-align: right;
+              cursor: pointer;
+            }
           }
         }
       }
@@ -215,6 +256,7 @@
   <div class="swaps-inputs">
     <div class="swaps-inputs__input">
       <TokenSelect
+        tokensToIgnore={tokensToIgnore.left}
         on:token-select={async ev =>
           await selectToken({ ...ev.detail, tokenSide: "left" })}
       />
@@ -222,21 +264,37 @@
         <input
           type="text"
           value={tokenLeftVal}
-          on:change={async ev => await estimateSwap("left", ev.target.value)}
+          on:input={async ev => await estimateSwap("left", ev.target.value)}
         />
-        <button
-          class="swaps-inputs__input__text__available-balance"
-          on:click={() => {
-            if (maxTokenLeft) tokenLeftVal = maxTokenLeft.toString();
-          }}
-        >
-          Max: {maxTokenLeft ?? "--"}
-        </button>
+        <div class="swaps-inputs__input__text__details">
+          <button
+            on:click={async () => {
+              if (maxTokenLeft) {
+                tokenLeftVal = maxTokenLeft.toString();
+                await estimateSwap("left", tokenLeftVal);
+              }
+            }}
+          >
+            Max: {maxTokenLeft ?? "--"}
+          </button>
+          {#if tokenLeftVal}
+            <div>
+              ~{formatTokenAmount(
+                +tokenLeftVal *
+                  $store.tokens[tokenLeft].exchangeRate *
+                  $store.xtzData.exchangeRate,
+                2
+              )}
+              {$localStorageStore.preferredFiat}
+            </div>
+          {/if}
+        </div>
       </div>
       <div style="text-align:center">
         <span class="material-icons"> arrow_downward </span>
       </div>
       <TokenSelect
+        tokensToIgnore={tokensToIgnore.right}
         on:token-select={async ev =>
           await selectToken({ ...ev.detail, tokenSide: "right" })}
       />
@@ -249,10 +307,24 @@
         </div>
         <div class="swaps-inputs__input__result__output">
           <input type="text" value={tokenRightQuipuVal} readonly />
-          <button class="swaps-inputs__input__result__available-balance">
-            Balance: {maxTokenRight ?? "--"}
-          </button>
-          <button class="primary">Swap</button>
+          <div class="swaps-inputs__input__result__details">
+            <button>
+              Balance: {maxTokenRight ?? "--"}
+            </button>
+            {#if tokenRightQuipuVal}
+              <div>
+                ~{formatTokenAmount(
+                  +tokenRightQuipuVal *
+                    $store.tokens[tokenRight].exchangeRate *
+                    $store.xtzData.exchangeRate,
+                  2
+                )}
+                {$localStorageStore.preferredFiat}
+              </div>
+            {/if}
+          </div>
+          <br />
+          <button class="primary" disabled={!tokenRightQuipuVal}>Swap</button>
         </div>
       </div>
     </div>
@@ -268,28 +340,50 @@
         </div>
         <div class="swaps-inputs__input__result__output">
           <input type="text" value={tokenRightPlentyVal} readonly />
-          <button class="swaps-inputs__input__result__available-balance">
-            Balance: {maxTokenRight ?? "--"}
-          </button>
-          <button class="primary">Swap</button>
+          <div class="swaps-inputs__input__result__details">
+            <button>
+              Balance: {maxTokenRight ?? "--"}
+            </button>
+            {#if tokenRightPlentyVal}
+              <div>
+                ~{formatTokenAmount(
+                  +tokenRightPlentyVal *
+                    $store.tokens[tokenRight].exchangeRate *
+                    $store.xtzData.exchangeRate,
+                  2
+                )}
+                {$localStorageStore.preferredFiat}
+              </div>
+            {/if}
+          </div>
+          <br />
+          <button class="primary" disabled={!tokenRightPlentyVal}>Swap</button>
         </div>
         {#if tokenRightPlentydetails}
-          <div class="swaps-inputs__input__result__details">
+          <div class="swaps-inputs__input__result__info">
             <div>
               Minimum out: {formatTokenAmount(
                 tokenRightPlentydetails.minimumOut
               )}
             </div>
             <div>
+              Difference: {formatTokenAmount(
+                Math.abs(
+                  +tokenLeftVal *
+                    $store.tokens[tokenLeft].exchangeRate *
+                    $store.xtzData.exchangeRate -
+                    +tokenRightPlentyVal *
+                      $store.tokens[tokenRight].exchangeRate *
+                      $store.xtzData.exchangeRate
+                )
+              )}
+              {$localStorageStore.preferredFiat}
+            </div>
+            <div>
               Fee: {formatTokenAmount(tokenRightPlentydetails.fee)}
             </div>
             <div>
-              MTD fee: {formatTokenAmount(
-                (tokenRightPlentydetails.minimumOut *
-                  $store.tokens[tokenLeft].exchangeRate *
-                  0.3) /
-                  100
-              )} XTZ
+              MTD fee: {formatTokenAmount(mtdFee)} XTZ
             </div>
           </div>
         {/if}

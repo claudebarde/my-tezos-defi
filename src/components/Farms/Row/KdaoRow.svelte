@@ -91,8 +91,8 @@
       if (invData.id === "KUSD-KDAO") {
         stakeInXtz =
           +(
-            (invData.balance / 10 ** invData.decimals) *
-            $store.tokens[invData.rewardToken].exchangeRate
+            (invData.balance / 10 ** $store.tokens.kUSD.decimals) *
+            $store.tokens.kUSD.exchangeRate
           ).toFixed(5) / 1;
       } else if (invData.id === "KUSD-QUIPU-LP") {
         const tezInStakesRaw = await estimateQuipuTezInShares(
@@ -210,7 +210,8 @@
       <span class="title">Stake:</span>
       <br />
       <div class:blurry-text={$store.blurryBalances}>
-        {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1} LPT
+        {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1}
+        {invData.id === "KUSD-KDAO" ? "kUSD" : "LPT"}
       </div>
       <br />
       {#if stakeInXtz}
