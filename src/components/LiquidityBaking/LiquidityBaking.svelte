@@ -4,6 +4,7 @@
   import Trade from "./Trade.svelte";
   import AddLiquidity from "./AddLiquidity.svelte";
   import RemoveLiquidity from "./RemoveLiquidity.svelte";
+  import History from "./History.svelte";
 
   const lbContractAddress = "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5";
   const lqtContractAddress = "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo";
@@ -14,7 +15,8 @@
   let tokenAddress = "";
   let lqtAddress = "";
   let userLqtBalance = 0;
-  let selectedTab: "trade" | "add-liquidity" | "remove-liquidity" = "trade";
+  let selectedTab: "trade" | "add-liquidity" | "remove-liquidity" | "history" =
+    "history";
 
   const fetchUserLqtBalance = async (userAddress): Promise<number> => {
     const contract = await $store.Tezos.wallet.at(lqtContractAddress);
@@ -46,7 +48,7 @@
   };
 
   onMount(async () => {
-    if ($store.Tezos) {
+    if ($store.Tezos && $store.userAddress) {
       await fetchData();
       interval = setInterval(fetchData, 600000);
     }
@@ -65,6 +67,10 @@
   }
 
   .container-lb {
+    height: 90%;
+    display: grid;
+    grid-template-rows: 10% 90%;
+
     .row {
       justify-content: space-around;
       align-items: center;
@@ -126,7 +132,7 @@
         }
 
         label {
-          padding: 5px 15px;
+          padding: 15px;
           cursor: pointer;
           border-bottom: solid 3px transparent;
           transition: 0.3s;
@@ -141,18 +147,18 @@
     .interact {
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       background-color: lighten($container-bg-color, 65);
       border-radius: 10px;
       padding: 20px 10px;
+      height: 90%;
     }
   }
 </style>
 
 <div class="container">
   <div class="title">Liquidity Baking DEX</div>
-  <br /><br />
   <div class="container-lb">
     {#if tokenPool && xtzPool}
       <div class="row tvl">
@@ -191,10 +197,8 @@
           </div>
         {/if}
       </div>
-      <br />
-      <br />
       {#if $store.userAddress}
-        <div class="row">
+        <div class="row" style="overflow:hidden">
           <div class="tabs">
             <label
               for="lb-interact-trade"
@@ -235,6 +239,19 @@
               />
               Remove liquidity
             </label>
+            <label
+              for="lb-interact-history"
+              class:selected={selectedTab === "history"}
+            >
+              <input
+                type="radio"
+                name="lb-interact"
+                id="lb-interact-history"
+                bind:group={selectedTab}
+                value="history"
+              />
+              History
+            </label>
           </div>
           <div class="interact">
             {#if selectedTab === "trade"}
@@ -256,6 +273,8 @@
                 {userLqtBalance}
                 refreshData={fetchData}
               />
+            {:else if selectedTab === "history"}
+              <History {lbContractAddress} />
             {/if}
           </div>
         </div>
