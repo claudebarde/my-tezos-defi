@@ -174,12 +174,26 @@
                   lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals
                 )} tzBTC in
               </div>
+              <div>
+                1 XTZ = {formatTokenAmount(
+                  lbOp.value.xtz /
+                    10 ** 6 /
+                    (lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals)
+                )} tzBtc
+              </div>
             {:else if lbOp.type === "tokenToXtz"}
               <div>{formatTokenAmount(lbOp.value.xtz / 10 ** 6)} XTZ in</div>
               <div>
                 {formatTokenAmount(
                   lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals
                 )} tzBTC out
+              </div>
+              <div>
+                1 XTZ = {formatTokenAmount(
+                  lbOp.value.xtz /
+                    10 ** 6 /
+                    (lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals)
+                )} tzBtc
               </div>
             {:else if lbOp.type === "addLiquidity"}
               <div>
