@@ -3,6 +3,8 @@
   import { OpKind } from "@taquito/taquito";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
+  import { formatTokenAmount } from "../../utils";
+  import config from "../../config";
   //import toastStore from "../Toast/toastStore";
 
   export let lbContractAddress, tokenPool, xtzPool, lqtTotal, refreshData;
@@ -16,9 +18,12 @@
   let minLqtMinted = 0;
   let addLiquidityLoading = false;
   let addLiquiditySuccessfull: false | 1 | 2 = false; // false = no data | 1 = successfull | 2 = failed
+  let mtdFee: null | number = null;
 
-  const calcMinLqtMinted = () =>
-    Math.floor((+amountInXTZ * 10 ** 6 * lqtTotal) / xtzPool);
+  const calcMinLqtMinted = () => {
+    mtdFee = +amountInXTZ * 2 * config.mtdFee;
+    return Math.floor((+amountInXTZ * 10 ** 6 * lqtTotal) / xtzPool);
+  };
 
   const addLiquidity = async () => {
     if (isNaN(+amountInXTZ)) {
@@ -278,25 +283,31 @@
   </div>
 </div>
 <br />
+<div style="font-size:0.7rem">
+  {#if mtdFee}
+    MTD fee: {formatTokenAmount(mtdFee)} XTZ
+  {/if}
+</div>
+<br />
 <div>
   {#if addLiquidityLoading}
-    <button class="button main loading" disabled>
+    <button class="primary loading" disabled>
       Add liquidity
       <span class="material-icons"> sync </span>
     </button>
   {:else if addLiquiditySuccessfull === 1}
-    <button class="button main success" disabled>
+    <button class="primary success" disabled>
       Add liquidity
       <span class="material-icons"> thumb_up </span>
     </button>
   {:else if addLiquiditySuccessfull === 2}
-    <button class="button main error" disabled>
+    <button class="primary error" disabled>
       Add liquidity
       <span class="material-icons"> report_problem </span>
     </button>
   {:else}
     <button
-      class="button main"
+      class="primary"
       style={`visibility:${
         +amountInTzbtc > 0 && +amountInXTZ > 0 ? "visible" : "hidden"
       }`}

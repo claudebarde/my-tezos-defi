@@ -76,7 +76,7 @@
       mtdFee =
         (invData.icons[0] === "PLENTY" ? +tokenAAmount : +tokenBAmount) *
         2 *
-        0.003 *
+        config.mtdFee *
         $store.tokens.PLENTY.exchangeRate;
     }
     loadingTokenAAmount = false;

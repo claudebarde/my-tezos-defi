@@ -17,7 +17,7 @@
   let lqtAddress = "";
   let userLqtBalance = 0;
   let selectedTab: "trade" | "add-liquidity" | "remove-liquidity" | "history" =
-    "history";
+    "trade";
 
   const fetchUserLqtBalance = async (userAddress): Promise<number> => {
     const contract = await $store.Tezos.wallet.at(lqtContractAddress);
@@ -159,7 +159,6 @@
       background-color: lighten($container-bg-color, 65);
       border-radius: 10px;
       padding: 20px 10px;
-      height: 90%;
     }
   }
 </style>
@@ -265,7 +264,10 @@
               History
             </label>
           </div>
-          <div class="interact">
+          <div
+            class="interact"
+            style={selectedTab === "history" ? "height:90%" : ""}
+          >
             {#if selectedTab === "trade"}
               <Trade {lbContractAddress} {tokenPool} {xtzPool} />
             {:else if selectedTab === "add-liquidity"}

@@ -216,7 +216,7 @@
               </div>
             {/if}
           </div>
-          <div class="lb-op-row__level">Level: {lbOp.level}</div>
+          <div class="lb-op-row__level">Level <br /> {lbOp.level}</div>
           <div class="lb-op-row__timestamp">{lbOp.timestamp}</div>
         </div>
       {/each}
