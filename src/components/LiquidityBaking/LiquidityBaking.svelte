@@ -5,6 +5,7 @@
   import AddLiquidity from "./AddLiquidity.svelte";
   import RemoveLiquidity from "./RemoveLiquidity.svelte";
   import History from "./History.svelte";
+  import { formatTokenAmount } from "../../utils";
 
   const lbContractAddress = "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5";
   const lqtContractAddress = "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo";
@@ -64,6 +65,12 @@
     text-align: center;
     padding: 20px;
     font-size: 1.4rem;
+  }
+
+  .subtitle {
+    text-align: center;
+    padding: 10px 0px 20px 0px;
+    font-size: 1.1rem;
   }
 
   .container-lb {
@@ -159,6 +166,11 @@
 
 <div class="container">
   <div class="title">Liquidity Baking DEX</div>
+  <div class="subtitle">
+    {#if tokenPool && xtzPool}
+      Exchange rate: 1 XTZ = {formatTokenAmount(tokenPool / xtzPool / 100, 9)} tzBtc
+    {/if}
+  </div>
   <div class="container-lb">
     {#if tokenPool && xtzPool}
       <div class="row tvl">

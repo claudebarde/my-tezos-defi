@@ -31,7 +31,6 @@
       const lbOpsData = await fetch(url);
       if (lbOpsData) {
         const lbOperations = await lbOpsData.json();
-        console.log(lbOperations);
         lbOperations.forEach(op => {
           const entrypoint = op.parameter.entrypoint as LbOpType;
           if (Object.keys(LbOpType).includes(entrypoint)) {
@@ -171,34 +170,39 @@
               <div>{formatTokenAmount(lbOp.value.xtz / 10 ** 6)} XTZ out</div>
               <div>
                 {formatTokenAmount(
-                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals
+                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals,
+                  9
                 )} tzBTC in
               </div>
               <div>
                 1 XTZ = {formatTokenAmount(
-                  lbOp.value.xtz /
-                    10 ** 6 /
-                    (lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals)
+                  lbOp.value.tzBtc /
+                    10 ** $store.tokens.tzBTC.decimals /
+                    (lbOp.value.xtz / 10 ** 6),
+                  9
                 )} tzBtc
               </div>
             {:else if lbOp.type === "tokenToXtz"}
               <div>{formatTokenAmount(lbOp.value.xtz / 10 ** 6)} XTZ in</div>
               <div>
                 {formatTokenAmount(
-                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals
+                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals,
+                  9
                 )} tzBTC out
               </div>
               <div>
                 1 XTZ = {formatTokenAmount(
-                  lbOp.value.xtz /
-                    10 ** 6 /
-                    (lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals)
+                  lbOp.value.tzBtc /
+                    10 ** $store.tokens.tzBTC.decimals /
+                    (lbOp.value.xtz / 10 ** 6),
+                  9
                 )} tzBtc
               </div>
             {:else if lbOp.type === "addLiquidity"}
               <div>
                 {formatTokenAmount(lbOp.value.xtz / 10 ** 6)} XTZ / {formatTokenAmount(
-                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals
+                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals,
+                  9
                 )} tzBtc
               </div>
               <div>{lbOp.value.lqt} LQT</div>
@@ -206,7 +210,8 @@
               <div>{lbOp.value.lqt} LQT</div>
               <div>
                 {formatTokenAmount(lbOp.value.xtz / 10 ** 6)} XTZ / {formatTokenAmount(
-                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals
+                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals,
+                  9
                 )} tzBtc
               </div>
             {/if}
@@ -215,6 +220,10 @@
           <div class="lb-op-row__timestamp">{lbOp.timestamp}</div>
         </div>
       {/each}
+      <br />
+      <br />
+      <br />
+      <br />
     </div>
   </div>
 {/if}
