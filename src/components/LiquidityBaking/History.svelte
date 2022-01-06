@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import store from "../../store";
   import toastStore from "../Toast/toastStore";
+  import { formatTokenAmount } from "../../utils";
 
   export let lbContractAddress: string;
 
@@ -13,7 +14,7 @@
   }
   type LbOp = {
     type: LbOpType;
-    value: number;
+    value: { xtz: number; tzBtc: number; lqt?: number };
     level: number;
     hash: string;
     timestamp: string;
@@ -37,16 +38,30 @@
             let value;
             switch (entrypoint) {
               case LbOpType.xtzToToken:
-                value = +op.parameter.value.minTokensBought;
+                value = {
+                  xtz: +op.amount,
+                  tzBtc: +op.parameter.value.minTokensBought
+                };
                 break;
               case LbOpType.tokenToXtz:
-                value = +op.parameter.value.minXtzBought;
+                value = {
+                  xtz: +op.parameter.value.minXtzBought,
+                  tzBtc: +op.parameter.value.tokensSold
+                };
                 break;
               case LbOpType.addLiquidity:
-                value = +op.parameter.value.minLqtMinted;
+                value = {
+                  xtz: +op.amount,
+                  tzBtc: +op.parameter.value.maxTokensDeposited,
+                  lqt: +op.parameter.value.minLqtMinted
+                };
                 break;
               case LbOpType.removeLiquidity:
-                value = +op.parameter.value.lqtBurned;
+                value = {
+                  xtz: +op.parameter.value.minXtzWithdrawn,
+                  tzBtc: +op.parameter.value.minTokensWithdrawn,
+                  lqt: +op.parameter.value.lqtBurned
+                };
                 break;
             }
             const lbOp: LbOp = {
@@ -89,15 +104,9 @@
 
       .lb-op-row {
         display: grid;
-        grid-template-columns: 20% 30% 30% 30%;
-        justify-items: center;
+        grid-template-columns: 15% 35% 20% 30%;
         align-items: center;
-        text-align: left;
         padding: 10px 0px;
-
-        & > div {
-          width: 100%;
-        }
 
         .lb-op-row__type {
           display: flex;
@@ -108,6 +117,21 @@
             width: 24px;
             height: 24px;
           }
+        }
+
+        .lb-op-row__value {
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: center;
+        }
+
+        .lb-op-row__level {
+          text-align: center;
+        }
+
+        .lb-op-row__timestamp {
+          text-align: center;
         }
       }
     }
@@ -142,9 +166,39 @@
               />
             {/if}
           </div>
-          <div>Value: {lbOp.value}</div>
-          <div>Level: {lbOp.level}</div>
-          <div>Timestamp: {lbOp.timestamp}</div>
+          <div class="lb-op-row__value">
+            {#if lbOp.type === "xtzToToken"}
+              <div>{formatTokenAmount(lbOp.value.xtz / 10 ** 6)} XTZ out</div>
+              <div>
+                {formatTokenAmount(
+                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals
+                )} tzBTC in
+              </div>
+            {:else if lbOp.type === "tokenToXtz"}
+              <div>{formatTokenAmount(lbOp.value.xtz / 10 ** 6)} XTZ in</div>
+              <div>
+                {formatTokenAmount(
+                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals
+                )} tzBTC out
+              </div>
+            {:else if lbOp.type === "addLiquidity"}
+              <div>
+                {formatTokenAmount(lbOp.value.xtz / 10 ** 6)} XTZ / {formatTokenAmount(
+                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals
+                )} tzBtc
+              </div>
+              <div>{lbOp.value.lqt} LQT</div>
+            {:else if lbOp.type === "removeLiquidity"}
+              <div>{lbOp.value.lqt} LQT</div>
+              <div>
+                {formatTokenAmount(lbOp.value.xtz / 10 ** 6)} XTZ / {formatTokenAmount(
+                  lbOp.value.tzBtc / 10 ** $store.tokens.tzBTC.decimals
+                )} tzBtc
+              </div>
+            {/if}
+          </div>
+          <div class="lb-op-row__level">Level: {lbOp.level}</div>
+          <div class="lb-op-row__timestamp">{lbOp.timestamp}</div>
         </div>
       {/each}
     </div>
