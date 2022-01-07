@@ -609,16 +609,17 @@
     ) {
       lastRewardsCheck = Date.now();
 
-      const investmentData = $localStorageStore.favoriteInvestments
-        .map(inv => $store.investments[inv])
-        .filter(
-          inv =>
-            inv.platform === "plenty" ||
-            inv.platform === "paul" ||
-            inv.platform === "kdao" ||
-            inv.platform === "wrap"
-        )
-        .filter(inv => inv.id !== AvailableInvestments["xPLENTY-Staking"]);
+      const investmentData: InvestmentData[] =
+        $localStorageStore.favoriteInvestments
+          .map(inv => $store.investments[inv])
+          .filter(
+            inv =>
+              inv.platform === "plenty" ||
+              inv.platform === "paul" ||
+              inv.platform === "kdao" ||
+              inv.platform === "wrap"
+          )
+          .filter(inv => inv.id !== AvailableInvestments["xPLENTY-Staking"]);
       const rewards: any = await Promise.all(
         investmentData.map(async inv => {
           let rewards;
@@ -627,7 +628,9 @@
               $store.userAddress,
               inv.address,
               $store.lastOperations[0].level,
-              18
+              inv.rewardToken === AvailableToken.YOU
+                ? $store.investments[inv.id].decimals
+                : 18
             );
           } else if (inv.platform === "paul") {
             rewards = await getPaulReward(inv.address);

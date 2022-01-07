@@ -8,8 +8,8 @@
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
   import "tippy.js/themes/light-border.css";
-  import type { AvailableInvestments, InvestmentData } from "../../../types";
-  import { AvailableToken, State } from "../../../types";
+  import type { InvestmentData } from "../../../types";
+  import { AvailableToken, State, AvailableInvestments } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
   import {
@@ -110,7 +110,7 @@
     const result = await calcPlentyAprApy({
       Tezos: $store.Tezos,
       farmAddress: invData.address,
-      rewardTokenPriceInFiat: $store.tokens.PLENTY.exchangeRate,
+      rewardTokenPriceInFiat: $store.tokens[invData.rewardToken].exchangeRate,
       stakeTokenPriceInFiat: lpTokenPrice
     });
 
@@ -280,7 +280,13 @@
       {:else if invData.liquidityToken && invData.alias !== "PLENTY-XTZ LP farm" && $store.tokens.PLENTY.exchangeRate}
         <div>
           <div class:blurry-text={$store.blurryBalances}>
-            {+(invData.balance / 10 ** 18).toFixed(3) / 1} LPT
+            {#if [AvailableInvestments["uUSD-YOU-LP"]].includes(invData.id)}
+              {formatTokenAmount(+(invData.balance / 10 ** invData.decimals))}
+              {invData.rewardToken}
+            {:else}
+              {formatTokenAmount(+(invData.balance / 10 ** 18))}
+              LPT
+            {/if}
           </div>
           {#if stakeInXtz || stakeInXtz === 0}
             <br />
