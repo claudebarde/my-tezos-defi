@@ -82,10 +82,12 @@
         &nbsp; My profile
       </a>
     {/if}
-    <a href="#/swaps" class:selected={$location === "/swaps"}>
-      <span class="material-icons"> swap_horiz </span>
-      &nbsp; Swaps
-    </a>
+    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+      <a href="#/swaps" class:selected={$location === "/swaps"}>
+        <span class="material-icons"> swap_horiz </span>
+        &nbsp; Swaps
+      </a>
+    {/if}
     <a
       href="#/liquidity-baking"
       class:selected={$location === "/liquidity-baking"}
