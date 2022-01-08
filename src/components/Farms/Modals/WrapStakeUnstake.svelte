@@ -170,11 +170,18 @@
 
       const batchOp = await batch.send();
       await batchOp.confirmation();
-      // updates balance
+      // updates farm balance
       invData = {
         ...invData,
         balance: invData.balance + +tokensToStake
       };
+      // updates user balance
+      let newBalances = { ...$store.tokensBalances };
+      if (invData.type === "stacking") {
+        newBalances.WRAP -= +tokensToStake;
+      }
+      newStake.available -= +tokensToStake;
+
       toastStore.addToast({
         type: "success",
         title: "Success!",

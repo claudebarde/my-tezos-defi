@@ -8,14 +8,15 @@
   import tippy from "tippy.js";
   import "tippy.js/dist/tippy.css";
   import "tippy.js/themes/light-border.css";
-  import type { AvailableInvestments, InvestmentData } from "../../../types";
-  import { AvailableToken } from "../../../types";
+  import type { InvestmentData } from "../../../types";
+  import { AvailableToken, State, AvailableInvestments } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
   import {
     prepareOperation,
     loadInvestment,
-    formatTokenAmount
+    formatTokenAmount,
+    searchUserTokens
   } from "../../../utils";
   import {
     calcPlentyStakeInXtz,
@@ -25,6 +26,7 @@
   import toastStore from "../../Toast/toastStore";
   import Modal from "../../Modal/Modal.svelte";
   import config from "../../../config";
+  import PlentyStakeUnstake from "../Modals/PlentyStakeUnstake.svelte";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -38,6 +40,7 @@
   let harvestingSuccess = undefined;
   let stakeInXtz: null | number = null;
   let openSettingsModal = false;
+  let openStakingModal = false;
   const dispatch = createEventDispatcher();
   let apy: null | number = null;
   let apr: null | number = null;
@@ -107,7 +110,7 @@
     const result = await calcPlentyAprApy({
       Tezos: $store.Tezos,
       farmAddress: invData.address,
-      rewardTokenPriceInFiat: $store.tokens.PLENTY.exchangeRate,
+      rewardTokenPriceInFiat: $store.tokens[invData.rewardToken].exchangeRate,
       stakeTokenPriceInFiat: lpTokenPrice
     });
 
@@ -147,18 +150,37 @@
       }
     }
 
+    const [token1, token2] = invData.icons;
+
+    // find balances for tokens in pair
+    let balances: Partial<State["tokensBalances"]> = await searchUserTokens({
+      Tezos: $store.Tezos,
+      userAddress: $store.userAddress,
+      tokens: [
+        [token1, $store.tokens[token1]],
+        [token2, $store.tokens[token2]]
+      ]
+    });
+    if (balances && Object.values(balances).length > 0) {
+      let newBalances = { ...$store.tokensBalances };
+      Object.entries(balances).forEach(
+        ([token, tokenBalance]) => (newBalances[token] = tokenBalance)
+      );
+      store.updateTokensBalances(newBalances);
+    }
+
     await fetchStatistics(
       invData.id,
-      invData.icons[0] as AvailableToken,
-      invData.icons[1] as AvailableToken
+      token1 as AvailableToken,
+      token2 as AvailableToken
     );
 
     refreshStats = setInterval(
       async () =>
         await fetchStatistics(
           invData.id,
-          invData.icons[0] as AvailableToken,
-          invData.icons[1] as AvailableToken
+          token1 as AvailableToken,
+          token2 as AvailableToken
         ),
       600000
     );
@@ -258,7 +280,13 @@
       {:else if invData.liquidityToken && invData.alias !== "PLENTY-XTZ LP farm" && $store.tokens.PLENTY.exchangeRate}
         <div>
           <div class:blurry-text={$store.blurryBalances}>
-            {+(invData.balance / 10 ** 18).toFixed(3) / 1} LPT
+            {#if [AvailableInvestments["uUSD-YOU-LP"]].includes(invData.id)}
+              {formatTokenAmount(+(invData.balance / 10 ** invData.decimals))}
+              {invData.rewardToken}
+            {:else}
+              {formatTokenAmount(+(invData.balance / 10 ** 18))}
+              LPT
+            {/if}
           </div>
           {#if stakeInXtz || stakeInXtz === 0}
             <br />
@@ -349,6 +377,15 @@
         </button>
       {/if}
       {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+        {#if $store.tokensBalances && $store.tokensBalances[invData.icons[0]] && $store.tokensBalances[invData.icons[1]]}
+          <button
+            class="primary"
+            on:click={() => (openStakingModal = !openStakingModal)}
+          >
+            Stake &nbsp;
+            <span class="material-icons"> file_download </span>
+          </button>
+        {/if}
         <button
           class="primary"
           on:click={async () => {
@@ -386,4 +423,7 @@
       </button>
     </div>
   </Modal>
+{/if}
+{#if openStakingModal}
+  <PlentyStakeUnstake {invData} on:close={() => (openStakingModal = false)} />
 {/if}

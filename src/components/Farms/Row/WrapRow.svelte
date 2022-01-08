@@ -196,9 +196,9 @@
         totalStaked = +stats[0].totalStaked;
       } else if (type === "staking" && Array.isArray(stats)) {
         const token =
-          farm === "WRAP-XTZ-FM"
+          farm === "WRAP-XTZ-LM"
             ? AvailableToken.WRAP
-            : $store.investments[farm].rewardToken;
+            : invData.icons[0].slice(1);
         const farmStats = stats.find(st => st.base === token);
         if (farmStats) {
           apy = +farmStats.apy;
@@ -264,7 +264,11 @@
           Tezos: $store.Tezos
         });
 
-        stakeInXtz = +stakes.toFixed(5) / 1;
+        if (stakes) {
+          stakeInXtz = +stakes.toFixed(5) / 1;
+        } else {
+          stakeInXtz = null;
+        }
       } else {
         stakeInXtz =
           +(
@@ -433,25 +437,25 @@
           <span class="material-icons"> agriculture </span>
         </button>
       {/if}
-      {#if compounding}
+      {#if invData.type !== "fee-farming" && compounding}
         <button class="primary loading">
           Harvesting &nbsp;
           <span class="material-icons"> sync </span>
         </button>
-      {:else if compoundingSuccess === true}
+      {:else if invData.type !== "fee-farming" && compoundingSuccess === true}
         <button class="primary success">
           Success &nbsp;
           <span class="material-icons"> thumb_up </span>
         </button>
-      {:else if compoundingSuccess === false}
+      {:else if invData.type !== "fee-farming" && compoundingSuccess === false}
         <button class="mini error" on:click={compound}> Retry </button>
-      {:else}
+      {:else if invData.type !== "fee-farming"}
         <button
           class="primary"
           on:click={compound}
           id={`harvest-restake-${invData.id}`}
         >
-          Harvest & Restake &nbsp;
+          Harvest & stake WRAP &nbsp;
           <span class="material-icons"> save_alt </span>
         </button>
       {/if}

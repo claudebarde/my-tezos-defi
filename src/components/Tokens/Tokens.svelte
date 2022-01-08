@@ -307,7 +307,11 @@
     {#if $store.tokensBalances}
       <div>
         <div>
-          {Object.values($store.tokensBalances).filter(b => b && b > 0).length} tokens
+          {Object.values($store.tokensBalances).filter(b => b && b > 0).length} token{Object.values(
+            $store.tokensBalances
+          ).filter(b => b && b > 0).length > 1
+            ? "s"
+            : ""}
           with balance
         </div>
         <div>

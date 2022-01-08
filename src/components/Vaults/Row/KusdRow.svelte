@@ -61,7 +61,7 @@
     kusdOutstanding = (await ovenClient.getBorrowedTokens()).toNumber();
     stabilityFees = (await ovenClient.getStabilityFees()).toNumber();
     const collat = await ovenClient.getCollateralizationRatio();
-    console.log(collat.toNumber() / 10 ** 18);
+    //console.log(collat.toNumber() / 10 ** 18);
   });
 
   afterUpdate(async () => {
@@ -107,40 +107,40 @@
     </button>
   </div>
 </div>
-{#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-  <div class="vault-sub-row">
-    <div />
-    <div class="stats">
-      <div class="stats__stat-block">
-        <div>Minted kUSD</div>
-        <div>
-          {kusdOutstanding
-            ? formatTokenAmount(
-                kusdOutstanding / 10 ** $store.tokens.kUSD.decimals
-              )
-            : "---"} kUSD
-        </div>
+<div class="vault-sub-row">
+  <div />
+  <div class="stats">
+    <div class="stats__stat-block">
+      <div>Minted kUSD</div>
+      <div>
+        {kusdOutstanding
+          ? formatTokenAmount(
+              kusdOutstanding / 10 ** $store.tokens.kUSD.decimals
+            )
+          : "---"} kUSD
       </div>
-      <div class="stats__stat-block">
-        <div>Stability fees</div>
-        <div>
-          {stabilityFees
-            ? `${formatTokenAmount(
-                stabilityFees / 10 ** $store.tokens.kUSD.decimals
-              )} kUSD`
-            : "N/A"}
-        </div>
-      </div>
-      <div class="stats__stat-block">
-        <div>Collateral utilization</div>
-        <div>
-          {kusdCollatUtilization ?? "---"}%
-        </div>
-      </div>
-      <div>:)</div>
     </div>
-    <div />
-    <div />
+    <div class="stats__stat-block">
+      <div>Stability fees</div>
+      <div>
+        {stabilityFees
+          ? `${formatTokenAmount(
+              stabilityFees / 10 ** $store.tokens.kUSD.decimals
+            )} kUSD`
+          : "N/A"}
+      </div>
+    </div>
+    <div class="stats__stat-block">
+      <div>Collateral utilization</div>
+      <div>
+        {kusdCollatUtilization ?? "---"}%
+      </div>
+    </div>
+    <div>:)</div>
+  </div>
+  <div />
+  <div />
+  {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
     <div class="actions">
       <div>
         <button
@@ -187,8 +187,8 @@
         </button>
       </div>
     </div>
-  </div>
-{/if}
+  {/if}
+</div>
 {#if openModal}
   <Modal type="small" on:close={() => (openModal = false)}>
     <div slot="modal-title" class="modal-title">

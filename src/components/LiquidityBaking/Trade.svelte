@@ -2,6 +2,8 @@
   import { onMount, afterUpdate } from "svelte";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
+  import config from "../../config";
+  import { formatTokenAmount } from "../../utils";
   //import toastStore from "../Toast/toastStore";
 
   export let lbContractAddress, tokenPool, xtzPool;
@@ -15,6 +17,7 @@
   let slippage = 0.5;
   let tradeLoading = false;
   let tradeSuccessfull: false | 1 | 2 = false; // false = no data | 1 = successfull | 2 = failed
+  let mtdFee: null | number = null;
 
   const updateTokenAmounts = e => {
     const val = e.target.value;
@@ -22,6 +25,7 @@
       e.target.value = "";
       amountInTzbtc = "";
       amountInXTZ = "";
+      mtdFee = null;
       return;
     }
 
@@ -35,6 +39,8 @@
       amountInXTZ = val;
       amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
     }
+
+    mtdFee = +amountInXTZ * 2 * config.mtdFee;
   };
 
   const trade = async () => {
@@ -82,6 +88,11 @@
               deadline
             )
           )
+          .withTransfer({
+            to: $store.admin,
+            amount: Math.ceil(mtdFee * 10 ** 6),
+            mutez: true
+          })
           .send();
         await batchOp.confirmation();
 
@@ -137,6 +148,8 @@
 </script>
 
 <style lang="scss">
+  @import "../../styles/settings.scss";
+
   .material-icons {
     vertical-align: bottom;
   }
@@ -150,6 +163,14 @@
     img {
       width: 30px;
       height: 30px;
+    }
+
+    input[type="text"] {
+      border: solid 1px $container-bg-color;
+      border-radius: 10px;
+      padding: 5px;
+      font-size: 1rem;
+      outline: none;
     }
 
     .trade-input-balance {
@@ -175,7 +196,7 @@
 <br />
 <div class="trade-inputs">
   {#if left === "tzbtc"}
-    <img src={$store.tokens.tzBTC.thumbnail} alt="tzBTC-logo" />
+    <img src="images/tzBTC.png" alt="tzBTC-logo" />
     <div>
       <input
         type="text"
@@ -279,7 +300,7 @@
         Your balance: {+userTzbtcBalance.toFixed(5) / 1}
       </div>
     </div>
-    <img src={$store.tokens.tzBTC.thumbnail} alt="tzBTC-logo" />
+    <img src="images/tzBTC.png" alt="tzBTC-logo" />
   {/if}
 </div>
 <br />
@@ -317,6 +338,12 @@
       2%
     </label>
   </div>
+</div>
+<br />
+<div style="font-size:0.7rem">
+  {#if mtdFee}
+    MTD fee: {formatTokenAmount(mtdFee)} XTZ
+  {/if}
 </div>
 <br />
 <div>

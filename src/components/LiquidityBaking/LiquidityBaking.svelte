@@ -4,6 +4,8 @@
   import Trade from "./Trade.svelte";
   import AddLiquidity from "./AddLiquidity.svelte";
   import RemoveLiquidity from "./RemoveLiquidity.svelte";
+  import History from "./History.svelte";
+  import { formatTokenAmount } from "../../utils";
 
   const lbContractAddress = "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5";
   const lqtContractAddress = "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo";
@@ -14,7 +16,8 @@
   let tokenAddress = "";
   let lqtAddress = "";
   let userLqtBalance = 0;
-  let selectedTab: "trade" | "add-liquidity" | "remove-liquidity" = "trade";
+  let selectedTab: "trade" | "add-liquidity" | "remove-liquidity" | "history" =
+    "trade";
 
   const fetchUserLqtBalance = async (userAddress): Promise<number> => {
     const contract = await $store.Tezos.wallet.at(lqtContractAddress);
@@ -46,7 +49,7 @@
   };
 
   onMount(async () => {
-    if ($store.Tezos) {
+    if ($store.Tezos && $store.userAddress) {
       await fetchData();
       interval = setInterval(fetchData, 600000);
     }
@@ -61,11 +64,21 @@
   .title {
     text-align: center;
     padding: 20px;
+    font-size: 1.4rem;
+  }
+
+  .subtitle {
+    text-align: center;
+    padding: 10px 0px 20px 0px;
+    font-size: 1.1rem;
   }
 
   .container-lb {
+    height: 90%;
+    display: grid;
+    grid-template-rows: 10% 90%;
+
     .row {
-      padding: 15px 10px;
       justify-content: space-around;
       align-items: center;
 
@@ -73,14 +86,18 @@
         display: flex;
       }
 
-      &:not(:first-child) {
-        border-top: solid 4px $border-color;
+      &:first-child {
+        border-bottom: solid 4px $border-color;
       }
 
       .tvl-details {
         display: flex;
         flex-direction: column;
         text-align: center;
+        background-color: lighten($container-bg-color, 65);
+        padding: 10px 20px;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
 
         span {
           font-size: 0.8rem;
@@ -122,7 +139,7 @@
         }
 
         label {
-          padding: 5px 15px;
+          padding: 15px;
           cursor: pointer;
           border-bottom: solid 3px transparent;
           transition: 0.3s;
@@ -137,21 +154,29 @@
     .interact {
       display: flex;
       flex-direction: column;
+      justify-content: flex-start;
       align-items: center;
+      background-color: lighten($container-bg-color, 65);
+      border-radius: 10px;
+      padding: 20px 10px;
     }
   }
 </style>
 
 <div class="container">
   <div class="title">Liquidity Baking DEX</div>
-  <br /><br />
+  <div class="subtitle">
+    {#if tokenPool && xtzPool}
+      Exchange rate: 1 XTZ = {formatTokenAmount(tokenPool / xtzPool / 100, 9)} tzBtc
+    {/if}
+  </div>
   <div class="container-lb">
     {#if tokenPool && xtzPool}
       <div class="row tvl">
         <div class="tvl-details">
           <span>Locked tzBTC</span>
           <div class="tvl-details-info">
-            <img src={$store.tokens.tzBTC.thumbnail} alt="tzbtc" />
+            <img src="images/tzBTC.png" alt="tzbtc" />
             &nbsp;
             {(+(tokenPool / 10 ** 8).toFixed(5) / 1).toLocaleString("en-US")}
           </div>
@@ -184,7 +209,7 @@
         {/if}
       </div>
       {#if $store.userAddress}
-        <div class="row">
+        <div class="row" style="overflow:hidden">
           <div class="tabs">
             <label
               for="lb-interact-trade"
@@ -225,10 +250,24 @@
               />
               Remove liquidity
             </label>
+            <label
+              for="lb-interact-history"
+              class:selected={selectedTab === "history"}
+            >
+              <input
+                type="radio"
+                name="lb-interact"
+                id="lb-interact-history"
+                bind:group={selectedTab}
+                value="history"
+              />
+              History
+            </label>
           </div>
-          <br />
-          <br />
-          <div class="interact">
+          <div
+            class="interact"
+            style={selectedTab === "history" ? "height:90%" : ""}
+          >
             {#if selectedTab === "trade"}
               <Trade {lbContractAddress} {tokenPool} {xtzPool} />
             {:else if selectedTab === "add-liquidity"}
@@ -248,6 +287,8 @@
                 {userLqtBalance}
                 refreshData={fetchData}
               />
+            {:else if selectedTab === "history"}
+              <History {lbContractAddress} />
             {/if}
           </div>
         </div>

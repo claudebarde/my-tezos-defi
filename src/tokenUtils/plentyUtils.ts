@@ -325,3 +325,77 @@ export const getExpectedPlenty = async (
     console.log(error);
   }
 };
+
+export const estimateLpTokenOutput = ({
+  tokenIn_amount,
+  tokenOut_amount,
+  tokenIn_supply,
+  tokenOut_supply,
+  lpTokenSupply
+}: {
+  tokenIn_amount: number;
+  tokenOut_amount: number;
+  tokenIn_supply: number;
+  tokenOut_supply: number;
+  lpTokenSupply: number;
+} | null) => {
+  try {
+    const lpOutputBasedOnTokenIn =
+      (tokenIn_amount * lpTokenSupply) / tokenIn_supply;
+    const lpOutputBasedOnTokenOut =
+      (tokenOut_amount * lpTokenSupply) / tokenOut_supply;
+    let estimatedLpOutput = 0;
+    estimatedLpOutput =
+      lpOutputBasedOnTokenIn < lpOutputBasedOnTokenOut
+        ? lpOutputBasedOnTokenIn
+        : lpOutputBasedOnTokenOut;
+    return estimatedLpOutput;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+// estimate token output for a swap
+export const computeTokenOutput = (
+  tokenIn_amount,
+  tokenIn_supply,
+  tokenOut_supply,
+  exchangeFee,
+  slippage
+) => {
+  try {
+    let tokenOut_amount = 0;
+    tokenOut_amount = (1 - exchangeFee) * tokenOut_supply * tokenIn_amount;
+    tokenOut_amount /= tokenIn_supply + (1 - exchangeFee) * tokenIn_amount;
+    const fees = tokenIn_amount * exchangeFee;
+    const minimum_Out = tokenOut_amount - (slippage * tokenOut_amount) / 100;
+
+    const updated_TokenIn_Supply = tokenIn_supply - tokenIn_amount;
+    const updated_TokenOut_Supply = tokenOut_supply - tokenOut_amount;
+    let next_tokenOut_Amount =
+      (1 - exchangeFee) * updated_TokenOut_Supply * tokenIn_amount;
+    next_tokenOut_Amount /=
+      updated_TokenIn_Supply + (1 - exchangeFee) * tokenIn_amount;
+    let priceImpact =
+      (tokenOut_amount - next_tokenOut_Amount) / tokenOut_amount;
+    priceImpact = priceImpact * 100;
+    priceImpact = +priceImpact.toFixed(5);
+    priceImpact = Math.abs(priceImpact);
+    priceImpact = priceImpact * 100;
+
+    return {
+      tokenOut_amount,
+      fees,
+      minimum_Out,
+      priceImpact
+    };
+  } catch (error) {
+    return {
+      tokenOut_amount: 0,
+      fees: 0,
+      minimum_Out: 0,
+      priceImpact: 0
+    };
+  }
+};

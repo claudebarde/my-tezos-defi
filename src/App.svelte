@@ -119,7 +119,7 @@
                     console.log("FA2 operation to user account:", op);
                     token = Object.entries($store.tokens).find(
                       tk =>
-                        tk[1].address === op.target.address &&
+                        tk[1].address === op.from_ &&
                         tk[1].tokenId === tx.token_id
                     );
                     let userBalance = updatedTokensBalances[token[0]];
@@ -358,13 +358,14 @@
     Tezos.setPackerProvider(new MichelCodecPacker());
     Tezos.addExtension(new Tzip16Module());
     store.updateTezos(Tezos);
+    console.info(`Connected to ${rpcUrl}`);
 
     let tokens: [AvailableToken, TokenContract][] = [];
     try {
       // fetches data from the IPFS
       const defiDataResponse = await fetch(
-        `https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
-        //`https://gateway.pinata.cloud/ipfs/${$store.defiData}`
+        //`https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
+        `https://gateway.pinata.cloud/ipfs/${$store.defiData}`
       );
       if (defiDataResponse) {
         const defiData: {
@@ -418,7 +419,7 @@
                 info: [],
                 alias: `${farm.token}-XTZ LM pool`,
                 icons: [farm.token, "XTZ"],
-                rewardToken: farm.token,
+                rewardToken: AvailableToken.WRAP,
                 liquidityToken: true
               })
           );
@@ -539,7 +540,7 @@
             await fetchTezToolsPrices(
               Object.entries($store.tokens) as [AvailableToken, TokenContract][]
             );
-            console.log("refreshes data");
+            console.log("refreshes data", Date.now(), lastVisit);
           }
         });
 

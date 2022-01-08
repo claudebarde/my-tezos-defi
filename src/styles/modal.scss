@@ -134,6 +134,54 @@
         width: 90%;
         padding: 10px;
       }
+
+      .modal-body__add-stake {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+
+        .modal-body__add-stake__input {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 20px;
+          background-color: lighten($container-bg-color, 60);
+          padding: 10px 20px;
+          margin: 10px;
+          border-radius: 10px;
+
+          img.loading {
+            -webkit-animation: heartbeat 1.5s ease-in-out infinite both;
+            animation: heartbeat 1.5s ease-in-out infinite both;
+          }
+        }
+
+        .modal-body__add-stake__available-balance {
+          background-color: transparent;
+          border: none;
+          color: inherit;
+          font-family: inherit;
+          font-size: 0.7rem;
+          text-align: right;
+          padding-top: 6px;
+          cursor: pointer;
+        }
+
+        img {
+          width: 40px;
+          height: 40px;
+        }
+
+        input {
+          border: none;
+          outline: none;
+          font-size: 1rem;
+          padding: 5px 10px;
+          background-color: lighten($container-bg-color, 65);
+          text-align: right;
+        }
+      }
     }
 
     .modal-footer {

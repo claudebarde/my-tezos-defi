@@ -20,13 +20,13 @@ const state = {
   addToast: (newToast: Omit<Toast, "id">) => {
     store.update(store => {
       const identicalToast = store.find(toast => newToast.text === toast.text);
-      if (identicalToast) {
-        state.removeToast(identicalToast.id);
+      if (!identicalToast) {
+        const newId = Math.floor(Math.random() * Date.now());
+        setTimeout(() => state.removeToast(newId), delay);
+        return [...store, { ...newToast, id: newId }];
+      } else {
+        return store;
       }
-
-      const newId = Math.floor(Math.random() * Date.now());
-      setTimeout(() => state.removeToast(newId), delay);
-      return [...store, { ...newToast, id: newId }];
     });
   },
   removeToast: (id: number) => {

@@ -303,9 +303,9 @@
           height="70"
         />
       </div>
+      <span style="font-size:0.5rem;text-align:center">
+        Price changes over the last 30 days
+      </span>
     {/if}
-    <span style="font-size:0.5rem;text-align:center">
-      Price changes over the last 30 days
-    </span>
   </div>
 {/if}

@@ -73,7 +73,7 @@
   <div
     class={`toast ${toast.type}`}
     transition:fly={{ x: 300, duration: 1000, easing: expoInOut }}
-    style={"bottom:" + (index === 0 ? "50px" : 50 + 60 * index + "px")}
+    style={"bottom:" + (index === 0 ? "50px" : 50 + 80 * index + "px")}
   >
     <div class="toast-icon">
       {#if toast.token}

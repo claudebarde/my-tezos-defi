@@ -3,7 +3,8 @@
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   //import toastStore from "../Toast/toastStore";
-  import { calculateLqtOutput } from "../../utils";
+  import { calculateLqtOutput, formatTokenAmount } from "../../utils";
+  import config from "../../config";
 
   export let lbContractAddress,
     tokenPool,
@@ -19,6 +20,7 @@
   let tzBtcOut = 0;
   let removeLiquidityLoading = false;
   let removeLiquiditySuccessfull: false | 1 | 2 = false; // false = no data | 1 = successfull | 2 = failed
+  let mtdFee: null | number = null;
 
   const removeLiquidity = async () => {
     if (isNaN(+amountInLqt)) {
@@ -61,11 +63,10 @@
     }
   };
 
-  const updateTokenAmounts = e => {
-    const val = e.target.value;
+  const updateTokenAmounts = val => {
     if (isNaN(+val)) {
-      e.target.value = "";
       amountInLqt = "";
+      mtdFee = null;
       return;
     }
 
@@ -75,10 +76,11 @@
       lqTokens: +amountInLqt,
       xtzPool,
       lqtTotal,
-      tezToTzbtc: $store.tokensExchangeRates.tzBTC.tezToToken
+      tezToTzbtc: $store.tokens.tzBTC.exchangeRate
     });
     xtzOut = result.xtz;
     tzBtcOut = result.tzbtc;
+    mtdFee = result.xtz * 2 * config.mtdFee;
   };
 
   onMount(() => {
@@ -92,6 +94,8 @@
 </script>
 
 <style lang="scss">
+  @import "../../styles/settings.scss";
+
   .material-icons {
     vertical-align: bottom;
   }
@@ -105,15 +109,24 @@
       width: 28px;
       height: 28px;
       vertical-align: bottom;
-      border: solid 2px white;
+      border: solid 2px $container-bg-color;
       border-radius: 50%;
       line-height: 28px;
       text-align: center;
+      margin-right: 10px;
     }
 
     .remove-input-balance {
       padding: 0px 15px;
       font-size: 0.7rem;
+    }
+
+    input[type="text"] {
+      border: solid 1px $container-bg-color;
+      border-radius: 10px;
+      padding: 5px;
+      font-size: 1rem;
+      outline: none;
     }
   }
 
@@ -143,11 +156,14 @@
       value={amountInLqt}
       id="input-tzbtc-amount"
       autocomplete="off"
-      on:input={updateTokenAmounts}
+      on:input={e => updateTokenAmounts(e.target.value)}
     />
     <div
       class="remove-input-balance"
-      on:click={() => (amountInLqt = userLqtBalance)}
+      on:click={() => {
+        amountInLqt = userLqtBalance;
+        updateTokenAmounts(userLqtBalance);
+      }}
       style="cursor:pointer"
     >
       Your balance: {userLqtBalance.toLocaleString("en-US")}
@@ -191,25 +207,31 @@
   </div>
 </div>
 <br />
+<div style="font-size:0.7rem">
+  {#if mtdFee}
+    MTD fee: {formatTokenAmount(mtdFee)} XTZ
+  {/if}
+</div>
+<br />
 <div>
   {#if removeLiquidityLoading}
-    <button class="button main loading" disabled>
+    <button class="primary loading" disabled>
       Remove liquidity
       <span class="material-icons"> sync </span>
     </button>
   {:else if removeLiquiditySuccessfull === 1}
-    <button class="button main success" disabled>
+    <button class="primary success" disabled>
       Remove liquidity
       <span class="material-icons"> thumb_up </span>
     </button>
   {:else if removeLiquiditySuccessfull === 2}
-    <button class="button main error" disabled>
+    <button class="primary error" disabled>
       Remove liquidity
       <span class="material-icons"> report_problem </span>
     </button>
   {:else}
     <button
-      class="button main"
+      class="primary"
       style={`visibility:${+amountInLqt > 0 ? "visible" : "hidden"}`}
       on:click={removeLiquidity}
     >

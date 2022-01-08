@@ -59,6 +59,9 @@
     balance: number;
   }[] = [];
   let farmAprs: { id: AvailableInvestments; apr: number }[] = [];
+  let totalPaulRewards: number | null = null;
+  let totalPlentyRewards: number | null = null;
+  let totalWrapRewards: number | null = null;
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -606,16 +609,17 @@
     ) {
       lastRewardsCheck = Date.now();
 
-      const investmentData = $localStorageStore.favoriteInvestments
-        .map(inv => $store.investments[inv])
-        .filter(
-          inv =>
-            inv.platform === "plenty" ||
-            inv.platform === "paul" ||
-            inv.platform === "kdao" ||
-            inv.platform === "wrap"
-        )
-        .filter(inv => inv.id !== AvailableInvestments["xPLENTY-Staking"]);
+      const investmentData: InvestmentData[] =
+        $localStorageStore.favoriteInvestments
+          .map(inv => $store.investments[inv])
+          .filter(
+            inv =>
+              inv.platform === "plenty" ||
+              inv.platform === "paul" ||
+              inv.platform === "kdao" ||
+              inv.platform === "wrap"
+          )
+          .filter(inv => inv.id !== AvailableInvestments["xPLENTY-Staking"]);
       const rewards: any = await Promise.all(
         investmentData.map(async inv => {
           let rewards;
@@ -624,7 +628,9 @@
               $store.userAddress,
               inv.address,
               $store.lastOperations[0].level,
-              18
+              inv.rewardToken === AvailableToken.YOU
+                ? $store.investments[inv.id].decimals
+                : 18
             );
           } else if (inv.platform === "paul") {
             rewards = await getPaulReward(inv.address);
@@ -681,50 +687,37 @@
         ];
       });
 
-      const totalPlentyRewards = [
+      totalPlentyRewards = [
         0,
         0,
         ...availableRewards
-          .filter(rw => rw.platform === "plenty")
+          .filter(
+            rw =>
+              rw.platform === "plenty" &&
+              $store.investments[rw.id].rewardToken === AvailableToken.PLENTY
+          )
           .map(rw => +rw.amount)
       ].reduce((a, b) => a + b);
-      tippy(`#total-plenty-rewards`, {
-        content: `<div>${
-          +(
-            totalPlentyRewards *
-            $store.tokens[AvailableToken.PLENTY].exchangeRate
-          ).toFixed(5) / 1
-        } ꜩ<br />${
-          +(
-            totalPlentyRewards *
-            $store.tokens[AvailableToken.PLENTY].exchangeRate *
-            $store.xtzData.exchangeRate
-          ).toFixed(5) / 1
-        } ${$localStorageStore.preferredFiat || "USD"}</div>`,
-        allowHTML: true
-      });
 
-      const totalPaulRewards = [
+      totalPaulRewards = [
         0,
         0,
         ...availableRewards
           .filter(rw => rw.platform === "paul")
           .map(rw => +rw.amount)
       ].reduce((a, b) => a + b);
-      tippy(`#total-paul-rewards`, {
-        content: `<div>${
-          +(
-            totalPaulRewards * $store.tokens[AvailableToken.PAUL].exchangeRate
-          ).toFixed(5) / 1
-        } ꜩ<br />${
-          +(
-            totalPaulRewards *
-            $store.tokens[AvailableToken.PAUL].exchangeRate *
-            $store.xtzData.exchangeRate
-          ).toFixed(5) / 1
-        } ${$localStorageStore.preferredFiat || "USD"}</div>`,
-        allowHTML: true
-      });
+
+      totalWrapRewards = [
+        0,
+        0,
+        ...availableRewards
+          .filter(
+            rw =>
+              rw.platform === "wrap" &&
+              $store.investments[rw.id].rewardToken === AvailableToken.WRAP
+          )
+          .map(rw => +rw.amount)
+      ].reduce((a, b) => a + b);
     }
   });
 </script>
@@ -771,6 +764,11 @@
       padding: 15px 10px;
       margin-bottom: 10px;
       border-radius: 10px;
+
+      .total-rewards {
+        text-align: center;
+        grid-column: 3 / span 3;
+      }
     }
 
     .unstaked-token,
@@ -1004,20 +1002,20 @@
               Find my stakes
             </button>
           </div>
-          <div />
-          <div />
           {#if availableRewards.filter(rw => rw.platform === "plenty").length > 0}
             <div class="total-rewards" id="total-plenty-rewards">
-              Total: {formatTokenAmount(
-                [
-                  0,
-                  0,
-                  ...availableRewards
-                    .filter(rw => rw.platform === "plenty")
-                    .map(rw => +rw.amount)
-                ].reduce((a, b) => a + b),
-                2
-              )}
+              Total rewards: {formatTokenAmount(totalPlentyRewards)} PLENTY
+              <br />
+              <span style="font-size:0.7rem">
+                ({+(
+                  totalPlentyRewards * $store.tokens.PLENTY.exchangeRate
+                ).toFixed(5) / 1} ꜩ / {+(
+                  totalPlentyRewards *
+                  $store.tokens.PLENTY.exchangeRate *
+                  $store.xtzData.exchangeRate
+                ).toFixed(2) / 1}
+                {$localStorageStore.preferredFiat || "USD"})
+              </span>
             </div>
             <div style="display:flex;justify-content:center">
               {#if harvestingAllPlenty}
@@ -1147,20 +1145,20 @@
               Find my stakes
             </button>
           </div>
-          <div />
-          <div />
           {#if availableRewards.filter(rw => rw.platform === "wrap").length > 0}
             <div class="total-rewards" id="total-wrap-rewards">
-              Total: {formatTokenAmount(
-                [
-                  0,
-                  0,
-                  ...availableRewards
-                    .filter(rw => rw.platform === "wrap")
-                    .map(rw => +rw.amount)
-                ].reduce((a, b) => a + b),
-                2
-              )}
+              Total rewards: {formatTokenAmount(totalWrapRewards)} WRAP
+              <br />
+              <span style="font-size:0.7rem">
+                ({+(totalWrapRewards * $store.tokens.WRAP.exchangeRate).toFixed(
+                  5
+                ) / 1} ꜩ / {+(
+                  totalWrapRewards *
+                  $store.tokens.WRAP.exchangeRate *
+                  $store.xtzData.exchangeRate
+                ).toFixed(2) / 1}
+                {$localStorageStore.preferredFiat || "USD"})
+              </span>
             </div>
             <div style="display:flex;justify-content:center">
               {#if harvestingAllWrap}
@@ -1244,20 +1242,20 @@
             Find my stakes
           </button>
         </div>
-        <div />
-        <div />
         {#if availableRewards.filter(rw => rw.platform === "paul").length > 0}
           <div class="total-rewards" id="total-paul-rewards">
-            Total: {formatTokenAmount(
-              [
-                0,
-                0,
-                ...availableRewards
-                  .filter(rw => rw.platform === "paul")
-                  .map(rw => +rw.amount)
-              ].reduce((a, b) => a + b),
-              2
-            )}
+            Total rewards: {formatTokenAmount(totalPaulRewards)} PAUL
+            <br />
+            <span style="font-size:0.7rem">
+              ({+(totalPaulRewards * $store.tokens.PAUL.exchangeRate).toFixed(
+                5
+              ) / 1} ꜩ / {+(
+                totalPaulRewards *
+                $store.tokens.PAUL.exchangeRate *
+                $store.xtzData.exchangeRate
+              ).toFixed(2) / 1}
+              {$localStorageStore.preferredFiat || "USD"})
+            </span>
           </div>
           <div style="display:flex;justify-content:center">
             {#if harvestingAllPaul}

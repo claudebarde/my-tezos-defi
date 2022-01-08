@@ -4,6 +4,7 @@ import type {
   Wallet,
   WalletOperationBatch
 } from "@taquito/taquito";
+import { BigMapAbstraction } from "@taquito/taquito";
 import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
 import { bytes2Char } from "@taquito/utils";
 import BigNumber from "bignumber.js";
@@ -1261,4 +1262,40 @@ export const estimateQuipuTokenInShares = async (
   return sharesBN
     .times(storage.storage.token_pool)
     .idiv(storage.storage.total_supply);
+};
+
+export const findTokenTotalSupply = async (
+  tokenStorage: any,
+  tokenId?: number
+): Promise<number | null> => {
+  let totalSupply;
+  if (tokenStorage.hasOwnProperty("total_supply")) {
+    totalSupply = tokenStorage.total_supply;
+  } else if (tokenStorage.hasOwnProperty("totalSupply")) {
+    totalSupply = tokenStorage.totalSupply;
+  } else {
+    if (
+      tokenStorage.hasOwnProperty("assets") &&
+      tokenStorage.assets.hasOwnProperty("token_total_supply")
+    ) {
+      // WRAP tokens
+      totalSupply = await tokenStorage.assets.token_total_supply.get(tokenId);
+    } else {
+      return null;
+    }
+  }
+
+  if (totalSupply instanceof BigMapAbstraction && tokenId !== undefined) {
+    try {
+      const totalSupplyForTokenId: BigNumber = await totalSupply.get(tokenId);
+      return totalSupplyForTokenId.toNumber();
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  } else if (BigNumber.isBigNumber(totalSupply)) {
+    return totalSupply.toNumber();
+  } else {
+    return null;
+  }
 };
