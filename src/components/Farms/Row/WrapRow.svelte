@@ -455,7 +455,7 @@
           on:click={compound}
           id={`harvest-restake-${invData.id}`}
         >
-          Harvest & Restake &nbsp;
+          Harvest & stake WRAP &nbsp;
           <span class="material-icons"> save_alt </span>
         </button>
       {/if}
