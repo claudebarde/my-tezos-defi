@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import moment from "moment";
   import store from "../../store";
   import toastStore from "../Toast/toastStore";
   import { formatTokenAmount } from "../../utils";
@@ -131,6 +132,8 @@
 
         .lb-op-row__timestamp {
           text-align: center;
+          display: flex;
+          flex-direction: column;
         }
       }
     }
@@ -217,7 +220,14 @@
             {/if}
           </div>
           <div class="lb-op-row__level">Level <br /> {lbOp.level}</div>
-          <div class="lb-op-row__timestamp">{lbOp.timestamp}</div>
+          <div class="lb-op-row__timestamp">
+            <span>
+              {moment(lbOp.timestamp, moment.ISO_8601).format("MMM Do YYYY")}
+            </span>
+            <span>
+              {moment(lbOp.timestamp, moment.ISO_8601).format("h:mm:ss a")}
+            </span>
+          </div>
         </div>
       {/each}
       <br />
