@@ -361,6 +361,13 @@
 
     return Object.entries($store.investments)
       .filter(inv => inv[1].platform === platform)
+      .filter(inv => {
+        if (platform === "plenty") {
+          return !inv[0].includes("Ctez");
+        } else {
+          return true;
+        }
+      })
       .filter(inv =>
         favorite
           ? favoriteInvestments.includes(inv[1].id)

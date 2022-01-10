@@ -24,9 +24,7 @@
   let loading = false;
   let lbOps: LbOp[] = [];
 
-  onMount(async () => {
-    // fetches history of user transactions with the LB DEX
-    loading = true;
+  const fetchHistory = async () => {
     try {
       const url = `https://api.mainnet.tzkt.io/v1/accounts/${$store.userAddress}/operations?target=${lbContractAddress}&type=transaction&status=applied`;
       const lbOpsData = await fetch(url);
@@ -83,9 +81,14 @@
         text: "Unable to load transaction history",
         dismissable: true
       });
-    } finally {
-      loading = false;
     }
+  };
+
+  onMount(async () => {
+    // fetches history of user transactions with the LB DEX
+    loading = true;
+    await fetchHistory();
+    loading = false;
   });
 </script>
 
