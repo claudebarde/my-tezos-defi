@@ -155,27 +155,39 @@
   }
 
   .trade-inputs {
-    width: 60%;
-    display: grid;
-    grid-template-columns: 10% 35% 10% 35% 10%;
-    justify-items: center;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin: $std-v-margin 0px;
 
-    img {
-      width: 30px;
-      height: 30px;
+    .trade-input {
+      display: flex;
+
+      img {
+        width: 30px;
+        height: 30px;
+        margin: 0px 20px;
+      }
+
+      input[type="text"] {
+        border: solid 1px $container-bg-color;
+        border-radius: 10px;
+        padding: 5px;
+        font-size: 1rem;
+        outline: none;
+        color: inherit;
+      }
+
+      .trade-input-balance {
+        padding: 0px 15px;
+        font-size: 0.7rem;
+      }
     }
 
-    input[type="text"] {
-      border: solid 1px $container-bg-color;
-      border-radius: 10px;
-      padding: 5px;
-      font-size: 1rem;
-      outline: none;
-    }
-
-    .trade-input-balance {
-      padding: 0px 15px;
-      font-size: 0.7rem;
+    span.material-icons {
+      margin-top: -15px;
     }
   }
 
@@ -193,31 +205,32 @@
   ).toFixed(2)}
   {$localStorageStore.preferredFiat})
 </div>
-<br />
 <div class="trade-inputs">
   {#if left === "tzbtc"}
-    <img src="images/tzBTC.png" alt="tzBTC-logo" />
-    <div>
-      <input
-        type="text"
-        value={amountInTzbtc}
-        id="input-tzbtc-amount"
-        autocomplete="off"
-        on:input={updateTokenAmounts}
-        class:error={+amountInTzbtc > +userTzbtcBalance}
-      />
-      <div
-        class="trade-input-balance"
-        style="cursor:pointer"
-        on:click={() => {
-          amountInTzbtc = userTzbtcBalance.toString();
-          amountInXTZ = (
-            Math.floor(+amountInTzbtc * +tzBtcRate * 10 ** 6) /
-            10 ** 6
-          ).toString();
-        }}
-      >
-        Your balance: {+userTzbtcBalance.toFixed(5) / 1}
+    <div class="trade-input">
+      <img src="images/tzBTC.png" alt="tzBTC-logo" />
+      <div>
+        <input
+          type="text"
+          value={amountInTzbtc}
+          id="input-tzbtc-amount"
+          autocomplete="off"
+          on:input={updateTokenAmounts}
+          class:error={+amountInTzbtc > +userTzbtcBalance}
+        />
+        <div
+          class="trade-input-balance"
+          style="cursor:pointer"
+          on:click={() => {
+            amountInTzbtc = userTzbtcBalance.toString();
+            amountInXTZ = (
+              Math.floor(+amountInTzbtc * +tzBtcRate * 10 ** 6) /
+              10 ** 6
+            ).toString();
+          }}
+        >
+          Your balance: {+userTzbtcBalance.toFixed(5) / 1}
+        </div>
       </div>
     </div>
     <span
@@ -227,30 +240,32 @@
     >
       sync_alt
     </span>
-    <div>
-      <input
-        type="text"
-        id="input-xtz-amount"
-        autocomplete="off"
-        value={amountInXTZ}
-        on:input={updateTokenAmounts}
-        class:error={+amountInXTZ > +userXtzBalance}
-      />
-      <div
-        class="trade-input-balance"
-        style="cursor:pointer"
-        on:click={() => {
-          amountInXTZ = userXtzBalance.toString();
-          amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
-        }}
-      >
-        Your balance: {+userXtzBalance.toFixed(5) / 1}
+    <div class="trade-input">
+      <div>
+        <input
+          type="text"
+          id="input-xtz-amount"
+          autocomplete="off"
+          value={amountInXTZ}
+          on:input={updateTokenAmounts}
+          class:error={+amountInXTZ > +userXtzBalance}
+        />
+        <div
+          class="trade-input-balance"
+          style="cursor:pointer"
+          on:click={() => {
+            amountInXTZ = userXtzBalance.toString();
+            amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
+          }}
+        >
+          Your balance: {+userXtzBalance.toFixed(5) / 1}
+        </div>
       </div>
+      <img src="images/XTZ.png" alt="XTZ-logo" />
     </div>
-    <img src="images/XTZ.png" alt="XTZ-logo" />
   {:else}
-    <img src="images/XTZ.png" alt="XTZ-logo" />
-    <div>
+    <div class="trade-input">
+      <img src="images/XTZ.png" alt="XTZ-logo" />
       <input
         type="text"
         id="input-xtz-amount"
@@ -277,33 +292,34 @@
     >
       sync_alt
     </span>
-    <div>
-      <input
-        type="text"
-        value={amountInTzbtc}
-        id="input-tzbtc-amount"
-        autocomplete="off"
-        on:input={updateTokenAmounts}
-        class:error={+amountInTzbtc > +userTzbtcBalance}
-      />
-      <div
-        class="trade-input-balance"
-        style="cursor:pointer"
-        on:click={() => {
-          amountInTzbtc = userTzbtcBalance.toString();
-          amountInXTZ = (
-            Math.floor(+amountInTzbtc * +tzBtcRate * 10 ** 6) /
-            10 ** 6
-          ).toString();
-        }}
-      >
-        Your balance: {+userTzbtcBalance.toFixed(5) / 1}
+    <div class="trade-input">
+      <div>
+        <input
+          type="text"
+          value={amountInTzbtc}
+          id="input-tzbtc-amount"
+          autocomplete="off"
+          on:input={updateTokenAmounts}
+          class:error={+amountInTzbtc > +userTzbtcBalance}
+        />
+        <div
+          class="trade-input-balance"
+          style="cursor:pointer"
+          on:click={() => {
+            amountInTzbtc = userTzbtcBalance.toString();
+            amountInXTZ = (
+              Math.floor(+amountInTzbtc * +tzBtcRate * 10 ** 6) /
+              10 ** 6
+            ).toString();
+          }}
+        >
+          Your balance: {+userTzbtcBalance.toFixed(5) / 1}
+        </div>
       </div>
+      <img src="images/tzBTC.png" alt="tzBTC-logo" />
     </div>
-    <img src="images/tzBTC.png" alt="tzBTC-logo" />
   {/if}
 </div>
-<br />
 <div class="trade-slippage">
   <div>Slippage:</div>
   <div>

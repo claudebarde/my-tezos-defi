@@ -175,6 +175,7 @@
       padding: 5px;
       font-size: 1rem;
       outline: none;
+      color: inherit;
     }
   }
 
