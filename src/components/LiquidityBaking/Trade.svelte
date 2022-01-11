@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
+  import { OpKind } from "@taquito/taquito";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import config from "../../config";
@@ -110,10 +111,30 @@
           +formattedTzbtc - (+formattedTzbtc * slippage) / 100
         );
 
-        const op = await lbContract.methods
+        const batchOp = await $store.Tezos.wallet
+          .batch([
+            {
+              kind: OpKind.TRANSACTION,
+              ...lbContract.methods
+                .xtzToToken($store.userAddress, minTokensBought, deadline)
+                .toTransferParams(),
+              amount: +amountInXTZ * 10 ** 6,
+              mutez: true
+            },
+            {
+              kind: OpKind.TRANSACTION,
+              to: $store.admin,
+              amount: Math.ceil(mtdFee * 10 ** 6),
+              mutez: true
+            }
+          ])
+          .send();
+        await batchOp.confirmation();
+
+        /*const op = await lbContract.methods
           .xtzToToken($store.userAddress, minTokensBought, deadline)
           .send({ amount: +amountInXTZ * 10 ** 6, mutez: true });
-        await op.confirmation();
+        await op.confirmation();*/
 
         tradeLoading = false;
         tradeSuccessfull = 1;
@@ -266,23 +287,25 @@
   {:else}
     <div class="trade-input">
       <img src="images/XTZ.png" alt="XTZ-logo" />
-      <input
-        type="text"
-        id="input-xtz-amount"
-        autocomplete="off"
-        value={amountInXTZ}
-        on:input={updateTokenAmounts}
-        class:error={+amountInXTZ > +userXtzBalance}
-      />
-      <div
-        class="trade-input-balance"
-        style="cursor:pointer"
-        on:click={() => {
-          amountInXTZ = userXtzBalance.toString();
-          amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
-        }}
-      >
-        Your balance: {+userXtzBalance.toFixed(5) / 1}
+      <div>
+        <input
+          type="text"
+          id="input-xtz-amount"
+          autocomplete="off"
+          value={amountInXTZ}
+          on:input={updateTokenAmounts}
+          class:error={+amountInXTZ > +userXtzBalance}
+        />
+        <div
+          class="trade-input-balance"
+          style="cursor:pointer"
+          on:click={() => {
+            amountInXTZ = userXtzBalance.toString();
+            amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
+          }}
+        >
+          Your balance: {+userXtzBalance.toFixed(5) / 1}
+        </div>
       </div>
     </div>
     <span
