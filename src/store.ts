@@ -17,6 +17,7 @@ const settings: State["settings"] = {
     validRpcUrls: [
       { name: "Tezos Giganode", url: "https://mainnet-tezos.giganode.io" },
       { name: "ECAD Labs", url: "https://mainnet.api.tez.ie" },
+      { name: "TezTools", url: "https://eu01-node.teztools.net" },
       { name: "SmartPy", url: "https://mainnet.smartpy.io/" },
       { name: "Blockscale", url: "https://rpc.tzbeta.net/" },
       { name: "LetzBake!", url: "https://teznode.letzbake.com/" }
