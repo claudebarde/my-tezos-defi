@@ -89,6 +89,58 @@
     }
   };
 
+  const transfer = async () => {
+    if (
+      tokenAmount &&
+      !tokenError &&
+      transferRecipient &&
+      !transferRecipientError &&
+      mtdFee
+    ) {
+      loadingTransfer = true;
+      try {
+        const { address, type, decimals } = $store.tokens[token];
+        const contract = await $store.Tezos.wallet.at(address);
+        const contractCall =
+          type === "fa1.2"
+            ? contract.methods.transfer(
+                $store.userAddress,
+                transferRecipient,
+                +tokenAmount * 10 ** decimals
+              )
+            : contract.methods.transfer([
+                {
+                  from_: $store.userAddress,
+                  txs: [
+                    {
+                      to_: transferRecipient,
+                      token_id: $store.tokens[token].tokenId,
+                      amount: +tokenAmount * 10 ** decimals
+                    }
+                  ]
+                }
+              ]);
+        const batchOp = await $store.Tezos.wallet
+          .batch()
+          .withContractCall(contractCall)
+          .withTransfer({
+            to: $store.admin,
+            amount: Math.floor(mtdFee * 10 ** 6),
+            mutez: true
+          })
+          .send();
+        await batchOp.confirmation();
+        tokenAmount = "";
+        transferRecipient = "";
+        mtdFee = null;
+      } catch (error) {
+        console.error(error);
+      } finally {
+        loadingTransfer = false;
+      }
+    }
+  };
+
   afterUpdate(() => {
     if (
       token !== "XTZ" &&
@@ -408,8 +460,13 @@
       {/if}
     </div>
     <div slot="modal-footer" class="modal-footer">
-      {#if tokenAmount && transferRecipient && !tokenError}
-        <button class="primary"> Send </button>
+      {#if tokenAmount && transferRecipient && !tokenError && !loadingTransfer}
+        <button class="primary" on:click={transfer}> Send </button>
+      {:else if tokenAmount && transferRecipient && !tokenError && loadingTransfer}
+        <button class="primary loading" disabled>
+          Sending &nbsp;
+          <span class="material-icons"> sync </span>
+        </button>
       {:else}
         <div />
       {/if}
