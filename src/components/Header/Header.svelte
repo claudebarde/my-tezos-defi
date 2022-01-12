@@ -124,7 +124,7 @@
       setInterval(async () => {
         const balance = await $store.Tezos.tz.getBalance(userAddress);
         store.updateTezBalance(balance.toNumber());
-      }, 1000);
+      }, 10000);
     } else {
       localStorageStore.init();
     }

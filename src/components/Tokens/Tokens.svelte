@@ -346,7 +346,7 @@
       justify-content: center;
       align-items: stretch;
       flex-wrap: wrap;
-      gap: 30px;
+      gap: 40px 30px;
     }
   }
 </style>
