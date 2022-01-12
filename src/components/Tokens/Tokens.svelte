@@ -185,6 +185,10 @@
           tk => tk.address
         );
         let newBalances = {};
+        $localStorageStore.favoriteTokens.forEach(
+          tk => (newBalances[tk] = undefined)
+        );
+
         tokensWithBalance
           .filter(
             el =>
@@ -442,9 +446,7 @@
     <!--
       {#each $store.tokensBalances ? sortTokensByBalance($localStorageStore.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map(tk => tk[0]) : [] as token (token)}
     -->
-    {#each $store.tokensBalances ? sortTokensByBalance( [...Object.entries($store.tokensBalances), ...$localStorageStore.favoriteTokens
-              .filter(tk => !$store.tokensBalances.hasOwnProperty(tk))
-              .map( tk => [tk, $store.tokensBalances[tk]] )] ).map(tk => tk[0]) : [] as token (token)}
+    {#each $store.tokensBalances ? sortTokensByBalance( [...Object.entries($store.tokensBalances)] ).map(tk => tk[0]) : [] as token (token)}
       <TokenBox
         {token}
         tokensStatsWeekly={tokensStatsWeekly[token]}
