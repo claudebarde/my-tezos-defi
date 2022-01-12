@@ -377,7 +377,7 @@
         </button>
       {/if}
       {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-        {#if $store.tokensBalances && $store.tokensBalances[invData.icons[0]] && $store.tokensBalances[invData.icons[1]]}
+        {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[invData.icons[0]]) > 0 && formatTokenAmount($store.tokensBalances[invData.icons[1]]) > 0}
           <button
             class="primary"
             on:click={() => (openStakingModal = !openStakingModal)}

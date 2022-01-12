@@ -248,6 +248,7 @@
               Math.floor(+amountInTzbtc * +tzBtcRate * 10 ** 6) /
               10 ** 6
             ).toString();
+            mtdFee = +amountInXTZ * 2 * config.mtdFee;
           }}
         >
           Your balance: {+userTzbtcBalance.toFixed(5) / 1}
@@ -277,6 +278,7 @@
           on:click={() => {
             amountInXTZ = userXtzBalance.toString();
             amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
+            mtdFee = +amountInXTZ * 2 * config.mtdFee;
           }}
         >
           Your balance: {+userXtzBalance.toFixed(5) / 1}
