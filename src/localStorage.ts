@@ -56,10 +56,6 @@ if (globalThis?.window?.localStorage) {
             let newState;
             if (stateFromStorage.version !== version) {
               newState = { ...initialState, ...stateFromStorage[userAddress] };
-              if (newState.hasOwnProperty("favoriteRpcUrl")) {
-                // THIS CAN BE REMOVED AFTER A FEW UPDATES
-                delete newState.favoriteRpcUrl;
-              }
               // updates the local storage
               try {
                 window.localStorage.setItem(
@@ -106,6 +102,17 @@ if (globalThis?.window?.localStorage) {
                   correctedFavoriteInvestments;
               }
               newState = { ...stateFromStorage[userAddress] };
+              // removes Ctez farms
+              // TODO: remove after a few updates
+              if (
+                newState.favoriteInvestments.find(farm => farm.includes("Ctez"))
+              ) {
+                const newFavoriteInvestments =
+                  newState.favoriteInvestments.filter(
+                    farm => !farm.includes("Ctez")
+                  );
+                newState.favoriteInvestments = [...newFavoriteInvestments];
+              }
             }
 
             return newState;

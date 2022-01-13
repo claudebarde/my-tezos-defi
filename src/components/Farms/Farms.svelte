@@ -918,20 +918,18 @@
         <span class="material-icons"> arrow_drop_down </span>
       </button>
     </div>
-    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-      <div id="wrap-farms">
-        <button
-          class="primary"
-          on:click={() => {
-            selectFarmModal = "wrap";
-          }}
-        >
-          <img src="images/WRAP.png" alt="WRAP" />
-          &nbsp; WRAP
-          <span class="material-icons"> arrow_drop_down </span>
-        </button>
-      </div>
-    {/if}
+    <div id="wrap-farms">
+      <button
+        class="primary"
+        on:click={() => {
+          selectFarmModal = "wrap";
+        }}
+      >
+        <img src="images/WRAP.png" alt="WRAP" />
+        &nbsp; WRAP
+        <span class="material-icons"> arrow_drop_down </span>
+      </button>
+    </div>
     <div id="paul-farms">
       <button
         class="primary"
