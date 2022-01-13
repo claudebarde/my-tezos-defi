@@ -78,10 +78,10 @@
       // [userTokens.find(tk => tk[0] === AvailableToken.PLENTY)]
       [...userTokens.filter(tk => tk[0] !== "xPLENTY")].map(
         async ([tokenId, tokenInfo]) => {
-          if (tokenInfo.type === "fa1.2") {
+          if (tokenInfo.type === "fa1.2" && tokenInfo.dexContractAddress) {
             const url = `https://api.teztools.io/v1/${tokenInfo.address}/pools/${tokenInfo.dexContractAddress}/aggregate_daily`;
             return { tokenId, stats: await fetch(url) };
-          } else if (tokenInfo.type === "fa2") {
+          } else if (tokenInfo.type === "fa2" && tokenInfo.dexContractAddress) {
             const url = `https://api.teztools.io/v1/${tokenInfo.address}_${tokenInfo.tokenId}/pools/${tokenInfo.dexContractAddress}/aggregate_daily`;
             return { tokenId, stats: await fetch(url) };
           }
@@ -283,6 +283,10 @@
     padding: 20px 10px;
     height: 80vh;
     overflow: auto;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
 
     .user-tokens-stats {
       display: flex;

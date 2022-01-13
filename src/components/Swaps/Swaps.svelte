@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { withSlippage, estimateSwap } from "@quipuswap/sdk";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import TokenSelect from "./TokenSelect.svelte";
@@ -14,8 +15,10 @@
   let tokenLeftVal = "";
   let tokenRightQuipuVal = "";
   let tokenRightPlentyVal = "";
-  let tokenRightPlentydetails: { minimumOut: number; fee: number };
+  let tokenRightPlentyDetails: { minimumOut: number; fee: number };
+  let tokenRightQuipuDetails: { minimumOut: number; fee: number };
   let loadingPlentyResults = false;
+  let loadingQuipuResults = false;
   let tokensToIgnore = { left: [], right: [] };
   let mtdFee: null | number = null;
 
@@ -29,16 +32,22 @@
       maxTokenLeft = formatTokenAmount(balance);
       tokenLeft = token;
       tokensToIgnore.right = [token];
-      await estimateSwap("left", null);
+      await Promise.allSettled([
+        estimatePlentySwap("left", null),
+        estimateQuipuSwap("left", null)
+      ]);
     } else {
       maxTokenRight = formatTokenAmount(balance);
       tokenRight = token;
       tokensToIgnore.left = [token];
-      await estimateSwap("right", null);
+      await Promise.allSettled([
+        estimatePlentySwap("right", null),
+        estimateQuipuSwap("right", null)
+      ]);
     }
   };
 
-  const estimateSwap = async (
+  const estimatePlentySwap = async (
     tokenSide: "left" | "right",
     value: null | string
   ) => {
@@ -51,7 +60,6 @@
 
     loadingPlentyResults = true;
 
-    // TODO: handle cases with XTZ for PlentySwap
     if (tokenLeft && tokenRight && tokenLeftVal) {
       const tokenLeftContract = await $store.Tezos.wallet.at(
         $store.tokens[tokenLeft].address
@@ -93,18 +101,15 @@
           0.005
         );
         if (plentyOutput && plentyOutput.tokenOut_amount > 0) {
-          tokenRightPlentyVal = formatTokenAmount(
-            plentyOutput.tokenOut_amount
-          ).toString();
-          tokenRightPlentydetails = {
+          tokenRightPlentyVal = plentyOutput.tokenOut_amount.toString();
+          tokenRightPlentyDetails = {
             minimumOut: plentyOutput.minimum_Out,
             fee: plentyOutput.fees
           };
           mtdFee =
-            (plentyOutput.minimum_Out *
-              $store.tokens[tokenLeft].exchangeRate *
-              0.3) /
-            100;
+            +tokenLeftVal *
+            $store.tokens[tokenLeft].exchangeRate *
+            config.mtdFee;
         } else {
           console.error("Unable to estimate token output");
         }
@@ -116,6 +121,81 @@
       }
     }
     loadingPlentyResults = false;
+  };
+
+  const estimateQuipuSwap = async (
+    tokenSide: "left" | "right",
+    value: null | string
+  ) => {
+    // if provided value is not a number
+    if (isNaN(+value)) return;
+
+    if (value && tokenSide === "left") {
+      tokenLeftVal = value;
+    }
+
+    if (tokenLeft && tokenRight && tokenLeftVal) {
+      loadingQuipuResults = true;
+
+      try {
+        let fromAsset;
+        if (tokenLeft === "XTZ") {
+          fromAsset = "tez";
+        } else {
+          const { type, address, tokenId } = $store.tokens[tokenLeft];
+          if (type === "fa1.2") {
+            fromAsset = { contract: address };
+          } else {
+            fromAsset = { contract: address, id: tokenId };
+          }
+        }
+
+        let toAsset;
+        if (tokenRight === "XTZ") {
+          toAsset = "tez";
+        } else {
+          const { type, address, tokenId } = $store.tokens[tokenRight];
+          if (type === "fa1.2") {
+            toAsset = { contract: address };
+          } else {
+            toAsset = { contract: address, id: tokenId };
+          }
+        }
+
+        const estimatedOutputValue = await estimateSwap(
+          $store.Tezos,
+          config.quipuswapFactories,
+          fromAsset,
+          toAsset,
+          {
+            inputValue: +tokenLeftVal * 10 ** $store.tokens[tokenLeft].decimals
+          }
+        );
+        if (estimatedOutputValue) {
+          tokenRightQuipuVal = (
+            estimatedOutputValue.toNumber() /
+            10 ** $store.tokens[tokenRight].decimals
+          ).toString();
+          const minimumOut = withSlippage(
+            estimatedOutputValue.toNumber(),
+            0.005
+          );
+          tokenRightQuipuDetails = {
+            minimumOut:
+              minimumOut.toNumber() / 10 ** $store.tokens[tokenRight].decimals,
+            fee: 0
+          };
+          mtdFee =
+            +tokenLeftVal *
+            $store.tokens[tokenLeft].exchangeRate *
+            config.mtdFee;
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        loadingQuipuResults = false;
+      }
+    }
   };
 </script>
 
@@ -264,14 +344,22 @@
         <input
           type="text"
           value={tokenLeftVal}
-          on:input={async ev => await estimateSwap("left", ev.target.value)}
+          on:input={async ev => {
+            await Promise.allSettled([
+              estimatePlentySwap("left", ev.target.value),
+              estimateQuipuSwap("left", ev.target.value)
+            ]);
+          }}
         />
         <div class="swaps-inputs__input__text__details">
           <button
             on:click={async () => {
               if (maxTokenLeft) {
                 tokenLeftVal = maxTokenLeft.toString();
-                await estimateSwap("left", tokenLeftVal);
+                await Promise.allSettled([
+                  estimatePlentySwap("left", tokenLeftVal),
+                  estimateQuipuSwap("left", tokenLeftVal)
+                ]);
               }
             }}
           >
@@ -303,7 +391,11 @@
       <div class="swaps-inputs__input__result">
         <div class="swaps-inputs__input__result__title">
           <div>QuipuSwap</div>
-          <img src="images/QUIPUSWAP.png" alt="quipuswap" />
+          <img
+            src="images/QUIPUSWAP.png"
+            alt="quipuswap"
+            class:loading={loadingQuipuResults}
+          />
         </div>
         <div class="swaps-inputs__input__result__output">
           <input type="text" value={tokenRightQuipuVal} readonly />
@@ -326,6 +418,34 @@
           <br />
           <button class="primary" disabled={!tokenRightQuipuVal}>Swap</button>
         </div>
+        {#if tokenRightQuipuDetails}
+          <div class="swaps-inputs__input__result__info">
+            <div>
+              Minimum out: {formatTokenAmount(
+                tokenRightQuipuDetails.minimumOut
+              )}
+            </div>
+            <div>
+              Difference: {formatTokenAmount(
+                Math.abs(
+                  +tokenLeftVal *
+                    $store.tokens[tokenLeft].exchangeRate *
+                    $store.xtzData.exchangeRate -
+                    +tokenRightQuipuVal *
+                      $store.tokens[tokenRight].exchangeRate *
+                      $store.xtzData.exchangeRate
+                )
+              )}
+              {$localStorageStore.preferredFiat}
+            </div>
+            <div>
+              Fee: {formatTokenAmount(tokenRightQuipuDetails.fee)}
+            </div>
+            <div>
+              MTD fee: {formatTokenAmount(mtdFee)} XTZ
+            </div>
+          </div>
+        {/if}
       </div>
     </div>
     <div class="swaps-inputs__input">
@@ -359,11 +479,11 @@
           <br />
           <button class="primary" disabled={!tokenRightPlentyVal}>Swap</button>
         </div>
-        {#if tokenRightPlentydetails}
+        {#if tokenRightPlentyDetails}
           <div class="swaps-inputs__input__result__info">
             <div>
               Minimum out: {formatTokenAmount(
-                tokenRightPlentydetails.minimumOut
+                tokenRightPlentyDetails.minimumOut
               )}
             </div>
             <div>
@@ -380,7 +500,7 @@
               {$localStorageStore.preferredFiat}
             </div>
             <div>
-              Fee: {formatTokenAmount(tokenRightPlentydetails.fee)}
+              Fee: {formatTokenAmount(tokenRightPlentyDetails.fee)}
             </div>
             <div>
               MTD fee: {formatTokenAmount(mtdFee)} XTZ

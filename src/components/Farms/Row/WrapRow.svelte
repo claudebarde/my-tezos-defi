@@ -224,6 +224,7 @@
       // calculates ROI per week
       if (stakeInXtz) {
         roiPerWeek = formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
+        dispatch("roi-per-week", roiPerWeek);
       }
     } catch (error) {
       console.error(error);

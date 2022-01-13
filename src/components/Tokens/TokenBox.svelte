@@ -215,7 +215,7 @@
     .favorite-token__price {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
     }
 
     .favorite-token__stats {
@@ -271,9 +271,13 @@
         />
       </div>
     {/if}
-    <span style="font-size:0.5rem;text-align:center">
-      Price changes over the last 30 days
-    </span>
+    <div>
+      <span style="font-size:0.5rem;text-align:center">
+        Price changes over the last 30 days
+      </span>
+    </div>
+    <div />
+    <div />
   </div>
 {:else}
   <div class="favorite-token">
@@ -380,6 +384,8 @@
       <span style="font-size:0.5rem;text-align:center">
         Price changes over the last 30 days
       </span>
+    {:else}
+      <div style="font-size:0.8rem;text-align:center">No data available</div>
     {/if}
   </div>
 {/if}

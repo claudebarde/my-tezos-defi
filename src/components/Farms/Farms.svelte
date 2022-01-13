@@ -62,6 +62,7 @@
   let totalPaulRewards: number | null = null;
   let totalPlentyRewards: number | null = null;
   let totalWrapRewards: number | null = null;
+  let totalRoiPerWeek: { [p in AvailableInvestments]: number } | {} = {};
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -884,6 +885,24 @@
         {$localStorageStore.preferredFiat}
       </div>
     </div>
+    {#if Object.values(totalRoiPerWeek).length > 0}
+      <div class="total-roi-per-week">
+        <div>Estimated ROI/week</div>
+        <div>
+          {formatTokenAmount(
+            [0, 0, ...Object.values(totalRoiPerWeek)].reduce((a, b) => a + b)
+          )} ꜩ
+        </div>
+        <div>
+          {formatTokenAmount(
+            [0, 0, ...Object.values(totalRoiPerWeek)].reduce((a, b) => a + b) *
+              $store.xtzData.exchangeRate,
+            2
+          ).toLocaleString("en-US")}
+          {$localStorageStore.preferredFiat}
+        </div>
+      </div>
+    {/if}
   </div>
   <br />
   <div class="farm-selection">
@@ -968,6 +987,8 @@
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
       <!-- PLENTY FARMS WITH STABLECOINS -->
@@ -992,6 +1013,8 @@
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
       {#if $localStorageStore.favoriteInvestments.includes("xPLENTY-Staking")}
@@ -1083,6 +1106,8 @@
             store.updateInvestments(newInvestments);
           }}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
       <!-- LIQUIDITY MINING -->
@@ -1111,6 +1136,8 @@
             store.updateInvestments(newInvestments);
           }}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
       <!-- FEE FARMING -->
@@ -1139,6 +1166,8 @@
             store.updateInvestments(newInvestments);
           }}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
       {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && $localStorageStore.favoriteInvestments.filter( inv => inv.includes("WRAP") ).length > 0}
@@ -1235,6 +1264,8 @@
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
     </div>
