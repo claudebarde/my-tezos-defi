@@ -122,11 +122,18 @@
         const shares = await calcTokenStakesInAlienFarm({
           Tezos: $store.Tezos,
           amountOfTokens: invData.balance,
-          tokens: invData.icons.map(icon => ({
-            address: $store.tokens[icon as AvailableToken].address,
-            tokenId: $store.tokens[icon as AvailableToken].tokenId,
-            tokenType: $store.tokens[icon as AvailableToken].type
-          }))
+          tokens: invData.icons.map(icon => {
+            const {
+              address,
+              tokenId = 0,
+              type
+            } = $store.tokens[icon as AvailableToken];
+            return {
+              address,
+              tokenId,
+              tokenType: type
+            };
+          })
         });
         if (shares) {
           const token1InXtz =

@@ -106,6 +106,9 @@
           })
         );
       }
+      if (!stats.stats[stats.stats.length - 8]) {
+        return undefined;
+      }
 
       return {
         tokenId: stats.tokenId,
@@ -121,12 +124,14 @@
         })()
       };
     });
-    tokensWeekly.forEach(item => {
-      tokensStatsWeekly[item.tokenId] = {
-        difference: item.difference,
-        increase: item.increase
-      };
-    });
+    tokensWeekly
+      .filter(el => el)
+      .forEach(item => {
+        tokensStatsWeekly[item.tokenId] = {
+          difference: item.difference,
+          increase: item.increase
+        };
+      });
     const tokensDaily = tokensAggregateWeekly.map(stats => ({
       tokenId: stats.tokenId,
       increase:
