@@ -36,6 +36,7 @@ export const calcTokenStakesInAlienFarm = async (param: {
   }")) (Pair ${tokens[1].tokenId} ${
     tokens[1].tokenType === "fa2" ? "(Right Unit)" : "(Left Unit)"
   }) }`;
+  //console.log(tokens, micheline);
   const key = parser.parseMichelineExpression(micheline);
   const value = parser.parseMichelineExpression(
     "(pair (pair (pair address nat) (pair (or unit unit) address)) (pair nat (or unit unit)))"
@@ -144,17 +145,31 @@ export const calcPaulFarmApr = async ({
     case AvailableInvestments["QUIPU-PAUL"]:
     case AvailableInvestments["wWETH-PAUL"]:
     case AvailableInvestments["PAUL-uUSD"]:
+    case AvailableInvestments["PAUL-kUSD-uUSD"]:
       const invData = localStore.investments[farmId];
       const { tokenAAmount, tokenBAmount } = await calcTokenStakesInAlienFarm({
         Tezos,
         amountOfTokens: 10 ** 4,
-        tokens: invData.icons.map(icon => ({
-          address: localStore.tokens[icon as AvailableToken].address,
-          tokenId: localStore.tokens[icon as AvailableToken].tokenId,
-          tokenType: localStore.tokens[icon as AvailableToken].type
-        }))
+        tokens: invData.icons.map(icon => {
+          const {
+            address,
+            tokenId = 0,
+            type
+          } = localStore.tokens[icon as AvailableToken];
+          return {
+            address,
+            tokenId,
+            tokenType: type
+          };
+        })
       });
-      if (invData.icons[0] === "PAUL") {
+      if (farmId === AvailableInvestments["PAUL-kUSD-uUSD"]) {
+        lpTokenPrice =
+          (((tokenAAmount / 10 ** localStore.tokens.kUSD.decimals) *
+            localStore.tokens.kUSD.exchangeRate) /
+            10 ** 6) *
+          2;
+      } else if (invData.icons[0] === "PAUL") {
         lpTokenPrice =
           (((tokenAAmount / 10 ** localStore.tokens.PAUL.decimals) *
             localStore.tokens.PAUL.exchangeRate) /
@@ -169,6 +184,7 @@ export const calcPaulFarmApr = async ({
       }
       break;
     default:
+      console.info(`Unhandled case for PAUL farm ${farmId}`);
       lpTokenPrice = null;
   }
 

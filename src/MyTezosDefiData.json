@@ -1,4 +1,5 @@
 {
+  "mtd-version": "4.7.0",
   "tokens": {
     "kUSD": {
       "address": "KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV",
@@ -566,7 +567,7 @@
     },
     "TezDAO": {
       "address": "KT1C9X9s5rpVJGxwVuHEVBLYEdAQ1Qw8QDjH",
-      "dexContractAddress": "",
+      "dexContractAddress": "KT19g5hey69CiXRbhRzJEwvuJ95RgVLzS3TP",
       "decimals": 6,
       "ledgerPath": "assets/ledger",
       "ledgerKey": ["address"],
@@ -595,7 +596,7 @@
       "decimals": 6,
       "info": [],
       "alias": "QuipuSwap kUSD",
-      "icons": ["QUIPUSWAP", "KUSD"],
+      "icons": ["QUIPUSWAP", "kUSD"],
       "token": null,
       "liquidityToken": true
     },
@@ -1072,6 +1073,17 @@
       "rewardToken": "PAUL",
       "liquidityToken": true
     },
+    "PAUL-kUSD-uUSD": {
+      "id": "PAUL-kUSD-uUSD",
+      "platform": "paul",
+      "address": "KT1UonD6xnLqQcK3pSBXreXVYUGzUkF8DmHS",
+      "decimals": 6,
+      "info": ["paul-lqt"],
+      "alias": "kUSD/uUSD farm",
+      "icons": ["kUSD", "uUSD"],
+      "rewardToken": "PAUL",
+      "liquidityToken": true
+    },
     "KUSD-QUIPU-LP": {
       "id": "KUSD-QUIPU-LP",
       "platform": "kdao",
@@ -1079,7 +1091,7 @@
       "decimals": 6,
       "info": [],
       "alias": "kUSD Quipu LP Farm",
-      "icons": ["KUSD", "QUIPUSWAP"],
+      "icons": ["kUSD", "QUIPUSWAP"],
       "rewardToken": "kDAO",
       "liquidityToken": true
     },
@@ -1090,7 +1102,7 @@
       "decimals": 18,
       "info": [],
       "alias": "kUSD Farm",
-      "icons": ["KUSD", "KDAO"],
+      "icons": ["kUSD", "kDAO"],
       "rewardToken": "kDAO",
       "liquidityToken": false
     },
