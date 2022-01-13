@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import Trade from "./Trade.svelte";
   import AddLiquidity from "./AddLiquidity.svelte";
   import RemoveLiquidity from "./RemoveLiquidity.svelte";
   import History from "./History.svelte";
-  import { formatTokenAmount } from "../../utils";
+  import { formatTokenAmount, lqtOutput } from "../../utils";
 
   const lbContractAddress = "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5";
   const lqtContractAddress = "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo";
@@ -16,6 +17,11 @@
   let tokenAddress = "";
   let lqtAddress = "";
   let userLqtBalance = 0;
+  let lqtBalanceValue: {
+    xtz: null | number;
+    tzBTC: null | number;
+    fiat: null | number;
+  } = { xtz: null, tzBTC: null, fiat: null };
   let selectedTab: "trade" | "add-liquidity" | "remove-liquidity" | "history" =
     "trade";
 
@@ -46,6 +52,27 @@
       lqtTotal,
       balance: userLqtBalance
     });
+
+    const xtzVal = lqtOutput({
+      lqTokens: userLqtBalance,
+      pool: xtzPool,
+      lqtTotal,
+      decimals: 6
+    });
+    const tzbtcVal = lqtOutput({
+      lqTokens: userLqtBalance,
+      pool: tokenPool,
+      lqtTotal,
+      decimals: 8
+    });
+    const fiatVal =
+      xtzVal * $store.xtzData.exchangeRate +
+      tzbtcVal * $store.tokens.tzBTC.exchangeRate * $store.xtzData.exchangeRate;
+    lqtBalanceValue = {
+      xtz: xtzVal ? xtzVal : null,
+      tzBTC: tzbtcVal ? tzbtcVal : null,
+      fiat: fiatVal ? fiatVal : null
+    };
   };
 
   onMount(async () => {
@@ -70,13 +97,17 @@
   .subtitle {
     text-align: center;
     padding: 10px 0px 20px 0px;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
+  }
+
+  .lb-info {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
   }
 
   .container-lb {
     height: 90%;
-    display: grid;
-    grid-template-rows: 10% 90%;
 
     .row {
       justify-content: space-around;
@@ -84,9 +115,6 @@
 
       &.tvl {
         display: flex;
-      }
-
-      &:first-child {
         border-bottom: solid 4px $border-color;
       }
 
@@ -95,12 +123,14 @@
         flex-direction: column;
         text-align: center;
         background-color: lighten($container-bg-color, 65);
-        padding: 10px 20px;
         border-top-left-radius: 10px;
         border-top-right-radius: 10px;
+        height: 100%;
+        padding: 10px 20px;
 
         span {
           font-size: 0.8rem;
+          padding-top: 10px;
         }
 
         .tvl-details-info {
@@ -165,9 +195,29 @@
 
 <div class="container">
   <div class="title">Liquidity Baking DEX</div>
-  <div class="subtitle">
-    {#if tokenPool && xtzPool}
-      Exchange rate: 1 XTZ = {formatTokenAmount(tokenPool / xtzPool / 100, 9)} tzBtc
+  <div class="lb-info">
+    <div class="subtitle">
+      {#if tokenPool && xtzPool}
+        <div>Exchange rate</div>
+        <div>
+          1 XTZ = {formatTokenAmount(tokenPool / xtzPool / 100, 9)}
+          tzBtc
+        </div>
+      {/if}
+    </div>
+    {#if xtzPool && tokenPool && userLqtBalance}
+      <div class="subtitle" style="font-size:0.9rem">
+        <div>Your LQT balance: {userLqtBalance} LQT</div>
+        <div>
+          &thickapprox; {formatTokenAmount(lqtBalanceValue.xtz)} XTZ + {formatTokenAmount(
+            lqtBalanceValue.tzBTC
+          )} tzBTC
+        </div>
+        <div>
+          &thickapprox; {formatTokenAmount(lqtBalanceValue.fiat, 2)}
+          {$localStorageStore.preferredFiat}
+        </div>
+      </div>
     {/if}
   </div>
   <div class="container-lb">

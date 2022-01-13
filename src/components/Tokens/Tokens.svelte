@@ -78,10 +78,10 @@
       // [userTokens.find(tk => tk[0] === AvailableToken.PLENTY)]
       [...userTokens.filter(tk => tk[0] !== "xPLENTY")].map(
         async ([tokenId, tokenInfo]) => {
-          if (tokenInfo.type === "fa1.2") {
+          if (tokenInfo.type === "fa1.2" && tokenInfo.dexContractAddress) {
             const url = `https://api.teztools.io/v1/${tokenInfo.address}/pools/${tokenInfo.dexContractAddress}/aggregate_daily`;
             return { tokenId, stats: await fetch(url) };
-          } else if (tokenInfo.type === "fa2") {
+          } else if (tokenInfo.type === "fa2" && tokenInfo.dexContractAddress) {
             const url = `https://api.teztools.io/v1/${tokenInfo.address}_${tokenInfo.tokenId}/pools/${tokenInfo.dexContractAddress}/aggregate_daily`;
             return { tokenId, stats: await fetch(url) };
           }
@@ -151,7 +151,7 @@
   onMount(async () => {
     if (!$store.userAddress) push("/");
 
-    const userTokens = Object.entries($store.tokens).filter(tk =>
+    /*const userTokens = Object.entries($store.tokens).filter(tk =>
       $localStorageStore.favoriteTokens.includes(tk[0])
     );
     const newBalances = await searchUserTokens({
@@ -173,7 +173,72 @@
         $localStorageStore.favoriteTokens.includes(tk[0])
       );
       await fetchTokensStats(userTokens);
-    }, 10 * 60000);
+    }, 10 * 60000);*/
+    // fetches all the tokens with a balance
+    try {
+      const tokensWithBalanceReq = await fetch(
+        `https://staging.api.tzkt.io/v1/tokens/balances?account=${$store.userAddress}`
+      );
+      if (tokensWithBalanceReq) {
+        const tokensWithBalance = await tokensWithBalanceReq.json();
+        const availableTokenAddresses = Object.values($store.tokens).map(
+          tk => tk.address
+        );
+        let newBalances = {};
+        $localStorageStore.favoriteTokens.forEach(
+          tk => (newBalances[tk] = undefined)
+        );
+
+        tokensWithBalance
+          .filter(
+            el =>
+              +el.balance > 0 &&
+              availableTokenAddresses.includes(el.token.contract.address)
+          )
+          .map(el => [
+            el.token.contract.address,
+            el.token.standard === "fa2" ? +el.token.tokenId : null,
+            +el.balance
+          ])
+          .forEach(([tokenAddress, tokenId, tokenBalance]) => {
+            const token = Object.entries($store.tokens).find(([_, tokenInfo]) =>
+              tokenId
+                ? tokenInfo.address === tokenAddress &&
+                  tokenInfo.tokenId === tokenId
+                : tokenInfo.address === tokenAddress
+            );
+            if (
+              token &&
+              tokenBalance / 10 ** $store.tokens[token[0]].decimals > 0.00001
+            ) {
+              newBalances[token[0]] =
+                +tokenBalance / 10 ** $store.tokens[token[0]].decimals;
+            }
+          });
+        if (Object.values(newBalances).length > 0) {
+          store.updateTokensBalances(newBalances as State["tokensBalances"]);
+        }
+        // fetches stats for tokens including favorite token and token with balances
+        const userTokens = Object.entries($store.tokens).filter(
+          tk =>
+            $localStorageStore.favoriteTokens.includes(tk[0]) ||
+            newBalances.hasOwnProperty(tk[0])
+        );
+        await fetchTokensStats(userTokens);
+        tokensStatsRefresh = setInterval(async () => {
+          const userTokens = Object.entries($store.tokens).filter(
+            tk =>
+              $localStorageStore.favoriteTokens.includes(tk[0]) ||
+              $store.tokensBalances.hasOwnProperty(tk[0])
+          );
+          await fetchTokensStats(userTokens);
+        }, 10 * 60000);
+      } else {
+        throw "Unable to fetch token balances";
+      }
+    } catch (error) {
+      console.error(error);
+    }
   });
 
   afterUpdate(async () => {
@@ -184,14 +249,6 @@
       /*totalHoldingInXtz = [
         0,
         0,
-        ...Object.entries($store.tokensBalances).map(
-          ([tokenSymbol, balance]) =>
-            balance * $store.tokens[tokenSymbol].exchangeRate
-        )
-      ].reduce((a, b) => a + b);*/
-      totalHoldingInXtz = [
-        0,
-        0,
         ...$localStorageStore.favoriteTokens.map(tk => {
           if ($store.tokens[tk] && $store.tokensBalances[tk]) {
             return $store.tokensBalances[tk] * $store.tokens[tk].exchangeRate;
@@ -199,6 +256,13 @@
             return 0;
           }
         })
+      ].reduce((a, b) => a + b);*/
+      totalHoldingInXtz = [
+        0,
+        0,
+        ...Object.entries($store.tokensBalances).map(
+          ([token, balance]) => balance * $store.tokens[token].exchangeRate
+        )
       ].reduce((a, b) => a + b);
       // adds XTZ balance
       if ($store.xtzData.balance) {
@@ -219,6 +283,10 @@
     padding: 20px 10px;
     height: 80vh;
     overflow: auto;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
 
     .user-tokens-stats {
       display: flex;
@@ -286,7 +354,7 @@
       justify-content: center;
       align-items: stretch;
       flex-wrap: wrap;
-      gap: 30px;
+      gap: 40px 30px;
     }
   }
 </style>
@@ -379,7 +447,10 @@
         monthlyChartData={undefined}
       />
     {/if}
-    {#each $store.tokensBalances ? sortTokensByBalance($localStorageStore.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map(tk => tk[0]) : [] as token (token)}
+    <!--
+      {#each $store.tokensBalances ? sortTokensByBalance($localStorageStore.favoriteTokens.map( tk => [tk, $store.tokensBalances[tk]] )).map(tk => tk[0]) : [] as token (token)}
+    -->
+    {#each $store.tokensBalances ? sortTokensByBalance( [...Object.entries($store.tokensBalances)] ).map(tk => tk[0]) : [] as token (token)}
       <TokenBox
         {token}
         tokensStatsWeekly={tokensStatsWeekly[token]}

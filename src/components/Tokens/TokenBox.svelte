@@ -1,10 +1,13 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
   import Chart from "chart.js/auto";
+  import { validateAddress } from "@taquito/utils";
   import type { AvailableToken } from "../../types";
   import { formatTokenAmount } from "../../utils";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
+  import Modal from "../Modal/Modal.svelte";
+  import config from "../../config";
 
   export let token: AvailableToken | "XTZ",
     tokensStatsWeekly:
@@ -22,6 +25,13 @@
     monthlyChartData: { timestamp: string; price: number }[] | undefined; // undefined if XTZ
 
   let chart;
+  let openTransferModal = false;
+  let tokenAmount = "";
+  let tokenError = false;
+  let transferRecipient = "";
+  let transferRecipientError = false;
+  let loadingTransfer = false;
+  let mtdFee: null | number = null;
 
   const generateChart = (chartData: { timestamp: string; price: number }[]) => {
     const data = {
@@ -76,6 +86,58 @@
           }
         }
       });
+    }
+  };
+
+  const transfer = async () => {
+    if (
+      tokenAmount &&
+      !tokenError &&
+      transferRecipient &&
+      !transferRecipientError &&
+      mtdFee
+    ) {
+      loadingTransfer = true;
+      try {
+        const { address, type, decimals } = $store.tokens[token];
+        const contract = await $store.Tezos.wallet.at(address);
+        const contractCall =
+          type === "fa1.2"
+            ? contract.methods.transfer(
+                $store.userAddress,
+                transferRecipient,
+                +tokenAmount * 10 ** decimals
+              )
+            : contract.methods.transfer([
+                {
+                  from_: $store.userAddress,
+                  txs: [
+                    {
+                      to_: transferRecipient,
+                      token_id: $store.tokens[token].tokenId,
+                      amount: +tokenAmount * 10 ** decimals
+                    }
+                  ]
+                }
+              ]);
+        const batchOp = await $store.Tezos.wallet
+          .batch()
+          .withContractCall(contractCall)
+          .withTransfer({
+            to: $store.admin,
+            amount: Math.floor(mtdFee * 10 ** 6),
+            mutez: true
+          })
+          .send();
+        await batchOp.confirmation();
+        tokenAmount = "";
+        transferRecipient = "";
+        mtdFee = null;
+      } catch (error) {
+        console.error(error);
+      } finally {
+        loadingTransfer = false;
+      }
     }
   };
 
@@ -153,7 +215,7 @@
     .favorite-token__price {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
     }
 
     .favorite-token__stats {
@@ -209,9 +271,13 @@
         />
       </div>
     {/if}
-    <span style="font-size:0.5rem;text-align:center">
-      Price changes over the last 30 days
-    </span>
+    <div>
+      <span style="font-size:0.5rem;text-align:center">
+        Price changes over the last 30 days
+      </span>
+    </div>
+    <div />
+    <div />
   </div>
 {:else}
   <div class="favorite-token">
@@ -222,6 +288,18 @@
         <div style="font-size:0.8rem">
           {formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ
         </div>
+        {#if $store.tokensBalances && $store.tokensBalances.hasOwnProperty(token) && $store.tokensBalances[token] > 0}
+          <button
+            class="mini"
+            style="margin-top:10px"
+            on:click={() => (openTransferModal = true)}
+          >
+            Send &nbsp;
+            <span class="material-icons"> send_to_mobile </span>
+          </button>
+        {:else}
+          <div>&nbsp;</div>
+        {/if}
       </div>
       <div>
         {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}
@@ -306,6 +384,101 @@
       <span style="font-size:0.5rem;text-align:center">
         Price changes over the last 30 days
       </span>
+    {:else}
+      <div style="font-size:0.8rem;text-align:center">No data available</div>
     {/if}
   </div>
+{/if}
+{#if openTransferModal}
+  <Modal type="default" on:close={() => (openTransferModal = false)}>
+    <div slot="modal-title" class="modal-title">Send {token}</div>
+    <div slot="modal-body" class="modal-body">
+      <div class="modal-line">Enter the recipient's address</div>
+      <div class="modal-body__transfer__input">
+        <div>
+          <span class="material-icons" style="font-size:40px">
+            account_circle
+          </span>
+        </div>
+        <input
+          type="text"
+          bind:value={transferRecipient}
+          style={transferRecipientError ? `color:red` : ""}
+          readonly={loadingTransfer}
+          on:input={ev => {
+            const val = ev.target.value;
+            if (validateAddress(val) !== 3) {
+              transferRecipient = "";
+            }
+          }}
+        />
+      </div>
+      <div class="modal-line">Enter the amount to send</div>
+      <div class="modal-body__transfer__input">
+        <img
+          src={`images/${token}.png`}
+          alt="token-icon"
+          class:loading={loadingTransfer}
+        />
+        <div>
+          <input
+            type="text"
+            bind:value={tokenAmount}
+            style={tokenError ? `color:red` : ""}
+            readonly={loadingTransfer}
+            on:input={ev => {
+              tokenError = false;
+              mtdFee = null;
+              const val = ev.target.value;
+              if (isNaN(+val)) {
+                tokenAmount = "";
+              } else {
+                tokenAmount = val;
+                mtdFee =
+                  +val * $store.tokens[token].exchangeRate * config.mtdFee;
+                if (+val > $store.tokensBalances[token]) {
+                  tokenError = true;
+                }
+              }
+            }}
+          />
+          <button
+            class="modal-body__transfer__available-balance"
+            on:click={() => {
+              tokenAmount = $store.tokensBalances[token];
+              mtdFee =
+                +tokenAmount *
+                $store.tokens[token].exchangeRate *
+                config.mtdFee;
+            }}
+          >
+            Max: {formatTokenAmount($store.tokensBalances[token])}
+            {token}
+          </button>
+        </div>
+      </div>
+      {#if mtdFee}
+        <div class="modal-line" style="font-size:0.7rem">
+          MTD fee: {formatTokenAmount(mtdFee)} XTZ
+        </div>
+      {:else}
+        <div class="modal-line">&nbsp;</div>
+      {/if}
+    </div>
+    <div slot="modal-footer" class="modal-footer">
+      {#if tokenAmount && transferRecipient && !tokenError && !loadingTransfer}
+        <button class="primary" on:click={transfer}> Send </button>
+      {:else if tokenAmount && transferRecipient && !tokenError && loadingTransfer}
+        <button class="primary loading" disabled>
+          Sending &nbsp;
+          <span class="material-icons"> sync </span>
+        </button>
+      {:else}
+        <div />
+      {/if}
+      <button class="primary" on:click={() => (openTransferModal = false)}>
+        Close
+      </button>
+    </div>
+  </Modal>
 {/if}

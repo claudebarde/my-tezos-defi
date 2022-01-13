@@ -598,12 +598,14 @@
   </div>
 </main>
 <Toast />
-<div class="snowflakes" aria-hidden="true">
-  {#each Array(15) as _, index}
-    {#if index % 2 === 0}
-      <div class="snowflake">❅</div>
-    {:else}
-      <div class="snowflake">❆</div>
-    {/if}
-  {/each}
-</div>
+<!--
+  <div class="snowflakes" aria-hidden="true">
+    {#each Array(15) as _, index}
+      {#if index % 2 === 0}
+        <div class="snowflake">❅</div>
+      {:else}
+        <div class="snowflake">❆</div>
+      {/if}
+    {/each}
+  </div>
+-->

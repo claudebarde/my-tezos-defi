@@ -1216,19 +1216,25 @@ export const lqtOutput = ({
 export const calculateLqtOutput = ({
   lqTokens,
   xtzPool,
-  lqtTotal,
-  tezToTzbtc
+  tzbtcPool,
+  lqtTotal
 }: {
   lqTokens: number;
   xtzPool: number;
+  tzbtcPool: number;
   lqtTotal: number;
-  tezToTzbtc: number;
 }): { xtz: number; tzbtc: number } => {
   const xtzOut = lqtOutput({ lqTokens, pool: xtzPool, lqtTotal, decimals: 6 });
+  const tzbtcOut = lqtOutput({
+    lqTokens,
+    pool: tzbtcPool,
+    lqtTotal,
+    decimals: 8
+  });
 
   return {
     xtz: xtzOut,
-    tzbtc: +xtzOut * tezToTzbtc
+    tzbtc: tzbtcOut
   };
 };
 

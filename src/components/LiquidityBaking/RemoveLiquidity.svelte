@@ -75,8 +75,8 @@
     const result = calculateLqtOutput({
       lqTokens: +amountInLqt,
       xtzPool,
-      lqtTotal,
-      tezToTzbtc: $store.tokens.tzBTC.exchangeRate
+      tzbtcPool: tokenPool,
+      lqtTotal
     });
     xtzOut = result.xtz;
     tzBtcOut = result.tzbtc;
@@ -127,6 +127,7 @@
       padding: 5px;
       font-size: 1rem;
       outline: none;
+      color: inherit;
     }
   }
 

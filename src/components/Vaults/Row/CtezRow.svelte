@@ -42,10 +42,12 @@
         });
         if (balance.ctez_outstanding) {
           ctezOutstanding = balance.ctez_outstanding.toNumber();
-          ctezCollatUtilization = +(
-            (ctezOutstanding / balance.tez_balance.toNumber()) *
-            100
-          ).toFixed(2);
+          ctezCollatUtilization = ctezOutstanding
+            ? +(
+                (ctezOutstanding / balance.tez_balance.toNumber()) *
+                100
+              ).toFixed(2)
+            : null;
         } else {
           ctezOutstanding = 0;
         }
@@ -90,23 +92,25 @@
     </button>
   </div>
 </div>
-<div class="vault-sub-row">
-  <div />
-  <div class="stats">
-    <div>
-      Minted Ctez: {ctezOutstanding
-        ? formatTokenAmount(ctezOutstanding / 10 ** 6)
-        : "---"} Ctez
-    </div>
-    <div>Collateral utilization: {ctezCollatUtilization ?? "---"}%</div>
-    <div>
-      {#if ctezCollatUtilization && ctezCollatUtilization < 80}
-        <span class="material-icons"> sentiment_satisfied_alt </span>
-      {:else if ctezCollatUtilization && ctezCollatUtilization >= 80 && ctezCollatUtilization <= 90}
-        <span class="material-icons"> sentiment_neutral </span>
-      {:else if ctezCollatUtilization && ctezCollatUtilization > 90}
-        <span class="material-icons"> sentiment_dissatisfied </span>
-      {/if}
+{#if ctezOutstanding}
+  <div class="vault-sub-row">
+    <div />
+    <div class="stats">
+      <div>
+        Minted Ctez: {ctezOutstanding
+          ? formatTokenAmount(ctezOutstanding / 10 ** 6)
+          : "---"} Ctez
+      </div>
+      <div>Collateral utilization: {ctezCollatUtilization ?? "---"}%</div>
+      <div>
+        {#if ctezCollatUtilization && ctezCollatUtilization < 80}
+          <span class="material-icons"> sentiment_satisfied_alt </span>
+        {:else if ctezCollatUtilization && ctezCollatUtilization >= 80 && ctezCollatUtilization <= 90}
+          <span class="material-icons"> sentiment_neutral </span>
+        {:else if ctezCollatUtilization && ctezCollatUtilization > 90}
+          <span class="material-icons"> sentiment_dissatisfied </span>
+        {/if}
+      </div>
     </div>
   </div>
-</div>
+{/if}

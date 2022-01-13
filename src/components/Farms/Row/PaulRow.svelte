@@ -158,6 +158,7 @@
 
     // calculates estimated ROI per week
     roiPerWeek = formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
+    dispatch("roi-per-week", roiPerWeek);
   });
 
   afterUpdate(async () => {

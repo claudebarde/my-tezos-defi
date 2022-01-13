@@ -62,6 +62,7 @@
   let totalPaulRewards: number | null = null;
   let totalPlentyRewards: number | null = null;
   let totalWrapRewards: number | null = null;
+  let totalRoiPerWeek: { [p in AvailableInvestments]: number } | {} = {};
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -361,6 +362,13 @@
 
     return Object.entries($store.investments)
       .filter(inv => inv[1].platform === platform)
+      .filter(inv => {
+        if (platform === "plenty") {
+          return !inv[0].includes("Ctez");
+        } else {
+          return true;
+        }
+      })
       .filter(inv =>
         favorite
           ? favoriteInvestments.includes(inv[1].id)
@@ -877,6 +885,24 @@
         {$localStorageStore.preferredFiat}
       </div>
     </div>
+    {#if Object.values(totalRoiPerWeek).length > 0}
+      <div class="total-roi-per-week">
+        <div>Estimated ROI/week</div>
+        <div>
+          {formatTokenAmount(
+            [0, 0, ...Object.values(totalRoiPerWeek)].reduce((a, b) => a + b)
+          )} ꜩ
+        </div>
+        <div>
+          {formatTokenAmount(
+            [0, 0, ...Object.values(totalRoiPerWeek)].reduce((a, b) => a + b) *
+              $store.xtzData.exchangeRate,
+            2
+          ).toLocaleString("en-US")}
+          {$localStorageStore.preferredFiat}
+        </div>
+      </div>
+    {/if}
   </div>
   <br />
   <div class="farm-selection">
@@ -892,20 +918,18 @@
         <span class="material-icons"> arrow_drop_down </span>
       </button>
     </div>
-    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-      <div id="wrap-farms">
-        <button
-          class="primary"
-          on:click={() => {
-            selectFarmModal = "wrap";
-          }}
-        >
-          <img src="images/WRAP.png" alt="WRAP" />
-          &nbsp; WRAP
-          <span class="material-icons"> arrow_drop_down </span>
-        </button>
-      </div>
-    {/if}
+    <div id="wrap-farms">
+      <button
+        class="primary"
+        on:click={() => {
+          selectFarmModal = "wrap";
+        }}
+      >
+        <img src="images/WRAP.png" alt="WRAP" />
+        &nbsp; WRAP
+        <span class="material-icons"> arrow_drop_down </span>
+      </button>
+    </div>
     <div id="paul-farms">
       <button
         class="primary"
@@ -961,6 +985,8 @@
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
       <!-- PLENTY FARMS WITH STABLECOINS -->
@@ -985,6 +1011,8 @@
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
       {#if $localStorageStore.favoriteInvestments.includes("xPLENTY-Staking")}
@@ -1076,6 +1104,8 @@
             store.updateInvestments(newInvestments);
           }}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
       <!-- LIQUIDITY MINING -->
@@ -1104,6 +1134,8 @@
             store.updateInvestments(newInvestments);
           }}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
       <!-- FEE FARMING -->
@@ -1132,6 +1164,8 @@
             store.updateInvestments(newInvestments);
           }}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
       {#if $localStorageStore.favoriteInvestments && $localStorageStore.favoriteInvestments.length > 0 && $localStorageStore.favoriteInvestments.filter( inv => inv.includes("WRAP") ).length > 0}
@@ -1228,6 +1262,8 @@
             ])}
           on:reset-rewards={event => resetRewards(event.detail)}
           on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
         />
       {/each}
     </div>

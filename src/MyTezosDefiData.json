@@ -563,6 +563,17 @@
       "color": "#A378F5",
       "tokenId": 0,
       "whitelisted": true
+    },
+    "TezDAO": {
+      "address": "KT1C9X9s5rpVJGxwVuHEVBLYEdAQ1Qw8QDjH",
+      "dexContractAddress": "",
+      "decimals": 6,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address"],
+      "type": "fa2",
+      "color": "#00AFF4",
+      "tokenId": 0,
+      "whitelisted": true
     }
   },
   "investments": {

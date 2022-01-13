@@ -55,7 +55,8 @@ export enum AvailableToken {
   fDAO = "fDAO",
   BTCtz = "BTCtz",
   IDZ = "IDZ",
-  GIF = "GIF"
+  GIF = "GIF",
+  TezDAO = "TezDAO"
 }
 export enum AvailableFiat {
   USD = "USD",

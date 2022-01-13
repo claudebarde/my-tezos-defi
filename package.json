@@ -1,6 +1,6 @@
 {
   "name": "my-tezos-defi",
-  "version": "4.6.0",
+  "version": "4.7.0",
   "devDependencies": {
     "@tsconfig/svelte": "^2.0.1",
     "@types/node": "^16.11.9",
@@ -40,6 +40,7 @@
   "dependencies": {
     "@hover-labs/kolibri-js": "^3.0.7",
     "@microsoft/signalr": "^6.0.0",
+    "@quipuswap/sdk": "^3.0.0",
     "@taquito/beacon-wallet": "^11.0.1",
     "@taquito/taquito": "^11.0.1",
     "@taquito/tzip16": "^11.0.1",
