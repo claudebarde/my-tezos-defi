@@ -41,7 +41,7 @@
       amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
     }
 
-    mtdFee = +amountInXTZ * 2 * config.mtdFee;
+    mtdFee = +amountInXTZ * 2 * $store.serviceFee;
   };
 
   const trade = async () => {
@@ -75,7 +75,7 @@
           +amountInXTZ * 10 ** 6 - (+amountInXTZ * 10 ** 6 * slippage) / 100
         );
 
-        const batchOp = await $store.Tezos.wallet
+        let batch = $store.Tezos.wallet
           .batch()
           .withContractCall(tzBtcContract.methods.approve(lbContractAddress, 0))
           .withContractCall(
@@ -88,13 +88,16 @@
               minXtzBought,
               deadline
             )
-          )
-          .withTransfer({
+          );
+        if ($store.serviceFee) {
+          batch = batch.withTransfer({
             to: $store.admin,
             amount: Math.ceil(mtdFee * 10 ** 6),
             mutez: true
-          })
-          .send();
+          });
+        }
+
+        const batchOp = await batch.send();
         await batchOp.confirmation();
 
         tradeLoading = false;
@@ -248,7 +251,7 @@
               Math.floor(+amountInTzbtc * +tzBtcRate * 10 ** 6) /
               10 ** 6
             ).toString();
-            mtdFee = +amountInXTZ * 2 * config.mtdFee;
+            mtdFee = +amountInXTZ * 2 * $store.serviceFee;
           }}
         >
           Your balance: {+userTzbtcBalance.toFixed(5) / 1}
@@ -278,7 +281,7 @@
           on:click={() => {
             amountInXTZ = userXtzBalance.toString();
             amountInTzbtc = (+amountInXTZ / +tzBtcRate).toString();
-            mtdFee = +amountInXTZ * 2 * config.mtdFee;
+            mtdFee = +amountInXTZ * 2 * $store.serviceFee;
           }}
         >
           Your balance: {+userXtzBalance.toFixed(5) / 1}

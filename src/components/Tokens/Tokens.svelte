@@ -7,7 +7,8 @@
   import {
     searchUserTokens,
     sortTokensByBalance,
-    formatTokenAmount
+    formatTokenAmount,
+    fetchUserBalances
   } from "../../utils";
   import type { State, AvailableToken, TokenContract } from "../../types";
   import TokenBox from "./TokenBox.svelte";
@@ -181,48 +182,12 @@
     }, 10 * 60000);*/
     // fetches all the tokens with a balance
     try {
-      const tokensWithBalanceReq = await fetch(
-        `https://staging.api.tzkt.io/v1/tokens/balances?account=${$store.userAddress}`
+      const newBalances = await fetchUserBalances(
+        $localStorageStore.favoriteTokens
       );
-      if (tokensWithBalanceReq) {
-        const tokensWithBalance = await tokensWithBalanceReq.json();
-        const availableTokenAddresses = Object.values($store.tokens).map(
-          tk => tk.address
-        );
-        let newBalances = {};
-        $localStorageStore.favoriteTokens.forEach(
-          tk => (newBalances[tk] = undefined)
-        );
+      if (newBalances && Object.values(newBalances).length > 0) {
+        store.updateTokensBalances(newBalances as State["tokensBalances"]);
 
-        tokensWithBalance
-          .filter(
-            el =>
-              +el.balance > 0 &&
-              availableTokenAddresses.includes(el.token.contract.address)
-          )
-          .map(el => [
-            el.token.contract.address,
-            el.token.standard === "fa2" ? +el.token.tokenId : null,
-            +el.balance
-          ])
-          .forEach(([tokenAddress, tokenId, tokenBalance]) => {
-            const token = Object.entries($store.tokens).find(([_, tokenInfo]) =>
-              tokenId
-                ? tokenInfo.address === tokenAddress &&
-                  tokenInfo.tokenId === tokenId
-                : tokenInfo.address === tokenAddress
-            );
-            if (
-              token &&
-              tokenBalance / 10 ** $store.tokens[token[0]].decimals > 0.00001
-            ) {
-              newBalances[token[0]] =
-                +tokenBalance / 10 ** $store.tokens[token[0]].decimals;
-            }
-          });
-        if (Object.values(newBalances).length > 0) {
-          store.updateTokensBalances(newBalances as State["tokensBalances"]);
-        }
         // fetches stats for tokens including favorite token and token with balances
         const userTokens = Object.entries($store.tokens).filter(
           tk =>
@@ -265,8 +230,8 @@
       totalHoldingInXtz = [
         0,
         0,
-        ...Object.entries($store.tokensBalances).map(
-          ([token, balance]) => balance * $store.tokens[token].exchangeRate
+        ...Object.entries($store.tokensBalances).map(([token, balance]) =>
+          balance ? balance * $store.tokens[token].exchangeRate : 0
         )
       ].reduce((a, b) => a + b);
       // adds XTZ balance

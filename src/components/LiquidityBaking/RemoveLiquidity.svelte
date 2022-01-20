@@ -80,7 +80,7 @@
     });
     xtzOut = result.xtz;
     tzBtcOut = result.tzbtc;
-    mtdFee = result.xtz * 2 * config.mtdFee;
+    mtdFee = result.xtz * 2 * $store.serviceFee;
   };
 
   onMount(() => {
