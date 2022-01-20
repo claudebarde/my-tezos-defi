@@ -64,7 +64,8 @@ export enum AvailableFiat {
   CAD = "CAD",
   GBP = "GBP",
   SGD = "SGD",
-  RUB = "RUB"
+  RUB = "RUB",
+  BTC = "BTC"
 }
 export enum AvailableInvestments {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",

@@ -55,7 +55,8 @@ export default {
     { code: AvailableFiat.CAD, name: "Canadian Dollar", symbol: "CA$" },
     { code: AvailableFiat.GBP, name: "British pound", symbol: "£" },
     { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
-    { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" }
+    { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" },
+    { code: AvailableFiat.BTC, name: "Bitcoin", symbol: "₿" }
   ],
   stablecoins: ["kUSD", "USDtz", "uUSD", "wUSDC", "wDAI", "wUSDT"],
   toastColor: {
