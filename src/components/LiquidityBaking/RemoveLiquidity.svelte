@@ -4,7 +4,6 @@
   import localStorageStore from "../../localStorage";
   //import toastStore from "../Toast/toastStore";
   import { calculateLqtOutput, formatTokenAmount } from "../../utils";
-  import config from "../../config";
 
   export let lbContractAddress,
     tokenPool,

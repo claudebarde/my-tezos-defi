@@ -104,6 +104,9 @@
       await Promise.all(
         Object.values($store.investments)
           .filter(inv => inv.platform === "plenty")
+          .filter(inv =>
+            $localStorageStore.favoriteInvestments.includes(inv.id)
+          )
           .map(inv =>
             (async () => ({
               address: inv.address,
@@ -163,6 +166,9 @@
       await Promise.all(
         Object.values($store.investments)
           .filter(inv => inv.platform === "paul")
+          .filter(inv =>
+            $localStorageStore.favoriteInvestments.includes(inv.id)
+          )
           .map(inv =>
             (async () => ({
               address: inv.address,
