@@ -1336,10 +1336,10 @@ export const fetchDefiData = async (
       if (cacheResponse) {
         const mtdCache = await cacheResponse.json();
         if (mtdCache["mtd-version"] === mtdVersion) {
-          console.log("cached JSON");
+          console.log("cached defi data");
           return mtdCache;
         } else {
-          console.log("new JSON");
+          console.log("new defi data");
           return await ipfsRequest(newCache);
         }
       } else {
