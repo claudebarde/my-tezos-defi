@@ -65,6 +65,7 @@ export enum AvailableFiat {
   GBP = "GBP",
   SGD = "SGD",
   RUB = "RUB",
+  CNY = "CNY",
   BTC = "BTC"
 }
 export enum AvailableInvestments {
