@@ -56,6 +56,7 @@ export default {
     { code: AvailableFiat.GBP, name: "British pound", symbol: "£" },
     { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
     { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" },
+    { code: AvailableFiat.CNY, name: "Chinese yuan", symbol: "¥" },
     { code: AvailableFiat.BTC, name: "Bitcoin", symbol: "₿" }
   ],
   stablecoins: ["kUSD", "USDtz", "uUSD", "wUSDC", "wDAI", "wUSDT"],
