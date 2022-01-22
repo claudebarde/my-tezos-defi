@@ -14,7 +14,12 @@
   import Header from "./components/Header/Header.svelte";
   import LiveTrafficWorker from "worker-loader!./livetraffic.worker";
   import config from "./config";
-  import { createNewOpEntry, formatTokenAmount } from "./utils";
+  import {
+    createNewOpEntry,
+    formatTokenAmount,
+    fetchDefiData,
+    fetchUserBalances
+  } from "./utils";
   import Toast from "./components/Toast/Toast.svelte";
   import toastStore from "./components/Toast/toastStore";
 
@@ -363,18 +368,14 @@
     let tokens: [AvailableToken, TokenContract][] = [];
     try {
       // fetches data from the IPFS
-      const defiDataResponse = await fetch(
-        //`https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
-        `https://gateway.pinata.cloud/ipfs/${$store.defiData}`
-      );
-      if (defiDataResponse) {
-        const defiData: {
-          tokens: Omit<
-            State["tokens"],
-            "exchangeRate" | "thumbnail" | "websiteLink"
-          >;
-          investments: any;
-        } = await defiDataResponse.json();
+      const defiData: {
+        tokens: Omit<
+          State["tokens"],
+          "exchangeRate" | "thumbnail" | "websiteLink"
+        >;
+        investments: any;
+      } = await fetchDefiData($store.defiData, config.version);
+      if (defiData) {
         if (defiData.tokens) {
           // stores tokens info
           Object.entries(defiData.tokens).forEach(([tokenSymbol, token]) => {
@@ -527,6 +528,16 @@
           window.location.href.includes("staging")
         ) {
           store.updateServiceFee(null);
+        }
+
+        // loads user's balances
+        if ($store.userAddress) {
+          const newBalances = await fetchUserBalances(
+            $localStorageStore.favoriteTokens
+          );
+          if (newBalances && Object.values(newBalances).length > 0) {
+            store.updateTokensBalances(newBalances as State["tokensBalances"]);
+          }
         }
 
         // refreshes data

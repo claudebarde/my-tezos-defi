@@ -4,7 +4,6 @@
   import localStorageStore from "../../localStorage";
   //import toastStore from "../Toast/toastStore";
   import { calculateLqtOutput, formatTokenAmount } from "../../utils";
-  import config from "../../config";
 
   export let lbContractAddress,
     tokenPool,
@@ -80,7 +79,7 @@
     });
     xtzOut = result.xtz;
     tzBtcOut = result.tzbtc;
-    mtdFee = result.xtz * 2 * config.mtdFee;
+    mtdFee = result.xtz * 2 * $store.serviceFee;
   };
 
   onMount(() => {

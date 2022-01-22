@@ -1305,3 +1305,103 @@ export const findTokenTotalSupply = async (
     return null;
   }
 };
+
+interface DefiData {
+  tokens: Omit<State["tokens"], "exchangeRate" | "thumbnail" | "websiteLink">;
+  investments: any;
+}
+export const fetchDefiData = async (
+  ipfsHash: string,
+  mtdVersion: string
+): Promise<DefiData | null> => {
+  const request = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`; //`https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
+
+  const ipfsRequest = async (mtdCache?: Cache): Promise<DefiData> => {
+    const defiDataResponse = await fetch(request);
+    if (defiDataResponse) {
+      const defiData: DefiData = await defiDataResponse.json();
+      if (mtdCache) {
+        mtdCache.add(request);
+      }
+      return defiData;
+    } else {
+      throw "No response from IPFS";
+    }
+  };
+
+  if (window && "caches" in window) {
+    const newCache = await caches.open("mtd-cache");
+    try {
+      const cacheResponse = await newCache.match(request);
+      if (cacheResponse) {
+        const mtdCache = await cacheResponse.json();
+        if (mtdCache["mtd-version"] === mtdVersion) {
+          console.log("cached defi data");
+          return mtdCache;
+        } else {
+          console.log("new defi data");
+          return await ipfsRequest(newCache);
+        }
+      } else {
+        return await ipfsRequest(newCache);
+      }
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  } else {
+    try {
+      return await ipfsRequest();
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+};
+
+export const fetchUserBalances = async (favoriteTokens: AvailableToken[]) => {
+  const localStore = get(store);
+
+  const tokensWithBalanceReq = await fetch(
+    `https://staging.api.tzkt.io/v1/tokens/balances?account=${localStore.userAddress}`
+  );
+  if (tokensWithBalanceReq) {
+    const tokensWithBalance = await tokensWithBalanceReq.json();
+    const availableTokenAddresses = Object.values(localStore.tokens).map(
+      tk => tk.address
+    );
+    let newBalances = {};
+    favoriteTokens.forEach(tk => (newBalances[tk] = undefined));
+
+    tokensWithBalance
+      .filter(
+        el =>
+          +el.balance > 0 &&
+          availableTokenAddresses.includes(el.token.contract.address)
+      )
+      .map(el => [
+        el.token.contract.address,
+        el.token.standard === "fa2" ? +el.token.tokenId : null,
+        +el.balance
+      ])
+      .forEach(([tokenAddress, tokenId, tokenBalance]) => {
+        const token = Object.entries(localStore.tokens).find(([_, tokenInfo]) =>
+          tokenId
+            ? tokenInfo.address === tokenAddress &&
+              tokenInfo.tokenId === tokenId
+            : tokenInfo.address === tokenAddress
+        );
+        if (
+          token &&
+          tokenBalance / 10 ** localStore.tokens[token[0]].decimals > 0.00001
+        ) {
+          newBalances[token[0]] =
+            +tokenBalance / 10 ** localStore.tokens[token[0]].decimals;
+        }
+      });
+
+    return newBalances;
+  } else {
+    return null;
+  }
+};

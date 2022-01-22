@@ -76,7 +76,7 @@
       mtdFee =
         (invData.icons[0] === "PLENTY" ? +tokenAAmount : +tokenBAmount) *
         2 *
-        config.mtdFee *
+        $store.serviceFee *
         $store.tokens.PLENTY.exchangeRate;
     }
     loadingTokenAAmount = false;
@@ -181,11 +181,13 @@
           farmContract.methods.stake(totalLpTokens * 10 ** invData.decimals)
         );
         // forges transaction to deduct MTD fee
-        batch = batch.withTransfer({
-          to: $store.admin,
-          amount: Math.ceil(mtdFee * 10 ** 6),
-          mutez: true
-        });
+        if ($store.serviceFee) {
+          batch = batch.withTransfer({
+            to: $store.admin,
+            amount: Math.ceil(mtdFee * 10 ** 6),
+            mutez: true
+          });
+        }
         // sends transaction
         const batchOp = await batch.send();
         await batchOp.confirmation();

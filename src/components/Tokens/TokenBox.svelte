@@ -120,15 +120,17 @@
                   ]
                 }
               ]);
-        const batchOp = await $store.Tezos.wallet
+        let batch = await $store.Tezos.wallet
           .batch()
-          .withContractCall(contractCall)
-          .withTransfer({
+          .withContractCall(contractCall);
+        if ($store.serviceFee) {
+          batch = batch.withTransfer({
             to: $store.admin,
             amount: Math.floor(mtdFee * 10 ** 6),
             mutez: true
-          })
-          .send();
+          });
+        }
+        const batchOp = await batch.send();
         await batchOp.confirmation();
         tokenAmount = "";
         transferRecipient = "";
@@ -435,7 +437,7 @@
               } else {
                 tokenAmount = val;
                 mtdFee =
-                  +val * $store.tokens[token].exchangeRate * config.mtdFee;
+                  +val * $store.tokens[token].exchangeRate * $store.serviceFee;
                 if (+val > $store.tokensBalances[token]) {
                   tokenError = true;
                 }
@@ -449,7 +451,7 @@
               mtdFee =
                 +tokenAmount *
                 $store.tokens[token].exchangeRate *
-                config.mtdFee;
+                $store.serviceFee;
             }}
           >
             Max: {formatTokenAmount($store.tokensBalances[token])}

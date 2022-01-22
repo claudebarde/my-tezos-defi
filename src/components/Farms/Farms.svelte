@@ -63,6 +63,7 @@
   let totalPlentyRewards: number | null = null;
   let totalWrapRewards: number | null = null;
   let totalRoiPerWeek: { [p in AvailableInvestments]: number } | {} = {};
+  let selectedEstimatedRoi: "day" | "week" | "month" | "year" = "week";
 
   const addFavoriteInvestment = async investment => {
     // fetches balance for investment
@@ -103,6 +104,9 @@
       await Promise.all(
         Object.values($store.investments)
           .filter(inv => inv.platform === "plenty")
+          .filter(inv =>
+            $localStorageStore.favoriteInvestments.includes(inv.id)
+          )
           .map(inv =>
             (async () => ({
               address: inv.address,
@@ -162,6 +166,9 @@
       await Promise.all(
         Object.values($store.investments)
           .filter(inv => inv.platform === "paul")
+          .filter(inv =>
+            $localStorageStore.favoriteInvestments.includes(inv.id)
+          )
           .map(inv =>
             (async () => ({
               address: inv.address,
@@ -887,18 +894,88 @@
     </div>
     {#if Object.values(totalRoiPerWeek).length > 0}
       <div class="total-roi-per-week">
-        <div>Estimated ROI/week</div>
         <div>
-          {formatTokenAmount(
-            [0, 0, ...Object.values(totalRoiPerWeek)].reduce((a, b) => a + b)
-          )} ꜩ
+          Estimated ROI/<select
+            style="font-size:inherit;color:inherit;background-color:transparent"
+            bind:value={selectedEstimatedRoi}
+            on:change={ev => (selectedEstimatedRoi = ev.target.value)}
+          >
+            <option value="day" selected={selectedEstimatedRoi === "day"}>
+              day
+            </option>
+            <option value="week" selected={selectedEstimatedRoi === "week"}>
+              week
+            </option>
+            <option value="month" selected={selectedEstimatedRoi === "month"}>
+              month
+            </option>
+            <option value="year" selected={selectedEstimatedRoi === "year"}>
+              year
+            </option>
+          </select>
         </div>
         <div>
-          {formatTokenAmount(
-            [0, 0, ...Object.values(totalRoiPerWeek)].reduce((a, b) => a + b) *
-              $store.xtzData.exchangeRate,
-            2
-          ).toLocaleString("en-US")}
+          {#if selectedEstimatedRoi === "day"}
+            {formatTokenAmount(
+              [0, 0, ...Object.values(totalRoiPerWeek)].reduce(
+                (a, b) => a + b
+              ) / 7
+            )}
+          {:else if selectedEstimatedRoi === "week"}
+            {formatTokenAmount(
+              [0, 0, ...Object.values(totalRoiPerWeek)].reduce((a, b) => a + b)
+            )}
+          {:else if selectedEstimatedRoi === "month"}
+            {formatTokenAmount(
+              [0, 0, ...Object.values(totalRoiPerWeek)].reduce(
+                (a, b) => a + b
+              ) * 4
+            )}
+          {:else if selectedEstimatedRoi === "year"}
+            {formatTokenAmount(
+              [0, 0, ...Object.values(totalRoiPerWeek)].reduce(
+                (a, b) => a + b
+              ) * 52
+            )}
+          {/if}
+          ꜩ
+        </div>
+        <div>
+          {#if selectedEstimatedRoi === "day"}
+            {formatTokenAmount(
+              ([0, 0, ...Object.values(totalRoiPerWeek)].reduce(
+                (a, b) => a + b
+              ) /
+                7) *
+                $store.xtzData.exchangeRate,
+              2
+            ).toLocaleString("en-US")}
+          {:else if selectedEstimatedRoi === "week"}
+            {formatTokenAmount(
+              [0, 0, ...Object.values(totalRoiPerWeek)].reduce(
+                (a, b) => a + b
+              ) * $store.xtzData.exchangeRate,
+              2
+            ).toLocaleString("en-US")}
+          {:else if selectedEstimatedRoi === "month"}
+            {formatTokenAmount(
+              [0, 0, ...Object.values(totalRoiPerWeek)].reduce(
+                (a, b) => a + b
+              ) *
+                4 *
+                $store.xtzData.exchangeRate,
+              2
+            ).toLocaleString("en-US")}
+          {:else if selectedEstimatedRoi === "year"}
+            {formatTokenAmount(
+              [0, 0, ...Object.values(totalRoiPerWeek)].reduce(
+                (a, b) => a + b
+              ) *
+                52 *
+                $store.xtzData.exchangeRate,
+              2
+            ).toLocaleString("en-US")}
+          {/if}
           {$localStorageStore.preferredFiat}
         </div>
       </div>

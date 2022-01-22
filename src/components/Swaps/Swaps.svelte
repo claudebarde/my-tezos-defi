@@ -109,7 +109,7 @@
           mtdFee =
             +tokenLeftVal *
             $store.tokens[tokenLeft].exchangeRate *
-            config.mtdFee;
+            $store.serviceFee;
         } else {
           console.error("Unable to estimate token output");
         }
@@ -117,7 +117,6 @@
         console.error(
           `Unable to find token supply: token left (${tokenLeftTotalSupply}) / token right (${tokenRightTotalSupply})`
         );
-        return;
       }
     }
     loadingPlentyResults = false;
@@ -188,7 +187,7 @@
           mtdFee =
             +tokenLeftVal *
             $store.tokens[tokenLeft].exchangeRate *
-            config.mtdFee;
+            $store.serviceFee;
         }
       } catch (err) {
         console.error(err);

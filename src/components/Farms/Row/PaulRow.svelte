@@ -228,7 +228,8 @@
       <span class="title">Stake:</span>
       <br />
       <div class:blurry-text={$store.blurryBalances}>
-        {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1} LPT
+        {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1}
+        {invData.id === "PAUL-PAUL" ? AvailableToken.PAUL : "LPT"}
       </div>
       <br />
       {#if stakeInXtz}

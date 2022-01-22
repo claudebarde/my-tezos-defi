@@ -21,7 +21,7 @@
   let mtdFee: null | number = null;
 
   const calcMinLqtMinted = () => {
-    mtdFee = +amountInXTZ * 2 * config.mtdFee;
+    mtdFee = +amountInXTZ * 2 * $store.serviceFee;
     return Math.floor((+amountInXTZ * 10 ** 6 * lqtTotal) / xtzPool);
   };
 
