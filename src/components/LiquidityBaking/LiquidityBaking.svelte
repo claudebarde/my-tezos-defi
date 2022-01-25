@@ -37,48 +37,56 @@
   };
 
   const fetchData = async () => {
-    const contract = await $store.Tezos.wallet.at(lbContractAddress);
-    const storage: any = await contract.storage();
-    tokenPool = storage.tokenPool;
-    xtzPool = storage.xtzPool;
-    lqtTotal = storage.lqtTotal;
-    tokenAddress = storage.tokenAddress;
-    lqtAddress = storage.lqtAddress;
-    userLqtBalance = await fetchUserLqtBalance($store.userAddress);
+    try {
+      const contract = await $store.Tezos.wallet.at(lbContractAddress);
+      const storage: any = await contract.storage();
+      tokenPool = storage.tokenPool;
+      xtzPool = storage.xtzPool;
+      lqtTotal = storage.lqtTotal;
+      tokenAddress = storage.tokenAddress;
+      lqtAddress = storage.lqtAddress;
+      userLqtBalance = await fetchUserLqtBalance($store.userAddress);
 
-    store.updateLiquitidyBaking({
-      tokenPool,
-      xtzPool,
-      lqtTotal,
-      balance: userLqtBalance
-    });
+      store.updateLiquitidyBaking({
+        tokenPool,
+        xtzPool,
+        lqtTotal,
+        balance: userLqtBalance
+      });
 
-    const xtzVal = lqtOutput({
-      lqTokens: userLqtBalance,
-      pool: xtzPool,
-      lqtTotal,
-      decimals: 6
-    });
-    const tzbtcVal = lqtOutput({
-      lqTokens: userLqtBalance,
-      pool: tokenPool,
-      lqtTotal,
-      decimals: 8
-    });
-    const fiatVal =
-      xtzVal * $store.xtzData.exchangeRate +
-      tzbtcVal * $store.tokens.tzBTC.exchangeRate * $store.xtzData.exchangeRate;
-    lqtBalanceValue = {
-      xtz: xtzVal ? xtzVal : null,
-      tzBTC: tzbtcVal ? tzbtcVal : null,
-      fiat: fiatVal ? fiatVal : null
-    };
+      const xtzVal = lqtOutput({
+        lqTokens: userLqtBalance,
+        pool: xtzPool,
+        lqtTotal,
+        decimals: 6
+      });
+      const tzbtcVal = lqtOutput({
+        lqTokens: userLqtBalance,
+        pool: tokenPool,
+        lqtTotal,
+        decimals: 8
+      });
+      const fiatVal =
+        xtzVal * $store.xtzData.exchangeRate +
+        tzbtcVal *
+          $store.tokens.tzBTC.exchangeRate *
+          $store.xtzData.exchangeRate;
+      lqtBalanceValue = {
+        xtz: xtzVal ? xtzVal : null,
+        tzBTC: tzbtcVal ? tzbtcVal : null,
+        fiat: fiatVal ? fiatVal : null
+      };
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   onMount(async () => {
     if ($store.Tezos && $store.userAddress) {
       await fetchData();
       interval = setInterval(fetchData, 600000);
+    } else {
+      console.error(`Tezos toolkit or user address unavailable`);
     }
   });
 

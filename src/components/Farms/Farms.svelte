@@ -342,7 +342,7 @@
       const token2Amount = availableRewards.find(
         rw => rw.id === token2Data.id
       ).amount;
-      if (!token1Amount || !token2Amount) {
+      if (token1Amount === undefined || token2Amount === undefined) {
         return 0;
       } else if (token1Amount > token2Amount) {
         return -1;

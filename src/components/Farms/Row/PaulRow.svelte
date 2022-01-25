@@ -28,11 +28,13 @@
 
   let harvesting = false;
   let harvestingSuccess = undefined;
+  let loadingStakeInXtz = true;
   let stakeInXtz: null | number = null;
   const dispatch = createEventDispatcher();
   let apr: number | null = null;
   let roiPerWeek: number | null = null;
   let moreOptions = false;
+  let openStakingModal = false;
 
   const harvest = async () => {
     harvesting = true;
@@ -149,6 +151,7 @@
           stakeInXtz = formatTokenAmount(token1InXtz + token2InXtz);
         }
       }
+      loadingStakeInXtz = false;
 
       dispatch("update-farm-value", [invName, stakeInXtz]);
     }
@@ -232,7 +235,7 @@
         {invData.id === "PAUL-PAUL" ? AvailableToken.PAUL : "LPT"}
       </div>
       <br />
-      {#if stakeInXtz}
+      {#if stakeInXtz && !loadingStakeInXtz}
         <span class="title">Value in XTZ:</span>
         <br />
         <div class:blurry-text={$store.blurryBalances}>
@@ -249,7 +252,7 @@
             fiat => fiat.code === $localStorageStore.preferredFiat
           ).symbol}
         </div>
-      {:else}
+      {:else if loadingStakeInXtz}
         <span class="material-icons"> hourglass_empty </span>
       {/if}
     </div>
@@ -320,6 +323,15 @@
         </button>
       {/if}
       {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+        {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[invData.icons[0]]) > 0 && formatTokenAmount($store.tokensBalances[invData.icons[1]]) > 0}
+          <button
+            class="primary"
+            on:click={() => (openStakingModal = !openStakingModal)}
+          >
+            Stake &nbsp;
+            <span class="material-icons"> file_download </span>
+          </button>
+        {/if}
         <button
           class="primary"
           on:click={async () => {
