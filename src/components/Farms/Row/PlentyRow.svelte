@@ -38,6 +38,7 @@
 
   let harvesting = false;
   let harvestingSuccess = undefined;
+  let loadingStakeInXtz = true;
   let stakeInXtz: null | number = null;
   let openSettingsModal = false;
   let openStakingModal = false;
@@ -147,8 +148,9 @@
           exchangeRate: $store.tokens[invData.rewardToken].exchangeRate,
           rewardToken: invData.rewardToken
         });
-        dispatch("update-farm-value", [invName, stakeInXtz]);
       }
+      loadingStakeInXtz = false;
+      dispatch("update-farm-value", [invName, stakeInXtz]);
     }
 
     const [token1, token2] = invData.icons;

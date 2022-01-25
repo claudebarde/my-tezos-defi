@@ -26,6 +26,7 @@
   let harvestingSuccess = undefined;
   let compounding = false;
   let compoundingSuccess = undefined;
+  let loadingStakeInXtz = true;
   let stakeInXtz: null | number = null;
   let apy: null | number = null;
   let apr: null | number = null;
@@ -191,8 +192,13 @@
         stats[0].asset === "WRAP"
       ) {
         // stacking
-        apy = +stats[0].apy;
-        apr = +stats[0].apr;
+        if (!stats[0].running) {
+          apy = 0;
+          apr = 0;
+        } else {
+          apy = +stats[0].apy;
+          apr = +stats[0].apr;
+        }
         totalStaked = +stats[0].totalStaked;
       } else if (type === "staking" && Array.isArray(stats)) {
         const token =
@@ -201,8 +207,13 @@
             : invData.icons[0].slice(1);
         const farmStats = stats.find(st => st.base === token);
         if (farmStats) {
-          apy = +farmStats.apy;
-          apr = +farmStats.apr;
+          if (!farmStats.running) {
+            apy = 0;
+            apr = 0;
+          } else {
+            apy = +farmStats.apy;
+            apr = +farmStats.apr;
+          }
           totalStaked = +farmStats.totalStaked;
         } else {
           throw `Unable to find stats for ${farm}`;
@@ -277,6 +288,7 @@
             $store.tokens.WRAP.exchangeRate
           ).toFixed(5) / 1;
       }
+      loadingStakeInXtz = false;
       dispatch("update-farm-value", [invName, stakeInXtz]);
     }
 
@@ -329,6 +341,9 @@
         <div style="font-size:0.7rem">
           APY: {apy.toFixed(2)}%
         </div>
+      {:else}
+        <div style="font-size:0.7rem">APR: 0%</div>
+        <div style="font-size:0.7rem">APY: 0%</div>
       {/if}
     </div>
     <div>
