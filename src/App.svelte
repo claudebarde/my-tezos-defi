@@ -527,7 +527,7 @@
           window.location.href.includes("localhost") ||
           window.location.href.includes("staging")
         ) {
-          store.updateServiceFee(null);
+          store.updateServiceFee(0);
         }
 
         // loads user's balances

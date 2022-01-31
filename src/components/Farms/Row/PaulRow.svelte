@@ -17,6 +17,7 @@
   } from "../../../tokenUtils/paulUtils";
   import toastStore from "../../Toast/toastStore";
   import config from "../../../config";
+  import PaulStakeUnstake from "../Modals/PaulStakeUnstake.svelte";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -34,7 +35,8 @@
   let apr: number | null = null;
   let roiPerWeek: number | null = null;
   let moreOptions = false;
-  let openStakingModal = false;
+  let openStakeModal = false;
+  let openUnstakeModal = false;
 
   const harvest = async () => {
     harvesting = true;
@@ -268,34 +270,36 @@
     {/if}
   </div>
   <div class="farm-block__actions">
-    <div>
-      <span class="title">Available rewards:</span>
-      <br />
-      {#if !rewards}
-        <span class="material-icons"> hourglass_empty </span>
-      {:else}
-        <span id={`rewards-${invData.id}`}>
-          {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
-          {$store.investments[invData.id].rewardToken}
-        </span>
-      {/if}
-      {#if rewards?.amount}
+    {#if !moreOptions}
+      <div>
+        <span class="title">Available rewards:</span>
         <br />
-        <span style="font-size:0.7rem">
-          ({formatTokenAmount(
-            rewards.amount * $store.tokens[invData.rewardToken].exchangeRate
-          )} ꜩ / {formatTokenAmount(
-            rewards.amount *
-              $store.tokens[invData.rewardToken].exchangeRate *
-              $store.xtzData.exchangeRate,
-            2
-          )}
-          {config.validFiats.find(
-            fiat => fiat.code === $localStorageStore.preferredFiat
-          ).symbol})
-        </span>
-      {/if}
-    </div>
+        {#if !rewards}
+          <span class="material-icons"> hourglass_empty </span>
+        {:else}
+          <span id={`rewards-${invData.id}`}>
+            {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
+            {$store.investments[invData.id].rewardToken}
+          </span>
+        {/if}
+        {#if rewards?.amount}
+          <br />
+          <span style="font-size:0.7rem">
+            ({formatTokenAmount(
+              rewards.amount * $store.tokens[invData.rewardToken].exchangeRate
+            )} ꜩ / {formatTokenAmount(
+              rewards.amount *
+                $store.tokens[invData.rewardToken].exchangeRate *
+                $store.xtzData.exchangeRate,
+              2
+            )}
+            {config.validFiats.find(
+              fiat => fiat.code === $localStorageStore.preferredFiat
+            ).symbol})
+          </span>
+        {/if}
+      </div>
+    {/if}
     <br />
     <div class="buttons stack">
       {#if harvesting}
@@ -323,13 +327,20 @@
         </button>
       {/if}
       {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-        {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[invData.icons[0]]) > 0 && formatTokenAmount($store.tokensBalances[invData.icons[1]]) > 0}
+        {#if moreOptions}
           <button
             class="primary"
-            on:click={() => (openStakingModal = !openStakingModal)}
+            on:click={() => (openStakeModal = !openStakeModal)}
           >
             Stake &nbsp;
             <span class="material-icons"> file_download </span>
+          </button>
+          <button
+            class="primary"
+            on:click={() => (openUnstakeModal = !openUnstakeModal)}
+          >
+            Unstake &nbsp;
+            <span class="material-icons"> file_upload </span>
           </button>
         {/if}
         <button
@@ -350,3 +361,13 @@
     </div>
   </div>
 </div>
+{#if openStakeModal || openUnstakeModal}
+  <PaulStakeUnstake
+    on:close={() => {
+      openStakeModal = false;
+      openUnstakeModal = false;
+    }}
+    type={openStakeModal ? "stake" : "unstake"}
+    {invData}
+  />
+{/if}
