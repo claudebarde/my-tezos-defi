@@ -1,13 +1,37 @@
 import BigNumber from "bignumber.js";
+import type { TezosToolkit } from "@taquito/taquito";
+import { validateContractAddress } from "@taquito/utils";
 
-const dexterCalculations = (function (undefined) {
-  "use strict";
+type numericInput = BigNumber | number | string;
 
-  type numericInput = BigNumber | number | string;
+class LiquidityBaking {
+  private Tezos: TezosToolkit;
+  lbAddress: string;
+  storage: any;
+  xtzPool: BigNumber;
+  tokenPool: BigNumber;
+  lqtPool: BigNumber;
+  private taquitoApi: "contract" | "wallet";
 
+  constructor(
+    lbAddress: string,
+    Tezos: TezosToolkit,
+    taquitoApi: "contract" | "wallet"
+  ) {
+    if (validateContractAddress(lbAddress) === 3) {
+      this.Tezos = Tezos;
+      this.lbAddress = lbAddress;
+      this.xtzPool = new BigNumber(0);
+      this.tokenPool = new BigNumber(0);
+      this.lqtPool = new BigNumber(0);
+      this.taquitoApi = taquitoApi;
+    } else {
+      throw "Invalid liquidity baking contract address";
+    }
+  }
   /**
    * Many functions use {(BigNumber|number|string)} as parameter. These parameters
-   * are converted into bigInt from the big-integer package and are expected to
+   * are converted into BigNumber from the bignumber.js package and are expected to
    * to be non-negative numbers. string should be a string encoded integer. If you
    * are interfacing this project from another programming language, you should
    * pass the value for the parameter in {(BigNumber|number|string)} as a string to
@@ -26,7 +50,7 @@ const dexterCalculations = (function (undefined) {
    * @param {BigNumber} x
    * @returns {boolean} x > 0
    */
-  function gtZero(x: BigNumber): boolean {
+  private gtZero(x: BigNumber): boolean {
     return x.isGreaterThan(0);
   }
 
@@ -36,7 +60,7 @@ const dexterCalculations = (function (undefined) {
    * @param {BigNumber} x
    * @returns {boolean} x >= 0
    */
-  function geqZero(x: BigNumber): boolean {
+  private geqZero(x: BigNumber): boolean {
     return x.isGreaterThanOrEqualTo(0);
   }
 
@@ -46,7 +70,7 @@ const dexterCalculations = (function (undefined) {
    * @param {BigNumber} x
    * @returns {boolean} x == 0
    */
-  function eqZero(x: BigNumber): boolean {
+  private eqZero(x: BigNumber): boolean {
     return x.isEqualTo(0);
   }
 
@@ -56,7 +80,7 @@ const dexterCalculations = (function (undefined) {
    * @param {BigNumber} x
    * @returns {boolean} x <= 0
    */
-  function leqZero(x: BigNumber): boolean {
+  private leqZero(x: BigNumber): boolean {
     return x.isLessThanOrEqualTo(0);
   }
 
@@ -68,7 +92,7 @@ const dexterCalculations = (function (undefined) {
    * // ERROR: this doesn't return a boolean
    * @returns {boolean} if rem(x,y) > 0 then (x/y+1) else (x/y)
    */
-  function ceilingDiv(x: BigNumber, y: BigNumber): BigNumber {
+  private ceilingDiv(x: BigNumber, y: BigNumber): BigNumber {
     var remainder = x.modulo(y);
     if (remainder.comparedTo(new BigNumber(1)) >= 0) {
       return x.dividedBy(y).plus(new BigNumber(1));
@@ -82,11 +106,40 @@ const dexterCalculations = (function (undefined) {
    * @param {BigNumber} xtzPool
    * @returns {BigNumber} xtzPool + 2_500_000
    */
-  function creditSubsidy(xtzPool: numericInput): BigNumber {
+  private creditSubsidy(xtzPool: numericInput): BigNumber {
     if (BigNumber.isBigNumber(xtzPool)) {
       return xtzPool.plus(new BigNumber(2500000));
     } else {
       return new BigNumber(xtzPool).plus(new BigNumber(2500000));
+    }
+  }
+
+  /**
+   * Gets the current storage of the liquidity baking contract
+   *
+   * @param undefined
+   * @returns {LiquidityBaking} The current instance of the LiquidityBaking class.
+   */
+
+  async setup() {
+    if (!this.lbAddress) {
+      throw "This instance of LiquidityBaking does not include a contract address";
+    } else if (!this.Tezos) {
+      throw "This instance of LiquidityBaking does not include a TezosToolkit instance";
+    } else {
+      let contract;
+      if (this.taquitoApi === "contract") {
+        contract = await this.Tezos.contract.at(this.lbAddress);
+      } else {
+        contract = await this.Tezos.wallet.at(this.lbAddress);
+      }
+      const storage = await contract.storage();
+      const { xtzPool, tokenPool, lqtPool } = storage;
+      this.xtzPool = xtzPool;
+      this.tokenPool = tokenPool;
+      this.lqtPool = lqtPool;
+
+      return this;
     }
   }
 
@@ -106,14 +159,14 @@ const dexterCalculations = (function (undefined) {
    * @returns {(BigNumber|null)} The amount of token that Dexter will send to the :to address in the dexter xtzToToken entrypoint.
    */
 
-  function xtzToTokenTokenOutput(p: {
+  xtzToTokenTokenOutput(p: {
     xtzIn: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
   }): BigNumber | null {
     let { xtzIn, xtzPool: _xtzPool, tokenPool } = p;
 
-    let xtzPool = creditSubsidy(_xtzPool);
+    let xtzPool = this.creditSubsidy(_xtzPool);
     var xtzIn_ = new BigNumber(0);
     var xtzPool_ = new BigNumber(0);
     var tokenPool_ = new BigNumber(0);
@@ -124,7 +177,11 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(xtzIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
+    if (
+      this.gtZero(xtzIn_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_)
+    ) {
       // Includes 0.1% fee and 0.1% burn calculated separatedly: 999/1000 * 999/1000 = 998100/1000000
       // (xtzIn_ * tokenPool_ * 999 * 999) / (tokenPool * 1000 - tokenOut * 999 * 999)
       var numerator = xtzIn_.times(tokenPool_).times(new BigNumber(998001));
@@ -148,7 +205,7 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} decimals - The number of decimals a token has. Must be greater than or equal to zero.
    * @returns {(BigNumber|null)} The amount of XTZ the user must send to xtzToToken to get the tokenOut amount.
    */
-  function xtzToTokenXtzInput(p: {
+  xtzToTokenXtzInput(p: {
     tokenOut: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
@@ -156,7 +213,7 @@ const dexterCalculations = (function (undefined) {
     let { tokenOut, xtzPool: _xtzPool, tokenPool } = p;
 
     var decimals = 8;
-    var xtzPool = creditSubsidy(_xtzPool);
+    var xtzPool = this.creditSubsidy(_xtzPool);
 
     var tokenOut_ = new BigNumber(0);
     var xtzPool_ = new BigNumber(0);
@@ -171,10 +228,10 @@ const dexterCalculations = (function (undefined) {
     }
 
     if (
-      gtZero(tokenOut_) &&
-      gtZero(xtzPool_) &&
-      gtZero(tokenPool_) &&
-      geqZero(decimals_)
+      this.gtZero(tokenOut_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_) &&
+      this.geqZero(decimals_)
     ) {
       // Includes 0.1% fee and 0.1% burn calculated separatedly: 999/1000 * 999/1000 = 998100/1000000
       // (xtzPool_ * tokenOut_ * 1000 * 1000 * 10 ** decimals) / (tokenPool - tokenOut * 999 * 999 * 10 ** decimals))
@@ -188,7 +245,7 @@ const dexterCalculations = (function (undefined) {
             .times(new BigNumber(998001).times(Math.pow(10, decimals)))
         );
 
-      if (gtZero(result)) {
+      if (this.gtZero(result)) {
         return result;
       }
       return null;
@@ -206,7 +263,7 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} tokenPool - Token amount that Dexter holds. Must be greater than zero.
    * @returns {(number|null)} The exchange rate as a float number.
    */
-  function xtzToTokenExchangeRate(p: {
+  xtzToTokenExchangeRate(p: {
     xtzIn: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
@@ -222,8 +279,12 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(xtzIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
-      return xtzToTokenTokenOutput({
+    if (
+      this.gtZero(xtzIn_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_)
+    ) {
+      return this.xtzToTokenTokenOutput({
         xtzIn: xtzIn_,
         xtzPool: xtzPool_,
         tokenPool: tokenPool_
@@ -242,7 +303,7 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} decimals - The number of decimals a token has. Must be greater than or equal to zero.
    * @returns {(number|null)} The exchange rate as a float number.
    */
-  function xtzToTokenExchangeRateForDisplay(p: {
+  xtzToTokenExchangeRateForDisplay(p: {
     xtzIn: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
@@ -260,8 +321,12 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(xtzIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
-      return xtzToTokenTokenOutput({
+    if (
+      this.gtZero(xtzIn_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_)
+    ) {
+      return this.xtzToTokenTokenOutput({
         xtzIn: xtzIn_,
         xtzPool: xtzPool_,
         tokenPool: tokenPool_
@@ -284,7 +349,7 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} decimals - The number of decimals a token has. Must be greater than or equal to zero.
    * @returns {(number|null)} The market rate as a float value.
    */
-  function xtzToTokenMarketRate(p: {
+  xtzToTokenMarketRate(p: {
     xtzPool: numericInput;
     tokenPool: numericInput;
     decimals: numericInput;
@@ -301,7 +366,11 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(xtzPool_) && gtZero(tokenPool_) && geqZero(decimals_)) {
+    if (
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_) &&
+      this.geqZero(decimals_)
+    ) {
       xtzPool_ = xtzPool_.times(Math.pow(10, -6));
       tokenPool_ = tokenPool_.times(Math.pow(10, -decimals_));
       return tokenPool_.dividedBy(xtzPool_);
@@ -319,13 +388,13 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} tokenPool - Token amount that Dexter holds. Must be greater than zero.
    * @returns {(number|null)} - The price impact percentage as a float value.
    */
-  function xtzToTokenPriceImpact(p: {
+  xtzToTokenPriceImpact(p: {
     xtzIn: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
   }): BigNumber | null {
     const { xtzIn, xtzPool: _xtzPool, tokenPool } = p;
-    var xtzPool = creditSubsidy(_xtzPool);
+    var xtzPool = this.creditSubsidy(_xtzPool);
     var xtzIn_ = new BigNumber(0);
     var xtzPool_ = new BigNumber(0);
     var tokenPool_ = new BigNumber(0);
@@ -336,14 +405,18 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(xtzIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
+    if (
+      this.gtZero(xtzIn_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_)
+    ) {
       var midPrice = tokenPool_.dividedBy(xtzPool_);
       var xtzInNetBurn = xtzIn_.times(999).dividedBy(1000);
       var tokensBought = xtzInNetBurn
         .times(tokenPool_)
         .dividedBy(xtzInNetBurn.plus(xtzPool_));
       // if no tokens have been purchased then there is no price impact
-      if (leqZero(tokensBought)) {
+      if (this.leqZero(tokensBought)) {
         return new BigNumber(0);
       }
       var exactQuote = midPrice.times(xtzIn_);
@@ -363,7 +436,7 @@ const dexterCalculations = (function (undefined) {
    * @param {number} allowedSlippage - Maximum slippage rate that a user will except for an exchange. Must be between 0.00 and 1.00.
    * @returns {(BigNumber|null)} The minimum token amount to send to the xtzToToken entrypoint.
    */
-  function xtzToTokenMinimumTokenOutput(p: {
+  xtzToTokenMinimumTokenOutput(p: {
     tokenOut: numericInput;
     allowedSlippage: numericInput;
   }): BigNumber | null {
@@ -409,14 +482,14 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} xtzIn The amount of XTZ sold to dexter. Must be greater than zero.
    * @returns {(number|null)} The fee paid to the dexter liquidity providers.
    */
-  function totalLiquidityProviderFee(xtzIn: numericInput): BigNumber | null {
+  totalLiquidityProviderFee(xtzIn: numericInput): BigNumber | null {
     var xtzIn_ = new BigNumber(0);
     try {
       xtzIn_ = new BigNumber(xtzIn);
     } catch (err) {
       return null;
     }
-    if (gtZero(xtzIn_)) {
+    if (this.gtZero(xtzIn_)) {
       return xtzIn_.times(new BigNumber(1)).dividedBy(1000);
     } else {
       return null;
@@ -430,7 +503,7 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} xtzIn - The amount of XTZ sold to dexter. Must be greater than zero.
    * @returns {(number|null)} The fee paid to an individual dexter liquidity provider.
    */
-  function liquidityProviderFee(p: {
+  liquidityProviderFee(p: {
     xtzIn: numericInput;
     totalLiquidity: numericInput;
     userLiquidity: numericInput;
@@ -446,8 +519,12 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(xtzIn_) && gtZero(totalLiquidity_) && gtZero(userLiquidity_)) {
-      return totalLiquidityProviderFee(xtzIn).dividedBy(
+    if (
+      this.gtZero(xtzIn_) &&
+      this.gtZero(totalLiquidity_) &&
+      this.gtZero(userLiquidity_)
+    ) {
+      return this.totalLiquidityProviderFee(xtzIn).dividedBy(
         totalLiquidity_.dividedBy(userLiquidity)
       );
     } else {
@@ -471,13 +548,13 @@ const dexterCalculations = (function (undefined) {
    * @returns {(BigNumber|null)} The amount of XTZ that Dexter will send to the :to
    * address in the dexter tokenToXtz entrypoint.
    */
-  function tokenToXtzXtzOutput(p: {
+  tokenToXtzXtzOutput(p: {
     tokenIn: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
   }): BigNumber | null {
     const { tokenIn, xtzPool: _xtzPool, tokenPool } = p;
-    var xtzPool = creditSubsidy(_xtzPool);
+    var xtzPool = this.creditSubsidy(_xtzPool);
     var tokenIn_ = new BigNumber(0);
     var xtzPool_ = new BigNumber(0);
     var tokenPool_ = new BigNumber(0);
@@ -488,7 +565,11 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(tokenIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
+    if (
+      this.gtZero(tokenIn_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_)
+    ) {
       // Includes 0.1% fee and 0.1% burn calculated separatedly: 999/1000 * 999/1000 = 998100/1000000
       var numerator = new BigNumber(tokenIn)
         .times(new BigNumber(xtzPool))
@@ -513,14 +594,14 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} decimals - The number of decimals a token has. Must be greater than or equal to zero.
    * @returns {(BigNumber|null)} The amount of token the user must send to tokenToXtz to get the xtzOut amount.
    */
-  function tokenToXtzTokenInput(p: {
+  tokenToXtzTokenInput(p: {
     xtzOut: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
   }): BigNumber | null {
     const { xtzOut, xtzPool: _xtzPool, tokenPool } = p;
     var decimals = 8;
-    var xtzPool = creditSubsidy(_xtzPool);
+    var xtzPool = this.creditSubsidy(_xtzPool);
 
     var xtzOut_ = new BigNumber(0);
     var xtzPool_ = new BigNumber(0);
@@ -534,10 +615,10 @@ const dexterCalculations = (function (undefined) {
       return null;
     }
     if (
-      gtZero(xtzOut_) &&
-      gtZero(xtzPool_) &&
-      gtZero(tokenPool_) &&
-      geqZero(decimals_)
+      this.gtZero(xtzOut_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_) &&
+      this.geqZero(decimals_)
     ) {
       // Includes 0.1% fee and 0.1% burn calculated separatedly: 999/1000 * 999/1000 = 998100/1000000
       // (tokenPool_ * xtzOut_ * 1000 * 1000 * 10 ** decimals) / ((xtzPool * 999 * 1000 - xtzOut * 999 * 999) * 10 ** decimals))
@@ -552,7 +633,7 @@ const dexterCalculations = (function (undefined) {
             .times(Math.pow(10, decimals))
         );
 
-      if (gtZero(result)) {
+      if (this.gtZero(result)) {
         return result;
       }
       return null;
@@ -570,7 +651,7 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} tokenPool - Token amount that Dexter holds. Must be greater than zero.
    * @returns {(number|null)} The exchange rate as a float number.
    */
-  function tokenToXtzExchangeRate(p: {
+  tokenToXtzExchangeRate(p: {
     tokenIn: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
@@ -586,8 +667,12 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(tokenIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
-      return tokenToXtzXtzOutput({
+    if (
+      this.gtZero(tokenIn_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_)
+    ) {
+      return this.tokenToXtzXtzOutput({
         tokenIn: tokenIn_,
         xtzPool: xtzPool_,
         tokenPool: tokenPool_
@@ -605,7 +690,7 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} tokenPool - Token amount that Dexter holds. Must be greater than zero.
    * @returns {(number|null)} The exchange rate as a float number.
    */
-  function tokenToXtzExchangeRateForDisplay(p: {
+  tokenToXtzExchangeRateForDisplay(p: {
     tokenIn: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
@@ -623,8 +708,12 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(tokenIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
-      return tokenToXtzXtzOutput({
+    if (
+      this.gtZero(tokenIn_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_)
+    ) {
+      return this.tokenToXtzXtzOutput({
         tokenIn: tokenIn_,
         xtzPool: xtzPool_,
         tokenPool: tokenPool_
@@ -647,7 +736,7 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} decimals - The number of decimals a token has. Must be greater than or equal to zero.
    * @returns {(number|null)} The market rate as a float value.
    */
-  function tokenToXtzMarketRate(p: {
+  tokenToXtzMarketRate(p: {
     xtzPool: numericInput;
     tokenPool: numericInput;
   }): BigNumber | null {
@@ -662,9 +751,9 @@ const dexterCalculations = (function (undefined) {
       return null;
     }
     if (
-      gtZero(xtzPool_) &&
-      gtZero(tokenPool_) &&
-      geqZero(new BigNumber(decimals))
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_) &&
+      this.geqZero(new BigNumber(decimals))
     ) {
       xtzPool_ = xtzPool_.times(Math.pow(10, -6));
       tokenPool_ = tokenPool_.times(Math.pow(10, -decimals));
@@ -683,13 +772,13 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} tokenPool - Token amount that Dexter holds. Must be greater than zero.
    * @returns {(number|null)} - The price impact percentage as a float value.
    */
-  function tokenToXtzPriceImpact(p: {
+  tokenToXtzPriceImpact(p: {
     tokenIn: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
   }): BigNumber | null {
     const { tokenIn, xtzPool: _xtzPool, tokenPool } = p;
-    var xtzPool = creditSubsidy(_xtzPool);
+    var xtzPool = this.creditSubsidy(_xtzPool);
     var tokenIn_ = new BigNumber(0);
     var xtzPool_ = new BigNumber(0);
     var tokenPool_ = new BigNumber(0);
@@ -700,7 +789,11 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(tokenIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
+    if (
+      this.gtZero(tokenIn_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_)
+    ) {
       var midPrice = xtzPool_.dividedBy(tokenPool_);
       var xtzBought = tokenIn_
         .times(xtzPool_)
@@ -709,7 +802,7 @@ const dexterCalculations = (function (undefined) {
         .times(new BigNumber(999))
         .dividedBy(new BigNumber(1000));
       // if no tokens have been purchased then there is no price impact
-      if (leqZero(xtzBoughtNetBurn)) {
+      if (this.leqZero(xtzBoughtNetBurn)) {
         return new BigNumber(0);
       }
       var exactQuote = midPrice.times(tokenIn_);
@@ -729,7 +822,7 @@ const dexterCalculations = (function (undefined) {
    * @param {number} allowedSlippage - Maximum slippage rate that a user will except for an exchange. Must be between 0.00 and 1.00.
    * @returns {(BigNumber|null)} The minimum token amount to send to the tokenToXtz entrypoint.
    */
-  function tokenToXtzMinimumXtzOutput(p: {
+  tokenToXtzMinimumXtzOutput(p: {
     xtzOut: numericInput;
     allowedSlippage: numericInput;
   }) {
@@ -781,14 +874,14 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} totalLiquidity - Total amount of liquidity in a Dexter pool. Must be greater than or equal to zero.
    * @returns {(BigNumber|null)} The amount of liquidity that the sender gains.
    */
-  function addLiquidityLiquidityCreated(p: {
+  addLiquidityLiquidityCreated(p: {
     xtzIn: numericInput;
     xtzPool: numericInput;
     totalLiquidity: numericInput;
   }): BigNumber | null {
     const { xtzIn, xtzPool: _xtzPool, totalLiquidity } = p;
 
-    var xtzPool = creditSubsidy(_xtzPool);
+    var xtzPool = this.creditSubsidy(_xtzPool);
     var xtzIn_ = new BigNumber(0);
     var xtzPool_ = new BigNumber(0);
     var totalLiquidity_ = new BigNumber(0);
@@ -799,12 +892,12 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(xtzIn_) && gtZero(xtzPool_)) {
-      if (eqZero(totalLiquidity_)) {
+    if (this.gtZero(xtzIn_) && this.gtZero(xtzPool_)) {
+      if (this.eqZero(totalLiquidity_)) {
         return new BigNumber(xtzIn)
           .times(new BigNumber(totalLiquidity))
           .dividedBy(new BigNumber(xtzPool));
-      } else if (gtZero(totalLiquidity_)) {
+      } else if (this.gtZero(totalLiquidity_)) {
         return new BigNumber(xtzIn)
           .times(new BigNumber(totalLiquidity))
           .dividedBy(new BigNumber(xtzPool));
@@ -826,14 +919,14 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} tokenPool - Token amount that Dexter holds. Must be greater than zero.
    * @returns {(BigNumber|null)} The amount of liquidity that the sender gains.
    */
-  function addLiquidityTokenIn(p: {
+  addLiquidityTokenIn(p: {
     xtzIn: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
   }): BigNumber | null {
     const { xtzIn, xtzPool: _xtzPool, tokenPool } = p;
 
-    var xtzPool = creditSubsidy(_xtzPool);
+    var xtzPool = this.creditSubsidy(_xtzPool);
     var xtzIn_ = new BigNumber(0);
     var xtzPool_ = new BigNumber(0);
     var tokenPool_ = new BigNumber(0);
@@ -844,9 +937,13 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(xtzIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
+    if (
+      this.gtZero(xtzIn_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_)
+    ) {
       // cdiv(xtzIn_ * tokenPool_, xtzPool_)
-      return ceilingDiv(xtzIn_.times(tokenPool_), xtzPool_);
+      return this.ceilingDiv(xtzIn_.times(tokenPool_), xtzPool_);
     } else {
       return null;
     }
@@ -863,14 +960,14 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} tokenPool Token amount that Dexter holds.
    * @returns {{bigInt|null}} The amount of liquidity that the sender gains.
    */
-  function addLiquidityXtzIn(p: {
+  addLiquidityXtzIn(p: {
     tokenIn: numericInput;
     xtzPool: numericInput;
     tokenPool: numericInput;
   }): BigNumber | null {
     const { tokenIn, xtzPool: _xtzPool, tokenPool } = p;
 
-    var xtzPool = creditSubsidy(_xtzPool);
+    var xtzPool = this.creditSubsidy(_xtzPool);
     var tokenIn_ = new BigNumber(0);
     var xtzPool_ = new BigNumber(0);
     var tokenPool_ = new BigNumber(0);
@@ -881,7 +978,11 @@ const dexterCalculations = (function (undefined) {
     } catch (err) {
       return null;
     }
-    if (gtZero(tokenIn_) && gtZero(xtzPool_) && gtZero(tokenPool_)) {
+    if (
+      this.gtZero(tokenIn_) &&
+      this.gtZero(xtzPool_) &&
+      this.gtZero(tokenPool_)
+    ) {
       // div(tokenIn_ * xtzPool_, tokenPool_)
       return tokenIn_.times(xtzPool_).dividedBy(tokenPool_);
     } else {
@@ -905,7 +1006,7 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} tokenPool amount of token that Dexter holds.
    * @returns {(BigNumber|null)} The amount of token that the sender gains.
    */
-  function removeLiquidityTokenOut(p: {
+  removeLiquidityTokenOut(p: {
     liquidityBurned: numericInput;
     totalLiquidity: numericInput;
     tokenPool: numericInput;
@@ -923,9 +1024,9 @@ const dexterCalculations = (function (undefined) {
       return null;
     }
     if (
-      gtZero(liquidityBurned_) &&
-      gtZero(totalLiquidity_) &&
-      gtZero(tokenPool_)
+      this.gtZero(liquidityBurned_) &&
+      this.gtZero(totalLiquidity_) &&
+      this.gtZero(tokenPool_)
     ) {
       // tokenPool_ * liquidityBurned_ / totalLiquidity_
       return tokenPool_.times(liquidityBurned_).dividedBy(totalLiquidity_);
@@ -944,14 +1045,14 @@ const dexterCalculations = (function (undefined) {
    * @param {(BigNumber|number|string)} xtzPool amount of token that Dexter holds.
    * @returns {(BigNumber|null)} The amount of XTZ that the sender gains.
    */
-  function removeLiquidityXtzOut(p: {
+  removeLiquidityXtzOut(p: {
     liquidityBurned: numericInput;
     totalLiquidity: numericInput;
     xtzPool: numericInput;
   }): BigNumber | null {
     const { liquidityBurned, totalLiquidity, xtzPool: _xtzPool } = p;
 
-    var xtzPool = creditSubsidy(_xtzPool);
+    var xtzPool = this.creditSubsidy(_xtzPool);
     var liquidityBurned_ = new BigNumber(0);
     var totalLiquidity_ = new BigNumber(0);
     var xtzPool_ = new BigNumber(0);
@@ -963,9 +1064,9 @@ const dexterCalculations = (function (undefined) {
       return null;
     }
     if (
-      gtZero(liquidityBurned_) &&
-      gtZero(totalLiquidity_) &&
-      gtZero(xtzPool_)
+      this.gtZero(liquidityBurned_) &&
+      this.gtZero(totalLiquidity_) &&
+      this.gtZero(xtzPool_)
     ) {
       // xtzPool_ * liquidityBurned_ / totalLiquidity_
       return xtzPool_.times(liquidityBurned_).dividedBy(totalLiquidity_);
@@ -973,37 +1074,6 @@ const dexterCalculations = (function (undefined) {
       return null;
     }
   }
+}
 
-  return {
-    // xtzToToken
-    xtzToTokenTokenOutput: xtzToTokenTokenOutput,
-    xtzToTokenXtzInput: xtzToTokenXtzInput,
-    xtzToTokenExchangeRate: xtzToTokenExchangeRate,
-    xtzToTokenExchangeRateForDisplay: xtzToTokenExchangeRateForDisplay,
-    xtzToTokenMarketRate: xtzToTokenMarketRate,
-    xtzToTokenPriceImpact: xtzToTokenPriceImpact,
-    xtzToTokenMinimumTokenOutput: xtzToTokenMinimumTokenOutput,
-    totalLiquidityProviderFee: totalLiquidityProviderFee,
-    liquidityProviderFee: liquidityProviderFee,
-
-    // tokenToXtz
-    tokenToXtzXtzOutput: tokenToXtzXtzOutput,
-    tokenToXtzTokenInput: tokenToXtzTokenInput,
-    tokenToXtzExchangeRate: tokenToXtzExchangeRate,
-    tokenToXtzExchangeRateForDisplay: tokenToXtzExchangeRateForDisplay,
-    tokenToXtzMarketRate: tokenToXtzMarketRate,
-    tokenToXtzPriceImpact: tokenToXtzPriceImpact,
-    tokenToXtzMinimumXtzOutput: tokenToXtzMinimumXtzOutput,
-
-    // addLiquidity
-    addLiquidityLiquidityCreated: addLiquidityLiquidityCreated,
-    addLiquidityTokenIn: addLiquidityTokenIn,
-    addLiquidityXtzIn: addLiquidityXtzIn,
-
-    // removeLiquidity
-    removeLiquidityTokenOut: removeLiquidityTokenOut,
-    removeLiquidityXtzOut: removeLiquidityXtzOut
-  };
-})();
-
-export default dexterCalculations;
+export default LiquidityBaking;

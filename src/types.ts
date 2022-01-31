@@ -253,7 +253,7 @@ export interface State {
     balance: number;
     historic: { timestamp: string; price: number }[];
   };
-  serviceFee: null | number;
+  serviceFee: number;
   admin: TezosAccountAddress;
   defiData: string;
   liquidityBaking:
