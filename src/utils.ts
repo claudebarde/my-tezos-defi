@@ -720,7 +720,7 @@ export const prepareOperation = (p: {
   // prepares batch operation
   let batch = localStore.Tezos.wallet.batch();
   contractCalls.forEach(call => batch.withContractCall(call));
-  if (localStore.serviceFee === null) {
+  if (!localStore.serviceFee) {
     return batch;
   } else {
     return batch.withTransfer({
