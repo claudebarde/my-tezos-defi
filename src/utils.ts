@@ -1091,6 +1091,7 @@ export const getPaulReward = async (
   const numberAccuracy = new BigNumber(1000000000000000000);
 
   const contract = await localStore.Tezos.wallet.at(contractAddress);
+  const storage: any = await contract.storage();
   const {
     last_updated: lastUpdated,
     share_reward: shareReward,
@@ -1099,7 +1100,7 @@ export const getPaulReward = async (
     reward_per_second: rewardPerSecond,
     coefficient,
     referral_system: referralSystem
-  } = await contract.storage();
+  } = storage;
 
   if (totalStaked.eq(0)) {
     return new BigNumber(0);
@@ -1108,7 +1109,7 @@ export const getPaulReward = async (
   const referralSystemContract = await localStore.Tezos.wallet.at(
     referralSystem
   );
-  const { commission } = await referralSystemContract.storage();
+  const { commission } = (await referralSystemContract.storage()) as any;
 
   const currentTime = new BigNumber(+new Date());
   const lastTime = new BigNumber(+new Date(lastUpdated));

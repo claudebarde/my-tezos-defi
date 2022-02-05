@@ -21,6 +21,7 @@
   let loadingQuipuResults = false;
   let tokensToIgnore = { left: [], right: [] };
   let mtdFee: null | number = null;
+  let slippage = 0.005;
 
   const selectToken = async (arg: {
     token: AvailableToken | string;
@@ -61,7 +62,44 @@
     loadingPlentyResults = true;
 
     if (tokenLeft && tokenRight && tokenLeftVal) {
-      const tokenLeftContract = await $store.Tezos.wallet.at(
+      try {
+        const dexAddressVal = Object.entries(config.plentyDexAddresses).find(
+          val => val[0].includes(tokenLeft) && val[0].includes(tokenRight)
+        );
+        const [_, dexAddress] = dexAddressVal;
+        const dexContract = await $store.Tezos.wallet.at(dexAddress);
+        const dexStorage: any = await dexContract.storage();
+        const { lpFee, systemFee, token1_pool, token2_pool } = dexStorage;
+        const exchangeFee = 1 / lpFee.toNumber() + 1 / systemFee.toNumber();
+
+        const swapOutput = computeTokenOutput(
+          +tokenLeftVal * 10 ** $store.tokens[tokenLeft].decimals,
+          token1_pool.toNumber(),
+          token2_pool.toNumber(),
+          exchangeFee,
+          slippage,
+          $store.tokens[tokenRight].decimals
+        );
+        if (swapOutput && swapOutput.token2Amount > 0) {
+          tokenRightPlentyVal = formatTokenAmount(
+            swapOutput.token2Amount,
+            8
+          ).toString();
+          tokenRightPlentyDetails = {
+            minimumOut: swapOutput.minimumOut,
+            fee: swapOutput.fees / 10 ** $store.tokens.PLENTY.decimals
+          };
+          mtdFee =
+            +tokenLeftVal *
+            $store.tokens[tokenLeft].exchangeRate *
+            $store.serviceFee;
+        } else {
+          console.error("Unable to estimate token output");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+      /*const tokenLeftContract = await $store.Tezos.wallet.at(
         $store.tokens[tokenLeft].address
       );
       const tokenLeftStorage: any = await tokenLeftContract.storage();
@@ -117,7 +155,7 @@
         console.error(
           `Unable to find token supply: token left (${tokenLeftTotalSupply}) / token right (${tokenRightTotalSupply})`
         );
-      }
+      }*/
     }
     loadingPlentyResults = false;
   };
@@ -171,13 +209,14 @@
           }
         );
         if (estimatedOutputValue) {
-          tokenRightQuipuVal = (
+          tokenRightQuipuVal = formatTokenAmount(
             estimatedOutputValue.toNumber() /
-            10 ** $store.tokens[tokenRight].decimals
+              10 ** $store.tokens[tokenRight].decimals,
+            8
           ).toString();
           const minimumOut = withSlippage(
             estimatedOutputValue.toNumber(),
-            0.005
+            slippage
           );
           tokenRightQuipuDetails = {
             minimumOut:

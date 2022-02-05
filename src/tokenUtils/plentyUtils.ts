@@ -357,7 +357,7 @@ export const estimateLpTokenOutput = ({
 };
 
 // estimate token output for a swap
-export const computeTokenOutput = (
+/*export const computeTokenOutput = (
   tokenIn_amount,
   tokenIn_supply,
   tokenOut_supply,
@@ -398,4 +398,23 @@ export const computeTokenOutput = (
       priceImpact: 0
     };
   }
+};*/
+
+export const computeTokenOutput = (
+  token1Amount: number,
+  token1Reserve: number,
+  token2Reserve: number,
+  exchangeFee: number,
+  slippage: number,
+  token2Decimals: number
+) => {
+  let swapOutput = (1 - exchangeFee) * token2Reserve * token1Amount;
+  swapOutput /= token1Reserve + (1 - exchangeFee) * token1Amount;
+  swapOutput = swapOutput / 10 ** token2Decimals;
+
+  const minimumOut = swapOutput - swapOutput * slippage;
+
+  const fees = token1Amount * exchangeFee;
+
+  return { token2Amount: swapOutput, minimumOut, fees };
 };
