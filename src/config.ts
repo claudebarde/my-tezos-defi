@@ -191,5 +191,9 @@ export default {
     "wUSDT-XTZ-LM": "KT1T4pfr6NL8dUiz8ibesjEvH2Ne3k6AuXgn",
     "wWBTC-XTZ-LM": "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
     "wWETH-XTZ-LM": "KT1DuYujxrmgepwSDHtADthhKBje9BosUs1w"
+  },
+  vortexDexAddresses: {
+    "PLENTY-XTZ": "KT1VSjJxNq98AkPfVktpCv82hacrvgkb6hEu",
+    "uUSD-XTZ": "KT1ND1bkLahTzVUt93zbDtGugpWcL23gyqgQ"
   }
 };
