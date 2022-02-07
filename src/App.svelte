@@ -42,8 +42,10 @@
       //console.log(teztoolsPrices.getByType("XTZ" as any));
       //console.log(teztoolsPrices.getTokensList());
       //console.log(teztoolsPrices.getTokensWithPriceGreaterThan(1));
+      // console.log(teztoolsPrices.orderByUsdValueDesc(["kUSD", "tzBTC", "PLENTY", "wXTZ"]));
+      // teztoolsPrices.updateInternalFiat("EUR", 3.6);
       console.log(
-        teztoolsPrices.orderByUsdValueDesc(["kUSD", "tzBTC", "PLENTY", "wXTZ"])
+        teztoolsPrices.getCurrentPrice(["kUSD", "tzBTC", "PLENTY", "wXTZ"])
       );
 
       const tezToolsDataRes = await fetch(`https://api.teztools.io/v1/prices`);

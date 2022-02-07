@@ -25,10 +25,10 @@ interface TokenPairSide {
   pool: number;
   price: number;
   usdvalue: number;
-  dayClose?: number;
-  weekClose?: number;
-  monthClose?: number;
-  tokenType?: string;
+  dayClose: number;
+  weekClose: number;
+  monthClose: number;
+  tokenType: string;
 }
 
 interface TokenPair {
@@ -89,6 +89,8 @@ export default class TezToolsPrices {
   xtzPrice: xtzPrice;
   tokensPrices: Array<TokenPrice>;
   tokensList: Array<string>;
+  defaultFiat = "USD";
+  xtzExchangeRate: number;
 
   constructor() {
     this.tokensPrices = [];
@@ -118,15 +120,19 @@ export default class TezToolsPrices {
 
   /**
    * Fetches the token prices and the XTZ price
-   * @param {Object[prices: boolean; xtzPrice: boolean]} params Option to choose data fetched by the instance
+   * @param {Object[prices: boolean; xtzPrice: boolean; defaultFiat: string; fiatExchangeRate: number]} params Option to choose data fetched by the instance
    * @return {Promise<TezToolsPrices>} A promise with an instance of the class
    */
   async setup({
     prices = true,
-    xtzPrice = true
+    xtzPrice = true,
+    defaultFiat = "USD",
+    fiatExchangeRate
   }: {
     prices?: boolean;
     xtzPrice?: boolean;
+    defaultFiat?: string;
+    fiatExchangeRate?: number;
   }): Promise<TezToolsPrices> {
     if (prices) {
       // fetches tokens prices
@@ -391,7 +397,58 @@ export default class TezToolsPrices {
                     break;
                   case "pairs":
                     const pairs = contract[contractKey];
-                    token.pairs = [];
+                    const tokenPairs = [];
+                    pairs.forEach(pair => {
+                      let tokenPair: TokenPair = {
+                        address:
+                          validateContractAddress(pair.address) === 3
+                            ? pair.address
+                            : null,
+                        dex: this.is_string(pair.dex) ? pair.dex : null,
+                        symbols: this.is_string(pair.symbols)
+                          ? pair.symbols
+                          : null,
+                        tvl: this.is_number(pair.tvl) ? pair.tvl : null,
+                        lptSupply: this.is_number(pair.lptSupply)
+                          ? pair.tvl
+                          : null,
+                        sides: Array.isArray(pair.sides)
+                          ? [
+                              pair.sides.map(side => {
+                                let tokenPairSide: TokenPairSide = {
+                                  symbol: this.is_string(side.symbol)
+                                    ? side.symbol
+                                    : null,
+                                  pool: this.is_number(side.pool)
+                                    ? side.pool
+                                    : null,
+                                  price: this.is_number(side.price)
+                                    ? side.price
+                                    : null,
+                                  usdvalue: this.is_number(side.usdvalue)
+                                    ? side.usdvalue
+                                    : null,
+                                  dayClose: this.is_number(side.dayClose)
+                                    ? side.dayClose
+                                    : null,
+                                  weekClose: this.is_number(side.weekClose)
+                                    ? side.weekClose
+                                    : null,
+                                  monthClose: this.is_number(side.monthClose)
+                                    ? side.monthClose
+                                    : null,
+                                  tokenType: this.is_string(side.tokenType)
+                                    ? side.tokenType
+                                    : null
+                                };
+                                return tokenPairSide;
+                              })
+                            ]
+                          : null
+                      };
+                      tokenPairs.push(tokenPair);
+                    });
+                    token.pairs = tokenPairs;
                     break;
                   case "tags":
                     const tags = contract[contractKey];
@@ -492,6 +549,13 @@ export default class TezToolsPrices {
             }
           });
           this.xtzPrice = xtzPrice;
+          // user can set custom fiat
+          if (defaultFiat !== "USD" && fiatExchangeRate) {
+            this.defaultFiat = "EUR";
+            this.xtzExchangeRate = fiatExchangeRate;
+          } else {
+            this.xtzExchangeRate = xtzPrice.price;
+          }
         } else {
           throw "No response from the XTZ price API";
         }
@@ -504,7 +568,17 @@ export default class TezToolsPrices {
   }
 
   /**
-   *
+   * Allows users to set their own currency and exchange rate instead of the USD
+   * @param {string} symbol the symbol of the currency
+   * @param exchangeRate the exchange rate of the currency for 1 XTZ
+   */
+  updateInternalFiat(symbol: string, exchangeRate: number) {
+    this.defaultFiat = symbol;
+    this.xtzExchangeRate = exchangeRate;
+  }
+
+  /**
+   * Gets data about a single token
    * @param {string} tokenSymbol the token symbol to return
    * @returns {TokenPrice|null} the token data if found, otherwise null
    */
@@ -522,7 +596,7 @@ export default class TezToolsPrices {
   }
 
   /**
-   *
+   * Gets token data by type
    * @param {tokenType} type the token type to find
    * @returns {Array<TokenPrice>} the tokens found with the matching type
    */
@@ -531,7 +605,7 @@ export default class TezToolsPrices {
   }
 
   /**
-   *
+   * Gets a list of token data
    * @returns a list of available tokens
    */
   getTokensList(): Array<string> {
@@ -539,7 +613,7 @@ export default class TezToolsPrices {
   }
 
   /**
-   *
+   * Gets a list of tokens whose price is greater than the provided price
    * @param {number} price a price in tez
    * @returns a list of TokenPrice with a price greater than the parameter
    */
@@ -550,7 +624,7 @@ export default class TezToolsPrices {
   }
 
   /**
-   *
+   * Gets a list of tokens whose price is less than the provided price
    * @param {number} price a price in tez
    * @returns a list of TokenPrice with a price less than the parameter
    */
@@ -561,7 +635,7 @@ export default class TezToolsPrices {
   }
 
   /**
-   *
+   * Gets a list of token data ordered by USD value
    * @param {Array<string>} [tokens] An array of token symbols to return
    * @returns a list of TokenPrice order bu their USD value
    */
@@ -585,5 +659,29 @@ export default class TezToolsPrices {
   // alias for this.orderByUsdValue("asc")
   orderByUsdValueAsc(tokens?: Array<string>): Array<TokenPrice> {
     return this.orderByUsdValue("asc", tokens);
+  }
+
+  /**
+   * Gets a list of tokens with their symbol and price
+   * @param {Array<string>} [tokens] An optional array of token symbols to filter the results
+   * @returns {Array<{symbol: string; xtzPrice: string; usdPrice: string}>} An array of objects with current price in XTZ and USD
+   */
+  getCurrentPrice(tokens?: Array<string>): Array<{
+    symbol: string;
+    xtzPrice: number;
+    fiatPrice: number;
+    fiat: string;
+  }> {
+    const tokensCurrentPrices = this.tokensPrices.map(tk => ({
+      symbol: tk.symbol,
+      xtzPrice: tk.currentPrice,
+      fiatPrice: tk.currentPrice * this.xtzExchangeRate,
+      fiat: this.defaultFiat
+    }));
+    if (tokens && tokens.length > 0) {
+      return tokensCurrentPrices.filter(tk => tokens.includes(tk.symbol));
+    } else {
+      return tokensCurrentPrices;
+    }
   }
 }
