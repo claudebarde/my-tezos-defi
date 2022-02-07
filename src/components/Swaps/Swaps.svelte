@@ -62,6 +62,8 @@
     if (isNaN(+value)) return;
 
     loadingPlentyResults = true;
+    tokenRightPlentyVal = "";
+    tokenRightPlentyDetails = undefined;
 
     if (tokenLeft && tokenRight && tokenLeftVal) {
       try {
@@ -193,6 +195,8 @@
 
     if (tokenLeft && tokenRight && tokenLeftVal) {
       loadingQuipuResults = true;
+      tokenRightQuipuVal = "";
+      tokenRightQuipuDetails = undefined;
 
       try {
         let fromAsset;
@@ -264,25 +268,35 @@
       tokenLeft_pool: number,
       tokenRight_pool: number,
       tokenLeftAmount: number
-    ) => {
-      return (
+    ): { tokenOut: number; fee: number } => {
+      const tokenOut =
         (9972 * tokenRight_pool * tokenLeftAmount) /
-        (10_000 * (tokenLeft_pool + tokenLeftAmount))
-      );
+        (10_000 * (tokenLeft_pool + tokenLeftAmount));
+      return {
+        tokenOut,
+        fee: tokenOut + tokenOut * 0.0028
+      };
     };
     const exchangeXtzToToken = (p: {
       xtzPool: number;
       tokenPool: number;
       xtzAmount: number;
-    }) => {
+    }): { tokenOut: number; fee: number } => {
       const { xtzPool, tokenPool, xtzAmount } = p;
-      return (0.9972 * xtzAmount * tokenPool) / (xtzPool + 0.9972 * xtzAmount);
+      const tokenOut =
+        (0.9972 * xtzAmount * tokenPool) / (xtzPool + 0.9972 * xtzAmount);
+      return {
+        tokenOut,
+        fee: tokenOut + tokenOut * 0.0028
+      };
     };
     // if provided value is not a number
     if (isNaN(+value)) return;
 
     if (tokenLeft && tokenRight && tokenLeftVal) {
       loadingVortexResults = true;
+      tokenRightVortexVal = "";
+      tokenRightVortexDetails = undefined;
 
       // finds dexes
       if (tokenLeft === "XTZ" || tokenRight === "XTZ") {
@@ -316,7 +330,7 @@
           const xtzToTokenRight = exchangeXtzToToken({
             xtzPool: tokenRightStorage.xtzPool.toNumber(),
             tokenPool: tokenRightStorage.tokenPool.toNumber(),
-            xtzAmount: tokenLeftToXtz
+            xtzAmount: tokenLeftToXtz.tokenOut
           });
           /*console.log("Vortex exchange rate:");
           console.log(
@@ -325,17 +339,15 @@
             xtzToTokenRight / 10 ** $store.tokens[tokenRight].decimals
           );*/
           tokenRightVortexVal = formatTokenAmount(
-            (xtzToTokenRight + xtzToTokenRight * 0.0028) /
+            (xtzToTokenRight.tokenOut + xtzToTokenRight.tokenOut * 0.0028) /
               10 ** $store.tokens[tokenRight].decimals,
             8
           ).toString();
           tokenRightVortexDetails = {
             minimumOut:
-              (xtzToTokenRight - xtzToTokenRight * 0.005) /
+              (xtzToTokenRight.tokenOut - xtzToTokenRight.tokenOut * 0.005) /
               10 ** $store.tokens[tokenRight].decimals,
-            fee:
-              (xtzToTokenRight * 0.0028) /
-              10 ** $store.tokens[tokenRight].decimals
+            fee: xtzToTokenRight.fee
           };
         }
       }
@@ -423,10 +435,17 @@
             img {
               width: 40px;
               height: 40px;
+              border-radius: 50%;
+              border: solid 4px transparent;
+              padding: 2px;
 
               &.loading {
                 -webkit-animation: heartbeat 1.5s ease-in-out infinite both;
                 animation: heartbeat 1.5s ease-in-out infinite both;
+              }
+
+              &.best-rate {
+                border-color: $success-green;
               }
             }
           }
@@ -546,6 +565,8 @@
             src="images/QUIPUSWAP.png"
             alt="quipuswap"
             class:loading={loadingQuipuResults}
+            class:best-rate={tokenRightQuipuVal > tokenRightVortexVal &&
+              tokenRightQuipuVal > tokenRightPlentyVal}
           />
         </div>
         <div class="swaps-inputs__input__result__output">
@@ -608,6 +629,8 @@
             src="images/PLENTY.png"
             alt="plentyswap"
             class:loading={loadingPlentyResults}
+            class:best-rate={tokenRightPlentyVal > tokenRightVortexVal &&
+              tokenRightPlentyVal > tokenRightQuipuVal}
           />
         </div>
         <div class="swaps-inputs__input__result__output">
@@ -671,6 +694,8 @@
       tokenRightVal={tokenRightVortexVal}
       tokenRightDetails={tokenRightVortexDetails}
       {mtdFee}
+      bestRate={tokenRightVortexVal > tokenRightPlentyVal &&
+        tokenRightVortexVal > tokenRightQuipuVal}
     />
   </div>
 </section>

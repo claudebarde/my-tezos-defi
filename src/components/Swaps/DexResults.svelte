@@ -12,7 +12,8 @@
     tokenLeftVal: string,
     tokenRightVal: string,
     tokenRightDetails: { minimumOut: number; fee: number },
-    mtdFee: number;
+    mtdFee: number,
+    bestRate: boolean;
 
   let loadingResults = false;
   let maxTokenRight: number | null = null;
@@ -79,10 +80,17 @@
         img {
           width: 40px;
           height: 40px;
+          border-radius: 50%;
+          border: solid 4px transparent;
+          padding: 2px;
 
           &.loading {
             -webkit-animation: heartbeat 1.5s ease-in-out infinite both;
             animation: heartbeat 1.5s ease-in-out infinite both;
+          }
+
+          &.best-rate {
+            border-color: $success-green;
           }
         }
       }
@@ -133,7 +141,12 @@
   <div class="swaps-inputs__input__result">
     <div class="swaps-inputs__input__result__title">
       <div>{dexName(dex)}</div>
-      <img src={`images/${dexSymbol(dex)}.png`} alt="vortex" class:loading />
+      <img
+        src={`images/${dexSymbol(dex)}.png`}
+        alt="vortex"
+        class:loading
+        class:best-rate={bestRate}
+      />
     </div>
     <div class="swaps-inputs__input__result__output">
       <input type="text" value={tokenRightVal} readonly />
