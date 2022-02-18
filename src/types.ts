@@ -111,6 +111,7 @@ export enum AvailableInvestments {
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
   "KUSD-QL" = "KUSD-QL",
+  "KDAO-KUSD-UUSD" = "KDAO-KUSD-UUSD",
   "WRAP-STACKING" = "WRAP-STACKING",
   "WRAP-XTZ-LM" = "WRAP-XTZ-LM",
   "wAAVE-XTZ-LM" = "wAAVE-XTZ-LM",
@@ -164,7 +165,8 @@ export type InvestmentPlatform =
   | "crunchy"
   | "paul"
   | "kdao"
-  | "wrap";
+  | "wrap"
+  | "smak";
 
 export interface TokenContract {
   address: TezosContractAddress;

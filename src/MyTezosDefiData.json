@@ -1116,6 +1116,17 @@
       "icons": ["QUIPUSWAP"],
       "rewardToken": "kDAO",
       "liquidityToken": true
+    },
+    "SMAK-XTZ-KUSD": {
+      "id": "SMAK-XTZ-kUSD",
+      "platform": "smak",
+      "address": "KT1TN29nQ45FPoXXv2MWb6TNEKJviVrBnB5z",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-kUSD Farm",
+      "icons": ["XTZ", "kUSD"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
     }
   },
   "wrap-staking": [

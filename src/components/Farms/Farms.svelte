@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
   import { push } from "svelte-spa-router";
-  import tippy from "tippy.js";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import {
@@ -27,6 +26,7 @@
   import PaulRow from "./Row/PaulRow.svelte";
   import KdaoRow from "./Row/KdaoRow.svelte";
   import XPlentyRow from "./Row/XPlentyRow.svelte";
+  import SmakRow from "./Row/SmakRow.svelte";
   import InvestmentSpread from "./InvestmentSpread.svelte";
   import PlentyTotalRewards from "./PlentyTotalRewards.svelte";
   import Modal from "../Modal/Modal.svelte";
@@ -1031,6 +1031,18 @@
         <span class="material-icons"> arrow_drop_down </span>
       </button>
     </div>
+    <div id="smak-farms">
+      <button
+        class="primary"
+        on:click={() => {
+          selectFarmModal = "smak";
+        }}
+      >
+        <img src="images/SMAK.png" alt="SMAK" />
+        &nbsp; SMAK
+        <span class="material-icons"> arrow_drop_down </span>
+      </button>
+    </div>
   </div>
   <br />
   {#if $localStorageStore.favoriteInvestments}
@@ -1396,6 +1408,29 @@
         {/if}
       </div>
     {/if}
+    <!-- SMAK FARMS -->
+    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "smak").length > 0}
+      <div class="row-header">
+        <div style="grid-column: 1 / span 2">SMAK Farms</div>
+      </div>
+    {/if}
+    {#each Object.entries($store.investments)
+      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "smak")
+      .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
+      <SmakRow
+        rewards={availableRewards.find(rw => rw.id === invData.id)}
+        {invName}
+        {invData}
+        on:update-farm-value={event =>
+          (totalValueInFarms = [
+            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+            event.detail
+          ])}
+        on:reset-rewards={event => resetRewards(event.detail)}
+        on:farm-apr={event => sortFarmsByApr(event.detail)}
+        on:roi-per-week={event => (totalRoiPerWeek[invData.id] = event.detail)}
+      />
+    {/each}
   {/if}
   <br />
   <div>
@@ -1471,6 +1506,8 @@
         <div>Paul farms</div>
       {:else if selectFarmModal === "kdao"}
         <div>kDAO farms</div>
+      {:else if selectFarmModal === "smak"}
+        <div>SMAK farms</div>
       {/if}
     </div>
     <div

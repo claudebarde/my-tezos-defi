@@ -91,6 +91,7 @@ export default class TezToolsPrices {
   tokensList: Array<string>;
   defaultFiat = "USD";
   xtzExchangeRate: number;
+  tokenTags: Array<string> = [];
 
   constructor() {
     this.tokensPrices = [];
@@ -123,17 +124,17 @@ export default class TezToolsPrices {
    * @param {Object[prices: boolean; xtzPrice: boolean; defaultFiat: string; fiatExchangeRate: number]} params Option to choose data fetched by the instance
    * @return {Promise<TezToolsPrices>} A promise with an instance of the class
    */
-  async setup({
-    prices = true,
-    xtzPrice = true,
-    defaultFiat = "USD",
-    fiatExchangeRate
-  }: {
+  async setup(p?: {
     prices?: boolean;
     xtzPrice?: boolean;
     defaultFiat?: string;
     fiatExchangeRate?: number;
   }): Promise<TezToolsPrices> {
+    const prices = p && p.prices ? p.prices : true;
+    const xtzPrice = p && p.xtzPrice ? p.xtzPrice : true;
+    const defaultFiat = p && p.defaultFiat ? p.defaultFiat : "USD";
+    const fiatExchangeRate =
+      p && p.fiatExchangeRate ? p.fiatExchangeRate : undefined;
     if (prices) {
       // fetches tokens prices
       try {
@@ -503,6 +504,9 @@ export default class TezToolsPrices {
               });
               this.tokensPrices.push(token);
             });
+            this.tokenTags = Array.from(
+              new Set(this.tokensPrices.map(tk => tk.tags).filter(tk => tk))
+            );
           }
         } else {
           throw "No response from the tokens prices API";
@@ -571,10 +575,13 @@ export default class TezToolsPrices {
    * Allows users to set their own currency and exchange rate instead of the USD
    * @param {string} symbol the symbol of the currency
    * @param exchangeRate the exchange rate of the currency for 1 XTZ
+   * @returns an instance of the class
    */
-  updateInternalFiat(symbol: string, exchangeRate: number) {
+  updateInternalFiat(symbol: string, exchangeRate: number): TezToolsPrices {
     this.defaultFiat = symbol;
     this.xtzExchangeRate = exchangeRate;
+
+    return this;
   }
 
   /**
@@ -602,6 +609,33 @@ export default class TezToolsPrices {
    */
   getByType(type: tokenType): Array<TokenPrice> {
     return this.tokensPrices.filter(tk => tk.type === type);
+  }
+
+  /**
+   *
+   * @param {TezosContractAddress} address the address of the contract to find
+   * @returns the token found with the matching address
+   */
+  getByAddress(address: TezosContractAddress): TokenPrice {
+    return this.tokensPrices.find(tk => tk.tokenAddress.address === address);
+  }
+
+  /**
+   *
+   * @param {string} tag the tag to find
+   * @param {boolean} precision if set to true, must find the exact tag
+   * @returns an array of TokenPrice
+   */
+  getByTag(tag: string, precision?: boolean): Array<TokenPrice> {
+    if (precision) {
+      return this.tokensPrices.filter(
+        tk => tk.tags && tk.tags === tag.toLowerCase()
+      );
+    } else {
+      return this.tokensPrices.filter(
+        tk => tk.tags && tk.tags.toLowerCase().includes(tag.toLowerCase())
+      );
+    }
   }
 
   /**

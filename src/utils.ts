@@ -938,6 +938,32 @@ export const loadInvestment = async (
           info: undefined
         };
       }
+    } else if (inv.platform === "smak") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/user_stakes/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          return {
+            id: inv.id,
+            balance: +userData.value,
+            info: undefined
+          };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
     } else {
       return null;
     }
