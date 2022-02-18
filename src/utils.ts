@@ -1362,11 +1362,25 @@ export const fetchDefiData = async (
       const cacheResponse = await newCache.match(request);
       if (cacheResponse) {
         const mtdCache = await cacheResponse.json();
+        // file is downloaded again if the cached version of MTD is different from the current version
         if (mtdCache["mtd-version"] === mtdVersion) {
           console.log("cached defi data");
+          // cleans up old caches
+          await newCache.delete(
+            "https://gateway.pinata.cloud/ipfs/QmT3Joq9XE8pS8bsXBEzP4jqSBjsXpfPc5AqRHQexKW6NG"
+          );
+          await newCache.delete(
+            "https://gateway.pinata.cloud/ipfs/QmSsspv7rsPjovuRHruGnn6ZMp6ojdoUhKYnneTbr4FPt8"
+          );
+          await newCache.delete(
+            "https://gateway.pinata.cloud/ipfs/QmPjNpRH3DsRCfDyg8buzxbTGtNrm7EvkjH51xokzTqF5L"
+          );
+
           return mtdCache;
         } else {
           console.log("new defi data");
+          // deletes the current cache before fetching the new version of the defi data
+          await newCache.delete(request);
           return await ipfsRequest(newCache);
         }
       } else {
