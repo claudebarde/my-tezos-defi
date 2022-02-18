@@ -27,6 +27,7 @@
   import KdaoRow from "./Row/KdaoRow.svelte";
   import XPlentyRow from "./Row/XPlentyRow.svelte";
   import SmakRow from "./Row/SmakRow.svelte";
+  import YouvesRow from "./Row/YouvesRow.svelte";
   import InvestmentSpread from "./InvestmentSpread.svelte";
   import PlentyTotalRewards from "./PlentyTotalRewards.svelte";
   import Modal from "../Modal/Modal.svelte";
@@ -610,6 +611,21 @@
             formatPlentyLpAmount(item[2], item[0])
           ]);
       }
+      // checks if user has stake in Youves uUSD-uBTC long-term farm
+      const youvesUusdUbtcFarm = await loadInvestment(
+        AvailableInvestments["YOUVES-UUSD-UBTC"],
+        $store.userAddress
+      );
+      if (youvesUusdUbtcFarm) {
+        store.updateInvestments({
+          ...$store.investments,
+          [AvailableInvestments["YOUVES-UUSD-UBTC"]]: {
+            ...$store.investments[AvailableInvestments["YOUVES-UUSD-UBTC"]],
+            balance: youvesUusdUbtcFarm.balance,
+            info: youvesUusdUbtcFarm.info
+          }
+        });
+      }
     }
   });
 
@@ -1031,18 +1047,20 @@
         <span class="material-icons"> arrow_drop_down </span>
       </button>
     </div>
-    <div id="smak-farms">
-      <button
-        class="primary"
-        on:click={() => {
-          selectFarmModal = "smak";
-        }}
-      >
-        <img src="images/SMAK.png" alt="SMAK" />
-        &nbsp; SMAK
-        <span class="material-icons"> arrow_drop_down </span>
-      </button>
-    </div>
+    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+      <div id="smak-farms">
+        <button
+          class="primary"
+          on:click={() => {
+            selectFarmModal = "smak";
+          }}
+        >
+          <img src="images/SMAK.png" alt="SMAK" />
+          &nbsp; SMAK
+          <span class="material-icons"> arrow_drop_down </span>
+        </button>
+      </div>
+    {/if}
   </div>
   <br />
   {#if $localStorageStore.favoriteInvestments}
@@ -1408,29 +1426,55 @@
         {/if}
       </div>
     {/if}
-    <!-- SMAK FARMS -->
-    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "smak").length > 0}
+    {#if $store.investments["YOUVES-UUSD-UBTC"].balance && $store.investments["YOUVES-UUSD-UBTC"].balance > 0}
       <div class="row-header">
-        <div style="grid-column: 1 / span 2">SMAK Farms</div>
+        <div style="grid-column: 1 / span 2">Youves Farms</div>
       </div>
+      {#each Object.entries($store.investments)
+        .filter(inv => inv[1].platform === "youves")
+        .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
+        <YouvesRow
+          rewards={availableRewards.find(rw => rw.id === invData.id)}
+          {invName}
+          {invData}
+          on:update-farm-value={event =>
+            (totalValueInFarms = [
+              ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+              event.detail
+            ])}
+          on:reset-rewards={event => resetRewards(event.detail)}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
+        />
+      {/each}
     {/if}
-    {#each Object.entries($store.investments)
-      .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "smak")
-      .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
-      <SmakRow
-        rewards={availableRewards.find(rw => rw.id === invData.id)}
-        {invName}
-        {invData}
-        on:update-farm-value={event =>
-          (totalValueInFarms = [
-            ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
-            event.detail
-          ])}
-        on:reset-rewards={event => resetRewards(event.detail)}
-        on:farm-apr={event => sortFarmsByApr(event.detail)}
-        on:roi-per-week={event => (totalRoiPerWeek[invData.id] = event.detail)}
-      />
-    {/each}
+    {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+      <!-- SMAK FARMS -->
+      {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "smak").length > 0}
+        <div class="row-header">
+          <div style="grid-column: 1 / span 2">SMAK Farms</div>
+        </div>
+      {/if}
+      {#each Object.entries($store.investments)
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "smak")
+        .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
+        <SmakRow
+          rewards={availableRewards.find(rw => rw.id === invData.id)}
+          {invName}
+          {invData}
+          on:update-farm-value={event =>
+            (totalValueInFarms = [
+              ...totalValueInFarms.filter(val => val[0] !== event.detail[0]),
+              event.detail
+            ])}
+          on:reset-rewards={event => resetRewards(event.detail)}
+          on:farm-apr={event => sortFarmsByApr(event.detail)}
+          on:roi-per-week={event =>
+            (totalRoiPerWeek[invData.id] = event.detail)}
+        />
+      {/each}
+    {/if}
   {/if}
   <br />
   <div>

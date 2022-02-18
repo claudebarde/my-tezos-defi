@@ -56,7 +56,8 @@ export enum AvailableToken {
   BTCtz = "BTCtz",
   IDZ = "IDZ",
   GIF = "GIF",
-  TezDAO = "TezDAO"
+  TezDAO = "TezDAO",
+  uBTC = "uBTC"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -156,7 +157,8 @@ export enum AvailableInvestments {
   "WRAP-wUSDC-FM" = "WRAP-wUSDC-FM",
   "WRAP-wUSDT-FM" = "WRAP-wUSDT-FM",
   "WRAP-wWBTC-FM" = "WRAP-wWBTC-FM",
-  "WRAP-wWETH-FM" = "WRAP-wWETH-FM"
+  "WRAP-wWETH-FM" = "WRAP-wWETH-FM",
+  "YOUVES-UUSD-UBTC" = "YOUVES-UUSD-UBTC"
 }
 
 export type InvestmentPlatform =
@@ -166,7 +168,8 @@ export type InvestmentPlatform =
   | "paul"
   | "kdao"
   | "wrap"
-  | "smak";
+  | "smak"
+  | "youves";
 
 export interface TokenContract {
   address: TezosContractAddress;

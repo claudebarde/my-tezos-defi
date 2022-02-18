@@ -1,5 +1,5 @@
 {
-  "mtd-version": "4.7.2",
+  "mtd-version": "4.7.3",
   "tokens": {
     "kUSD": {
       "address": "KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV",
@@ -1247,6 +1247,17 @@
       "alias": "XTZ-ETHtz Farm",
       "icons": ["XTZ", "ETHtz"],
       "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "YOUVES-UUSD-UBTC": {
+      "id": "YOUVES-UUSD-UBTC",
+      "platform": "youves",
+      "address": "KT1KGfEyxBeCU873RfuwrU1gy8sjC1s82WZV",
+      "decimals": 6,
+      "info": [],
+      "alias": "uUSD-uBTC Long term Farm",
+      "icons": ["uUSD", "uBTC"],
+      "rewardToken": "YOU",
       "liquidityToken": true
     }
   },
