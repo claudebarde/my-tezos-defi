@@ -7,7 +7,7 @@
   import localStorageStore from "./localStorage";
   import { AvailableToken, AvailableFiat } from "./types";
   import type { State, TokenContract, Operation } from "./types";
-  import Router from "svelte-spa-router";
+  import Router, { location } from "svelte-spa-router";
   import routes from "./routes";
   import Menu from "./components/Menu/Menu.svelte";
   import Footer from "./components/Footer/Footer.svelte";
@@ -350,6 +350,9 @@
   };
 
   onMount(async () => {
+    if ($location === "/reset") {
+      console.log("RESET");
+    }
     let rpcUrl = $store.settings[$store.network].rpcUrl;
     if (window.localStorage) {
       const settingsStorage = window.localStorage.getItem("mtd");

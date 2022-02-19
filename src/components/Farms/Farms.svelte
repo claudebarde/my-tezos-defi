@@ -719,6 +719,8 @@
             tempRw.amount = tempRw.amount.toNumber();
           }
           readyToHarvest += tempRw.amount * $store.tokens.WRAP.exchangeRate;
+        } else if (rw.platform === "youves") {
+          readyToHarvest += tempRw.amount * $store.tokens.YOU.exchangeRate;
         }
 
         availableRewards = [
@@ -1448,14 +1450,14 @@
       </div>
     {/if}
     <!-- YOUVES FARMS -->
-    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul").length > 0}
+    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "youves").length > 0}
       <div class="row-header">
         <div style="grid-column: 1 / span 2">Youves Farms</div>
       </div>
     {/if}
-    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul").length > 0}
+    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "youves").length > 0}
       {#each Object.entries($store.investments)
-        .filter(inv => inv[1].platform === "youves")
+        .filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "youves")
         .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
         <YouvesRow
           rewards={availableRewards.find(rw => rw.id === invData.id)}
