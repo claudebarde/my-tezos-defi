@@ -1,6 +1,10 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
-  import type { InvestmentData, AvailableInvestments } from "../../../types";
+  import {
+    InvestmentData,
+    AvailableInvestments,
+    AvailableToken
+  } from "../../../types";
   import store from "../../../store";
   import localStorageStore from "../../../localStorage";
   import { loadInvestment, formatTokenAmount } from "../../../utils";
@@ -20,8 +24,11 @@
   let harvestingSuccess = undefined;
   let stakeInXtz: null | number = null;
   const dispatch = createEventDispatcher();
-  let uUSDvalue: null | number = null;
-  let uBTCvalue: null | number = null;
+  let token1: AvailableToken;
+  let token2: AvailableToken;
+  let token1Value: null | number = null;
+  let token2Value: null | number = null;
+  let totalSupply: { inToken: number; inTez: number };
 
   /*const harvest = async () => {
     harvesting = true;
@@ -69,28 +76,107 @@
   };*/
 
   onMount(async () => {
-    const dexAddress = "KT1VNEzpf631BLsdPJjt2ZhgUitR392x6cSi";
-    const contract = await $store.Tezos.wallet.at(dexAddress);
-    const storage: any = await contract.storage();
-    const pair = await storage.storage.pairs.get(21);
-    if (pair) {
-      const { token_a_pool, token_b_pool, total_supply } = pair;
-      const lptPrice = computeLpTokenPrice(
-        invData.balance,
-        total_supply,
-        token_a_pool,
-        token_b_pool
-      );
-      if (lptPrice) {
-        const { token1Output, token2Output } = lptPrice;
-        uUSDvalue = token1Output.toNumber();
-        uBTCvalue = token2Output.toNumber();
+    const invDetails = await loadInvestment(invData.id, $store.userAddress);
+    if (invDetails) {
+      store.updateInvestments({
+        ...$store.investments,
+        [invData.id]: {
+          ...$store.investments[invData.id],
+          balance: invDetails.balance,
+          info: invDetails.info
+        }
+      });
+      invData.balance = invDetails.balance;
 
-        stakeInXtz =
-          (uUSDvalue / 10 ** $store.tokens.uUSD.decimals) *
-            $store.tokens.uUSD.exchangeRate +
-          (uBTCvalue / 10 ** $store.tokens.uBTC.decimals) *
-            $store.tokens.uBTC.exchangeRate;
+      if (invData.id === AvailableInvestments["YOUVES-UUSD-UBTC"]) {
+        token1 = AvailableToken.uUSD;
+        token2 = AvailableToken.uBTC;
+        const dexAddress = "KT1VNEzpf631BLsdPJjt2ZhgUitR392x6cSi";
+        const contract = await $store.Tezos.wallet.at(dexAddress);
+        const storage: any = await contract.storage();
+        const pair = await storage.storage.pairs.get(21);
+        if (pair) {
+          const { token_a_pool, token_b_pool, total_supply } = pair;
+          const lptPrice = computeLpTokenPrice(
+            invData.balance,
+            total_supply,
+            token_a_pool,
+            token_b_pool
+          );
+          if (lptPrice) {
+            const { token1Output, token2Output } = lptPrice;
+            token1Value = token1Output.toNumber();
+            token2Value = token2Output.toNumber();
+
+            stakeInXtz =
+              (token1Value / 10 ** $store.tokens.uUSD.decimals) *
+                $store.tokens[token1].exchangeRate +
+              (token2Value / 10 ** $store.tokens.uBTC.decimals) *
+                $store.tokens[token2].exchangeRate;
+          }
+          // computes total supply value in XTZ
+          const totalSupplyPrice = computeLpTokenPrice(
+            total_supply,
+            total_supply,
+            token_a_pool,
+            token_b_pool
+          );
+          if (totalSupplyPrice) {
+            const { token1Output, token2Output } = totalSupplyPrice;
+            totalSupply = {
+              inToken: total_supply.toNumber(),
+              inTez:
+                (token1Output.toNumber() / 10 ** $store.tokens.uUSD.decimals) *
+                  $store.tokens[token1].exchangeRate +
+                (token2Output.toNumber() / 10 ** $store.tokens.uBTC.decimals) *
+                  $store.tokens[token2].exchangeRate
+            };
+            console.log(totalSupply);
+          }
+        }
+      } else if (invData.id === AvailableInvestments["YOUVES-UUSD-WUSDC"]) {
+        token1 = AvailableToken.uUSD;
+        token2 = AvailableToken.wUSDC;
+        const dexAddress = "KT1JeWiS8j1kic4PHx7aTnEr9p4xVtJNzk5b";
+        const contract = await $store.Tezos.wallet.at(dexAddress);
+        const storage: any = await contract.storage();
+        const { cashPool, tokenPool, lqtTotal } = storage;
+        const lptPrice = computeLpTokenPrice(
+          invData.balance,
+          lqtTotal,
+          tokenPool,
+          cashPool
+        );
+        if (lptPrice) {
+          const { token1Output, token2Output } = lptPrice;
+          token1Value = token1Output.toNumber();
+          token2Value = token2Output.toNumber();
+          stakeInXtz =
+            (token1Value / 10 ** $store.tokens.uUSD.decimals) *
+              $store.tokens[token1].exchangeRate +
+            (token2Value / 10 ** $store.tokens.wUSDC.decimals) *
+              $store.tokens[token2].exchangeRate;
+
+          // computes total supply value in XTZ
+          const totalSupplyPrice = computeLpTokenPrice(
+            lqtTotal,
+            lqtTotal,
+            tokenPool,
+            cashPool
+          );
+          if (totalSupplyPrice) {
+            const { token1Output, token2Output } = totalSupplyPrice;
+            totalSupply = {
+              inToken: lqtTotal.toNumber(),
+              inTez:
+                (token1Output.toNumber() / 10 ** $store.tokens.uUSD.decimals) *
+                  $store.tokens[token1].exchangeRate +
+                (token2Output.toNumber() / 10 ** $store.tokens.wUSDC.decimals) *
+                  $store.tokens[token2].exchangeRate
+            };
+            console.log(totalSupply);
+          }
+        }
       }
     }
 
@@ -119,6 +205,18 @@
           {/if}
         </a>
       </div>
+      {#if totalSupply}
+        <br />
+        <div style="font-size:0.7rem">
+          <div>Total supply:</div>
+          <div>
+            {formatTokenAmount(totalSupply.inToken / 10 ** invData.decimals)} LPT
+          </div>
+          <div>
+            {formatTokenAmount(totalSupply.inTez).toLocaleString("en-US")} ꜩ
+          </div>
+        </div>
+      {/if}
     </div>
   </div>
   <div class="farm-block__data">
@@ -130,13 +228,19 @@
           {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1}
           LPT
         </div>
-        {#if uUSDvalue && uBTCvalue}
+        {#if token1Value && token2Value}
           <div style="font-size:0.8rem">
-            ({formatTokenAmount(uUSDvalue / 10 ** $store.tokens.uUSD.decimals)} uUSD
+            ({formatTokenAmount(
+              token1Value / 10 ** $store.tokens[token1].decimals
+            )}
+            {token1}
             +
           </div>
           <div style="font-size:0.8rem">
-            {formatTokenAmount(uBTCvalue / 10 ** $store.tokens.uBTC.decimals)} uBTC)
+            {formatTokenAmount(
+              token2Value / 10 ** $store.tokens[token2].decimals
+            )}
+            {token2})
           </div>
         {/if}
       </div>

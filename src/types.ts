@@ -158,6 +158,7 @@ export enum AvailableInvestments {
   "WRAP-wUSDT-FM" = "WRAP-wUSDT-FM",
   "WRAP-wWBTC-FM" = "WRAP-wWBTC-FM",
   "WRAP-wWETH-FM" = "WRAP-wWETH-FM",
+  "YOUVES-UUSD-WUSDC" = "YOUVES-UUSD-WUSDC",
   "YOUVES-UUSD-UBTC" = "YOUVES-UUSD-UBTC"
 }
 

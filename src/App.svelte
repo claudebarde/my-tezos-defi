@@ -34,23 +34,6 @@
     tokens: [AvailableToken, TokenContract][]
   ) => {
     try {
-      // TEST
-      const teztoolsPrices = new TezToolsPrices();
-      await teztoolsPrices.setup();
-      console.log(teztoolsPrices.xtzPrice);
-      console.log(teztoolsPrices.get("kUSD"));
-      //console.log(teztoolsPrices.getByType("XTZ" as any));
-      //console.log(teztoolsPrices.getTokensList());
-      //console.log(teztoolsPrices.getTokensWithPriceGreaterThan(1));
-      // console.log(teztoolsPrices.orderByUsdValueDesc(["kUSD", "tzBTC", "PLENTY", "wXTZ"]));
-      // teztoolsPrices.updateInternalFiat("EUR", 3.6);
-      // console.log(teztoolsPrices.getByAddress("KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV"))
-      //console.log(teztoolsPrices.tokenTags);
-      //console.log(teztoolsPrices.getByTag("stablecoin"));
-      console.log(
-        teztoolsPrices.getCurrentPrice(["kUSD", "tzBTC", "PLENTY", "wXTZ"])
-      );
-
       const tezToolsDataRes = await fetch(`https://api.teztools.io/v1/prices`);
       if (tezToolsDataRes && tezToolsDataRes.status === 200) {
         const tezToolsData = await tezToolsDataRes.json();

@@ -947,7 +947,10 @@ export const loadInvestment = async (
           const userData = await userDataResponse.json();
           return {
             id: inv.id,
-            balance: +userData.value.stake,
+            balance:
+              inv.id === AvailableInvestments["YOUVES-UUSD-UBTC"]
+                ? +userData.value.stake
+                : +userData.value,
             info: userData.value
           };
         } else {
@@ -1390,27 +1393,40 @@ export const fetchDefiData = async (
         const mtdCache = await cacheResponse.json();
         // file is downloaded again if the cached version of MTD is different from the current version
         if (mtdCache["mtd-version"] === mtdVersion) {
-          console.log("cached defi data");
+          console.log("cached defi data:", ipfsHash);
+          const previousRequestsToDelete = [
+            "https://gateway.pinata.cloud/ipfs/QmT3Joq9XE8pS8bsXBEzP4jqSBjsXpfPc5AqRHQexKW6NG",
+            "https://gateway.pinata.cloud/ipfs/QmSsspv7rsPjovuRHruGnn6ZMp6ojdoUhKYnneTbr4FPt8",
+            "https://gateway.pinata.cloud/ipfs/QmPjNpRH3DsRCfDyg8buzxbTGtNrm7EvkjH51xokzTqF5L",
+            "https://gateway.pinata.cloud/ipfs/QmcuBXLSVW5Eeca81fM7EB5y36RtbEyh1VajE7KTAKK93g"
+          ];
           // cleans up old caches
-          await newCache.delete(
-            "https://gateway.pinata.cloud/ipfs/QmT3Joq9XE8pS8bsXBEzP4jqSBjsXpfPc5AqRHQexKW6NG"
-          );
-          await newCache.delete(
-            "https://gateway.pinata.cloud/ipfs/QmSsspv7rsPjovuRHruGnn6ZMp6ojdoUhKYnneTbr4FPt8"
-          );
-          await newCache.delete(
-            "https://gateway.pinata.cloud/ipfs/QmPjNpRH3DsRCfDyg8buzxbTGtNrm7EvkjH51xokzTqF5L"
+          await Promise.allSettled(
+            previousRequestsToDelete.map(req => newCache.delete(req))
           );
 
           return mtdCache;
         } else {
-          console.log("new defi data");
+          console.log("new defi data:", ipfsHash);
           // deletes the current cache before fetching the new version of the defi data
           await newCache.delete(request);
           return await ipfsRequest(newCache);
         }
       } else {
-        return await ipfsRequest(newCache);
+        console.warn(
+          "couldn't fetch new defi data, loading cache for:",
+          ipfsHash
+        );
+        // loads last successful request before trying to load the new one
+        const keys = await newCache.keys();
+        const lastCachedRequest = keys[keys.length - 1];
+        const cacheResponse = await newCache.match(lastCachedRequest);
+        if (cacheResponse) {
+          await ipfsRequest(newCache);
+          return await cacheResponse.json();
+        } else {
+          return await ipfsRequest(newCache);
+        }
       }
     } catch (error) {
       console.error(error);

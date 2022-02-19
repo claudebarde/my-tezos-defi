@@ -1047,6 +1047,18 @@
         <span class="material-icons"> arrow_drop_down </span>
       </button>
     </div>
+    <div id="youves-farms">
+      <button
+        class="primary"
+        on:click={() => {
+          selectFarmModal = "youves";
+        }}
+      >
+        <img src="images/YOU.png" alt="YOU" />
+        &nbsp; Youves
+        <span class="material-icons"> arrow_drop_down </span>
+      </button>
+    </div>
     {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
       <div id="smak-farms">
         <button
@@ -1550,6 +1562,8 @@
         <div>Paul farms</div>
       {:else if selectFarmModal === "kdao"}
         <div>kDAO farms</div>
+      {:else if selectFarmModal === "youves"}
+        <div>Youves farms</div>
       {:else if selectFarmModal === "smak"}
         <div>SMAK farms</div>
       {/if}
