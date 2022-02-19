@@ -15,6 +15,7 @@
     formatPlentyLpAmount
   } from "../../tokenUtils/plentyUtils";
   import { getWrapReward } from "../../tokenUtils/wrapUtils";
+  import { getYouvesRewards } from "../../tokenUtils/youvesUtils";
   import {
     AvailableToken,
     AvailableInvestments,
@@ -648,7 +649,8 @@
               inv.platform === "plenty" ||
               inv.platform === "paul" ||
               inv.platform === "kdao" ||
-              inv.platform === "wrap"
+              inv.platform === "wrap" ||
+              inv.platform === "youves"
           )
           .filter(inv => inv.id !== AvailableInvestments["xPLENTY-Staking"]);
       const rewards: any = await Promise.all(
@@ -679,6 +681,13 @@
               inv.balance
             );
             //console.log(inv.id, rewards.toNumber());
+          } else if (inv.platform === "youves") {
+            rewards = await getYouvesRewards(
+              $store.Tezos,
+              inv,
+              $store.userAddress,
+              $store.tokens.YOU.decimals
+            );
           }
 
           return {

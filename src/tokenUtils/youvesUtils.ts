@@ -1,4 +1,10 @@
 import BigNumber from "bignumber.js";
+import type { TezosToolkit } from "@taquito/taquito";
+import {
+  InvestmentData,
+  TezosAccountAddress,
+  AvailableInvestments
+} from "../types";
 
 export const computeToken2Output = (
   token1Amount: BigNumber | number,
@@ -61,6 +67,70 @@ export const computeLpTokenPrice = (
       .times(liquidityBurned_)
       .dividedBy(totalLiquidity_);
     return { token1Output, token2Output };
+  } else {
+    return null;
+  }
+};
+
+export const longTermFarmFullRewards = (
+  poolDistFactor: number,
+  stake: number,
+  stakeDistFactor,
+  lptDecimals: number
+): number => {
+  const currentDistFactor = new BigNumber(poolDistFactor);
+  if (!stake) {
+    return 0;
+  }
+  const ownStake = new BigNumber(stake);
+  const reward = ownStake
+    .multipliedBy(currentDistFactor.minus(stakeDistFactor))
+    .dividedBy(10 ** lptDecimals);
+
+  return reward.toNumber();
+};
+
+export const getYouvesRewards = async (
+  Tezos: TezosToolkit,
+  invData: InvestmentData,
+  userAddress: TezosAccountAddress,
+  youTokenDecimals: number
+): Promise<number | null> => {
+  const rewardsPoolContract = await Tezos.wallet.at(invData.address);
+  const rewardsPoolStorage: any = await rewardsPoolContract.storage();
+  if (invData.id === AvailableInvestments["YOUVES-UUSD-WUSDC"]) {
+    let currentDistFactor = rewardsPoolStorage.dist_factor;
+    const ownStake = new BigNumber(
+      await rewardsPoolStorage.stakes.get(userAddress)
+    );
+    const ownDistFactor = new BigNumber(
+      await rewardsPoolStorage.dist_factors.get(userAddress)
+    );
+
+    const reward = ownStake
+      .multipliedBy(currentDistFactor.minus(ownDistFactor))
+      .dividedBy(10 ** invData.decimals)
+      .dividedBy(10 ** youTokenDecimals);
+
+    return reward.toNumber();
+  } else if (invData.id === AvailableInvestments["YOUVES-UUSD-UBTC"]) {
+    const stake = await rewardsPoolStorage.stakes.get(userAddress);
+    if (!stake) {
+      return null;
+    }
+
+    const longTermRewards = longTermFarmFullRewards(
+      rewardsPoolStorage.dist_factor,
+      stake.stake.dividedBy(10 ** invData.decimals),
+      stake.dist_factor,
+      invData.decimals
+    );
+    const dateStaked = new Date(stake.age_timestamp);
+    const secondsSinceStaked = (Date.now() - dateStaked.getTime()) / 1000;
+    const factor = secondsSinceStaked / rewardsPoolStorage.max_release_period;
+    const claimFactor = BigNumber.min(1, BigNumber.max(factor, 0));
+
+    return (claimFactor.toNumber() * longTermRewards) / 10 ** youTokenDecimals;
   } else {
     return null;
   }

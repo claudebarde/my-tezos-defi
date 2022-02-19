@@ -9,7 +9,10 @@
   import localStorageStore from "../../../localStorage";
   import { loadInvestment, formatTokenAmount } from "../../../utils";
   import config from "../../../config";
-  import { computeLpTokenPrice } from "../../../tokenUtils/youvesUtils";
+  import {
+    computeLpTokenPrice,
+    longTermFarmFullRewards
+  } from "../../../tokenUtils/youvesUtils";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -29,6 +32,7 @@
   let token1Value: null | number = null;
   let token2Value: null | number = null;
   let totalSupply: { inToken: number; inTez: number };
+  let longTermRewards: number;
 
   /*const harvest = async () => {
     harvesting = true;
@@ -131,7 +135,22 @@
                 (token2Output.toNumber() / 10 ** $store.tokens.uBTC.decimals) *
                   $store.tokens[token2].exchangeRate
             };
-            console.log(totalSupply);
+          }
+          // computes the long term rewards
+          const rewardsPoolContract = await $store.Tezos.wallet.at(
+            invData.address
+          );
+          const rewardsPoolStorage: any = await rewardsPoolContract.storage();
+          const stake = await rewardsPoolStorage.stakes.get($store.userAddress);
+          const longTermRewards_ = longTermFarmFullRewards(
+            rewardsPoolStorage.dist_factor,
+            stake.stake.dividedBy(10 ** invData.decimals),
+            stake.dist_factor,
+            invData.decimals
+          );
+          if (longTermRewards_) {
+            longTermRewards =
+              longTermRewards_ / 10 ** $store.tokens.YOU.decimals;
           }
         }
       } else if (invData.id === AvailableInvestments["YOUVES-UUSD-WUSDC"]) {
@@ -174,7 +193,6 @@
                 (token2Output.toNumber() / 10 ** $store.tokens.wUSDC.decimals) *
                   $store.tokens[token2].exchangeRate
             };
-            console.log(totalSupply);
           }
         }
       }
@@ -272,8 +290,7 @@
       <span class="title">Available rewards:</span>
       <br />
       {#if !rewards}
-        <!--<span class="material-icons"> hourglass_empty </span>-->
-        Coming soon!
+        <span class="material-icons"> hourglass_empty </span>
       {:else}
         <span id={`rewards-${invData.id}`}>
           {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
@@ -298,6 +315,31 @@
       {/if}
     </div>
     <br />
+    {#if invData.id === AvailableInvestments["YOUVES-UUSD-UBTC"] && longTermRewards}
+      <div>
+        <span class="title">Long term rewards:</span>
+        <br />
+        <span id={`longterm-rewards-${invData.id}`}>
+          {formatTokenAmount(longTermRewards)}
+          {$store.investments[invData.id].rewardToken}
+        </span>
+        <br />
+        <span style="font-size:0.7rem">
+          ({formatTokenAmount(
+            longTermRewards * $store.tokens[invData.rewardToken].exchangeRate
+          )} ꜩ / {formatTokenAmount(
+            longTermRewards *
+              $store.tokens[invData.rewardToken].exchangeRate *
+              $store.xtzData.exchangeRate,
+            2
+          )}
+          {config.validFiats.find(
+            fiat => fiat.code === $localStorageStore.preferredFiat
+          ).symbol})
+        </span>
+      </div>
+      <br />
+    {/if}
     <!--
     <div class="buttons stack">
       {#if harvesting}
