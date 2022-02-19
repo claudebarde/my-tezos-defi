@@ -1,7 +1,7 @@
 import { AvailableFiat } from "./types";
 
 export default {
-  version: "4.7.1",
+  version: "4.7.4",
   mtdFee: 0.003,
   wrapTokenIds: {
     0: { name: "wAAVE", decimals: 18 },
@@ -191,5 +191,9 @@ export default {
     "wUSDT-XTZ-LM": "KT1T4pfr6NL8dUiz8ibesjEvH2Ne3k6AuXgn",
     "wWBTC-XTZ-LM": "KT1DksKXvCBJN7Mw6frGj6y6F3CbABWZVpj1",
     "wWETH-XTZ-LM": "KT1DuYujxrmgepwSDHtADthhKBje9BosUs1w"
+  },
+  vortexDexAddresses: {
+    "PLENTY-XTZ": "KT1VSjJxNq98AkPfVktpCv82hacrvgkb6hEu",
+    "uUSD-XTZ": "KT1ND1bkLahTzVUt93zbDtGugpWcL23gyqgQ"
   }
 };

@@ -1,6 +1,6 @@
 {
   "name": "my-tezos-defi",
-  "version": "4.7.1",
+  "version": "4.7.4",
   "devDependencies": {
     "@tsconfig/svelte": "^2.0.1",
     "@types/node": "^16.11.9",
@@ -49,6 +49,7 @@
     "moment": "^2.29.1",
     "svelte-spa-router": "^3.2.0",
     "tippy.js": "^6.3.7",
+    "url": "^0.11.0",
     "worker-loader": "^3.0.8"
   }
 }

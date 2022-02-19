@@ -357,7 +357,7 @@ export const estimateLpTokenOutput = ({
 };
 
 // estimate token output for a swap
-export const computeTokenOutput = (
+/*export const computeTokenOutput = (
   tokenIn_amount,
   tokenIn_supply,
   tokenOut_supply,
@@ -398,4 +398,51 @@ export const computeTokenOutput = (
       priceImpact: 0
     };
   }
+};*/
+
+/*export const computeTokenOutput = (
+  token1Amount: number,
+  token1Reserve: number,
+  token2Reserve: number,
+  exchangeFee: number,
+  slippage: number,
+  token2Decimals: number
+) => {
+  let swapOutput = (1 - exchangeFee) * token2Reserve * token1Amount;
+  swapOutput /= token1Reserve + (1 - exchangeFee) * token1Amount;
+  swapOutput = swapOutput / 10 ** token2Decimals;
+
+  const minimumOut = swapOutput - swapOutput * slippage;
+
+  const fees = token1Amount * exchangeFee;
+
+  return { token2Amount: swapOutput, minimumOut, fees };
+};*/
+
+export const computeTokenOutput = async (
+  token1Amount: number,
+  token1: { name: AvailableToken | "XTZ"; decimals: number },
+  token2: { name: AvailableToken | "XTZ"; decimals: number },
+  slippage: number
+) => {
+  const localStore = get(store);
+
+  const dexAddressVal = Object.entries(config.plentyDexAddresses).find(
+    val => val[0].includes(token1.name) && val[0].includes(token2.name)
+  );
+  const [_, dexAddress] = dexAddressVal;
+  const dexContract = await localStore.Tezos.wallet.at(dexAddress);
+  const dexStorage: any = await dexContract.storage();
+  const { lpFee, systemFee, token1_pool, token2_pool } = dexStorage;
+  const exchangeFee = 1 / lpFee.toNumber() + 1 / systemFee.toNumber();
+
+  let swapOutput = (1 - exchangeFee) * token2_pool.toNumber() * token1Amount;
+  swapOutput /= token1_pool.toNumber() + (1 - exchangeFee) * token1Amount;
+  swapOutput = swapOutput / 10 ** token2.decimals;
+
+  const minimumOut = swapOutput - swapOutput * slippage;
+
+  const fees = token1Amount * exchangeFee;
+
+  return { token2Amount: swapOutput, minimumOut, fees };
 };

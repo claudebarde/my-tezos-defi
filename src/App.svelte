@@ -7,7 +7,7 @@
   import localStorageStore from "./localStorage";
   import { AvailableToken, AvailableFiat } from "./types";
   import type { State, TokenContract, Operation } from "./types";
-  import Router from "svelte-spa-router";
+  import Router, { location, push } from "svelte-spa-router";
   import routes from "./routes";
   import Menu from "./components/Menu/Menu.svelte";
   import Footer from "./components/Footer/Footer.svelte";
@@ -22,6 +22,7 @@
   } from "./utils";
   import Toast from "./components/Toast/Toast.svelte";
   import toastStore from "./components/Toast/toastStore";
+  import TezToolsPrices from "./TezToolsPrices";
 
   let Tezos: TezosToolkit;
   let coinGeckoInterval;
@@ -349,6 +350,16 @@
   };
 
   onMount(async () => {
+    if ($location === "/reset") {
+      if (
+        confirm(
+          "This will permanently delete all MyTezosDefi local data, do you agree? "
+        ) === true
+      ) {
+        console.log("DELETE EVERYTHING");
+        push("/");
+      }
+    }
     let rpcUrl = $store.settings[$store.network].rpcUrl;
     if (window.localStorage) {
       const settingsStorage = window.localStorage.getItem("mtd");

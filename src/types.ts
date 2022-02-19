@@ -56,7 +56,8 @@ export enum AvailableToken {
   BTCtz = "BTCtz",
   IDZ = "IDZ",
   GIF = "GIF",
-  TezDAO = "TezDAO"
+  TezDAO = "TezDAO",
+  uBTC = "uBTC"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -111,6 +112,7 @@ export enum AvailableInvestments {
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
   "KUSD-QL" = "KUSD-QL",
+  "KDAO-KUSD-UUSD" = "KDAO-KUSD-UUSD",
   "WRAP-STACKING" = "WRAP-STACKING",
   "WRAP-XTZ-LM" = "WRAP-XTZ-LM",
   "wAAVE-XTZ-LM" = "wAAVE-XTZ-LM",
@@ -155,7 +157,9 @@ export enum AvailableInvestments {
   "WRAP-wUSDC-FM" = "WRAP-wUSDC-FM",
   "WRAP-wUSDT-FM" = "WRAP-wUSDT-FM",
   "WRAP-wWBTC-FM" = "WRAP-wWBTC-FM",
-  "WRAP-wWETH-FM" = "WRAP-wWETH-FM"
+  "WRAP-wWETH-FM" = "WRAP-wWETH-FM",
+  "YOUVES-UUSD-WUSDC" = "YOUVES-UUSD-WUSDC",
+  "YOUVES-UUSD-UBTC" = "YOUVES-UUSD-UBTC"
 }
 
 export type InvestmentPlatform =
@@ -164,7 +168,9 @@ export type InvestmentPlatform =
   | "crunchy"
   | "paul"
   | "kdao"
-  | "wrap";
+  | "wrap"
+  | "smak"
+  | "youves";
 
 export interface TokenContract {
   address: TezosContractAddress;

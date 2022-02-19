@@ -4,9 +4,10 @@
   import localStorageStore from "../../localStorage";
   import TokenSelect from "./TokenSelect.svelte";
   import { formatTokenAmount, findTokenTotalSupply } from "../../utils";
-  import type { AvailableToken } from "../../types";
+  import { AvailableToken } from "../../types";
   import { computeTokenOutput } from "../../tokenUtils/plentyUtils";
   import config from "../../config";
+  import DexResults from "./DexResults.svelte";
 
   let maxTokenLeft: number | null = null;
   let maxTokenRight: number | null = null;
@@ -15,12 +16,16 @@
   let tokenLeftVal = "";
   let tokenRightQuipuVal = "";
   let tokenRightPlentyVal = "";
+  let tokenRightVortexVal = "";
   let tokenRightPlentyDetails: { minimumOut: number; fee: number };
   let tokenRightQuipuDetails: { minimumOut: number; fee: number };
+  let tokenRightVortexDetails: { minimumOut: number; fee: number };
   let loadingPlentyResults = false;
   let loadingQuipuResults = false;
+  let loadingVortexResults = false;
   let tokensToIgnore = { left: [], right: [] };
   let mtdFee: null | number = null;
+  let slippage = 0.005;
 
   const selectToken = async (arg: {
     token: AvailableToken | string;
@@ -34,7 +39,8 @@
       tokensToIgnore.right = [token];
       await Promise.allSettled([
         estimatePlentySwap("left", null),
-        estimateQuipuSwap("left", null)
+        estimateQuipuSwap("left", null),
+        estimateVortexSwap("left", null)
       ]);
     } else {
       maxTokenRight = formatTokenAmount(balance);
@@ -42,7 +48,8 @@
       tokensToIgnore.left = [token];
       await Promise.allSettled([
         estimatePlentySwap("right", null),
-        estimateQuipuSwap("right", null)
+        estimateQuipuSwap("right", null),
+        estimateVortexSwap("left", null)
       ]);
     }
   };
@@ -54,14 +61,71 @@
     // if provided value is not a number
     if (isNaN(+value)) return;
 
-    if (value && tokenSide === "left") {
-      tokenLeftVal = value;
-    }
-
     loadingPlentyResults = true;
+    tokenRightPlentyVal = "";
+    tokenRightPlentyDetails = undefined;
 
     if (tokenLeft && tokenRight && tokenLeftVal) {
-      const tokenLeftContract = await $store.Tezos.wallet.at(
+      try {
+        const tokenLeftAmount =
+          +tokenLeftVal * 10 ** $store.tokens[tokenLeft].decimals;
+        const swapOutput = await computeTokenOutput(
+          tokenLeftAmount,
+          {
+            name: tokenLeft as AvailableToken,
+            decimals:
+              tokenLeft === "XTZ" ? 6 : $store.tokens[tokenLeft].decimals
+          },
+          {
+            name: tokenRight as AvailableToken,
+            decimals:
+              tokenRight === "XTZ" ? 6 : $store.tokens[tokenRight].decimals
+          },
+          slippage
+        );
+        const token1ToCtezRouting = await computeTokenOutput(
+          tokenLeftAmount,
+          {
+            name: tokenLeft as AvailableToken,
+            decimals:
+              tokenLeft === "XTZ" ? 6 : $store.tokens[tokenLeft].decimals
+          },
+          { name: AvailableToken.Ctez, decimals: $store.tokens.Ctez.decimals },
+          slippage
+        );
+        const ctezToToken2Routing = await computeTokenOutput(
+          token1ToCtezRouting.token2Amount * 10 ** $store.tokens.Ctez.decimals,
+          { name: AvailableToken.Ctez, decimals: $store.tokens.Ctez.decimals },
+          {
+            name: tokenRight as AvailableToken,
+            decimals:
+              tokenRight === "XTZ" ? 6 : $store.tokens[tokenRight].decimals
+          },
+          slippage
+        );
+        console.log(swapOutput);
+        console.log(ctezToToken2Routing);
+
+        if (swapOutput && swapOutput.token2Amount > 0) {
+          tokenRightPlentyVal = formatTokenAmount(
+            swapOutput.token2Amount,
+            8
+          ).toString();
+          tokenRightPlentyDetails = {
+            minimumOut: swapOutput.minimumOut,
+            fee: swapOutput.fees / 10 ** $store.tokens.PLENTY.decimals
+          };
+          mtdFee =
+            +tokenLeftVal *
+            $store.tokens[tokenLeft].exchangeRate *
+            $store.serviceFee;
+        } else {
+          console.error("Unable to estimate token output");
+        }
+      } catch (error) {
+        console.error(error);
+      }
+      /*const tokenLeftContract = await $store.Tezos.wallet.at(
         $store.tokens[tokenLeft].address
       );
       const tokenLeftStorage: any = await tokenLeftContract.storage();
@@ -117,7 +181,7 @@
         console.error(
           `Unable to find token supply: token left (${tokenLeftTotalSupply}) / token right (${tokenRightTotalSupply})`
         );
-      }
+      }*/
     }
     loadingPlentyResults = false;
   };
@@ -129,12 +193,10 @@
     // if provided value is not a number
     if (isNaN(+value)) return;
 
-    if (value && tokenSide === "left") {
-      tokenLeftVal = value;
-    }
-
     if (tokenLeft && tokenRight && tokenLeftVal) {
       loadingQuipuResults = true;
+      tokenRightQuipuVal = "";
+      tokenRightQuipuDetails = undefined;
 
       try {
         let fromAsset;
@@ -171,13 +233,14 @@
           }
         );
         if (estimatedOutputValue) {
-          tokenRightQuipuVal = (
+          tokenRightQuipuVal = formatTokenAmount(
             estimatedOutputValue.toNumber() /
-            10 ** $store.tokens[tokenRight].decimals
+              10 ** $store.tokens[tokenRight].decimals,
+            8
           ).toString();
           const minimumOut = withSlippage(
             estimatedOutputValue.toNumber(),
-            0.005
+            slippage
           );
           tokenRightQuipuDetails = {
             minimumOut:
@@ -194,6 +257,102 @@
       } finally {
         loadingQuipuResults = false;
       }
+    }
+  };
+
+  const estimateVortexSwap = async (
+    tokenSide: "left" | "right",
+    value: null | string
+  ) => {
+    const exchangeTokenToXtz = (
+      tokenLeft_pool: number,
+      tokenRight_pool: number,
+      tokenLeftAmount: number
+    ): { tokenOut: number; fee: number } => {
+      const tokenOut =
+        (9972 * tokenRight_pool * tokenLeftAmount) /
+        (10_000 * (tokenLeft_pool + tokenLeftAmount));
+      return {
+        tokenOut,
+        fee: tokenOut + tokenOut * 0.0028
+      };
+    };
+    const exchangeXtzToToken = (p: {
+      xtzPool: number;
+      tokenPool: number;
+      xtzAmount: number;
+    }): { tokenOut: number; fee: number } => {
+      const { xtzPool, tokenPool, xtzAmount } = p;
+      const tokenOut =
+        (0.9972 * xtzAmount * tokenPool) / (xtzPool + 0.9972 * xtzAmount);
+      return {
+        tokenOut,
+        fee: tokenOut + tokenOut * 0.0028
+      };
+    };
+    // if provided value is not a number
+    if (isNaN(+value)) return;
+
+    if (tokenLeft && tokenRight && tokenLeftVal) {
+      loadingVortexResults = true;
+      tokenRightVortexVal = "";
+      tokenRightVortexDetails = undefined;
+
+      // finds dexes
+      if (tokenLeft === "XTZ" || tokenRight === "XTZ") {
+        // simple case scenario
+      } else {
+        // this requires 2 DEX address
+        const dexTokenLeft = Object.entries(config.vortexDexAddresses).find(
+          val => val[0] === `${tokenLeft}-XTZ`
+        );
+        const dexTokenRight = Object.entries(config.vortexDexAddresses).find(
+          val => val[0] === `${tokenRight}-XTZ`
+        );
+        if (dexTokenLeft && dexTokenRight) {
+          const dexTokenLeftAddress = dexTokenLeft[1];
+          const dexTokenRightAddress = dexTokenRight[1];
+          // fetches contract storages
+          const tokenLeftContract = await $store.Tezos.wallet.at(
+            dexTokenLeftAddress
+          );
+          const tokenLeftStorage: any = await tokenLeftContract.storage();
+          const tokenRightContract = await $store.Tezos.wallet.at(
+            dexTokenRightAddress
+          );
+          const tokenRightStorage: any = await tokenRightContract.storage();
+          // calculates exchange rates
+          const tokenLeftToXtz = exchangeTokenToXtz(
+            tokenLeftStorage.tokenPool.toNumber(),
+            tokenLeftStorage.xtzPool.toNumber(),
+            +tokenLeftVal * 10 ** $store.tokens[tokenLeft].decimals
+          );
+          const xtzToTokenRight = exchangeXtzToToken({
+            xtzPool: tokenRightStorage.xtzPool.toNumber(),
+            tokenPool: tokenRightStorage.tokenPool.toNumber(),
+            xtzAmount: tokenLeftToXtz.tokenOut
+          });
+          /*console.log("Vortex exchange rate:");
+          console.log(
+            tokenLeftToXtz,
+            xtzToTokenRight,
+            xtzToTokenRight / 10 ** $store.tokens[tokenRight].decimals
+          );*/
+          tokenRightVortexVal = formatTokenAmount(
+            (xtzToTokenRight.tokenOut + xtzToTokenRight.tokenOut * 0.0028) /
+              10 ** $store.tokens[tokenRight].decimals,
+            8
+          ).toString();
+          tokenRightVortexDetails = {
+            minimumOut:
+              (xtzToTokenRight.tokenOut - xtzToTokenRight.tokenOut * 0.005) /
+              10 ** $store.tokens[tokenRight].decimals,
+            fee: xtzToTokenRight.fee
+          };
+        }
+      }
+
+      loadingVortexResults = false;
     }
   };
 </script>
@@ -276,10 +435,17 @@
             img {
               width: 40px;
               height: 40px;
+              border-radius: 50%;
+              border: solid 4px transparent;
+              padding: 2px;
 
               &.loading {
                 -webkit-animation: heartbeat 1.5s ease-in-out infinite both;
                 animation: heartbeat 1.5s ease-in-out infinite both;
+              }
+
+              &.best-rate {
+                border-color: $success-green;
               }
             }
           }
@@ -344,9 +510,12 @@
           type="text"
           value={tokenLeftVal}
           on:input={async ev => {
+            const val = ev.target.value;
+            tokenLeftVal = val;
             await Promise.allSettled([
-              estimatePlentySwap("left", ev.target.value),
-              estimateQuipuSwap("left", ev.target.value)
+              estimatePlentySwap("left", val),
+              estimateQuipuSwap("left", val),
+              estimateVortexSwap("left", val)
             ]);
           }}
         />
@@ -357,7 +526,8 @@
                 tokenLeftVal = maxTokenLeft.toString();
                 await Promise.allSettled([
                   estimatePlentySwap("left", tokenLeftVal),
-                  estimateQuipuSwap("left", tokenLeftVal)
+                  estimateQuipuSwap("left", tokenLeftVal),
+                  estimateVortexSwap("left", tokenLeftVal)
                 ]);
               }
             }}
@@ -386,6 +556,7 @@
           await selectToken({ ...ev.detail, tokenSide: "right" })}
       />
     </div>
+    <!-- QUIPUSWAP -->
     <div class="swaps-inputs__input">
       <div class="swaps-inputs__input__result">
         <div class="swaps-inputs__input__result__title">
@@ -394,6 +565,8 @@
             src="images/QUIPUSWAP.png"
             alt="quipuswap"
             class:loading={loadingQuipuResults}
+            class:best-rate={tokenRightQuipuVal > tokenRightVortexVal &&
+              tokenRightQuipuVal > tokenRightPlentyVal}
           />
         </div>
         <div class="swaps-inputs__input__result__output">
@@ -447,6 +620,7 @@
         {/if}
       </div>
     </div>
+    <!-- PLENTYSWAP -->
     <div class="swaps-inputs__input">
       <div class="swaps-inputs__input__result">
         <div class="swaps-inputs__input__result__title">
@@ -455,6 +629,8 @@
             src="images/PLENTY.png"
             alt="plentyswap"
             class:loading={loadingPlentyResults}
+            class:best-rate={tokenRightPlentyVal > tokenRightVortexVal &&
+              tokenRightPlentyVal > tokenRightQuipuVal}
           />
         </div>
         <div class="swaps-inputs__input__result__output">
@@ -508,5 +684,18 @@
         {/if}
       </div>
     </div>
+    <!--VORTEX -->
+    <DexResults
+      loading={loadingVortexResults}
+      dex="vortex"
+      {tokenLeft}
+      {tokenRight}
+      {tokenLeftVal}
+      tokenRightVal={tokenRightVortexVal}
+      tokenRightDetails={tokenRightVortexDetails}
+      {mtdFee}
+      bestRate={tokenRightVortexVal > tokenRightPlentyVal &&
+        tokenRightVortexVal > tokenRightQuipuVal}
+    />
   </div>
 </section>

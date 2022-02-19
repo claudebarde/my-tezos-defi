@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount, afterUpdate, createEventDispatcher } from "svelte";
-  import tippy from "tippy.js";
   import BigNumber from "bignumber.js";
   import type { InvestmentData, AvailableInvestments } from "../../../types";
   import { AvailableToken } from "../../../types";
@@ -15,7 +14,6 @@
   } from "../../../utils";
   import toastStore from "../../Toast/toastStore";
   import config from "../../../config";
-  import { computeLpTokenPrice } from "../../../tokenUtils/youvesUtils";
 
   export let rewards: {
       id: AvailableInvestments;
@@ -23,16 +21,15 @@
       amount: number;
     },
     invData: InvestmentData,
-    invName: AvailableInvestments,
-    // valueInXtz: boolean,
-    createTooltipContent;
+    invName: AvailableInvestments;
+  // valueInXtz: boolean,
 
   let harvesting = false;
   let harvestingSuccess = undefined;
   let stakeInXtz: null | number = null;
   const dispatch = createEventDispatcher();
 
-  const harvest = async () => {
+  /*const harvest = async () => {
     harvesting = true;
     try {
       const rewardsToHarvest = +rewards.amount.toFixed(3) / 1;
@@ -75,7 +72,7 @@
     } finally {
       harvesting = false;
     }
-  };
+  };*/
 
   onMount(async () => {
     const invDetails = await loadInvestment(invData.id, $store.userAddress);
@@ -89,122 +86,10 @@
         }
       });
       invData.balance = invDetails.balance;
-      if (invData.id === "KUSD-KDAO") {
-        stakeInXtz =
-          +(
-            (invData.balance / 10 ** $store.tokens.kUSD.decimals) *
-            $store.tokens.kUSD.exchangeRate
-          ).toFixed(5) / 1;
-      } else if (invData.id === "KUSD-QUIPU-LP") {
-        const tezInStakesRaw = await estimateQuipuTezInShares(
-          $store.Tezos,
-          "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6",
-          invData.balance
-        );
-        const tezInStakes = tezInStakesRaw.toNumber() / 10 ** 6;
-        const tokensInStakesRaw = await estimateQuipuTokenInShares(
-          $store.Tezos,
-          "KT1K4EwTpbvYN9agJdjpyJm4ZZdhpUNKB3F6",
-          invData.balance
-        );
-        const tokensInStakes =
-          (tokensInStakesRaw.toNumber() / 10 ** $store.tokens.kUSD.decimals) *
-          $store.tokens.kUSD.exchangeRate;
 
-        stakeInXtz = formatTokenAmount(tezInStakes + tokensInStakes);
-      } else if (invData.id === "KUSD-QL") {
-        // Load kUSD Contract
-        const kUSDContract = await $store.Tezos.wallet.at(
-          $store.tokens.kUSD.address
-        );
-        const kUSDStorage: any = await kUSDContract.storage();
-
-        // Load Liq Pool Contract
-        const liqContract = await $store.Tezos.wallet.at(
-          config.kusdLiquidityPoolAddress
-        );
-        const liqStorage: any = await liqContract.storage();
-
-        // Get number of kUSD in the liquidity pool
-        let poolBalance = await kUSDStorage.balances.get(
-          config.kusdLiquidityPoolAddress
-        );
-        if (poolBalance === undefined) {
-          poolBalance = new BigNumber(0);
-        } else {
-          poolBalance = poolBalance.balance;
-        }
-
-        // Get number of LP tokens outstanding
-        const lpBalance = liqStorage.totalSupply;
-
-        // Changed fixed point numbers into decimals
-        const KUSD_MANTISSA = Math.pow(10, 18); // kUSD has 18 decimals
-        const LP_MANTISSA = Math.pow(10, 36); // LP has 36 decimals
-        const kUSDBalanceDecimal = poolBalance.dividedBy(KUSD_MANTISSA);
-        const lpBalanceDecimal = lpBalance.dividedBy(LP_MANTISSA);
-
-        // Calculate an exchange rate
-        // toFixed() will give you n digits of precision
-        const redeemRate = kUSDBalanceDecimal
-          .dividedBy(lpBalanceDecimal)
-          .toFixed(2);
-
-        stakeInXtz = formatTokenAmount(
-          +(invData.balance / 10 ** invData.decimals) *
-            redeemRate *
-            $store.tokens.kUSD.exchangeRate
-        );
-      } else if (invData.id === "KDAO-KUSD-UUSD") {
-        const kUSDuUSDdexAddress = "KT1AVbWyM8E7DptyBCu4B5J5B7Nswkq7Skc6";
-        const contract = await $store.Tezos.wallet.at(kUSDuUSDdexAddress);
-        const storage: any = await contract.storage();
-        const computedResult = computeLpTokenPrice(
-          invData.balance,
-          storage.lqtTotal,
-          storage.cashPool,
-          storage.tokenPool
-        );
-        if (computedResult) {
-          // calculates stake in XTZ
-          const token1ToXtz =
-            (computedResult.token1Output.toNumber() /
-              10 ** $store.tokens.kUSD.decimals) *
-            $store.tokens.kUSD.exchangeRate;
-          const token2ToXtz =
-            (computedResult.token2Output.toNumber() /
-              10 ** $store.tokens.uUSD.decimals) *
-            $store.tokens.uUSD.exchangeRate;
-          stakeInXtz = token1ToXtz + token2ToXtz;
-        }
-      }
+      stakeInXtz = 0;
 
       dispatch("update-farm-value", [invName, stakeInXtz]);
-    }
-
-    tippy(`#farm-${invData.id}`, {
-      content: createTooltipContent(invData.icons[0], invData.icons[1]),
-      allowHTML: true,
-      placement: "left"
-    });
-  });
-
-  afterUpdate(() => {
-    if (rewards && rewards.amount && invData.platform === "kdao") {
-      tippy(`#rewards-${invData.id}`, {
-        content: `<div>${
-          +(
-            rewards.amount * $store.tokens[AvailableToken.KDAO].exchangeRate
-          ).toFixed(5) / 1
-        } ꜩ<br />${
-          +(
-            rewards.amount *
-            $store.tokens[AvailableToken.KDAO].exchangeRate *
-            $store.xtzData.exchangeRate
-          ).toFixed(5) / 1
-        } ${$localStorageStore.preferredFiat || "USD"}</div>`,
-        allowHTML: true
-      });
     }
   });
 </script>
@@ -234,7 +119,7 @@
       <br />
       <div class:blurry-text={$store.blurryBalances}>
         {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1}
-        {invData.id === "KUSD-KDAO" ? "kUSD" : "LPT"}
+        LPT
       </div>
       <br />
       {#if stakeInXtz}
@@ -289,6 +174,7 @@
       {/if}
     </div>
     <br />
+    <!--
     <div class="buttons stack">
       {#if harvesting}
         <button class="primary loading">
@@ -308,6 +194,6 @@
           <span class="material-icons"> agriculture </span>
         </button>
       {/if}
-    </div>
+    </div>-->
   </div>
 </div>

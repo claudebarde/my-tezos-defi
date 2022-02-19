@@ -1,5 +1,5 @@
 {
-  "mtd-version": "4.7.1",
+  "mtd-version": "4.7.4",
   "tokens": {
     "kUSD": {
       "address": "KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV",
@@ -575,6 +575,17 @@
       "color": "#00AFF4",
       "tokenId": 0,
       "whitelisted": true
+    },
+    "uBTC": {
+      "address": "KT1XRPEPXbZK25r3Htzp2o1x7xdMMmfocKNW",
+      "dexContractAddress": "KT1Ao9HNxW9tqGMAvAMGyvP36VhJEUGWVRpx",
+      "decimals": 12,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 2],
+      "type": "fa2",
+      "color": "#143A3A",
+      "tokenId": 2,
+      "whitelisted": true
     }
   },
   "investments": {
@@ -1115,6 +1126,149 @@
       "alias": "QL kUSD Farm",
       "icons": ["QUIPUSWAP"],
       "rewardToken": "kDAO",
+      "liquidityToken": true
+    },
+    "KDAO-KUSD-UUSD": {
+      "id": "KDAO-KUSD-UUSD",
+      "platform": "kdao",
+      "address": "KT1VTA694ZHFQPtxg76HzY7gHdvi7idYEYje",
+      "decimals": 18,
+      "info": [],
+      "alias": "kUSD/uUSD Flat Curve LP Farm",
+      "icons": ["kUSD", "uUSD"],
+      "rewardToken": "kDAO",
+      "liquidityToken": true
+    },
+    "SMAK-XTZ-KUSD": {
+      "id": "SMAK-XTZ-kUSD",
+      "platform": "smak",
+      "address": "KT1TN29nQ45FPoXXv2MWb6TNEKJviVrBnB5z",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-kUSD Farm",
+      "icons": ["XTZ", "kUSD"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "SMAK-XTZ-SMAK": {
+      "id": "SMAK-XTZ-SMAK",
+      "platform": "smak",
+      "address": "KT1FN2uavvys9LsEFh2rBBck6iKLXifyfJmc",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-SMAK Farm",
+      "icons": ["XTZ", "SMAK"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "SMAK-XTZ-USDTZ": {
+      "id": "SMAK-XTZ-USDTZ",
+      "platform": "smak",
+      "address": "KT1GaN4ZHdHNwmQAJqueAz14uvF8BnSujGjV",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-USDtz Farm",
+      "icons": ["XTZ", "USDtz"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "SMAK-XTZ-PLENTY": {
+      "id": "SMAK-XTZ-PLENTY",
+      "platform": "smak",
+      "address": "KT1Dajw5d2iJnd1dQp8PKHtsjkCEheK7GH7g",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-Plenty Farm",
+      "icons": ["XTZ", "PLENTY"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "SMAK-XTZ-BTCTZ": {
+      "id": "SMAK-XTZ-BTCTZ",
+      "platform": "smak",
+      "address": "KT1TWyLZJ3B1uP7RWkCBJrhascUTPnzdNuXR",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-BTCtz Farm",
+      "icons": ["XTZ", "BTCtz"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "SMAK-XTZ-HDAO": {
+      "id": "SMAK-XTZ-HDAO",
+      "platform": "smak",
+      "address": "KT19sefWDyQEgHKdfLLBWJs7tajX5tRECQog",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-hDAO Farm",
+      "icons": ["XTZ", "hDAO"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "SMAK-XTZ-QUIPU": {
+      "id": "SMAK-XTZ-QUIPU",
+      "platform": "smak",
+      "address": "KT1HZjtxM6PXmjyy8TckGxDYjZwSxa2AnoRd",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-QUIPU Farm",
+      "icons": ["XTZ", "QUIPU"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "SMAK-XTZ-CRUNCH": {
+      "id": "SMAK-XTZ-CRUNCH",
+      "platform": "smak",
+      "address": "KT1J3Frj3ZuVRJTTVvBDF4HpX4rBjMpmgUQy",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-CRUNCH Farm",
+      "icons": ["XTZ", "CRUNCH"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "SMAK-XTZ-Ctez": {
+      "id": "SMAK-XTZ-Ctez",
+      "platform": "smak",
+      "address": "KT1PjLbZQoCkcY6GqFwhF73v4CDEJbgUXLcs",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-Ctez Farm",
+      "icons": ["XTZ", "Ctez"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "SMAK-XTZ-ETHtz": {
+      "id": "SMAK-XTZ-ETHtz",
+      "platform": "smak",
+      "address": "KT1DKGLZ8xZ2zTMXJdCwSrZZsLV4oPLUvG6B",
+      "decimals": 6,
+      "info": [],
+      "alias": "XTZ-ETHtz Farm",
+      "icons": ["XTZ", "ETHtz"],
+      "rewardToken": "SMAK",
+      "liquidityToken": true
+    },
+    "YOUVES-UUSD-WUSDC": {
+      "id": "YOUVES-UUSD-WUSDC",
+      "platform": "youves",
+      "address": "KT1TkNadQ9Cw5ZNRyS4t9SKmUbmAMkqY8bkV",
+      "decimals": 12,
+      "info": [],
+      "alias": "uUSD-wUSDC Farm",
+      "icons": ["uUSD", "wUSDC"],
+      "rewardToken": "YOU",
+      "liquidityToken": true
+    },
+    "YOUVES-UUSD-UBTC": {
+      "id": "YOUVES-UUSD-UBTC",
+      "platform": "youves",
+      "address": "KT1KGfEyxBeCU873RfuwrU1gy8sjC1s82WZV",
+      "decimals": 6,
+      "info": [],
+      "alias": "uUSD-uBTC Long term Farm",
+      "icons": ["uUSD", "uBTC"],
+      "rewardToken": "YOU",
       "liquidityToken": true
     }
   },

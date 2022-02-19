@@ -938,6 +938,61 @@ export const loadInvestment = async (
           info: undefined
         };
       }
+    } else if (inv.platform === "youves") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/stakes/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          return {
+            id: inv.id,
+            balance:
+              inv.id === AvailableInvestments["YOUVES-UUSD-UBTC"]
+                ? +userData.value.stake
+                : +userData.value,
+            info: userData.value
+          };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
+    } else if (inv.platform === "smak") {
+      try {
+        const userDataResponse = await fetch(
+          `https://api.tzkt.io/v1/contracts/${inv.address}/bigmaps/user_stakes/keys/${userAddress}`
+        );
+        if (userDataResponse) {
+          const userData = await userDataResponse.json();
+          return {
+            id: inv.id,
+            balance: +userData.value,
+            info: undefined
+          };
+        } else {
+          return {
+            id: inv.id,
+            balance: 0,
+            info: undefined
+          };
+        }
+      } catch (error) {
+        return {
+          id: inv.id,
+          balance: 0,
+          info: undefined
+        };
+      }
     } else {
       return null;
     }
@@ -1091,6 +1146,7 @@ export const getPaulReward = async (
   const numberAccuracy = new BigNumber(1000000000000000000);
 
   const contract = await localStore.Tezos.wallet.at(contractAddress);
+  const storage: any = await contract.storage();
   const {
     last_updated: lastUpdated,
     share_reward: shareReward,
@@ -1099,7 +1155,7 @@ export const getPaulReward = async (
     reward_per_second: rewardPerSecond,
     coefficient,
     referral_system: referralSystem
-  } = await contract.storage();
+  } = storage;
 
   if (totalStaked.eq(0)) {
     return new BigNumber(0);
@@ -1108,7 +1164,7 @@ export const getPaulReward = async (
   const referralSystemContract = await localStore.Tezos.wallet.at(
     referralSystem
   );
-  const { commission } = await referralSystemContract.storage();
+  const { commission } = (await referralSystemContract.storage()) as any;
 
   const currentTime = new BigNumber(+new Date());
   const lastTime = new BigNumber(+new Date(lastUpdated));
@@ -1335,15 +1391,42 @@ export const fetchDefiData = async (
       const cacheResponse = await newCache.match(request);
       if (cacheResponse) {
         const mtdCache = await cacheResponse.json();
+        // file is downloaded again if the cached version of MTD is different from the current version
         if (mtdCache["mtd-version"] === mtdVersion) {
-          console.log("cached defi data");
+          console.log("cached defi data:", ipfsHash);
+          const previousRequestsToDelete = [
+            "https://gateway.pinata.cloud/ipfs/QmT3Joq9XE8pS8bsXBEzP4jqSBjsXpfPc5AqRHQexKW6NG",
+            "https://gateway.pinata.cloud/ipfs/QmSsspv7rsPjovuRHruGnn6ZMp6ojdoUhKYnneTbr4FPt8",
+            "https://gateway.pinata.cloud/ipfs/QmPjNpRH3DsRCfDyg8buzxbTGtNrm7EvkjH51xokzTqF5L",
+            "https://gateway.pinata.cloud/ipfs/QmcuBXLSVW5Eeca81fM7EB5y36RtbEyh1VajE7KTAKK93g"
+          ];
+          // cleans up old caches
+          await Promise.allSettled(
+            previousRequestsToDelete.map(req => newCache.delete(req))
+          );
+
           return mtdCache;
         } else {
-          console.log("new defi data");
+          console.log("new defi data:", ipfsHash);
+          // deletes the current cache before fetching the new version of the defi data
+          await newCache.delete(request);
           return await ipfsRequest(newCache);
         }
       } else {
-        return await ipfsRequest(newCache);
+        console.warn(
+          "couldn't fetch new defi data, loading cache for:",
+          ipfsHash
+        );
+        // loads last successful request before trying to load the new one
+        const keys = await newCache.keys();
+        const lastCachedRequest = keys[keys.length - 1];
+        const cacheResponse = await newCache.match(lastCachedRequest);
+        if (cacheResponse) {
+          await ipfsRequest(newCache);
+          return await cacheResponse.json();
+        } else {
+          return await ipfsRequest(newCache);
+        }
       }
     } catch (error) {
       console.error(error);
