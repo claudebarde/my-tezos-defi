@@ -1447,10 +1447,13 @@
         {/if}
       </div>
     {/if}
-    {#if $store.investments["YOUVES-UUSD-UBTC"].balance && $store.investments["YOUVES-UUSD-UBTC"].balance > 0}
+    <!-- YOUVES FARMS -->
+    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul").length > 0}
       <div class="row-header">
         <div style="grid-column: 1 / span 2">Youves Farms</div>
       </div>
+    {/if}
+    {#if Object.entries($store.investments).filter(inv => $localStorageStore.favoriteInvestments.includes(inv[0]) && inv[1].platform === "paul").length > 0}
       {#each Object.entries($store.investments)
         .filter(inv => inv[1].platform === "youves")
         .sort( (a, b) => sortFarmsPerRewards(a[1], b[1]) ) as [invName, invData] (invData.id)}
