@@ -25,7 +25,8 @@
       amount: number;
     },
     invData: InvestmentData,
-    invName: AvailableInvestments;
+    invName: AvailableInvestments,
+    collapsed: boolean;
 
   let harvesting = false;
   let harvestingSuccess = undefined;
@@ -193,174 +194,219 @@
   });
 </script>
 
-<div class="farm-block">
-  <div class="farm-block__name">
-    <div style="text-align:center">
-      <div class="icons" id={`farm-${invData.id}`}>
-        {#each invData.icons as icon}
-          <img src={`images/${icon}.png`} alt="token-icon" />
-        {/each}
-      </div>
-      <div>
-        <a
-          href={`https://better-call.dev/mainnet/${invData.address}/operations`}
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-        >
-          {invData.alias}
-        </a>
-      </div>
-    </div>
-    <div>
-      {#if apr}
-        <div style="font-size:0.7rem">
-          APR: {apr.toFixed(2)}%
-        </div>
-      {/if}
-    </div>
-    <div>
-      {#each invData.icons as token}
-        {#if $store.tokens[token]}
-          <div style="font-size:0.7rem">
-            1 {token} = {formatTokenAmount($store.tokens[token].exchangeRate)} XTZ
-          </div>
-        {/if}
+{#if collapsed}
+  <div class="collapsed-farm-row">
+    <div class="icons">
+      {#each invData.icons as icon}
+        <img src={`images/${icon}.png`} alt="token-icon" />
       {/each}
     </div>
-  </div>
-  <div class="farm-block__data">
-    <div class="farm-block__data__info">
-      <span class="title">Stake:</span>
-      <br />
-      <div class:blurry-text={$store.blurryBalances}>
+    <div class:blurry-text={$store.blurryBalances}>
+      <div class="title">
         {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1}
         {invData.id === "PAUL-PAUL" ? AvailableToken.PAUL : "LPT"}
       </div>
-      <br />
-      {#if stakeInXtz && !loadingStakeInXtz}
-        <span class="title">Value in XTZ:</span>
-        <br />
-        <div class:blurry-text={$store.blurryBalances}>
-          {+stakeInXtz.toFixed(5) / 1} ꜩ
+      <div style="font-size:0.9rem">
+        {#if stakeInXtz}
+          ({`${formatTokenAmount(stakeInXtz, 2)} ꜩ / ${formatTokenAmount(
+            stakeInXtz * $store.xtzData.exchangeRate,
+            2
+          )} ${$localStorageStore.preferredFiat}`})
+        {/if}
+      </div>
+    </div>
+    <div>
+      {#if apr || apr === 0}
+        <div class="title">APR:</div>
+        <div style="font-size:0.9rem">
+          {apr.toFixed(2)}%
         </div>
-        <br />
-        <span class="title">
-          Value in {$localStorageStore.preferredFiat}:
-        </span>
-        <br />
-        <div class:blurry-text={$store.blurryBalances}>
-          {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(2) / 1}
-          {config.validFiats.find(
-            fiat => fiat.code === $localStorageStore.preferredFiat
-          ).symbol}
-        </div>
-      {:else if loadingStakeInXtz}
-        <span class="material-icons"> hourglass_empty </span>
       {/if}
     </div>
-    {#if roiPerWeek}
-      <br />
-      <div class="farm-block__data__info">
-        <span class="title">Estimated ROI/week:</span>
-        <br />
+    <div>
+      <div class="title">Rewards</div>
+      <div style="font-size:0.9rem">
+        {rewards ? formatTokenAmount(rewards.amount) : "---"}
+        {invData.rewardToken}
+      </div>
+    </div>
+    <div>
+      <button class="mini">
+        <span class="material-icons"> agriculture </span>
+      </button>
+    </div>
+  </div>
+{:else}
+  <div class="farm-block">
+    <div class="farm-block__name">
+      <div style="text-align:center">
+        <div class="icons" id={`farm-${invData.id}`}>
+          {#each invData.icons as icon}
+            <img src={`images/${icon}.png`} alt="token-icon" />
+          {/each}
+        </div>
         <div>
-          {roiPerWeek} ꜩ
+          <a
+            href={`https://better-call.dev/mainnet/${invData.address}/operations`}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+          >
+            {invData.alias}
+          </a>
         </div>
       </div>
-    {/if}
-  </div>
-  <div class="farm-block__actions">
-    {#if !moreOptions}
       <div>
-        <span class="title">Available rewards:</span>
-        <br />
-        {#if !rewards}
-          <span class="material-icons"> hourglass_empty </span>
-        {:else}
-          <span id={`rewards-${invData.id}`}>
-            {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
-            {$store.investments[invData.id].rewardToken}
-          </span>
+        {#if apr}
+          <div style="font-size:0.7rem">
+            APR: {apr.toFixed(2)}%
+          </div>
         {/if}
-        {#if rewards?.amount}
+      </div>
+      <div>
+        {#each invData.icons as token}
+          {#if $store.tokens[token]}
+            <div style="font-size:0.7rem">
+              1 {token} = {formatTokenAmount($store.tokens[token].exchangeRate)}
+              XTZ
+            </div>
+          {/if}
+        {/each}
+      </div>
+    </div>
+    <div class="farm-block__data">
+      <div class="farm-block__data__info">
+        <span class="title">Stake:</span>
+        <br />
+        <div class:blurry-text={$store.blurryBalances}>
+          {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1}
+          {invData.id === "PAUL-PAUL" ? AvailableToken.PAUL : "LPT"}
+        </div>
+        <br />
+        {#if stakeInXtz && !loadingStakeInXtz}
+          <span class="title">Value in XTZ:</span>
           <br />
-          <span style="font-size:0.7rem">
-            ({formatTokenAmount(
-              rewards.amount * $store.tokens[invData.rewardToken].exchangeRate
-            )} ꜩ / {formatTokenAmount(
-              rewards.amount *
-                $store.tokens[invData.rewardToken].exchangeRate *
-                $store.xtzData.exchangeRate,
-              2
-            )}
+          <div class:blurry-text={$store.blurryBalances}>
+            {+stakeInXtz.toFixed(5) / 1} ꜩ
+          </div>
+          <br />
+          <span class="title">
+            Value in {$localStorageStore.preferredFiat}:
+          </span>
+          <br />
+          <div class:blurry-text={$store.blurryBalances}>
+            {+(stakeInXtz * $store.xtzData.exchangeRate).toFixed(2) / 1}
             {config.validFiats.find(
               fiat => fiat.code === $localStorageStore.preferredFiat
-            ).symbol})
-          </span>
+            ).symbol}
+          </div>
+        {:else if loadingStakeInXtz}
+          <span class="material-icons"> hourglass_empty </span>
         {/if}
       </div>
-    {/if}
-    <br />
-    <div class="buttons stack">
-      {#if harvesting}
-        <button class="primary loading">
-          Harvesting &nbsp;
-          <span class="material-icons"> sync </span>
-        </button>
-      {:else if harvestingSuccess === true}
-        <button class="primary success">
-          Success! &nbsp;
-          <span class="material-icons"> thumb_up </span>
-        </button>
-      {:else if harvestingSuccess === false}
-        <button class="primary error" on:click={harvest}> Retry </button>
-      {:else}
-        <button class="primary" on:click={harvest}>
-          Harvest &nbsp;
-          <span class="material-icons"> agriculture </span>
-        </button>
-      {/if}
-      {#if invData.id === AvailableInvestments["PAUL-PAUL"]}
-        <button class="primary" on:click={compound}>
-          Harvest & Restake &nbsp;
-          <span class="material-icons"> save_alt </span>
-        </button>
-      {/if}
-      {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
-        {#if moreOptions}
-          <button
-            class="primary"
-            on:click={() => (openStakeModal = !openStakeModal)}
-          >
-            Stake &nbsp;
-            <span class="material-icons"> file_download </span>
-          </button>
-          <button
-            class="primary"
-            on:click={() => (openUnstakeModal = !openUnstakeModal)}
-          >
-            Unstake &nbsp;
-            <span class="material-icons"> file_upload </span>
-          </button>
-        {/if}
-        <button
-          class="primary"
-          on:click={async () => {
-            moreOptions = !moreOptions;
-          }}
-        >
-          {#if moreOptions}
-            Show less options &nbsp;
-            <span class="material-icons"> expand_less </span>
-          {:else}
-            Show more options &nbsp;
-            <span class="material-icons"> expand_more </span>
-          {/if}
-        </button>
+      {#if roiPerWeek}
+        <br />
+        <div class="farm-block__data__info">
+          <span class="title">Estimated ROI/week:</span>
+          <br />
+          <div>
+            {roiPerWeek} ꜩ
+          </div>
+        </div>
       {/if}
     </div>
+    <div class="farm-block__actions">
+      {#if !moreOptions}
+        <div>
+          <span class="title">Available rewards:</span>
+          <br />
+          {#if !rewards}
+            <span class="material-icons"> hourglass_empty </span>
+          {:else}
+            <span id={`rewards-${invData.id}`}>
+              {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
+              {$store.investments[invData.id].rewardToken}
+            </span>
+          {/if}
+          {#if rewards?.amount}
+            <br />
+            <span style="font-size:0.7rem">
+              ({formatTokenAmount(
+                rewards.amount * $store.tokens[invData.rewardToken].exchangeRate
+              )} ꜩ / {formatTokenAmount(
+                rewards.amount *
+                  $store.tokens[invData.rewardToken].exchangeRate *
+                  $store.xtzData.exchangeRate,
+                2
+              )}
+              {config.validFiats.find(
+                fiat => fiat.code === $localStorageStore.preferredFiat
+              ).symbol})
+            </span>
+          {/if}
+        </div>
+      {/if}
+      <br />
+      <div class="buttons stack">
+        {#if harvesting}
+          <button class="primary loading">
+            Harvesting &nbsp;
+            <span class="material-icons"> sync </span>
+          </button>
+        {:else if harvestingSuccess === true}
+          <button class="primary success">
+            Success! &nbsp;
+            <span class="material-icons"> thumb_up </span>
+          </button>
+        {:else if harvestingSuccess === false}
+          <button class="primary error" on:click={harvest}> Retry </button>
+        {:else}
+          <button class="primary" on:click={harvest}>
+            Harvest &nbsp;
+            <span class="material-icons"> agriculture </span>
+          </button>
+        {/if}
+        {#if invData.id === AvailableInvestments["PAUL-PAUL"]}
+          <button class="primary" on:click={compound}>
+            Harvest & Restake &nbsp;
+            <span class="material-icons"> save_alt </span>
+          </button>
+        {/if}
+        {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
+          {#if moreOptions}
+            <button
+              class="primary"
+              on:click={() => (openStakeModal = !openStakeModal)}
+            >
+              Stake &nbsp;
+              <span class="material-icons"> file_download </span>
+            </button>
+            <button
+              class="primary"
+              on:click={() => (openUnstakeModal = !openUnstakeModal)}
+            >
+              Unstake &nbsp;
+              <span class="material-icons"> file_upload </span>
+            </button>
+          {/if}
+          <button
+            class="primary"
+            on:click={async () => {
+              moreOptions = !moreOptions;
+            }}
+          >
+            {#if moreOptions}
+              Show less options &nbsp;
+              <span class="material-icons"> expand_less </span>
+            {:else}
+              Show more options &nbsp;
+              <span class="material-icons"> expand_more </span>
+            {/if}
+          </button>
+        {/if}
+      </div>
+    </div>
   </div>
-</div>
+{/if}
 {#if openStakeModal || openUnstakeModal}
   <PaulStakeUnstake
     on:close={() => {
