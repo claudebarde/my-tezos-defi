@@ -1,7 +1,46 @@
 <script lang="ts">
+  import { afterUpdate } from "svelte";
   import { location } from "svelte-spa-router";
   import store from "../../store";
+  import localStorageStore from "../../localStorage";
   import FavoriteTokenDisplay from "./FavoriteTokensDisplay.svelte";
+
+  let _24hDecrease = false;
+  let hasKusdVaults = false;
+  let hasUusdVaults = false;
+
+  afterUpdate(() => {
+    if ($store.xtzData.historic && $store.xtzData.historic.length > 1) {
+      const yesterdayPrice =
+        $store.xtzData.historic[$store.xtzData.historic.length - 2].price;
+      const todayPrice = $store.xtzData.exchangeRate;
+      const difference = ((todayPrice - yesterdayPrice) / todayPrice) * 100;
+      if (difference < 0 && Math.abs(difference) > 5) {
+        _24hDecrease = true;
+        // checks if user has vaults on Youves or Kolibri
+        if (
+          $localStorageStore.kUsdVaults &&
+          $localStorageStore.kUsdVaults.length > 0
+        ) {
+          hasKusdVaults = true;
+        } else {
+          hasKusdVaults = false;
+        }
+        if (
+          $localStorageStore.uUsdVaults &&
+          $localStorageStore.uUsdVaults.length > 0
+        ) {
+          hasUusdVaults = true;
+        } else {
+          hasUusdVaults = false;
+        }
+      } else {
+        _24hDecrease = false;
+        hasKusdVaults = false;
+        hasUusdVaults = false;
+      }
+    }
+  });
 </script>
 
 <style lang="scss">
@@ -10,7 +49,8 @@
   section {
     border-right: solid 2px $border-color;
     display: grid;
-    grid-template-rows: 10% 80% 10%;
+    grid-template-rows: 10% 60% 20% 10%;
+    align-items: flex-start;
     position: relative;
 
     .logo {
@@ -46,6 +86,33 @@
           background-color: lighten($container-bg-color, 60);
           border-radius: 10px;
         }
+      }
+    }
+
+    .decrease-alert {
+      background-color: $error-red;
+      color: white;
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      width: 70%;
+
+      a {
+        text-decoration: none;
+        color: inherit;
+        font-weight: bold;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      & > div {
+        margin: 3px 0px;
       }
     }
   }
@@ -112,6 +179,52 @@
       &nbsp; Settings
     </a>
   </div>
+  {#if _24hDecrease && (hasKusdVaults || hasUusdVaults)}
+    <div class="decrease-alert">
+      <div>
+        The price of XTZ has decreased more than 5% in the last 24 hours.
+      </div>
+      <div>
+        You may want to check your
+        {#if hasKusdVaults && hasUusdVaults}
+          <a
+            href="https://kolibri.finance/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Kolibri
+          </a>
+          and
+          <a
+            href="https://app.youves.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Youves
+          </a> vaults
+        {:else if hasKusdVaults && !hasUusdVaults}
+          <a
+            href="https://kolibri.finance/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Kolibri
+          </a> ovens
+        {:else if !hasKusdVaults && hasUusdVaults}
+          <a
+            href="https://app.youves.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Youves
+          </a> vaults
+        {/if}
+        .
+      </div>
+    </div>
+  {:else}
+    <div />
+  {/if}
   <div>
     <FavoriteTokenDisplay />
   </div>

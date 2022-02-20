@@ -156,30 +156,6 @@
 
   onMount(async () => {
     if (!$store.userAddress) push("/");
-
-    /*const userTokens = Object.entries($store.tokens).filter(tk =>
-      $localStorageStore.favoriteTokens.includes(tk[0])
-    );
-    const newBalances = await searchUserTokens({
-      Tezos: $store.Tezos,
-      userAddress: $store.userAddress,
-      tokens: userTokens
-    });
-    store.updateTokensBalances(newBalances as State["tokensBalances"]);
-
-    // fetches XTZ balance
-    const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-    if (balance) {
-      store.updateTezBalance(balance.toNumber());
-    }
-
-    await fetchTokensStats(userTokens);
-    tokensStatsRefresh = setInterval(async () => {
-      const userTokens = Object.entries($store.tokens).filter(tk =>
-        $localStorageStore.favoriteTokens.includes(tk[0])
-      );
-      await fetchTokensStats(userTokens);
-    }, 10 * 60000);*/
     // fetches all the tokens with a balance
     try {
       const newBalances = await fetchUserBalances(
@@ -216,17 +192,6 @@
       $store.tokensBalances &&
       Object.values($store.tokensBalances).length > 0
     ) {
-      /*totalHoldingInXtz = [
-        0,
-        0,
-        ...$localStorageStore.favoriteTokens.map(tk => {
-          if ($store.tokens[tk] && $store.tokensBalances[tk]) {
-            return $store.tokensBalances[tk] * $store.tokens[tk].exchangeRate;
-          } else {
-            return 0;
-          }
-        })
-      ].reduce((a, b) => a + b);*/
       totalHoldingInXtz = [
         0,
         0,
