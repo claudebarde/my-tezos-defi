@@ -634,6 +634,31 @@
         });
       }
     }
+    // sets expanded farm views according to local storage
+    if (
+      $localStorageStore.collapsedFarmViews &&
+      Array.isArray($localStorageStore.collapsedFarmViews)
+    ) {
+      $localStorageStore.collapsedFarmViews.forEach(platform => {
+        switch (platform) {
+          case "plenty":
+            expandPlentyFarms = false;
+            break;
+          case "wrap":
+            expandWrapFarms = false;
+            break;
+          case "kdao":
+            expandKdaoFarms = false;
+            break;
+          case "paul":
+            expandPaulFarms = false;
+            break;
+          case "youves":
+            expandYouvesFarms = false;
+            break;
+        }
+      });
+    }
   });
 
   afterUpdate(async () => {
@@ -1147,7 +1172,12 @@
           <div />
           <div />
           <div class="expand-farms">
-            <button on:click={() => (expandPlentyFarms = !expandPlentyFarms)}>
+            <button
+              on:click={() => {
+                expandPlentyFarms = !expandPlentyFarms;
+                localStorageStore.updateCollapsedFarmViews("plenty");
+              }}
+            >
               {#if expandPlentyFarms}
                 <span class="material-icons"> expand_less </span>
               {:else}
@@ -1301,7 +1331,12 @@
           <div />
           <div />
           <div class="expand-farms">
-            <button on:click={() => (expandWrapFarms = !expandWrapFarms)}>
+            <button
+              on:click={() => {
+                expandWrapFarms = !expandWrapFarms;
+                localStorageStore.updateCollapsedFarmViews("wrap");
+              }}
+            >
               {#if expandWrapFarms}
                 <span class="material-icons"> expand_less </span>
               {:else}
@@ -1498,7 +1533,12 @@
           <div />
           <div />
           <div class="expand-farms">
-            <button on:click={() => (expandKdaoFarms = !expandKdaoFarms)}>
+            <button
+              on:click={() => {
+                expandKdaoFarms = !expandKdaoFarms;
+                localStorageStore.updateCollapsedFarmViews("kdao");
+              }}
+            >
               {#if expandKdaoFarms}
                 <span class="material-icons"> expand_less </span>
               {:else}
@@ -1557,7 +1597,12 @@
           <div />
           <div />
           <div class="expand-farms">
-            <button on:click={() => (expandPaulFarms = !expandPaulFarms)}>
+            <button
+              on:click={() => {
+                expandPaulFarms = !expandPaulFarms;
+                localStorageStore.updateCollapsedFarmViews("paul");
+              }}
+            >
               {#if expandPaulFarms}
                 <span class="material-icons"> expand_less </span>
               {:else}
@@ -1672,7 +1717,12 @@
           <div />
           <div />
           <div class="expand-farms">
-            <button on:click={() => (expandYouvesFarms = !expandYouvesFarms)}>
+            <button
+              on:click={() => {
+                expandYouvesFarms = !expandYouvesFarms;
+                localStorageStore.updateCollapsedFarmViews("youves");
+              }}
+            >
               {#if expandYouvesFarms}
                 <span class="material-icons"> expand_less </span>
               {:else}

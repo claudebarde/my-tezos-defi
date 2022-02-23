@@ -301,6 +301,7 @@ export interface LocalStorageState {
   uUsdVaults: TezosContractAddress[];
   ctezVaults: TezosContractAddress[];
   lastUpdate: number;
+  collapsedFarmViews: Array<InvestmentPlatform>;
 }
 
 export interface ComplexBatchedOp {

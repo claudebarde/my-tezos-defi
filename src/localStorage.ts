@@ -4,14 +4,19 @@ import type {
   TezosAccountAddress,
   TezosContractAddress
 } from "./types";
-import { AvailableFiat, AvailableToken, AvailableInvestments } from "./types";
+import {
+  AvailableFiat,
+  AvailableToken,
+  AvailableInvestments,
+  InvestmentPlatform
+} from "./types";
 import generalStore from "./store";
 import config from "./config";
 
 let state = null;
 const localStorageItemName = "mtd";
 const version = config.version;
-let favoriteRpcUrl = "https://mainnet-tezos.giganode.io";
+let favoriteRpcUrl = "https://mainnet.api.tez.ie";
 let initialState: LocalStorageState = {
   preferredFiat: AvailableFiat.USD,
   pushNotifications: false,
@@ -21,7 +26,8 @@ let initialState: LocalStorageState = {
   wXtzVaults: [],
   uUsdVaults: [],
   ctezVaults: [],
-  lastUpdate: Date.now()
+  lastUpdate: Date.now(),
+  collapsedFarmViews: []
 };
 
 const wrapUserState = (
@@ -355,6 +361,38 @@ if (globalThis?.window?.localStorage) {
               localStorageItemName,
               JSON.stringify(
                 wrapUserState(newStore, gnrlStore.userAddress, url)
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        return newStore;
+      });
+    },
+    updateCollapsedFarmViews: (farmViewPlatform: InvestmentPlatform) => {
+      store.update(store => {
+        const gnrlStore = get(generalStore);
+        if (!store.hasOwnProperty("collapsedFarmViews")) {
+          store.collapsedFarmViews = [];
+        }
+
+        const newStore = {
+          ...store,
+          collapsedFarmViews: store.collapsedFarmViews.includes(
+            farmViewPlatform
+          )
+            ? store.collapsedFarmViews.filter(
+                platform => platform !== farmViewPlatform
+              )
+            : [farmViewPlatform, ...store.collapsedFarmViews]
+        };
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
               )
             );
           } catch (error) {
