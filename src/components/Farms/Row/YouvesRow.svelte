@@ -346,7 +346,7 @@
           <span class="material-icons"> hourglass_empty </span>
         {:else}
           <span id={`rewards-${invData.id}`}>
-            {#if rewards.amount < 1 / 10 ** 8}
+            {#if rewards.amount < 1 / 10 ** 6}
               0
             {:else if $store.investments[invData.id].rewardToken === AvailableToken.uBTC}
               {rewards.amount ? formatTokenAmount(+rewards.amount, 9) : 0}

@@ -390,7 +390,8 @@
       } = await fetchDefiData(
         $store.defiData,
         config.version,
-        forceDownloadDefiData
+        true
+        //forceDownloadDefiData
       );
       if (defiData) {
         if (defiData.tokens) {
