@@ -77,6 +77,12 @@ button {
     background-color: $error-red;
     border-color: $error-red;
   }
+
+  &.outline {
+    background-color: transparent;
+    border: solid 2px $container-bg-color;
+    color: $container-bg-color;
+  }
 }
 
 @keyframes loading-rotate {

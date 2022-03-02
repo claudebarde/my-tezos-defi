@@ -1,5 +1,5 @@
 {
-  "mtd-version": "4.7.4",
+  "mtd-version": "4.7.5",
   "tokens": {
     "kUSD": {
       "address": "KT1K9gCRgaLRFKTErYt1wVxA3Frb9FjasjTV",
@@ -1255,6 +1255,7 @@
       "address": "KT1TkNadQ9Cw5ZNRyS4t9SKmUbmAMkqY8bkV",
       "decimals": 12,
       "info": [],
+      "type": "liquidity",
       "alias": "uUSD-wUSDC Farm",
       "icons": ["uUSD", "wUSDC"],
       "rewardToken": "YOU",
@@ -1266,10 +1267,71 @@
       "address": "KT1KGfEyxBeCU873RfuwrU1gy8sjC1s82WZV",
       "decimals": 6,
       "info": [],
+      "type": "long-term",
       "alias": "uUSD-uBTC Long term Farm",
       "icons": ["uUSD", "uBTC"],
       "rewardToken": "YOU",
       "liquidityToken": true
+    },
+    "YOUVES-UUSD-KUSD": {
+      "id": "YOUVES-UUSD-KUSD",
+      "platform": "youves",
+      "address": "KT1HaWDWv7XPsZ54JbDquXV6YgyazQr9Jkp3",
+      "decimals": 6,
+      "info": [],
+      "type": "long-term",
+      "alias": "uUSD-kUSD Long term Farm",
+      "icons": ["uUSD", "kUSD"],
+      "rewardToken": "YOU",
+      "liquidityToken": true
+    },
+    "YOUVES-UUSD-USDTZ": {
+      "id": "YOUVES-UUSD-USDTZ",
+      "platform": "youves",
+      "address": "KT1JFsKh3Wcnd4tKzF6EwugwTVGj3XfGPfeZ",
+      "decimals": 6,
+      "info": [],
+      "type": "long-term",
+      "alias": "uUSD-USDtz Long term Farm",
+      "icons": ["uUSD", "USDtz"],
+      "rewardToken": "YOU",
+      "liquidityToken": true
+    },
+    "YOUVES-YOU-UBTC": {
+      "id": "YOUVES-YOU-UBTC",
+      "platform": "youves",
+      "address": "KT19bkpis4NSDnt6efuh65vYxMaMHBoKoLEw",
+      "decimals": 12,
+      "info": [],
+      "type": "staking",
+      "alias": "YOU staking",
+      "icons": ["YOU", "uBTC"],
+      "rewardToken": "uBTC",
+      "liquidityToken": false
+    },
+    "YOUVES-YOU-UUSD": {
+      "id": "YOUVES-YOU-UUSD",
+      "platform": "youves",
+      "address": "KT1Lz5S39TMHEA7izhQn8Z1mQoddm6v1jTwH",
+      "decimals": 12,
+      "info": [],
+      "type": "staking",
+      "alias": "YOU staking",
+      "icons": ["YOU", "uUSD"],
+      "rewardToken": "uUSD",
+      "liquidityToken": false
+    },
+    "YOUVES-YOU-UDEFI": {
+      "id": "YOUVES-YOU-UDEFI",
+      "platform": "youves",
+      "address": "KT1TFPn4ZTzmXDzikScBrWnHkoqTA7MBt9Gi",
+      "decimals": 12,
+      "info": [],
+      "type": "staking",
+      "alias": "YOU staking",
+      "icons": ["YOU", "uDEFI"],
+      "rewardToken": "uDEFI",
+      "liquidityToken": false
     }
   },
   "wrap-staking": [

@@ -159,7 +159,12 @@ export enum AvailableInvestments {
   "WRAP-wWBTC-FM" = "WRAP-wWBTC-FM",
   "WRAP-wWETH-FM" = "WRAP-wWETH-FM",
   "YOUVES-UUSD-WUSDC" = "YOUVES-UUSD-WUSDC",
-  "YOUVES-UUSD-UBTC" = "YOUVES-UUSD-UBTC"
+  "YOUVES-UUSD-UBTC" = "YOUVES-UUSD-UBTC",
+  "YOUVES-UUSD-KUSD" = "YOUVES-UUSD-KUSD",
+  "YOUVES-UUSD-USDTZ" = "YOUVES-UUSD-USDTZ",
+  "YOUVES-YOU-UBTC" = "YOUVES-YOU-UBTC",
+  "YOUVES-YOU-UUSD" = "YOUVES-YOU-UUSD",
+  "YOUVES-YOU-UDEFI" = "YOUVES-YOU-UDEFI"
 }
 
 export type InvestmentPlatform =
@@ -301,6 +306,7 @@ export interface LocalStorageState {
   uUsdVaults: TezosContractAddress[];
   ctezVaults: TezosContractAddress[];
   lastUpdate: number;
+  collapsedFarmViews: Array<InvestmentPlatform>;
 }
 
 export interface ComplexBatchedOp {

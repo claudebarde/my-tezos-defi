@@ -4,14 +4,20 @@ import type {
   TezosAccountAddress,
   TezosContractAddress
 } from "./types";
-import { AvailableFiat, AvailableToken, AvailableInvestments } from "./types";
+import {
+  AvailableFiat,
+  AvailableToken,
+  AvailableInvestments,
+  InvestmentPlatform
+} from "./types";
 import generalStore from "./store";
 import config from "./config";
 
 let state = null;
 const localStorageItemName = "mtd";
 const version = config.version;
-let favoriteRpcUrl = "https://mainnet-tezos.giganode.io";
+let favoriteRpcUrl = "https://mainnet.api.tez.ie";
+let forceDownloadDefiData = false;
 let initialState: LocalStorageState = {
   preferredFiat: AvailableFiat.USD,
   pushNotifications: false,
@@ -21,17 +27,24 @@ let initialState: LocalStorageState = {
   wXtzVaults: [],
   uUsdVaults: [],
   ctezVaults: [],
-  lastUpdate: Date.now()
+  lastUpdate: Date.now(),
+  collapsedFarmViews: []
 };
 
 const wrapUserState = (
   state: LocalStorageState,
   userAddress: TezosAccountAddress,
-  favoriteRpcUrl: string
+  favoriteRpcUrl: string,
+  forceDownloadDefiData: boolean
 ) => {
   if (!userAddress) throw "No user address";
 
-  return { [userAddress]: state, version, favoriteRpcUrl };
+  return {
+    [userAddress]: state,
+    version,
+    favoriteRpcUrl,
+    forceDownloadDefiData
+  };
 };
 
 if (globalThis?.window?.localStorage) {
@@ -53,6 +66,10 @@ if (globalThis?.window?.localStorage) {
             if (stateFromStorage.hasOwnProperty("favoriteRpcUrl")) {
               favoriteRpcUrl = stateFromStorage.favoriteRpcUrl;
             }
+            if (stateFromStorage.hasOwnProperty("forceDownloadDefiData")) {
+              forceDownloadDefiData = stateFromStorage.forceDownloadDefiData;
+            }
+
             let newState;
             if (stateFromStorage.version !== version) {
               newState = { ...initialState, ...stateFromStorage[userAddress] };
@@ -61,7 +78,12 @@ if (globalThis?.window?.localStorage) {
                 window.localStorage.setItem(
                   localStorageItemName,
                   JSON.stringify(
-                    wrapUserState(newState, userAddress, favoriteRpcUrl)
+                    wrapUserState(
+                      newState,
+                      userAddress,
+                      favoriteRpcUrl,
+                      forceDownloadDefiData
+                    )
                   )
                 );
               } catch (error) {
@@ -122,7 +144,12 @@ if (globalThis?.window?.localStorage) {
               window.localStorage.setItem(
                 localStorageItemName,
                 JSON.stringify(
-                  wrapUserState(initialState, userAddress, favoriteRpcUrl)
+                  wrapUserState(
+                    initialState,
+                    userAddress,
+                    favoriteRpcUrl,
+                    forceDownloadDefiData
+                  )
                 )
               );
             } catch (error) {
@@ -151,7 +178,12 @@ if (globalThis?.window?.localStorage) {
             window.localStorage.setItem(
               localStorageItemName,
               JSON.stringify(
-                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  favoriteRpcUrl,
+                  forceDownloadDefiData
+                )
               )
             );
           } catch (error) {
@@ -175,7 +207,12 @@ if (globalThis?.window?.localStorage) {
             window.localStorage.setItem(
               localStorageItemName,
               JSON.stringify(
-                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  favoriteRpcUrl,
+                  forceDownloadDefiData
+                )
               )
             );
           } catch (error) {
@@ -199,7 +236,12 @@ if (globalThis?.window?.localStorage) {
             window.localStorage.setItem(
               localStorageItemName,
               JSON.stringify(
-                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  favoriteRpcUrl,
+                  forceDownloadDefiData
+                )
               )
             );
           } catch (error) {
@@ -223,7 +265,12 @@ if (globalThis?.window?.localStorage) {
             window.localStorage.setItem(
               localStorageItemName,
               JSON.stringify(
-                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  favoriteRpcUrl,
+                  forceDownloadDefiData
+                )
               )
             );
           } catch (error) {
@@ -247,7 +294,12 @@ if (globalThis?.window?.localStorage) {
             window.localStorage.setItem(
               localStorageItemName,
               JSON.stringify(
-                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  favoriteRpcUrl,
+                  forceDownloadDefiData
+                )
               )
             );
           } catch (error) {
@@ -291,7 +343,12 @@ if (globalThis?.window?.localStorage) {
             window.localStorage.setItem(
               localStorageItemName,
               JSON.stringify(
-                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  favoriteRpcUrl,
+                  forceDownloadDefiData
+                )
               )
             );
           } catch (error) {
@@ -332,7 +389,12 @@ if (globalThis?.window?.localStorage) {
             window.localStorage.setItem(
               localStorageItemName,
               JSON.stringify(
-                wrapUserState(newStore, gnrlStore.userAddress, favoriteRpcUrl)
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  favoriteRpcUrl,
+                  forceDownloadDefiData
+                )
               )
             );
           } catch (error) {
@@ -354,7 +416,103 @@ if (globalThis?.window?.localStorage) {
             window.localStorage.setItem(
               localStorageItemName,
               JSON.stringify(
-                wrapUserState(newStore, gnrlStore.userAddress, url)
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  url,
+                  forceDownloadDefiData
+                )
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        return newStore;
+      });
+    },
+    updateDownloadDefiData: (status: boolean) => {
+      store.update(store => {
+        const gnrlStore = get(generalStore);
+        const newStore = {
+          ...store,
+          lastUpdate: Date.now()
+        };
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  favoriteRpcUrl,
+                  status
+                )
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        return newStore;
+      });
+    },
+    updateCollapsedFarmViews: (farmViewPlatform: InvestmentPlatform) => {
+      store.update(store => {
+        const gnrlStore = get(generalStore);
+        if (!store.hasOwnProperty("collapsedFarmViews")) {
+          store.collapsedFarmViews = [];
+        }
+
+        const newStore = {
+          ...store,
+          collapsedFarmViews: store.collapsedFarmViews.includes(
+            farmViewPlatform
+          )
+            ? store.collapsedFarmViews.filter(
+                platform => platform !== farmViewPlatform
+              )
+            : [farmViewPlatform, ...store.collapsedFarmViews]
+        };
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  favoriteRpcUrl,
+                  forceDownloadDefiData
+                )
+              )
+            );
+          } catch (error) {
+            console.error(error);
+          }
+        }
+        return newStore;
+      });
+    },
+    updateForceDownloadDefiData: (status: boolean) => {
+      store.update(store => {
+        const gnrlStore = get(generalStore);
+        const newStore = {
+          ...store,
+          forceDownloadDefiData: status
+        };
+        if (gnrlStore.userAddress) {
+          try {
+            window.localStorage.setItem(
+              localStorageItemName,
+              JSON.stringify(
+                wrapUserState(
+                  newStore,
+                  gnrlStore.userAddress,
+                  favoriteRpcUrl,
+                  forceDownloadDefiData
+                )
               )
             );
           } catch (error) {

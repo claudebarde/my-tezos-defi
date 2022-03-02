@@ -361,11 +361,13 @@
       }
     }
     let rpcUrl = $store.settings[$store.network].rpcUrl;
+    let forceDownloadDefiData = false;
     if (window.localStorage) {
       const settingsStorage = window.localStorage.getItem("mtd");
       if (settingsStorage) {
         const settings = JSON.parse(settingsStorage);
         rpcUrl = settings.favoriteRpcUrl;
+        forceDownloadDefiData = settings.forceDownloadDefiData;
       }
     }
 
@@ -385,7 +387,11 @@
           "exchangeRate" | "thumbnail" | "websiteLink"
         >;
         investments: any;
-      } = await fetchDefiData($store.defiData, config.version);
+      } = await fetchDefiData(
+        $store.defiData,
+        config.version,
+        forceDownloadDefiData
+      );
       if (defiData) {
         if (defiData.tokens) {
           // stores tokens info
@@ -405,6 +411,18 @@
         }
 
         if (defiData.investments) {
+          // test
+          /*defiData.investments["YOUVES-YOU-UBTC"] = {
+            id: "YOUVES-YOU-UBTC",
+            platform: "youves",
+            address: "KT19bkpis4NSDnt6efuh65vYxMaMHBoKoLEw",
+            decimals: 12,
+            info: [],
+            alias: "YOU staking",
+            icons: ["YOU", "uBTC"],
+            rewardToken: "uBTC",
+            liquidityToken: false
+          };*/
           Object.keys(defiData.investments).forEach(key => {
             defiData.investments[key].balance = 0;
             defiData.investments[key].favorite =
@@ -465,7 +483,8 @@
           });
         }
 
-        if (defiData["plenty-ctez-farms"]) {
+        // TODO: remove later after testing
+        /*if (defiData["plenty-ctez-farms"]) {
           // builds investment data for Ctez farms on Plenty
           const investmentsWithCtezFarms = { ...$store.investments };
           defiData["plenty-ctez-farms"].forEach(
@@ -485,7 +504,7 @@
           store.updateInvestments({
             ...investmentsWithCtezFarms
           });
-        }
+        }*/
       } else {
         toastStore.addToast({
           type: "error",

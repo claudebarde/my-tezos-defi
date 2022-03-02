@@ -98,22 +98,7 @@ export const getYouvesRewards = async (
 ): Promise<number | null> => {
   const rewardsPoolContract = await Tezos.wallet.at(invData.address);
   const rewardsPoolStorage: any = await rewardsPoolContract.storage();
-  if (invData.id === AvailableInvestments["YOUVES-UUSD-WUSDC"]) {
-    let currentDistFactor = rewardsPoolStorage.dist_factor;
-    const ownStake = new BigNumber(
-      await rewardsPoolStorage.stakes.get(userAddress)
-    );
-    const ownDistFactor = new BigNumber(
-      await rewardsPoolStorage.dist_factors.get(userAddress)
-    );
-
-    const reward = ownStake
-      .multipliedBy(currentDistFactor.minus(ownDistFactor))
-      .dividedBy(10 ** invData.decimals)
-      .dividedBy(10 ** youTokenDecimals);
-
-    return reward.toNumber();
-  } else if (invData.id === AvailableInvestments["YOUVES-UUSD-UBTC"]) {
+  if (invData.id === AvailableInvestments["YOUVES-UUSD-UBTC"]) {
     const stake = await rewardsPoolStorage.stakes.get(userAddress);
     if (!stake) {
       return null;
@@ -132,6 +117,19 @@ export const getYouvesRewards = async (
 
     return (claimFactor.toNumber() * longTermRewards) / 10 ** youTokenDecimals;
   } else {
-    return null;
+    let currentDistFactor = rewardsPoolStorage.dist_factor;
+    const ownStake = new BigNumber(
+      await rewardsPoolStorage.stakes.get(userAddress)
+    );
+    const ownDistFactor = new BigNumber(
+      await rewardsPoolStorage.dist_factors.get(userAddress)
+    );
+
+    const reward = ownStake
+      .multipliedBy(currentDistFactor.minus(ownDistFactor))
+      .dividedBy(10 ** invData.decimals)
+      .dividedBy(10 ** youTokenDecimals);
+
+    return reward.toNumber();
   }
 };

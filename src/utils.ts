@@ -1368,9 +1368,11 @@ interface DefiData {
 }
 export const fetchDefiData = async (
   ipfsHash: string,
-  mtdVersion: string
+  mtdVersion: string,
+  force?: boolean
 ): Promise<DefiData | null> => {
-  const request = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`; //`https://cloudflare-ipfs.com/ipfs/${$store.defiData}`
+  const request = `https://dweb.link/ipfs/${ipfsHash}`;
+  //`https://cloudflare-ipfs.com/ipfs/${ipfsHash}`; // `https://gateway.pinata.cloud/ipfs/${ipfsHash}`
 
   const ipfsRequest = async (mtdCache?: Cache): Promise<DefiData> => {
     const defiDataResponse = await fetch(request);
@@ -1385,7 +1387,7 @@ export const fetchDefiData = async (
     }
   };
 
-  if (window && "caches" in window) {
+  if (window && "caches" in window && !force) {
     const newCache = await caches.open("mtd-cache");
     try {
       const cacheResponse = await newCache.match(request);
@@ -1413,13 +1415,13 @@ export const fetchDefiData = async (
           return await ipfsRequest(newCache);
         }
       } else {
-        console.warn(
-          "couldn't fetch new defi data, loading cache for:",
-          ipfsHash
-        );
         // loads last successful request before trying to load the new one
         const keys = await newCache.keys();
         const lastCachedRequest = keys[keys.length - 1];
+        console.warn(
+          "couldn't fetch new defi data, loading cache for:",
+          lastCachedRequest.url
+        );
         const cacheResponse = await newCache.match(lastCachedRequest);
         if (cacheResponse) {
           await ipfsRequest(newCache);
@@ -1428,6 +1430,15 @@ export const fetchDefiData = async (
           return await ipfsRequest(newCache);
         }
       }
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  } else if (window && "caches" in window && force) {
+    console.log("force download new defi data");
+    const newCache = await caches.open("mtd-cache");
+    try {
+      return await ipfsRequest(newCache);
     } catch (error) {
       console.error(error);
       return null;
@@ -1446,7 +1457,7 @@ export const fetchUserBalances = async (favoriteTokens: AvailableToken[]) => {
   const localStore = get(store);
 
   const tokensWithBalanceReq = await fetch(
-    `https://staging.api.tzkt.io/v1/tokens/balances?account=${localStore.userAddress}`
+    `https://api.tzkt.io/v1/tokens/balances?account=${localStore.userAddress}&balance.gt=1`
   );
   if (tokensWithBalanceReq) {
     const tokensWithBalance = await tokensWithBalanceReq.json();
@@ -1457,11 +1468,7 @@ export const fetchUserBalances = async (favoriteTokens: AvailableToken[]) => {
     favoriteTokens.forEach(tk => (newBalances[tk] = undefined));
 
     tokensWithBalance
-      .filter(
-        el =>
-          +el.balance > 0 &&
-          availableTokenAddresses.includes(el.token.contract.address)
-      )
+      .filter(el => availableTokenAddresses.includes(el.token.contract.address))
       .map(el => [
         el.token.contract.address,
         el.token.standard === "fa2" ? +el.token.tokenId : null,
@@ -1476,7 +1483,9 @@ export const fetchUserBalances = async (favoriteTokens: AvailableToken[]) => {
         );
         if (
           token &&
-          tokenBalance / 10 ** localStore.tokens[token[0]].decimals > 0.00001
+          (tokenBalance / 10 ** localStore.tokens[token[0]].decimals >
+            0.00001 ||
+            ["tzBTC", "BTCtz", "uBTC", "wWBTC"].includes(token[0]))
         ) {
           newBalances[token[0]] =
             +tokenBalance / 10 ** localStore.tokens[token[0]].decimals;

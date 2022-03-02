@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import { AvailableFiat } from "../../types";
@@ -7,6 +8,19 @@
 
   let newRpcNode = "";
   let newFiat: AvailableFiat;
+  let forceDownloadDefiData: undefined | boolean = undefined;
+
+  onMount(() => {
+    if (window && window.localStorage) {
+      const mtdJson = window.localStorage.getItem("mtd");
+      if (mtdJson) {
+        const mtd = JSON.parse(mtdJson);
+        if (mtd.hasOwnProperty("forceDownloadDefiData")) {
+          forceDownloadDefiData = mtd.forceDownloadDefiData;
+        }
+      }
+    }
+  });
 </script>
 
 <style lang="scss">
@@ -113,9 +127,9 @@
         Blur balances
       {/if}
     </button>
-    <div>Allow contribution</div>
+    <!--<div>Allow contribution</div>
     <FeeDisclaimer />
-    <div />
+    <div />-->
     <div>Change RPC node</div>
     <div>
       <input
@@ -141,6 +155,28 @@
     >
       Change
     </button>
+    {#if forceDownloadDefiData !== undefined}
+      <div>Force download of DeFi data</div>
+      <div>
+        By default, MyTezosDefi caches data related to farms from the IPFS for
+        faster loading, but you can choose to force their download every time
+        you open the app.
+      </div>
+      <button
+        class="mini"
+        style="place-self: center stretch"
+        on:click={() => {
+          forceDownloadDefiData = !forceDownloadDefiData;
+          localStorageStore.updateDownloadDefiData(forceDownloadDefiData);
+        }}
+      >
+        {#if forceDownloadDefiData}
+          Use cached data
+        {:else}
+          Force download
+        {/if}
+      </button>
+    {/if}
     {#if window.location.href.includes("localhost") || window.location.href.includes("staging")}
       <div>Allow Push Notifications</div>
       <div>

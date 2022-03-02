@@ -1,5 +1,7 @@
 @import "./settings.scss";
 
+$title-color: #4b5563;
+
 @mixin farm-row-template {
   display: grid;
   grid-template-columns: 10% 25% 16% 17% 14% 18%;
@@ -28,7 +30,7 @@
   border-radius: 10px;
 
   .title {
-    color: #4b5563;
+    color: $title-color;
   }
 
   .farm-block__name {
@@ -85,5 +87,42 @@
     justify-content: space-around;
     width: 90%;
     margin: 0 auto;
+  }
+}
+
+.collapsed-farm-row {
+  display: grid;
+  grid-template-columns: 15% 25% 20% 25% 15%;
+  align-items: center;
+  padding: 5px 0px;
+
+  & > div {
+    text-align: center;
+  }
+
+  .icons {
+    margin: 0 auto;
+
+    img {
+      width: 28px;
+      height: 28px;
+      transition: 0.3s;
+
+      &:not(:first-child) {
+        margin-left: -4px;
+        background-color: lighten($container-bg-color, 65);
+        box-shadow: 0 0 0 3px lighten($container-bg-color, 65);
+        border-radius: 50%;
+      }
+    }
+
+    &:hover img:not(:first-child) {
+      margin-left: 5px;
+      box-shadow: none;
+    }
+  }
+
+  .title {
+    color: $title-color;
   }
 }
