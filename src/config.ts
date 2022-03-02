@@ -1,7 +1,7 @@
 import { AvailableFiat } from "./types";
 
 export default {
-  version: "4.7.4",
+  version: "4.7.5",
   mtdFee: 0.003,
   wrapTokenIds: {
     0: { name: "wAAVE", decimals: 18 },

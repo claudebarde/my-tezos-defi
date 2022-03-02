@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
+  import moment from "moment";
   import {
     InvestmentData,
     AvailableInvestments,
@@ -34,6 +35,8 @@
   let token2Value: null | number = null;
   let totalSupply: { inToken: number; inTez: number };
   let longTermRewards: number;
+  let fullRewardsAvailable: number;
+  let stakingToken = "";
 
   /*const harvest = async () => {
     harvesting = true;
@@ -96,6 +99,7 @@
       if (invData.id === AvailableInvestments["YOUVES-UUSD-UBTC"]) {
         token1 = AvailableToken.uUSD;
         token2 = AvailableToken.uBTC;
+        stakingToken = "LPT";
         const dexAddress = "KT1VNEzpf631BLsdPJjt2ZhgUitR392x6cSi";
         const contract = await $store.Tezos.wallet.at(dexAddress);
         const storage: any = await contract.storage();
@@ -153,10 +157,13 @@
             longTermRewards =
               longTermRewards_ / 10 ** $store.tokens.YOU.decimals;
           }
+          fullRewardsAvailable =
+            Date.parse(stake.age_timestamp) + 180 * 24 * 60 * 60 * 1000;
         }
       } else if (invData.id === AvailableInvestments["YOUVES-UUSD-WUSDC"]) {
         token1 = AvailableToken.uUSD;
         token2 = AvailableToken.wUSDC;
+        stakingToken = "LPT";
         const dexAddress = "KT1JeWiS8j1kic4PHx7aTnEr9p4xVtJNzk5b";
         const contract = await $store.Tezos.wallet.at(dexAddress);
         const storage: any = await contract.storage();
@@ -196,6 +203,11 @@
             };
           }
         }
+      } else {
+        stakingToken = "YOU";
+        stakeInXtz =
+          (invData.balance / 10 ** $store.tokens.YOU.decimals) *
+          $store.tokens.YOU.exchangeRate;
       }
     }
 
@@ -281,7 +293,7 @@
         <div class:blurry-text={$store.blurryBalances}>
           <div>
             {+(invData.balance / 10 ** invData.decimals).toFixed(5) / 1}
-            LPT
+            {stakingToken}
           </div>
           {#if token1Value && token2Value}
             <div style="font-size:0.8rem">
@@ -330,7 +342,11 @@
           <span class="material-icons"> hourglass_empty </span>
         {:else}
           <span id={`rewards-${invData.id}`}>
-            {rewards.amount ? +rewards.amount.toFixed(5) / 1 : 0}
+            {#if $store.investments[invData.id].rewardToken === AvailableToken.uBTC}
+              {rewards.amount ? formatTokenAmount(+rewards.amount, 9) : 0}
+            {:else}
+              {rewards.amount ? formatTokenAmount(+rewards.amount) : 0}
+            {/if}
             {$store.investments[invData.id].rewardToken}
           </span>
         {/if}
@@ -373,6 +389,14 @@
             {config.validFiats.find(
               fiat => fiat.code === $localStorageStore.preferredFiat
             ).symbol})
+          </span>
+        </div>
+        <br />
+        <div>
+          <span class="title">Full rewards available:</span>
+          <br />
+          <span>
+            {moment(fullRewardsAvailable).format("MMMM Do YYYY")}
           </span>
         </div>
         <br />

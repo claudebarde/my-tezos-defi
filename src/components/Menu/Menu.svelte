@@ -4,8 +4,9 @@
   import store from "../../store";
   import localStorageStore from "../../localStorage";
   import FavoriteTokenDisplay from "./FavoriteTokensDisplay.svelte";
+  import { formatTokenAmount } from "../../utils";
 
-  let _24hDecrease = false;
+  let _24hDecrease = 0;
   let hasKusdVaults = false;
   let hasUusdVaults = false;
 
@@ -16,7 +17,7 @@
       const todayPrice = $store.xtzData.exchangeRate;
       const difference = ((todayPrice - yesterdayPrice) / todayPrice) * 100;
       if (difference < 0 && Math.abs(difference) > 5) {
-        _24hDecrease = true;
+        _24hDecrease = Math.abs(difference);
         // checks if user has vaults on Youves or Kolibri
         if (
           $localStorageStore.kUsdVaults &&
@@ -35,7 +36,7 @@
           hasUusdVaults = false;
         }
       } else {
-        _24hDecrease = false;
+        _24hDecrease = 0;
         hasKusdVaults = false;
         hasUusdVaults = false;
       }
@@ -182,7 +183,10 @@
   {#if _24hDecrease && (hasKusdVaults || hasUusdVaults)}
     <div class="decrease-alert">
       <div>
-        The price of XTZ has decreased more than 5% in the last 24 hours.
+        The price of XTZ has decreased more than {formatTokenAmount(
+          _24hDecrease,
+          2
+        )}% in the last 24 hours.
       </div>
       <div>
         You may want to check your

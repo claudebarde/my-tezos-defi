@@ -33,6 +33,9 @@
   let loadingTransfer = false;
   let mtdFee: null | number = null;
 
+  const isTokenBtcWrapper = (token: string): boolean =>
+    ["tzBTC", "BTCtz", "uBTC", "wWBTC"].includes(token);
+
   const generateChart = (chartData: { timestamp: string; price: number }[]) => {
     const data = {
       labels: [],
@@ -306,13 +309,15 @@
       <div>
         {#if $store.tokensBalances && !isNaN($store.tokensBalances[token]) && $store.xtzData.exchangeRate}
           <div>
-            {#if formatTokenAmount($store.tokensBalances[token]) === 0}
+            {#if formatTokenAmount($store.tokensBalances[token]) === 0 && !isTokenBtcWrapper(token)}
               No balance
-            {:else}
+            {:else if !isTokenBtcWrapper(token)}
               {formatTokenAmount($store.tokensBalances[token])}
+            {:else if isTokenBtcWrapper(token)}
+              {formatTokenAmount($store.tokensBalances[token], 8)}
             {/if}
           </div>
-          {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[token]) === 0}
+          {#if $store.tokensBalances && formatTokenAmount($store.tokensBalances[token]) === 0 && !isTokenBtcWrapper(token)}
             <div />
             <div />
             <div />
