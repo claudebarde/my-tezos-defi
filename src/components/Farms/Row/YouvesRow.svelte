@@ -240,8 +240,12 @@
     <div>
       <div class="title">Rewards</div>
       <div style="font-size:0.9rem">
-        {rewards ? formatTokenAmount(rewards.amount) : "---"}
-        {invData.rewardToken}
+        {#if rewards.amount < 1 / 10 ** 8}
+          0 {invData.rewardToken}
+        {:else}
+          {rewards ? formatTokenAmount(rewards.amount) : "---"}
+          {invData.rewardToken}
+        {/if}
       </div>
     </div>
     <div>
@@ -342,7 +346,9 @@
           <span class="material-icons"> hourglass_empty </span>
         {:else}
           <span id={`rewards-${invData.id}`}>
-            {#if $store.investments[invData.id].rewardToken === AvailableToken.uBTC}
+            {#if rewards.amount < 1 / 10 ** 8}
+              0
+            {:else if $store.investments[invData.id].rewardToken === AvailableToken.uBTC}
               {rewards.amount ? formatTokenAmount(+rewards.amount, 9) : 0}
             {:else}
               {rewards.amount ? formatTokenAmount(+rewards.amount) : 0}
