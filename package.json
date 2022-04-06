@@ -1,6 +1,9 @@
 {
   "name": "my-tezos-defi",
   "version": "5.0.0",
+  "engines": {
+    "node": ">=14.13"
+  },
   "author": "Claude Barde <cldbrd84@gmail.com>",
   "scripts": {
     "dev": "svelte-kit dev",
