@@ -4,60 +4,41 @@ import type { BeaconWallet } from "@taquito/beacon-wallet";
 import type {
   State,
   TezosAccountAddress,
+  UserToken,
   TokenContract,
-  Operation
+  AvailableToken,
+  InvestmentData
 } from "./types";
-
-const settings: State["settings"] = {
-  testnet: {
-    validRpcUrls: [],
-    rpcUrl: "https://api.tez.ie/rpc/florencenet"
-  },
-  mainnet: {
-    validRpcUrls: [
-      { name: "Tezos Giganode", url: "https://mainnet-tezos.giganode.io" },
-      { name: "ECAD Labs", url: "https://mainnet.api.tez.ie" },
-      { name: "TezTools", url: "https://eu01-node.teztools.net" },
-      { name: "SmartPy", url: "https://mainnet.smartpy.io/" },
-      { name: "Blockscale", url: "https://rpc.tzbeta.net/" },
-      { name: "LetzBake!", url: "https://teznode.letzbake.com/" }
-    ],
-    rpcUrl: "https://mainnet-tezos.giganode.io" // "https://mainnet.api.tez.ie"
-  }
-};
+import { AvailableInvestment } from "./types";
+import config from "./config";
 
 const initialState: State = {
-  network: "mainnet",
-  currentLevel: 0,
+  isAppReady: false,
+  settings: {
+    rpcUrl: config.rpcUrl,
+    defiData: "QmSukMZMGLi2iLTYLQxhmdriYfmAvWwvnHXeYekXR7WH5x"
+  },
   Tezos: undefined,
   wallet: undefined,
   userAddress: undefined,
-  settings,
+  userName: undefined,
+  userBalance: undefined,
+  xtzExchangeRate: undefined,
+  xtzPriceHistoric: [],
+  userTokens: undefined,
   tokens: undefined,
-  tokensBalances: undefined,
   investments: undefined,
-  lastOperations: [],
-  xtzData: {
-    exchangeRate: undefined,
-    balance: 0,
-    historic: []
-  },
-  serviceFee: 0.003, //process.env.NODE_ENV === "development" ? null : 3,
-  admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
-  defiData: "QmcDcAZMCtZuP8TVXrBWk2trcYV4id14qUHwVPEqfGpH3t",
-  liquidityBaking: undefined,
-  blurryBalances: false
+  currentLevel: 0
 };
 
 const store = writable(initialState);
 
 const state = {
   subscribe: store.subscribe,
+  updateAppReady: () => store.update(store => ({ ...store, isAppReady: true })),
   updateTezos: (tezos: TezosToolkit) =>
     store.update(store => ({ ...store, Tezos: tezos })),
-  updateCurrentLevel: (level: number) =>
-    store.update(store => ({ ...store, currentLevel: level })),
-  updateWallet: (wallet: BeaconWallet) =>
+  updateWallet: (wallet: BeaconWallet | undefined) =>
     store.update(store => ({ ...store, wallet })),
   updateUserAddress: (address: TezosAccountAddress | undefined) => {
     store.update(store => ({
@@ -65,61 +46,72 @@ const state = {
       userAddress: address
     }));
   },
-  updateTezBalance: (balance: number) => {
+  updateUserName: (name: string | undefined) => {
     store.update(store => ({
       ...store,
-      xtzData: { ...store.xtzData, balance }
+      userName: name
     }));
   },
-  updateTokens: (tokens: [string, TokenContract][]) => {
+  updateUserBalance: (balance: number | undefined) => {
+    store.update(store => ({
+      ...store,
+      userBalance: balance
+    }));
+  },
+  updateXtzExchangeRate: (exchangeRate: number) =>
+    store.update(store => ({ ...store, xtzExchangeRate: exchangeRate })),
+  updatePriceHistoric: (historic: State["xtzPriceHistoric"]) =>
+    store.update(store => ({ ...store, xtzPriceHistoric: historic })),
+  updateUserTokens: (tokens: Array<UserToken>) =>
+    store.update(store => ({ ...store, userTokens: tokens })),
+  updateTokens: (newTokens: Array<[AvailableToken, TokenContract]>) =>
     store.update(store => {
-      let newTokens: any = {};
-      tokens.forEach(tk => {
-        if (tk) {
-          newTokens[tk[0]] = tk[1];
+      let tokens;
+      if (!store.tokens) {
+        tokens = {};
+      } else {
+        tokens = store.tokens;
+      }
+
+      newTokens.forEach(
+        ([tokenName, tokenData]) => (tokens[tokenName] = tokenData)
+      );
+
+      if (store.userTokens) {
+        // updates the balance and exchange rate of user tokens
+        const newUserTokens = store.userTokens.map(userToken => {
+          if (tokens.hasOwnProperty(userToken.name)) {
+            return {
+              ...userToken,
+              exchangeRate: tokens[userToken.name].exchangeRate
+            };
+          }
+        });
+        return { ...store, tokens, userTokens: newUserTokens };
+      }
+
+      return { ...store, tokens };
+    }),
+  updateInvestments: (
+    newInvestments: Array<[AvailableInvestment, InvestmentData]>
+  ) =>
+    store.update(store => {
+      let investments;
+      if (!store.investments) {
+        investments = {};
+      } else {
+        investments = store.investments;
+      }
+
+      newInvestments.forEach(([invName, invData]) => {
+        if (Object.values(AvailableInvestment).includes(invName) && invData) {
+          investments[invName] = invData;
         }
       });
-
-      return { ...store, tokens: newTokens };
-    });
-  },
-  updateTokensBalances: (newBalances: State["tokensBalances"]) => {
-    store.update(store => {
-      return {
-        ...store,
-        tokensBalances: newBalances
-      };
-    });
-  },
-  updateXtzFiatExchangeRate: (newRate: number | undefined) => {
-    store.update(store => ({
-      ...store,
-      xtzData: { ...store.xtzData, exchangeRate: newRate }
-    }));
-  },
-  updateXtzDataHistoric: (
-    newHistoric: { timestamp: string; price: number }[]
-  ) => {
-    store.update(store => ({
-      ...store,
-      xtzData: { ...store.xtzData, historic: newHistoric }
-    }));
-  },
-  updateLastOperations: (ops: Operation[]) => {
-    store.update(store => ({
-      ...store,
-      lastOperations: [...ops.reverse(), ...store.lastOperations]
-    }));
-  },
-  updateInvestments: (newInvestments: State["investments"]) => {
-    store.update(store => ({ ...store, investments: newInvestments }));
-  },
-  updateServiceFee: (newFee: State["serviceFee"]) =>
-    store.update(store => ({ ...store, serviceFee: newFee })),
-  updateLiquitidyBaking: (data: State["liquidityBaking"]) =>
-    store.update(store => ({ ...store, liquidityBaking: data })),
-  updateBlurryBalances: (blur: boolean) =>
-    store.update(store => ({ ...store, blurryBalances: blur }))
+      return { ...store, investments };
+    }),
+  updateCurrentLevel: (level: number) =>
+    store.update(store => ({ ...store, currentLevel: level }))
 };
 
 export default state;

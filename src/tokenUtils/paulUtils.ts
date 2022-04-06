@@ -4,7 +4,7 @@ import BigNumber from "bignumber.js";
 import { get } from "svelte/store";
 import store from "../store";
 import type { TezosContractAddress, AvailableToken } from "../types";
-import { AvailableInvestments } from "../types";
+import { AvailableInvestment } from "../types";
 import {
   estimateQuipuTezInShares,
   estimateQuipuTokenInShares,
@@ -70,7 +70,7 @@ export const calcTokenStakesInAlienFarm = async (param: {
 
 export const calcTokenStakesFromQuipu = async (param: {
   Tezos: TezosToolkit;
-  id: AvailableInvestments;
+  id: AvailableInvestment;
   balance: number;
   paulToken: { decimals: number; exchangeRate: number };
 }) => {
@@ -115,7 +115,7 @@ export const calcPaulFarmApr = async ({
   paulPrice
 }: {
   Tezos: TezosToolkit;
-  farmId: AvailableInvestments;
+  farmId: AvailableInvestment;
   farmAddress: TezosContractAddress;
   earnCoinPrice: number;
   tokenDecimals: number;
@@ -128,11 +128,11 @@ export const calcPaulFarmApr = async ({
   // TODO: calculate the price for the LP token
   let lpTokenPrice: null | number;
   switch (farmId) {
-    case AvailableInvestments["PAUL-PAUL"]:
+    case AvailableInvestment["PAUL-PAUL"]:
       lpTokenPrice = paulPrice / 10 ** 4;
       break;
-    case AvailableInvestments["PAUL-XTZ"]:
-    case AvailableInvestments["MAG-XTZ"]:
+    case AvailableInvestment["PAUL-XTZ"]:
+    case AvailableInvestment["MAG-XTZ"]:
       lpTokenPrice = await calcTokenStakesFromQuipu({
         Tezos,
         id: farmId,
@@ -140,12 +140,12 @@ export const calcPaulFarmApr = async ({
         paulToken: { decimals: tokenDecimals, exchangeRate: paulPrice }
       });
       break;
-    case AvailableInvestments["wWBTC-PAUL"]:
-    case AvailableInvestments["wUSDC-PAUL"]:
-    case AvailableInvestments["QUIPU-PAUL"]:
-    case AvailableInvestments["wWETH-PAUL"]:
-    case AvailableInvestments["PAUL-uUSD"]:
-    case AvailableInvestments["PAUL-kUSD-uUSD"]:
+    case AvailableInvestment["wWBTC-PAUL"]:
+    case AvailableInvestment["wUSDC-PAUL"]:
+    case AvailableInvestment["QUIPU-PAUL"]:
+    case AvailableInvestment["wWETH-PAUL"]:
+    case AvailableInvestment["PAUL-uUSD"]:
+    case AvailableInvestment["PAUL-kUSD-uUSD"]:
       const invData = localStore.investments[farmId];
       const { tokenAAmount, tokenBAmount } = await calcTokenStakesInAlienFarm({
         Tezos,
@@ -163,7 +163,7 @@ export const calcPaulFarmApr = async ({
           };
         })
       });
-      if (farmId === AvailableInvestments["PAUL-kUSD-uUSD"]) {
+      if (farmId === AvailableInvestment["PAUL-kUSD-uUSD"]) {
         lpTokenPrice =
           (((tokenAAmount / 10 ** localStore.tokens.kUSD.decimals) *
             localStore.tokens.kUSD.exchangeRate) /
@@ -209,4 +209,64 @@ export const calcPaulFarmApr = async ({
     earnCoinsPerYear = reward_per_second * coefficient / 100 * 24 * 3600 * 365 / (10  tokenDecimals), 
     totalStakedInUsd = total_staked / (10  6) * lpTokenPrice
   */
+};
+
+export const getPaulReward = async (
+  contractAddress: string,
+  vaultMode?: boolean
+): Promise<BigNumber | null> => {
+  const localStore = get(store);
+  const numberAccuracy = new BigNumber(1000000000000000000);
+
+  const contract = await localStore.Tezos.wallet.at(contractAddress);
+  const storage: any = await contract.storage();
+  const {
+    last_updated: lastUpdated,
+    share_reward: shareReward,
+    total_staked: totalStaked,
+    account_info: accountInfo,
+    reward_per_second: rewardPerSecond,
+    coefficient,
+    referral_system: referralSystem
+  } = storage;
+
+  if (totalStaked.eq(0)) {
+    return new BigNumber(0);
+  }
+
+  const referralSystemContract = await localStore.Tezos.wallet.at(
+    referralSystem
+  );
+  const { commission } = (await referralSystemContract.storage()) as any;
+
+  const currentTime = new BigNumber(+new Date());
+  const lastTime = new BigNumber(+new Date(lastUpdated));
+  const time = currentTime.minus(lastTime).idiv(1000).abs();
+
+  const newReward = time
+    .times(rewardPerSecond.times(coefficient))
+    .times(numberAccuracy);
+  const newShareReward = new BigNumber(shareReward).plus(
+    newReward.idiv(totalStaked).idiv(100)
+  );
+
+  const val = await accountInfo.get(localStore.userAddress);
+  if (!val) return null;
+
+  const reward = val.reward
+    .plus(val.amount.times(newShareReward).minus(val.former))
+    .idiv(numberAccuracy);
+
+  // There is no commission for vaults
+  if (vaultMode) {
+    return reward;
+  }
+
+  const result = reward.times(new BigNumber(100).minus(commission)).idiv(100);
+
+  if (result.toNumber() < 0) {
+    return new BigNumber(0);
+  } else {
+    return result;
+  }
 };

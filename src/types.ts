@@ -1,19 +1,20 @@
-import type { TezosToolkit, WalletOperation } from "@taquito/taquito";
+import type { TezosToolkit } from "@taquito/taquito";
 import type { BeaconWallet } from "@taquito/beacon-wallet";
 
 export type TezosContractAddress = `KT1${string}`;
 export type TezosAccountAddress = `tz${"1" | "2" | "3"}${string}`;
+
 export type TokenAmount = number;
 export enum AvailableToken {
-  KUSD = "kUSD",
-  HDAO = "hDAO",
+  kUSD = "kUSD",
+  hDAO = "hDAO",
   PLENTY = "PLENTY",
   xPLENTY = "xPLENTY",
-  WXTZ = "wXTZ",
+  wXTZ = "wXTZ",
   STKR = "STKR",
-  TZBTC = "tzBTC",
-  USDTZ = "USDtz",
-  ETHTZ = "ETHtz",
+  tzBTC = "tzBTC",
+  USDtz = "USDtz",
+  ETHtz = "ETHtz",
   CRUNCH = "CRUNCH",
   WRAP = "WRAP",
   wAAVE = "wAAVE",
@@ -21,7 +22,7 @@ export enum AvailableToken {
   wCEL = "wCEL",
   wCOMP = "wCOMP",
   wCRO = "wCRO",
-  WDAI = "wDAI",
+  wDAI = "wDAI",
   wFTT = "wFTT",
   wHT = "wHT",
   wHUSD = "wHUSD",
@@ -35,20 +36,20 @@ export enum AvailableToken {
   wUNI = "wUNI",
   wUSDC = "wUSDC",
   wUSDT = "wUSDT",
-  WWBTC = "wWBTC",
+  wWBTC = "wWBTC",
   wWETH = "wWETH",
-  CRDAO = "crDAO",
+  crDAO = "crDAO",
   FLAME = "FLAME",
   KALAM = "KALAM",
   PAUL = "PAUL",
   SMAK = "SMAK",
   GOT = "GOT",
   HERA = "HERA",
-  KDAO = "kDAO",
+  kDAO = "kDAO",
   QUIPU = "QUIPU",
   uUSD = "uUSD",
   YOU = "YOU",
-  Ctez = "Ctez",
+  ctez = "ctez",
   MAG = "MAG",
   PXL = "PXL",
   pxlDAO = "pxlDAO",
@@ -57,7 +58,8 @@ export enum AvailableToken {
   IDZ = "IDZ",
   GIF = "GIF",
   TezDAO = "TezDAO",
-  uBTC = "uBTC"
+  uBTC = "uBTC",
+  ANTI = "ANTI"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -69,7 +71,7 @@ export enum AvailableFiat {
   CNY = "CNY",
   BTC = "BTC"
 }
-export enum AvailableInvestments {
+export enum AvailableInvestment {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
   "PLENTY-hDAO-LP" = "PLENTY-hDAO-LP",
   "PLENTY-ETHtz-LP" = "PLENTY-ETHtz-LP",
@@ -177,6 +179,15 @@ export type InvestmentPlatform =
   | "smak"
   | "youves";
 
+export interface UserToken {
+  name: AvailableToken;
+  exchangeRate: number;
+  balance: number;
+}
+
+export type IconValue = AvailableToken | "XTZ" | "QUIPUSWAP" | "crDAO" | "user";
+export type IconSet = IconValue[];
+
 export interface TokenContract {
   address: TezosContractAddress;
   dexContractAddress: TezosContractAddress;
@@ -192,7 +203,7 @@ export interface TokenContract {
 }
 
 export interface InvestmentData {
-  id: AvailableInvestments;
+  id: AvailableInvestment;
   platform: InvestmentPlatform;
   type: string;
   address: TezosContractAddress;
@@ -208,74 +219,24 @@ export interface InvestmentData {
   totalSupply?: number;
 }
 
-export type IconValue = AvailableToken | "XTZ" | "QUIPUSWAP" | "crDAO" | "user";
-export type IconSet = IconValue[];
-
-export interface Operation {
-  entryId: number;
-  id: string;
-  hash: string;
-  level: number;
-  timestamp: string;
-  entrypoint: string;
-  sender: { address: string; alias: string };
-  target: { address: string; alias: string };
-  amount: number;
-  value: number;
-  icons: IconSet;
-  raw: any;
-  tokenIds: number[] | null;
-  status: "applied" | "failed" | "backtracked" | "skipped";
-}
-
-export interface ExchangeRateData {
-  tokenToTez: number;
-  tezToToken: number;
-  realPriceInTez: number;
-  realPriceInToken: number;
-}
-
 export interface State {
-  network: "testnet" | "mainnet";
-  currentLevel: number;
-  Tezos: TezosToolkit;
-  wallet: BeaconWallet;
-  userAddress: TezosAccountAddress;
-  settings: {
-    testnet: {
-      rpcUrl: string;
-      validRpcUrls: { name: string; url: string }[];
-    };
-    mainnet: {
-      rpcUrl: string;
-      validRpcUrls: { name: string; url: string }[];
-    };
-  };
+  isAppReady: boolean;
+  settings: { rpcUrl: string; defiData: string };
+  Tezos: TezosToolkit | undefined;
+  wallet: BeaconWallet | undefined;
+  userAddress: TezosAccountAddress | undefined;
+  userName: string | undefined;
+  userBalance: number | undefined;
+  userTokens: Array<UserToken> | undefined;
+  xtzExchangeRate: number | undefined;
+  xtzPriceHistoric: Array<{ timestamp: string; price: number }>;
   tokens: { [p in AvailableToken]: TokenContract } | undefined;
-  tokensBalances: { [p in AvailableToken]: number } | undefined;
   investments:
     | {
-        [p in AvailableInvestments]: InvestmentData;
+        [p in AvailableInvestment]: InvestmentData;
       }
     | undefined;
-  lastOperations: Operation[];
-  xtzData: {
-    exchangeRate: number | undefined;
-    balance: number;
-    historic: { timestamp: string; price: number }[];
-  };
-  serviceFee: number;
-  admin: TezosAccountAddress;
-  defiData: string;
-  liquidityBaking:
-    | {
-        tokenPool: number;
-        xtzPool: number;
-        lqtTotal: number;
-        balance: number;
-      }
-    | undefined;
-  blurryBalances: boolean;
+  currentLevel: number;
 }
 
 export interface HistoricalDataState {
@@ -287,32 +248,4 @@ export interface HistoricalDataState {
         }[];
       }
     | undefined;
-}
-
-export interface KolibriOvenData {
-  address: string;
-  locked: number;
-  borrowed: number;
-  isLiquidated: boolean;
-}
-
-export interface LocalStorageState {
-  preferredFiat: AvailableFiat;
-  pushNotifications: boolean;
-  favoriteTokens: AvailableToken[];
-  favoriteInvestments: AvailableInvestments[];
-  wXtzVaults: TezosContractAddress[];
-  kUsdVaults: TezosContractAddress[];
-  uUsdVaults: TezosContractAddress[];
-  ctezVaults: TezosContractAddress[];
-  lastUpdate: number;
-  collapsedFarmViews: Array<InvestmentPlatform>;
-}
-
-export interface ComplexBatchedOp {
-  id: string;
-  type: "harvest" | "transfer" | "exchange" | "stake";
-  origin: string;
-  platform: InvestmentPlatform | undefined;
-  op: WalletOperation | null;
 }

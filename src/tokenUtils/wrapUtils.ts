@@ -3,8 +3,8 @@ import { get } from "svelte/store";
 import type { TezosToolkit } from "@taquito/taquito";
 import { tzip16 } from "@taquito/tzip16";
 import store from "../store";
-import {
-  AvailableInvestments,
+import { AvailableInvestment } from "../types";
+import type {
   InvestmentData,
   TezosContractAddress,
   TezosAccountAddress,
@@ -18,7 +18,7 @@ import {
 import config from "../config";
 
 export const getWrapReward = async (
-  farmId: AvailableInvestments,
+  farmId: AvailableInvestment,
   farmAddress: TezosContractAddress,
   userAddress: TezosAccountAddress,
   userBalance: number
@@ -27,7 +27,7 @@ export const getWrapReward = async (
 
   const localStore = get(store);
 
-  if (farmId === AvailableInvestments["WRAP-STACKING"]) {
+  if (farmId === AvailableInvestment["WRAP-STACKING"]) {
     try {
       const contract = await localStore.Tezos.wallet.at(farmAddress, tzip16);
       const views = await contract.tzip16().metadataViews();

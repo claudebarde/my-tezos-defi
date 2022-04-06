@@ -1,5 +1,5 @@
 import type { TezosToolkit } from "@taquito/taquito";
-import { AvailableInvestments, AvailableToken } from "../types";
+import { AvailableInvestment, AvailableToken } from "../types";
 import { get } from "svelte/store";
 import store from "../store";
 import config from "../config";
@@ -58,7 +58,7 @@ export const getLPConversion = (
 };
 
 export const getPlentyLqtValue = async (
-  exchangePair: AvailableInvestments,
+  exchangePair: AvailableInvestment,
   exchangeAddress: string,
   lpAmount: number,
   Tezos: TezosToolkit
@@ -140,7 +140,7 @@ export const calcPlentyStakeInXtz = async ({
   exchangeRate,
   rewardToken
 }: {
-  id: AvailableInvestments;
+  id: AvailableInvestment;
   isPlentyLpToken: boolean;
   balance: number;
   decimals: number;
@@ -177,8 +177,8 @@ export const calcPlentyStakeInXtz = async ({
       } else if (id.slice(0, 4).toLowerCase() === "ctez") {
         // when staked token is Ctez
         stakeInXtz =
-          (tokens.token1Amount / 10 ** localStore.tokens.Ctez.decimals) *
-            localStore.tokens.Ctez.exchangeRate +
+          (tokens.token1Amount / 10 ** localStore.tokens.ctez.decimals) *
+            localStore.tokens.ctez.exchangeRate +
           (tokens.token2Amount /
             10 ** localStore.tokens[tokens.token2].decimals) *
             localStore.tokens[tokens.token2].exchangeRate;
@@ -206,7 +206,7 @@ export const getLPTokenPrice = async ({
   lp_token_decimal,
   Tezos
 }: {
-  tokenPair: AvailableInvestments;
+  tokenPair: AvailableInvestment;
   token1_price: number;
   token1_decimal: number;
   token2_price: number;

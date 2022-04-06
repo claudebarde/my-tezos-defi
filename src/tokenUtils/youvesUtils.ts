@@ -1,10 +1,7 @@
 import BigNumber from "bignumber.js";
 import type { TezosToolkit } from "@taquito/taquito";
-import {
-  InvestmentData,
-  TezosAccountAddress,
-  AvailableInvestments
-} from "../types";
+import { AvailableInvestment } from "../types";
+import type { InvestmentData, TezosAccountAddress } from "../types";
 
 export const computeToken2Output = (
   token1Amount: BigNumber | number,
@@ -98,7 +95,7 @@ export const getYouvesRewards = async (
 ): Promise<number | null> => {
   const rewardsPoolContract = await Tezos.wallet.at(invData.address);
   const rewardsPoolStorage: any = await rewardsPoolContract.storage();
-  if (invData.id === AvailableInvestments["YOUVES-UUSD-UBTC"]) {
+  if (invData.id === AvailableInvestment["YOUVES-UUSD-UBTC"]) {
     const stake = await rewardsPoolStorage.stakes.get(userAddress);
     if (!stake) {
       return null;

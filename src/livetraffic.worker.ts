@@ -1,58 +1,66 @@
-import { HubConnectionBuilder } from "@microsoft/signalr";
+import { TezosToolkit } from "@taquito/taquito";
+import type { TezosContractAddress } from "./types";
+import config from "./config";
 
 const ctx: Worker = self as any;
-let contractsToWatch: string[] = [];
 
-const connection = new HubConnectionBuilder()
-  .withUrl("https://api.tzkt.io/v1/events")
-  .build();
+let userAddress;
 
-async function init() {
-  // open connection
-  await connection.start();
-  // subscribe to account transactions
-  await Promise.allSettled(
-    contractsToWatch.map(address =>
-      connection.invoke("SubscribeToOperations", {
-        address: address,
-        types: "transaction"
-      })
-    )
-  );
-  // returns the operations of the last 5 blocks
-  const headResponse = await fetch("https://api.mainnet.tzkt.io/v1/head");
-  if (headResponse) {
-    const head = await headResponse.json();
-    const currentLevel = head.level;
-    try {
-      const lastTxsResponse = await fetch(
-        `https://api.mainnet.tzkt.io/v1/operations/transactions?level.ge=${
-          currentLevel - 5
-        }&target.in=${contractsToWatch.slice(0, 150).join(",")}`
-      );
-      if (lastTxsResponse) {
-        const lastTxs = await lastTxsResponse.json();
-        ctx.postMessage({ type: "init-last-ops", msg: lastTxs });
+const init = (contractsToWatch: Array<TezosContractAddress>) => {
+  const Tezos = new TezosToolkit(config.rpcUrl);
+  const subscriber = Tezos.stream.subscribe("head");
+  subscriber.on("data", async blockHash => {
+    const block = await Tezos.rpc.getBlock({ block: blockHash });
+    console.log("New block:", block.hash);
+    ctx.postMessage({ type: "new-level", payload: block.header.level });
+    // looks for transactions in DeFi contracts
+    const transactions = block.operations[3];
+    transactions.forEach(tx => {
+      if (
+        tx.hasOwnProperty("contents") &&
+        Array.isArray(tx.contents) &&
+        tx.contents.length > 0
+      ) {
+        tx.contents.forEach(content => {
+          // if watched contract receive a transaction from another user
+          if (
+            content.hasOwnProperty("source") &&
+            content.hasOwnProperty("destination") &&
+            contractsToWatch.includes((content as any).destination) &&
+            (content as any).source !== userAddress
+          ) {
+            //console.log(`General op on contract ${(content as any).destination}`);
+          }
+          // if connected user sent a transaction to a contract MTD is watching
+          if (
+            content.hasOwnProperty("source") &&
+            content.hasOwnProperty("destination") &&
+            contractsToWatch.includes((content as any).destination) &&
+            (content as any).source === userAddress
+          ) {
+            console.log(`User op on contract ${(content as any).destination}`);
+          }
+        });
       }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-}
-
-// auto-reconnect
-connection.onclose(init);
-
-connection.on("operations", msg => {
-  if (msg.type !== 0) {
-    ctx.postMessage({ type: "live-traffic", msg: msg.data });
-  }
-});
+    });
+  });
+  subscriber.on("error", err => {
+    console.error(err);
+  });
+  subscriber.off("error", err => {
+    console.error("Taquito subscriber error:", err);
+  });
+  subscriber.on("close", () => {
+    console.log("Taquito subscriber closed");
+  });
+};
 
 ctx.addEventListener("message", async e => {
   if (e.data.type === "init") {
-    contractsToWatch = e.data.payload;
-    await init();
+    console.log("init from worker");
+    init(e.data.payload);
+  } else if (e.data.type === "new-user") {
+    userAddress = e.data.payload;
   }
 });
 

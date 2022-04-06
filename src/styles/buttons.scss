@@ -2,99 +2,61 @@
 
 .buttons {
   display: flex;
-  gap: 5px;
-
-  &:not(.stack) {
-    justify-content: center;
-    align-items: center;
-  }
-  &.stack {
-    flex-direction: column;
-  }
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
 }
 
 button {
-  border-radius: 10px;
-  font-size: 1rem;
-  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0px 5px;
+  border-radius: $std-border-radius;
+  padding: 10px;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: 0.3s;
+
+  span.material-icons,
+  span.material-icons-outlined {
+    color: inherit;
+    margin-right: 10px;
+  }
 
   &.primary {
-    padding: 10px 15px;
-    color: $container-bg-color;
-    background-color: lighten($container-bg-color, 60);
-    border: none;
-    transition: 0.3s;
-
-    img {
-      height: 1rem;
-    }
-
-    &:not(:disabled):hover {
-      color: white;
-      background-color: $container-bg-color;
-    }
-
-    &:disabled {
-      background-color: transparent;
-    }
-  }
-
-  &.mini {
-    padding: 5px 10px;
-    color: $container-bg-color;
-    background-color: lighten($container-bg-color, 60);
-    border: none;
-    transition: 0.3s;
-    font-size: 1rem;
+    border: solid 2px $blue-green;
+    background-color: transparent;
+    color: $blue-green;
+    font-size: inherit;
 
     &:hover {
+      background-color: $blue-green;
       color: white;
-      background-color: $container-bg-color;
-    }
-
-    .material-icons {
-      font-size: 1rem;
     }
   }
 
-  &.loading {
-    .material-icons {
-      animation: loading-rotate 2s ease-out infinite;
-    }
+  &.full {
+    width: 100%;
   }
 
-  &.success {
-    color: white;
-    background-color: $success-green;
-    border-color: $success-green;
-  }
-  &.error {
-    color: white;
-    background-color: $error-red;
-    border-color: $error-red;
-  }
-
-  &.outline {
+  &.transparent {
     background-color: transparent;
-    border: solid 2px $container-bg-color;
-    color: $container-bg-color;
-  }
-}
+    border: none;
 
-@keyframes loading-rotate {
-  0% {
-    transform: rotate(0deg);
+    &:hover {
+      background-color: $blizzard-blue;
+    }
   }
 
-  50% {
-    transform: rotate(360deg);
-  }
+  &.nav {
+    background-color: transparent;
+    border: none;
+    font-size: 1rem;
+    width: 100%;
 
-  100% {
-    transform: rotate(0deg);
+    &:hover {
+      background-color: $blizzard-blue;
+    }
   }
 }
