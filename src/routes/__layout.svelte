@@ -9,6 +9,6 @@
   {#if $store.isAppReady}
     <slot />
   {:else}
-    <div>Loading...</div>
+    <div>Loading, please wait...</div>
   {/if}
 </main>
