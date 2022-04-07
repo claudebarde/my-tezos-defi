@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
-  import Chart from "chart.js/auto";
+  import Chart from "chart.js/auto/auto.esm";
   import type { AvailableToken } from "../types";
   import store from "../store";
   import { formatTokenAmount } from "../utils";
@@ -201,7 +201,7 @@
 {#if $store.tokens.hasOwnProperty(token) && userBalance}
   <div class="token-box">
     <div class="token-box__name">
-      <img src={`static/tokens/${token}.png`} alt="token-logo" />
+      <img src={`tokens/${token}.png`} alt="token-logo" />
       <div class="title">
         <a
           href={`https://better-call.dev/mainnet/${$store.tokens[token].address}/operations`}
