@@ -65,11 +65,14 @@
 <div class="menu">
   <div>
     <Wallet
-      on:new-user={event =>
-        liveTrafficWorker.postMessage({
-          type: "new-user",
-          payload: event.detail
-        })}
+      on:new-user={event => {
+        if (liveTrafficWorker) {
+          liveTrafficWorker.postMessage({
+            type: "new-user",
+            payload: event.detail
+          });
+        }
+      }}
     />
     <nav>
       <a href="/">
