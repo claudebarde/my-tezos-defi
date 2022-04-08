@@ -128,7 +128,7 @@
       console.error("Token for TokenBox not found");
     }
 
-    if (expand && !chart) {
+    if (expand) {
       generateChart(tokenStatsChartData);
     }
   });
