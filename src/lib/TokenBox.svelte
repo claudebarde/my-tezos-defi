@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
+  import { slide } from "svelte/transition";
   import Chart from "chart.js/auto/auto.esm";
   import type { AvailableToken } from "../types";
   import store from "../store";
@@ -11,6 +12,7 @@
   let tokenAggregateDaily: { increase: boolean; difference: number };
   let tokenStatsChartData: { timestamp: string; price: number }[] = [];
   let chart;
+  let expand = false;
 
   const generateChart = (chartData: { timestamp: string; price: number }[]) => {
     const data = {
@@ -116,7 +118,7 @@
     await fetchTokensStats(token);
   });
 
-  afterUpdate(() => {
+  afterUpdate(async () => {
     const userToken = $store.userTokens.find(tk => tk.name === token);
     if (userToken) {
       userBalance = formatTokenAmount(
@@ -124,6 +126,10 @@
       );
     } else {
       console.error("Token for TokenBox not found");
+    }
+
+    if (expand && !chart) {
+      generateChart(tokenStatsChartData);
     }
   });
 </script>
@@ -143,7 +149,7 @@
     grid-gap: 20px;
     border: solid 1px $midnight-blue;
     border-radius: $std-border-radius;
-    margin: 20px;
+    margin: 10px;
     padding: 20px;
     text-align: center;
 
@@ -152,12 +158,14 @@
         width: 44px;
         height: 44px;
         position: absolute;
-        top: -20px;
-        left: -20px;
+        top: 0px;
+        left: 0px;
         background-color: white;
         padding: 5px;
         margin: 0px;
-        border-radius: $std-border-radius;
+        border-radius: 50%;
+        z-index: 100;
+        animation: token-pop 1s forwards 0.3s;
       }
     }
 
@@ -167,12 +175,34 @@
       grid-template-columns: 1fr 1fr 1fr;
     }
 
+    .token-box_expand-less {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+    }
+
     .token-box__info__left {
       grid-area: left;
     }
 
     .token-box__info__middle {
       grid-area: middle;
+    }
+  }
+
+  .token-box-mini {
+    display: grid;
+    grid-template-columns: 15% 20% 25% 30% 10%;
+    align-items: center;
+    border: solid 1px $midnight-blue;
+    border-radius: $std-border-radius;
+    margin: 10px;
+    padding: 20px;
+    text-align: center;
+
+    img {
+      width: 44px;
+      height: 44px;
     }
   }
 
@@ -196,84 +226,174 @@
   .decrease {
     color: $red;
   }
+
+  @keyframes token-pop {
+    from {
+      top: 0px;
+      left: 0px;
+    }
+
+    to {
+      top: -20px;
+      left: -20px;
+    }
+  }
 </style>
 
 {#if $store.tokens.hasOwnProperty(token) && userBalance}
-  <div class="token-box">
-    <div class="token-box__name">
-      <img src={`tokens/${token}.png`} alt="token-logo" />
-      <div class="title">
-        <a
-          href={`https://better-call.dev/mainnet/${$store.tokens[token].address}/operations`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {token}
-        </a>
-      </div>
-    </div>
-    <div class="title">Your balance</div>
-    <div class="token-box__info__left">
-      <div>{formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ</div>
-      <div>
-        {formatTokenAmount(
-          $store.tokens[token].exchangeRate * $store.xtzExchangeRate,
-          2
-        )} USD
-      </div>
-      {#if tokenAggregateDaily}
-        <div
-          class:increase={tokenAggregateDaily.increase === true}
-          class:decrease={tokenAggregateDaily.increase === false}
-        >
-          {#if tokenAggregateDaily.increase === true}
-            <span class="material-icons-outlined"> arrow_upward </span>
-          {:else}
-            <span class="material-icons-outlined"> arrow_downward </span>
-          {/if}
-          <span>
-            {tokenAggregateDaily.increase ? "" : "-"}{formatTokenAmount(
-              tokenAggregateDaily.difference,
-              2
-            )} %
-          </span>
+  {#if expand}
+    <div class="token-box" in:slide|local={{ duration: 500 }}>
+      <div class="token-box__name">
+        <img src={`tokens/${token}.png`} alt="token-logo" />
+        <div class="title">
+          <a
+            href={`https://better-call.dev/mainnet/${$store.tokens[token].address}/operations`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {token}
+          </a>
         </div>
-      {/if}
-    </div>
-    <div class="title">Actions</div>
-    <div class="token-box__info__middle">
-      <div>
-        {userBalance} tokens
       </div>
-      <div>
-        {formatTokenAmount(userBalance * $store.tokens[token].exchangeRate)} ꜩ
-      </div>
-      <div>
-        {formatTokenAmount(
-          userBalance *
-            $store.tokens[token].exchangeRate *
-            $store.xtzExchangeRate,
-          2
-        )} USD
-      </div>
-    </div>
-    <div class="buttons">
-      <button class="primary small">Send</button>
-      <button class="primary small">Exchange</button>
-    </div>
-    <div class="token-box__graph">
-      <div />
-      <div>
-        {#if tokenStatsChartData}
-          <div class="token-price-change-container">
-            <canvas id={`token-price-change-chart-${token}`} height="80px" />
+      <div class="title">Your balance</div>
+      <div class="token-box__info__left">
+        <div>{formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ</div>
+        <div>
+          {formatTokenAmount(
+            $store.tokens[token].exchangeRate * $store.xtzExchangeRate,
+            2
+          )} USD
+        </div>
+        {#if tokenAggregateDaily}
+          <div
+            class:increase={tokenAggregateDaily.increase === true}
+            class:decrease={tokenAggregateDaily.increase === false}
+          >
+            {#if tokenAggregateDaily.increase === true}
+              <span class="material-icons-outlined"> arrow_upward </span>
+            {:else}
+              <span class="material-icons-outlined"> arrow_downward </span>
+            {/if}
+            <span>
+              {tokenAggregateDaily.increase ? "" : "-"}{formatTokenAmount(
+                tokenAggregateDaily.difference,
+                2
+              )} %
+            </span>
           </div>
-          <span style="font-size:0.7rem;text-align:center">
-            Price changes over the last 30 days
-          </span>
         {/if}
       </div>
-      <div />
+      <div class="title">Actions</div>
+      <div class="token-box__info__middle">
+        <div>
+          {userBalance} tokens
+        </div>
+        <div>
+          {formatTokenAmount(userBalance * $store.tokens[token].exchangeRate)} ꜩ
+        </div>
+        <div>
+          {formatTokenAmount(
+            userBalance *
+              $store.tokens[token].exchangeRate *
+              $store.xtzExchangeRate,
+            2
+          )} USD
+        </div>
+      </div>
+      <div class="buttons">
+        <button class="primary small">Send</button>
+        <button class="primary small">Exchange</button>
+      </div>
+      <div class="token-box__graph">
+        <div />
+        <div>
+          {#if tokenStatsChartData}
+            <div class="token-price-change-container">
+              <canvas id={`token-price-change-chart-${token}`} height="80px" />
+            </div>
+            <span style="font-size:0.7rem;text-align:center">
+              Price changes over the last 30 days
+            </span>
+          {/if}
+        </div>
+        <div class="token-box_expand-less">
+          <button
+            class="transparent"
+            style="float:right"
+            on:click={() => (expand = !expand)}
+          >
+            <span class="material-icons-outlined" style="margin:0px">
+              expand_less
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
+  {:else}
+    <div class="token-box-mini" in:slide|local={{ duration: 500 }}>
+      <div>
+        <img src={`tokens/${token}.png`} alt="token-logo" />
+      </div>
+      <div>
+        <div class="token-box__info__left">
+          <div>{formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ</div>
+          <div>
+            {formatTokenAmount(
+              $store.tokens[token].exchangeRate * $store.xtzExchangeRate,
+              2
+            )} USD
+          </div>
+          {#if tokenAggregateDaily}
+            <div
+              class:increase={tokenAggregateDaily.increase === true}
+              class:decrease={tokenAggregateDaily.increase === false}
+            >
+              {#if tokenAggregateDaily.increase === true}
+                <span class="material-icons-outlined"> arrow_upward </span>
+              {:else}
+                <span class="material-icons-outlined"> arrow_downward </span>
+              {/if}
+              <span>
+                {tokenAggregateDaily.increase ? "" : "-"}{formatTokenAmount(
+                  tokenAggregateDaily.difference,
+                  2
+                )} %
+              </span>
+            </div>
+          {/if}
+        </div>
+      </div>
+      <div>
+        <div>
+          {userBalance} tokens
+        </div>
+        <div>
+          {formatTokenAmount(userBalance * $store.tokens[token].exchangeRate)} ꜩ
+        </div>
+        <div>
+          {formatTokenAmount(
+            userBalance *
+              $store.tokens[token].exchangeRate *
+              $store.xtzExchangeRate,
+            2
+          )} USD
+        </div>
+      </div>
+      <div class="buttons">
+        <button class="primary">Send</button>
+        <button class="primary">Exchange</button>
+      </div>
+      <div>
+        <button
+          class="transparent"
+          style="float:right"
+          on:click={() => (expand = !expand)}
+        >
+          <span class="material-icons-outlined" style="margin:0px">
+            expand_more
+          </span>
+        </button>
+      </div>
+    </div>
+  {/if}
 {/if}

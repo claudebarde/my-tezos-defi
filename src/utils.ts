@@ -192,10 +192,19 @@ export const fetchDefiData = async (
   mtdVersion: string,
   force?: boolean
 ): Promise<DefiData | null> => {
-  const request = `https://dweb.link/ipfs/${ipfsHash}`;
-  //`https://cloudflare-ipfs.com/ipfs/${ipfsHash}`; // `https://gateway.pinata.cloud/ipfs/${ipfsHash}`
+  const ipfsGatewayUrls = [
+    `https://gateway.pinata.cloud/ipfs/${ipfsHash}`,
+    `https://cloudflare-ipfs.com/ipfs/${ipfsHash}`,
+    `https://dweb.link/ipfs/${ipfsHash}`
+  ];
+  const response = await Promise.race(ipfsGatewayUrls.map(url => fetch(url)));
+  if (response) {
+    return await response.json();
+  } else {
+    return null;
+  }
 
-  const ipfsRequest = async (mtdCache?: Cache): Promise<DefiData> => {
+  /*const ipfsRequest = async (mtdCache?: Cache): Promise<DefiData> => {
     const defiDataResponse = await fetch(request);
     if (defiDataResponse) {
       const defiData: DefiData = await defiDataResponse.json();
@@ -271,7 +280,7 @@ export const fetchDefiData = async (
       console.error(error);
       return null;
     }
-  }
+  }*/
 };
 
 export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
