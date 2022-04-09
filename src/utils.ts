@@ -745,6 +745,8 @@ export const loadInvestment = async (
         );
         if (userDataResponse) {
           const userData = await userDataResponse.json();
+          if (userData.active === false) throw "Inactive account";
+
           const balance = +userData.value.balance;
           const info = [];
           Object.values(userData.value.InvestMap).forEach(val =>
@@ -791,6 +793,8 @@ export const loadInvestment = async (
         );
         if (userDataResponse) {
           const userData = await userDataResponse.json();
+          if (userData.active === false) throw "Inactive account";
+
           return {
             id: inv.id,
             balance: +userData.value.balance,
@@ -817,6 +821,8 @@ export const loadInvestment = async (
         );
         if (userDataResponse) {
           const userData = await userDataResponse.json();
+          if (userData.active === false) throw "Inactive account";
+
           return {
             id: inv.id,
             balance: +userData.value.amount
@@ -840,6 +846,8 @@ export const loadInvestment = async (
         );
         if (userDataResponse) {
           const userData = await userDataResponse.json();
+          if (userData.active === false) throw "Inactive account";
+
           return {
             id: inv.id,
             balance: +userData.value.lpTokenBalance,
@@ -871,6 +879,8 @@ export const loadInvestment = async (
           );
           if (userDataResponse) {
             const userData = await userDataResponse.json();
+            if (userData.active === false) throw "Inactive account";
+
             if (userData.value.hasOwnProperty("balance")) {
               return {
                 id: inv.id,
@@ -912,6 +922,8 @@ export const loadInvestment = async (
           );
           if (balanceResponse) {
             const balance = await balanceResponse.json();
+            if (balance.active === false) throw "Inactive account";
+
             return {
               id: inv.id,
               balance: +balance.value,
@@ -945,6 +957,8 @@ export const loadInvestment = async (
         );
         if (userDataResponse) {
           const userData = await userDataResponse.json();
+          if (userData.active === false) throw "Inactive account";
+
           return {
             id: inv.id,
             balance:
