@@ -4,3 +4,4 @@ public/build
 public/quipuswap.worker.worker.js
 public/quipuswap.worker.worker.js.LICENSE.txt
 test.txt
+.svelte-kit
