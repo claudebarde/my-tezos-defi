@@ -139,11 +139,11 @@
     if (!invData.balance) {
       stakeInXtz = 0;
     } else {
-      await calcStake();
       await calcRewards();
+      await calcStake();
       recalcInterval = setInterval(async () => {
-        await calcStake();
         await calcRewards();
+        await calcStake();
       }, 60_000);
     }
   });

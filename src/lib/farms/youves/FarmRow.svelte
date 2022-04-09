@@ -146,8 +146,17 @@
       id: invData.id,
       balance: invData.balance,
       value: stakeInXtz,
-      rewards: rewards * $store.tokens.PLENTY.exchangeRate
+      rewards: rewards * $store.tokens[invData.rewardToken].exchangeRate
     });
+  };
+
+  const calcRewards = async () => {
+    rewards = await getYouvesRewards(
+      $store.Tezos,
+      invData,
+      $store.userAddress,
+      $store.tokens.YOU.decimals
+    );
   };
 
   onMount(async () => {
@@ -155,14 +164,8 @@
     if (!invData.balance) {
       stakeInXtz = 0;
     } else {
+      await calcRewards();
       await calcStake();
-
-      rewards = await getYouvesRewards(
-        $store.Tezos,
-        invData,
-        $store.userAddress,
-        $store.tokens.YOU.decimals
-      );
     }
   });
 </script>

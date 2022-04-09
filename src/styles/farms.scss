@@ -1,5 +1,22 @@
 @import "./settings.scss";
 
+.farm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h3 {
+    padding: 0px;
+    margin: 0px;
+  }
+
+  .farm-header__right {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
 .farm-row {
   display: grid;
   grid-template-columns: 30% 45% 25%;

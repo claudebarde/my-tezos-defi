@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from "svelte";
   import store from "../store";
   import ProfileHeader from "$lib/ProfileHeader.svelte";
   import PlentyFarms from "$lib/farms/plenty/PlentyFarms.svelte";
@@ -17,8 +16,6 @@
         rewards: number;
       }>
     | undefined = undefined;
-
-  onMount(() => {});
 </script>
 
 <style lang="scss">

@@ -59,4 +59,9 @@ button {
       background-color: $blizzard-blue;
     }
   }
+
+  &.mini {
+    padding: 5px;
+    font-size: 0.8rem;
+  }
 }

@@ -3,9 +3,11 @@
   import store from "../../../store";
   import type { AvailableInvestment } from "../../../types";
   import FarmRow from "./FarmRow.svelte";
+  import FarmRowHeader from "../FarmRowHeader.svelte";
 
   let farms: Array<{ id: AvailableInvestment; balance: number }> = [];
   const dispatch = createEventDispatcher();
+  let totalRewards: Array<{ id: AvailableInvestment; rewards: number }> = [];
 
   onMount(async () => {
     if ($store.userAddress) {
@@ -47,11 +49,19 @@
 </script>
 
 {#if $store.userAddress}
-  <h3>Kolibri farms</h3>
+  <FarmRowHeader
+    totalRewards={totalRewards.map(farm => farm.rewards)}
+    name="Kolibri"
+  />
   {#each farms as farm}
     <FarmRow
       invName={farm.id}
-      on:farm-update={event => dispatch("farm-update", event.detail)}
+      on:farm-update={event => {
+        const val = event.detail;
+        const farms = totalRewards.filter(farm => farm.id !== val.id);
+        totalRewards = [...farms, val];
+        dispatch("farm-update", val);
+      }}
     />
   {/each}
 {/if}

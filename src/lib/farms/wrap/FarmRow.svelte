@@ -64,7 +64,7 @@
         id: invData.id,
         balance: invData.balance,
         value: stakeInXtz,
-        rewards: rewards * $store.tokens.WRAP.exchangeRate
+        rewards: rewards * $store.tokens[invData.rewardToken].exchangeRate
       });
     }
   };
@@ -74,11 +74,11 @@
     if (!invData.balance) {
       stakeInXtz = 0;
     } else {
-      await calcStake();
       await calcRewards();
+      await calcStake();
       recalcInterval = setInterval(async () => {
-        await calcStake();
         await calcRewards();
+        await calcStake();
       }, 60_000);
     }
   });
