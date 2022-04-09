@@ -1,7 +1,9 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import { slide } from "svelte/transition";
   import BigNumber from "bignumber.js";
   import type { AvailableInvestment, InvestmentData } from "../../../types";
+  import { AvailableToken } from "../../../types";
   import store from "../../../store";
   import {
     formatTokenAmount,
@@ -11,6 +13,7 @@
   } from "../../../utils";
   import { computeLpTokenPrice } from "../../../tokenUtils/youvesUtils";
   import config from "../../../config";
+  import FarmMiniRow from "../FarmMiniRow.svelte";
 
   export let invName: AvailableInvestment;
 
@@ -19,6 +22,7 @@
   let stakeInXtz: null | number = null;
   let rewards = 0;
   let recalcInterval;
+  let expand = false;
 
   const calcStake = async () => {
     if (invData.id === "KUSD-KDAO") {
@@ -150,69 +154,91 @@
 </script>
 
 {#if invData && $store.tokens}
-  <div class="farm-row">
-    <div class="farm-info">
-      <div class="icons">
-        {#each invData.icons as icon}
-          <img src={`tokens/${icon}.png`} alt="farm-token-icon" />
-        {/each}
+  {#if expand}
+    <div class="farm-row" in:slide|local={{ duration: 500 }}>
+      <div class="farm-info">
+        <div class="icons">
+          {#each invData.icons as icon}
+            <img src={`tokens/${icon}.png`} alt="farm-token-icon" />
+          {/each}
+        </div>
+        <div class="farm-info__link">
+          <a
+            href={`https://better-call.dev/mainnet/${invData.address}/operations`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {invData.alias}
+          </a>
+        </div>
+        <div class="farm-info__tokens-price">
+          {#each invData.icons as token}
+            <div>
+              1 {token} = {formatTokenAmount($store.tokens[token].exchangeRate)}
+              ꜩ
+            </div>
+          {/each}
+        </div>
       </div>
-      <div class="farm-info__link">
-        <a
-          href={`https://better-call.dev/mainnet/${invData.address}/operations`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {invData.alias}
-        </a>
-      </div>
-      <div class="farm-info__tokens-price">
-        {#each invData.icons as token}
-          <div>
-            1 {token} = {formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ
+      <div class="user-info">
+        <div>
+          <div>Stake</div>
+          <div class="bold">
+            {formatTokenAmount(invData.balance / 10 ** invData.decimals)} LPT
           </div>
-        {/each}
-      </div>
-    </div>
-    <div class="user-info">
-      <div>
-        <div>Stake</div>
-        <div class="bold">
-          {formatTokenAmount(invData.balance / 10 ** invData.decimals)} LPT
+        </div>
+        <div>
+          <div>Value in XTZ</div>
+          <div class="bold">{formatTokenAmount(stakeInXtz)} ꜩ</div>
+        </div>
+        <div>
+          <div>Value in USD</div>
+          <div class="bold">
+            {formatTokenAmount(stakeInXtz * $store.xtzExchangeRate, 2)} USD
+          </div>
         </div>
       </div>
-      <div>
-        <div>Value in XTZ</div>
-        <div class="bold">{formatTokenAmount(stakeInXtz)} ꜩ</div>
-      </div>
-      <div>
-        <div>Value in USD</div>
-        <div class="bold">
-          {formatTokenAmount(stakeInXtz * $store.xtzExchangeRate, 2)} USD
+      <div class="actions">
+        <div>
+          <div>Rewards</div>
+          <div class="bold">{formatTokenAmount(rewards)} kDAO</div>
+          <div style="font-size: 0.8rem">
+            ({formatTokenAmount(rewards * $store.tokens.kDAO.exchangeRate, 2)} ꜩ
+            /
+            {formatTokenAmount(
+              rewards *
+                $store.tokens.kDAO.exchangeRate *
+                $store.xtzExchangeRate,
+              2
+            )} USD)
+          </div>
+        </div>
+        <div>
+          <div />
+          <button class="primary">
+            <span class="material-icons-outlined"> agriculture </span>
+            Harvest
+          </button>
         </div>
       </div>
-    </div>
-    <div class="actions">
-      <div>
-        <div>Rewards</div>
-        <div class="bold">{formatTokenAmount(rewards)} kDAO</div>
-        <div style="font-size: 0.8rem">
-          ({formatTokenAmount(rewards * $store.tokens.kDAO.exchangeRate, 2)} ꜩ /
-          {formatTokenAmount(
-            rewards * $store.tokens.kDAO.exchangeRate * $store.xtzExchangeRate,
-            2
-          )} USD)
-        </div>
-      </div>
-      <div>
-        <div />
-        <button class="primary">
-          <span class="material-icons-outlined"> agriculture </span>
-          Harvest
+      <div class="token-box_expand-less">
+        <button class="transparent" on:click={() => (expand = !expand)}>
+          <span class="material-icons-outlined" style="margin:0px">
+            expand_less
+          </span>
         </button>
       </div>
     </div>
-  </div>
+  {:else}
+    <FarmMiniRow
+      {invData}
+      stake={invData.balance / 10 ** invData.decimals}
+      {stakeInXtz}
+      {rewards}
+      rewardToken={AvailableToken.kDAO}
+      on:expand={() => (expand = true)}
+    />
+  {/if}
 {:else}
   <div>No data found for this farm</div>
 {/if}

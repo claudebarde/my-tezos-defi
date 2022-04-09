@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
+  import { slide } from "svelte/transition";
   import type { InvestmentData } from "../../../types";
   import { AvailableToken, AvailableInvestment } from "../../../types";
   import store from "../../../store";
@@ -9,6 +10,7 @@
     longTermFarmFullRewards,
     getYouvesRewards
   } from "../../../tokenUtils/youvesUtils";
+  import FarmMiniRow from "../FarmMiniRow.svelte";
 
   export let invName: AvailableInvestment;
 
@@ -24,6 +26,7 @@
   let longTermRewards: number;
   let fullRewardsAvailable: number;
   let stakingToken = "";
+  let expand = false;
 
   const calcStake = async () => {
     if (invData.id === AvailableInvestment["YOUVES-UUSD-UBTC"]) {
@@ -165,93 +168,112 @@
 </script>
 
 {#if invData && $store.tokens}
-  <div class="farm-row">
-    <div class="farm-info">
-      <div class="icons">
-        {#each invData.icons as icon}
-          <img src={`tokens/${icon}.png`} alt="farm-token-icon" />
-        {/each}
-      </div>
-      <div class="farm-info__link">
-        <a
-          href={`https://better-call.dev/mainnet/${invData.address}/operations`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {invData.alias}
-        </a>
-      </div>
-      <div class="farm-info__tokens-price">
-        {#each invData.icons as token}
-          <div>
-            1 {token} = {formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ
-          </div>
-        {/each}
-      </div>
-    </div>
-    <div class="user-info">
-      <div>
-        <div>Stake</div>
-        <div class="bold">
-          {formatTokenAmount(invData.balance / 10 ** invData.decimals)} LPT
+  {#if expand}
+    <div class="farm-row" in:slide|local={{ duration: 500 }}>
+      <div class="farm-info">
+        <div class="icons">
+          {#each invData.icons as icon}
+            <img src={`tokens/${icon}.png`} alt="farm-token-icon" />
+          {/each}
+        </div>
+        <div class="farm-info__link">
+          <a
+            href={`https://better-call.dev/mainnet/${invData.address}/operations`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {invData.alias}
+          </a>
+        </div>
+        <div class="farm-info__tokens-price">
+          {#each invData.icons as token}
+            <div>
+              1 {token} = {formatTokenAmount($store.tokens[token].exchangeRate)}
+              ꜩ
+            </div>
+          {/each}
         </div>
       </div>
-      <div>
-        <div>Value in XTZ</div>
-        <div class="bold">{formatTokenAmount(stakeInXtz)} ꜩ</div>
-      </div>
-      <div>
-        <div>Value in USD</div>
-        <div class="bold">
-          {formatTokenAmount(stakeInXtz * $store.xtzExchangeRate, 2)} USD
-        </div>
-      </div>
-    </div>
-    <div class="actions">
-      <div>
-        {#if invData.type === "long-term"}
-          <div>Available rewards</div>
-        {:else}
-          <div>Rewards</div>
-        {/if}
-        <div class="bold">
-          {formatTokenAmount(rewards)}
-          {invData.rewardToken}
-        </div>
-        <div style="font-size: 0.8rem">
-          ({formatTokenAmount(rewards * $store.tokens.YOU.exchangeRate, 2)} ꜩ / {formatTokenAmount(
-            rewards * $store.tokens.YOU.exchangeRate * $store.xtzExchangeRate,
-            2
-          )} USD)
-        </div>
-        {#if invData.type === "long-term"}
-          <div style="margin-top:15px">Long term rewards</div>
+      <div class="user-info">
+        <div>
+          <div>Stake</div>
           <div class="bold">
-            {formatTokenAmount(longTermRewards)}
+            {formatTokenAmount(invData.balance / 10 ** invData.decimals)} LPT
+          </div>
+        </div>
+        <div>
+          <div>Value in XTZ</div>
+          <div class="bold">{formatTokenAmount(stakeInXtz)} ꜩ</div>
+        </div>
+        <div>
+          <div>Value in USD</div>
+          <div class="bold">
+            {formatTokenAmount(stakeInXtz * $store.xtzExchangeRate, 2)} USD
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <div>
+          {#if invData.type === "long-term"}
+            <div>Available rewards</div>
+          {:else}
+            <div>Rewards</div>
+          {/if}
+          <div class="bold">
+            {formatTokenAmount(rewards)}
             {invData.rewardToken}
           </div>
           <div style="font-size: 0.8rem">
-            ({formatTokenAmount(
-              longTermRewards * $store.tokens.YOU.exchangeRate,
-              2
-            )} ꜩ / {formatTokenAmount(
-              longTermRewards *
-                $store.tokens.YOU.exchangeRate *
-                $store.xtzExchangeRate,
+            ({formatTokenAmount(rewards * $store.tokens.YOU.exchangeRate, 2)} ꜩ /
+            {formatTokenAmount(
+              rewards * $store.tokens.YOU.exchangeRate * $store.xtzExchangeRate,
               2
             )} USD)
           </div>
-        {/if}
+          {#if invData.type === "long-term"}
+            <div style="margin-top:15px">Long term rewards</div>
+            <div class="bold">
+              {formatTokenAmount(longTermRewards)}
+              {invData.rewardToken}
+            </div>
+            <div style="font-size: 0.8rem">
+              ({formatTokenAmount(
+                longTermRewards * $store.tokens.YOU.exchangeRate,
+                2
+              )} ꜩ / {formatTokenAmount(
+                longTermRewards *
+                  $store.tokens.YOU.exchangeRate *
+                  $store.xtzExchangeRate,
+                2
+              )} USD)
+            </div>
+          {/if}
+        </div>
+        <div>
+          <div />
+          <button class="primary">
+            <span class="material-icons-outlined"> agriculture </span>
+            Harvest
+          </button>
+        </div>
       </div>
-      <div>
-        <div />
-        <button class="primary">
-          <span class="material-icons-outlined"> agriculture </span>
-          Harvest
+      <div class="token-box_expand-less">
+        <button class="transparent" on:click={() => (expand = !expand)}>
+          <span class="material-icons-outlined" style="margin:0px">
+            expand_less
+          </span>
         </button>
       </div>
     </div>
-  </div>
+  {:else}<FarmMiniRow
+      {invData}
+      stake={invData.balance / 10 ** invData.decimals}
+      {stakeInXtz}
+      {rewards}
+      rewardToken={invData.rewardToken}
+      on:expand={() => (expand = true)}
+    />
+  {/if}
 {:else}
   <div>No data found for this farm</div>
 {/if}

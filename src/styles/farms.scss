@@ -7,6 +7,7 @@
   margin: 20px 0px;
   background-color: $blizzard-blue;
   border-radius: $std-border-radius;
+  position: relative;
 
   &:hover .farm-info .icons img:not(:first-child) {
     margin-left: 5px;
@@ -65,5 +66,47 @@
     .bold {
       font-weight: bold;
     }
+  }
+
+  .token-box_expand-less {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+  }
+}
+
+.farm-row-mini {
+  display: grid;
+  grid-template-columns: 15% 25% 25% 30% 5%;
+  align-items: center;
+  padding: 30px 20px;
+  margin: 20px 0px;
+  background-color: $blizzard-blue;
+  border-radius: $std-border-radius;
+  text-align: center;
+
+  &:hover .icons img:not(:first-child) {
+    margin-left: 5px;
+  }
+
+  .icons {
+    margin: 0 auto;
+
+    img {
+      width: 48px;
+      height: 48px;
+      background-color: white;
+      border-radius: 50%;
+      transition: 0.3s;
+
+      &:not(:first-child) {
+        margin-left: -8px;
+        border-radius: 50%;
+      }
+    }
+  }
+
+  div.bold {
+    font-weight: bold;
   }
 }
