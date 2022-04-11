@@ -1,6 +1,6 @@
 export default {
   version: "5.0.0",
-  rpcUrl: "https://mainnet.api.tez.ie", //"https://eu01-node.teztools.net",
+  rpcUrl: "https://eu01-node.teztools.net", //"https://mainnet.api.tez.ie",
   lbContracts: [
     "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
     "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
@@ -133,7 +133,6 @@ export default {
     "wWETH-XTZ-LM": "KT1DuYujxrmgepwSDHtADthhKBje9BosUs1w"
   },
   vortexDexAddresses: {
-    "PLENTY-XTZ": "KT1VSjJxNq98AkPfVktpCv82hacrvgkb6hEu",
-    "uUSD-XTZ": "KT1ND1bkLahTzVUt93zbDtGugpWcL23gyqgQ"
+    "XTZ-ANTI": "KT1VFUkjYDh6QG8iLx5uKHPU3BWFMeYoVPTL"
   }
 };

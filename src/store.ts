@@ -16,7 +16,7 @@ const initialState: State = {
   isAppReady: false,
   settings: {
     rpcUrl: config.rpcUrl,
-    defiData: "QmSukMZMGLi2iLTYLQxhmdriYfmAvWwvnHXeYekXR7WH5x"
+    defiData: "QmUMrWdYg5XLpcFi1ksQaLhcBmAvqfwMDbmZAGTGUiGkpq"
   },
   Tezos: undefined,
   wallet: undefined,
@@ -28,7 +28,9 @@ const initialState: State = {
   userTokens: undefined,
   tokens: undefined,
   investments: undefined,
-  currentLevel: 0
+  currentLevel: 0,
+  serviceFee: process.env.NODE_ENV === "development" ? null : 0.003,
+  admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At"
 };
 
 const store = writable(initialState);

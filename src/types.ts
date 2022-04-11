@@ -166,7 +166,8 @@ export enum AvailableInvestment {
   "YOUVES-UUSD-USDTZ" = "YOUVES-UUSD-USDTZ",
   "YOUVES-YOU-UBTC" = "YOUVES-YOU-UBTC",
   "YOUVES-YOU-UUSD" = "YOUVES-YOU-UUSD",
-  "YOUVES-YOU-UDEFI" = "YOUVES-YOU-UDEFI"
+  "YOUVES-YOU-UDEFI" = "YOUVES-YOU-UDEFI",
+  "SMLK-XTZ-ANTI" = "SMLK-XTZ-ANTI"
 }
 
 export type InvestmentPlatform =
@@ -176,7 +177,7 @@ export type InvestmentPlatform =
   | "paul"
   | "kdao"
   | "wrap"
-  | "smak"
+  | "smartlink"
   | "youves";
 
 export interface UserToken {
@@ -237,6 +238,8 @@ export interface State {
       }
     | undefined;
   currentLevel: number;
+  serviceFee: number;
+  admin: TezosAccountAddress;
 }
 
 export interface HistoricalDataState {

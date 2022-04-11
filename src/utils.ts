@@ -1,4 +1,9 @@
-import type { TezosToolkit } from "@taquito/taquito";
+import type {
+  TezosToolkit,
+  ContractMethod,
+  Wallet,
+  WalletOperationBatch
+} from "@taquito/taquito";
 import { bytes2Char } from "@taquito/utils";
 import { get } from "svelte/store";
 import BigNumber from "bignumber.js";
@@ -403,4 +408,73 @@ export const getKdaoReward = async (
   } else {
     return result;
   }
+};
+
+export const prepareOperation = (p: {
+  contractCalls: ContractMethod<Wallet>[];
+  amount: number;
+  tokenSymbol: AvailableToken;
+}): WalletOperationBatch => {
+  const localStore = get(store);
+  const { contractCalls, amount, tokenSymbol } = p;
+  // calculates fee
+  const amountToSendInXtz =
+    +amount * +localStore.tokens[tokenSymbol].exchangeRate;
+  let fee = 0;
+  if (localStore.serviceFee !== null) {
+    fee = amountToSendInXtz * localStore.serviceFee;
+  }
+  // prepares batch operation
+  let batch = localStore.Tezos.wallet.batch();
+  contractCalls.forEach(call => batch.withContractCall(call));
+  if (!localStore.serviceFee) {
+    return batch;
+  } else {
+    return batch.withTransfer({
+      to: localStore.admin,
+      amount: Math.ceil(fee * 10 ** 6),
+      mutez: true
+    });
+  }
+};
+
+export const lqtOutput = ({
+  lqTokens,
+  pool,
+  lqtTotal,
+  decimals
+}: {
+  lqTokens: number;
+  pool: number;
+  lqtTotal: number;
+  decimals: number;
+}): number => {
+  return (+lqTokens * (pool / 10 ** decimals)) / lqtTotal;
+};
+
+export const calculateLqtOutput = ({
+  lqTokens,
+  xtzPool,
+  tokenPool,
+  lqtTotal,
+  tokenDecimal
+}: {
+  lqTokens: number;
+  xtzPool: number;
+  tokenPool: number;
+  lqtTotal: number;
+  tokenDecimal: number;
+}): { xtz: number; tokens: number } => {
+  const xtzOut = lqtOutput({ lqTokens, pool: xtzPool, lqtTotal, decimals: 6 });
+  const tokensOut = lqtOutput({
+    lqTokens,
+    pool: tokenPool,
+    lqtTotal,
+    decimals: tokenDecimal
+  });
+
+  return {
+    xtz: xtzOut,
+    tokens: tokensOut
+  };
 };

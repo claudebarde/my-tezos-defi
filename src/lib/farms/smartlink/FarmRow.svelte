@@ -4,13 +4,13 @@
   import type { AvailableInvestment, InvestmentData } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
-  import { formatTokenAmount, prepareOperation } from "../../../utils";
   import {
-    calcTokenStakesFromQuipu,
-    calcTokenStakesInAlienFarm,
-    getPaulReward
-  } from "../../../tokenUtils/paulUtils";
+    formatTokenAmount,
+    prepareOperation,
+    calculateLqtOutput
+  } from "../../../utils";
   import FarmMiniRow from "../FarmMiniRow.svelte";
+  import config from "../../../config";
 
   export let invName: AvailableInvestment;
 
@@ -24,70 +24,56 @@
   let harvestingSuccess = false;
 
   const calcStake = async () => {
-    if (invData.id === "PAUL-XTZ" || invData.id === "MAG-XTZ") {
-      stakeInXtz = await calcTokenStakesFromQuipu({
-        Tezos: $store.Tezos,
-        id: invData.id,
-        balance: invData.balance,
-        paulToken: {
-          decimals: $store.tokens.PAUL.decimals,
-          exchangeRate: $store.tokens.PAUL.exchangeRate
-        }
-      });
-    } else if (invData.id === "PAUL-PAUL") {
-      stakeInXtz = formatTokenAmount(
-        (invData.balance / 10 ** invData.decimals) *
-          $store.tokens.PAUL.exchangeRate
-      );
-    } else {
-      stakeInXtz = null;
-    }
+    // finds LP token total supply
+    const contract = await $store.Tezos.wallet.at(invData.address);
+    const storage: any = await contract.storage();
+    const { input_token_address } = storage;
+    const lptContract = await $store.Tezos.wallet.at(input_token_address);
+    const lptStorage: any = await lptContract.storage();
+    const { total_supply } = lptStorage;
+    // finds DEX address
+    const dexAddress =
+      config.vortexDexAddresses[`${invData.icons[0]}-${invData.icons[1]}`];
+    if (total_supply && dexAddress) {
+      const dexContract = await $store.Tezos.wallet.at(dexAddress);
+      const dexStorage: any = await dexContract.storage();
+      const { xtzPool, tokenPool } = dexStorage;
 
-    if (invData.info?.includes("paul-lqt")) {
-      const shares = await calcTokenStakesInAlienFarm({
-        Tezos: $store.Tezos,
-        amountOfTokens: invData.balance,
-        tokens: invData.icons.map(icon => {
-          const {
-            address,
-            tokenId = 0,
-            type
-          } = $store.tokens[icon as AvailableToken];
-          return {
-            address,
-            tokenId,
-            tokenType: type
-          };
-        })
+      const result = calculateLqtOutput({
+        lqTokens: invData.balance,
+        xtzPool,
+        tokenPool,
+        lqtTotal: total_supply.toNumber(),
+        tokenDecimal: $store.tokens[invData.icons[1]].decimals
       });
-      if (shares) {
-        const token1InXtz =
-          ((shares.tokenAAmount /
-            10 ** $store.tokens[invData.icons[0]].decimals) *
-            $store.tokens[invData.icons[0]].exchangeRate) /
-          10 ** 6;
-        const token2InXtz =
-          ((shares.tokenBAmount /
-            10 ** $store.tokens[invData.icons[1]].decimals) *
-            $store.tokens[invData.icons[1]].exchangeRate) /
-          10 ** 6;
-        stakeInXtz = formatTokenAmount(token1InXtz + token2InXtz);
+      if (result && !isNaN(result.xtz) && !isNaN(result.tokens)) {
+        // TODO: use exchange rate from TezTools when it becomes available
+        /*stakeInXtz =
+          result.xtz +
+          result.tokens * $store.tokens[invData.icons[1]].exchangeRate;*/
+        stakeInXtz = result.xtz * 2;
       }
-    }
-  };
-
-  const calcRewards = async () => {
-    const rewardsRes = await getPaulReward(invData.address);
-    if (rewardsRes) {
-      rewards = rewardsRes.toNumber() / 10 ** $store.tokens.PAUL.decimals;
       // converts rewards into XTZ
       dispatch("farm-update", {
         id: invData.id,
         balance: invData.balance,
         value: stakeInXtz,
-        rewards: rewards * $store.tokens.PAUL.exchangeRate
+        rewards: rewards * $store.tokens.ANTI.exchangeRate
       });
     }
+  };
+
+  const calcRewards = async () => {
+    /*if (rewardsRes.status) {
+      rewards = +rewardsRes.totalRewards;
+      // converts rewards into XTZ
+      dispatch("farm-update", {
+        id: invData.id,
+        balance: invData.balance,
+        value: stakeInXtz,
+        rewards: rewards * $store.tokens.PLENTY.exchangeRate
+      });
+    }*/
   };
 
   const harvest = async () => {
@@ -95,13 +81,9 @@
     try {
       const contract = await $store.Tezos.wallet.at(invData.address);
       const batch = prepareOperation({
-        contractCalls: [
-          invData.id === "PAUL-PAUL"
-            ? contract.methods.earn($store.userAddress, false)
-            : contract.methods.earn($store.userAddress)
-        ],
+        contractCalls: [contract.methods.GetReward([["unit"]])],
         amount: rewards,
-        tokenSymbol: AvailableToken.PAUL
+        tokenSymbol: AvailableToken.PLENTY
       });
       const op = await batch.send();
       await op.confirmation();
@@ -112,8 +94,8 @@
         rewards = 0;
         /*toastStore.addToast({
           type: "success",
-          title: "Success",
-          text: `Successfully harvested ${rewardsToHarvest} PAUL!`,
+          title: "Success!",
+          text: `Successfully harvested ${rewardsToHarvest} PLENTY!`,
           dismissable: false,
           icon: "agriculture"
         });*/
@@ -129,7 +111,7 @@
       /*toastStore.addToast({
         type: "error",
         title: "Harvest error",
-        text: "Couldn't harvest PAUL tokens",
+        text: "Couldn't harvest PLENTY tokens",
         dismissable: false,
         icon: "agriculture"
       });*/
@@ -188,7 +170,7 @@
         <div>
           <div>Stake</div>
           <div class="bold">
-            {formatTokenAmount(invData.balance / 10 ** invData.decimals)} LPT
+            {formatTokenAmount(invData.balance / 10 ** 18)} LPT
           </div>
         </div>
         <div>
@@ -205,13 +187,18 @@
       <div class="actions">
         <div>
           <div>Rewards</div>
-          <div class="bold">{formatTokenAmount(rewards)} PAUL</div>
+          <div class="bold">
+            {formatTokenAmount(rewards)}
+            {invData.rewardToken}
+          </div>
           <div style="font-size: 0.8rem">
-            ({formatTokenAmount(rewards * $store.tokens.PAUL.exchangeRate, 2)} ꜩ
-            /
-            {formatTokenAmount(
+            ({formatTokenAmount(
+              rewards * $store.tokens[invData.rewardToken].exchangeRate,
+              2
+            )}
+            ꜩ / {formatTokenAmount(
               rewards *
-                $store.tokens.PAUL.exchangeRate *
+                $store.tokens[invData.rewardToken].exchangeRate *
                 $store.xtzExchangeRate,
               2
             )} USD)
@@ -219,10 +206,8 @@
         </div>
         <div>
           <div />
-          <button class="primary">
-            <span class="material-icons-outlined" on:click={harvest}>
-              agriculture
-            </span>
+          <button class="primary" on:click={harvest}>
+            <span class="material-icons-outlined"> agriculture </span>
             Harvest
           </button>
         </div>
@@ -241,7 +226,7 @@
       stake={invData.balance / 10 ** invData.decimals}
       {stakeInXtz}
       {rewards}
-      rewardToken={AvailableToken.PAUL}
+      rewardToken={invData.rewardToken}
       on:expand={() => (expand = true)}
       on:harvest={harvest}
     />

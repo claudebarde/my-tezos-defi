@@ -9,7 +9,8 @@
     formatTokenAmount,
     estimateQuipuTezInShares,
     estimateQuipuTokenInShares,
-    getKdaoReward
+    getKdaoReward,
+    prepareOperation
   } from "../../../utils";
   import { computeLpTokenPrice } from "../../../tokenUtils/youvesUtils";
   import config from "../../../config";
@@ -23,6 +24,8 @@
   let rewards = 0;
   let recalcInterval;
   let expand = false;
+  let harvesting = false;
+  let harvestingSuccess = false;
 
   const calcStake = async () => {
     if (invData.id === "KUSD-KDAO") {
@@ -134,6 +137,50 @@
     });
   };
 
+  const harvest = async () => {
+    harvesting = true;
+    try {
+      const contract = await $store.Tezos.wallet.at(invData.address);
+      const batch = prepareOperation({
+        contractCalls: [contract.methods.claim([["unit"]])],
+        amount: rewards,
+        tokenSymbol: AvailableToken.kDAO
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      harvesting = false;
+      const opStatus = await op.status();
+      if (opStatus === "applied") {
+        harvestingSuccess = true;
+        rewards = 0;
+        /*toastStore.addToast({
+          type: "success",
+          title: "Success!",
+          text: `Successfully harvested ${rewardsToHarvest} kDAO!`,
+          dismissable: false,
+          icon: "agriculture"
+        });*/
+        setTimeout(() => {
+          harvestingSuccess = undefined;
+        }, 2000);
+      } else {
+        harvestingSuccess = false;
+        throw `Error when applying operation: _${opStatus}_`;
+      }
+    } catch (error) {
+      console.log(error);
+      /*toastStore.addToast({
+        type: "error",
+        title: "Harvest error",
+        text: "Couldn't harvest PLENTY tokens",
+        dismissable: false,
+        icon: "agriculture"
+      });*/
+    } finally {
+      harvesting = false;
+    }
+  };
+
   onMount(async () => {
     invData = $store.investments[invName];
     if (!invData.balance) {
@@ -215,7 +262,7 @@
         </div>
         <div>
           <div />
-          <button class="primary">
+          <button class="primary" on:click={harvest}>
             <span class="material-icons-outlined"> agriculture </span>
             Harvest
           </button>
@@ -237,6 +284,7 @@
       {rewards}
       rewardToken={AvailableToken.kDAO}
       on:expand={() => (expand = true)}
+      on:harvest={harvest}
     />
   {/if}
 {:else}

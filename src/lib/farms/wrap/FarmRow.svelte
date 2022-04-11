@@ -4,7 +4,7 @@
   import type { AvailableInvestment, InvestmentData } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
-  import { formatTokenAmount } from "../../../utils";
+  import { formatTokenAmount, prepareOperation } from "../../../utils";
   import {
     calcTokenStakesInWrapFarms,
     getWrapReward
@@ -19,6 +19,8 @@
   let rewards = 0;
   let recalcInterval;
   let expand = false;
+  let harvesting = false;
+  let harvestingSuccess = false;
 
   const calcStake = async () => {
     if (invData.type === "fee-farming") {
@@ -66,6 +68,50 @@
         value: stakeInXtz,
         rewards: rewards * $store.tokens[invData.rewardToken].exchangeRate
       });
+    }
+  };
+
+  const harvest = async () => {
+    harvesting = true;
+    try {
+      const contract = await $store.Tezos.wallet.at(invData.address);
+      const batch = prepareOperation({
+        contractCalls: [contract.methods.claim([["unit"]])],
+        amount: rewards,
+        tokenSymbol: AvailableToken.kDAO
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      harvesting = false;
+      const opStatus = await op.status();
+      if (opStatus === "applied") {
+        harvestingSuccess = true;
+        rewards = 0;
+        /*toastStore.addToast({
+          type: "success",
+          title: "Success!",
+          text: `Successfully harvested ${rewardsToHarvest} kDAO!`,
+          dismissable: false,
+          icon: "agriculture"
+        });*/
+        setTimeout(() => {
+          harvestingSuccess = undefined;
+        }, 2000);
+      } else {
+        harvestingSuccess = false;
+        throw `Error when applying operation: _${opStatus}_`;
+      }
+    } catch (error) {
+      console.log(error);
+      /*toastStore.addToast({
+        type: "error",
+        title: "Harvest error",
+        text: "Couldn't harvest PLENTY tokens",
+        dismissable: false,
+        icon: "agriculture"
+      });*/
+    } finally {
+      harvesting = false;
     }
   };
 

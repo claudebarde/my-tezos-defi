@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { onMount, afterUpdate, onDestroy, createEventDispatcher } from "svelte";
+  import {
+    onMount,
+    afterUpdate,
+    onDestroy,
+    createEventDispatcher
+  } from "svelte";
   import { TezosToolkit } from "@taquito/taquito";
   import { BeaconWallet } from "@taquito/beacon-wallet";
   import { Tzip16Module } from "@taquito/tzip16";
@@ -281,11 +286,17 @@
   });
 
   afterUpdate(() => {
-    if ($store.tokens && $store.investments && $store.xtzExchangeRate && $store.currentLevel && !$store.isAppReady) {
+    if (
+      $store.tokens &&
+      $store.investments &&
+      $store.xtzExchangeRate &&
+      $store.currentLevel &&
+      !$store.isAppReady
+    ) {
       // ap becomes available when tokens, investments, exchange rate and level are ready
       store.updateAppReady();
     }
-  })
+  });
 
   onDestroy(() => {
     clearInterval(fetchBalanceInterval);

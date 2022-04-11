@@ -45,7 +45,7 @@
     </div>
   </div>
   <div class="buttons">
-    <button class="primary">
+    <button class="primary" on:click={() => dispatch("harvest")}>
       <span class="material-icons-outlined"> agriculture </span>
       Harvest
     </button>

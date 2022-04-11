@@ -4,7 +4,7 @@
   import type { AvailableInvestment, InvestmentData } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
-  import { formatTokenAmount } from "../../../utils";
+  import { formatTokenAmount, prepareOperation } from "../../../utils";
   import {
     calcPlentyStakeInXtz,
     getPlentyReward
@@ -19,6 +19,8 @@
   let rewards = 0;
   let recalcInterval;
   let expand = false;
+  let harvesting = false;
+  let harvestingSuccess = false;
 
   const calcStake = async () => {
     stakeInXtz = await calcPlentyStakeInXtz({
@@ -48,7 +50,7 @@
         : 18
     );
     if (rewardsRes.status) {
-      rewards = rewardsRes.totalRewards;
+      rewards = +rewardsRes.totalRewards;
       // converts rewards into XTZ
       dispatch("farm-update", {
         id: invData.id,
@@ -56,6 +58,50 @@
         value: stakeInXtz,
         rewards: rewards * $store.tokens.PLENTY.exchangeRate
       });
+    }
+  };
+
+  const harvest = async () => {
+    harvesting = true;
+    try {
+      const contract = await $store.Tezos.wallet.at(invData.address);
+      const batch = prepareOperation({
+        contractCalls: [contract.methods.GetReward([["unit"]])],
+        amount: rewards,
+        tokenSymbol: AvailableToken.PLENTY
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      harvesting = false;
+      const opStatus = await op.status();
+      if (opStatus === "applied") {
+        harvestingSuccess = true;
+        rewards = 0;
+        /*toastStore.addToast({
+          type: "success",
+          title: "Success!",
+          text: `Successfully harvested ${rewardsToHarvest} PLENTY!`,
+          dismissable: false,
+          icon: "agriculture"
+        });*/
+        setTimeout(() => {
+          harvestingSuccess = undefined;
+        }, 2000);
+      } else {
+        harvestingSuccess = false;
+        throw `Error when applying operation: _${opStatus}_`;
+      }
+    } catch (error) {
+      console.log(error);
+      /*toastStore.addToast({
+        type: "error",
+        title: "Harvest error",
+        text: "Couldn't harvest PLENTY tokens",
+        dismissable: false,
+        icon: "agriculture"
+      });*/
+    } finally {
+      harvesting = false;
     }
   };
 
@@ -139,7 +185,7 @@
         </div>
         <div>
           <div />
-          <button class="primary">
+          <button class="primary" on:click={harvest}>
             <span class="material-icons-outlined"> agriculture </span>
             Harvest
           </button>
@@ -161,6 +207,7 @@
       {rewards}
       rewardToken={AvailableToken.PLENTY}
       on:expand={() => (expand = true)}
+      on:harvest={harvest}
     />
   {/if}
 {:else}

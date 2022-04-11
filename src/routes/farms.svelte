@@ -6,6 +6,7 @@
   import KdaoFarms from "$lib/farms/kdao/KdaoFarms.svelte";
   import WrapFarms from "$lib/farms/wrap/WrapFarms.svelte";
   import YouvesFarms from "$lib/farms/youves/YouvesFarms.svelte";
+  import SmartlinkFarms from "$lib/farms/smartlink/SmartlinkFarms.svelte";
   import type { AvailableInvestment } from "../types";
 
   let totalFarms:
@@ -65,6 +66,18 @@
         }}
       />
       <PaulFarms
+        on:farm-update={event => {
+          const val = event.detail;
+          if (totalFarms === undefined) {
+            totalFarms = [val];
+          } else {
+            // filters existing values in array
+            const farms = totalFarms.filter(farm => farm.id !== val.id);
+            totalFarms = [...farms, val];
+          }
+        }}
+      />
+      <SmartlinkFarms
         on:farm-update={event => {
           const val = event.detail;
           if (totalFarms === undefined) {
