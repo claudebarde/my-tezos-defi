@@ -26,7 +26,7 @@
   {#if $store.userAddress}
     <ProfileHeader />
     <div class="user-tokens">
-      {#if $store.userAddress && $store.userTokens && $store.userTokens.some(tk => tk.exchangeRate && tk.exchangeRate > 0)}
+      {#if $store.userAddress && $store.userTokens && $store.tokens}
         <div class="user-tokens__grid">
           {#each sortTokensByBalance($store.userTokens.map( tk => [tk.name, tk.balance / 10 ** $store.tokens[tk.name].decimals] )) as [token, _]}
             <TokenBox {token} />

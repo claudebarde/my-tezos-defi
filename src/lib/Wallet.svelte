@@ -9,6 +9,7 @@
   import { BeaconWallet } from "@taquito/beacon-wallet";
   import { Tzip16Module } from "@taquito/tzip16";
   import store from "../store";
+  import Token from "../Token";
   import {
     shortenHash,
     fetchTezosDomain,
@@ -24,9 +25,10 @@
     AvailableInvestment,
     InvestmentData
   } from "../types";
-  import { AvailableFiat, AvailableToken } from "../types";
+  import { AvailableFiat, AvailableToken, AvailableDex } from "../types";
   import { TezToolsSDK } from "./teztools";
   import config from "../config";
+  import { fetchAntiPrice } from "../tokenUtils/smartlinkUtils";
 
   const dispatch = createEventDispatcher();
 
@@ -139,19 +141,25 @@
         if (defiData.tokens) {
           let tokens: [AvailableToken, TokenContract][] = [];
           // stores tokens info
-          Object.entries(defiData.tokens).forEach(([tokenSymbol, token]) => {
-            if (tokenSymbol !== "sDAO") {
-              tokens.push([
-                tokenSymbol as AvailableToken,
-                {
-                  ...token,
-                  exchangeRate: null,
-                  thumbnail: undefined,
-                  websiteLink: undefined
-                }
-              ]);
+          Object.entries(defiData.tokens).forEach(
+            ([tokenSymbol, tokenData]) => {
+              if (tokenSymbol !== "sDAO") {
+                tokens.push([
+                  tokenSymbol as AvailableToken,
+                  new Token({ ...tokenData })
+                ]);
+                // tokens.push([
+                //   tokenSymbol as AvailableToken,
+                //   {
+                //     ...token,
+                //     exchangeRate: null,
+                //     thumbnail: undefined,
+                //     websiteLink: undefined
+                //   }
+                // ]);
+              }
             }
-          });
+          );
           store.updateTokens(tokens);
         }
 
@@ -215,6 +223,31 @@
             >
           );
         }
+
+        // creates QuipuSwap farms investment data
+        if (defiData["quipu-farms"]) {
+          const quipuFarms = defiData["quipu-farms"].map(farmData => [
+            `QUIPU-FARM-${farmData.index}`,
+            {
+              id: `QUIPU-FARM-${farmData.index}`,
+              platform: "quipuswap",
+              address: config.quipuFarmsContract,
+              decimals: 6,
+              info: [],
+              alias: `QuipuSwap Farming ${
+                farmData.lock === 0
+                  ? "(no lock)"
+                  : "(" + farmData.lock + "-day lock)"
+              }`,
+              icons: farmData.tokens,
+              rewardToken: AvailableToken.QUIPU,
+              liquidityToken: true
+            }
+          ]);
+          store.updateInvestments(
+            quipuFarms as Array<[AvailableInvestment, InvestmentData]>
+          );
+        }
       } else {
         /*toastStore.addToast({
           type: "error",
@@ -265,20 +298,31 @@
       const tokens = teztools.getCurrentPrice(
         Object.values(AvailableToken).filter(tk => tk !== "ANTI")
       );
-      const newTokens: Array<[AvailableToken, TokenContract]> = Object.entries(
-        $store.tokens
-      ).map(([tokenName, tokenData]: [AvailableToken, TokenContract]) => {
+      Object.keys($store.tokens).forEach((tokenName: AvailableToken) => {
         const teztoolsToken = tokens.find(tk => tk.symbol === tokenName);
         if (teztoolsToken) {
-          return [
-            tokenName,
-            { ...tokenData, exchangeRate: teztoolsToken.xtzPrice }
-          ];
-        } else {
-          return [tokenName, tokenData];
+          $store.tokens[tokenName].setExchangeRate([
+            { dex: AvailableDex.QUIPU, rate: teztoolsToken.xtzPrice }
+          ]);
         }
+        // if (teztoolsToken) {
+        //   return [
+        //     tokenName,
+        //     { ...tokenData, exchangeRate: teztoolsToken.xtzPrice }
+        //   ];
+        // } else {
+        //   return [tokenName, tokenData];
+        // }
       });
-      store.updateTokens(newTokens);
+      const antiExchangeRate = await fetchAntiPrice($store.Tezos);
+      if (antiExchangeRate) {
+        $store.tokens.ANTI.setExchangeRate([
+          {
+            dex: AvailableDex.VORTEX,
+            rate: antiExchangeRate / 10 ** $store.tokens.ANTI.decimals
+          }
+        ]);
+      }
     };
     const teztools = new TezToolsSDK();
     await teztools.init();

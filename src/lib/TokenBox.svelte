@@ -2,7 +2,7 @@
   import { onMount, afterUpdate } from "svelte";
   import { slide } from "svelte/transition";
   import Chart from "chart.js/auto/auto.esm";
-  import type { AvailableToken } from "../types";
+  import { AvailableToken } from "../types";
   import store from "../store";
   import { formatTokenAmount } from "../utils";
 
@@ -257,10 +257,12 @@
       </div>
       <div class="title">Your balance</div>
       <div class="token-box__info__left">
-        <div>{formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ</div>
+        <div>
+          {formatTokenAmount($store.tokens[token].getExchangeRate(), 6)} ꜩ
+        </div>
         <div>
           {formatTokenAmount(
-            $store.tokens[token].exchangeRate * $store.xtzExchangeRate,
+            $store.tokens[token].getExchangeRate() * $store.xtzExchangeRate,
             2
           )} USD
         </div>
@@ -289,14 +291,15 @@
           {userBalance} tokens
         </div>
         <div>
-          {formatTokenAmount(userBalance * $store.tokens[token].exchangeRate)} ꜩ
+          {formatTokenAmount(
+            userBalance * $store.tokens[token].getExchangeRate()
+          )} ꜩ
         </div>
         <div>
           {formatTokenAmount(
             userBalance *
-              $store.tokens[token].exchangeRate *
-              $store.xtzExchangeRate,
-            2
+              $store.tokens[token].getExchangeRate() *
+              $store.xtzExchangeRate
           )} USD
         </div>
       </div>
@@ -336,10 +339,12 @@
       </div>
       <div>
         <div class="token-box__info__left">
-          <div>{formatTokenAmount($store.tokens[token].exchangeRate)} ꜩ</div>
+          <div>
+            {formatTokenAmount($store.tokens[token].getExchangeRate(), 6)} ꜩ
+          </div>
           <div>
             {formatTokenAmount(
-              $store.tokens[token].exchangeRate * $store.xtzExchangeRate,
+              $store.tokens[token].getExchangeRate() * $store.xtzExchangeRate,
               2
             )} USD
           </div>
@@ -368,12 +373,14 @@
           {userBalance} tokens
         </div>
         <div>
-          {formatTokenAmount(userBalance * $store.tokens[token].exchangeRate)} ꜩ
+          {formatTokenAmount(
+            userBalance * $store.tokens[token].getExchangeRate()
+          )} ꜩ
         </div>
         <div>
           {formatTokenAmount(
             userBalance *
-              $store.tokens[token].exchangeRate *
+              $store.tokens[token].getExchangeRate() *
               $store.xtzExchangeRate,
             2
           )} USD

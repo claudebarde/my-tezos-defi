@@ -58,7 +58,7 @@
         id: invData.id,
         balance: invData.balance,
         value: stakeInXtz,
-        rewards: rewards * $store.tokens.ANTI.exchangeRate
+        rewards: rewards * $store.tokens.ANTI.getExchangeRate()
       });
     }
   };
@@ -187,22 +187,23 @@
       <div class="actions">
         <div>
           <div>Rewards</div>
-          <div class="bold">
+          <div>Coming soon!</div>
+          <!-- <div class="bold">
             {formatTokenAmount(rewards)}
             {invData.rewardToken}
           </div>
           <div style="font-size: 0.8rem">
             ({formatTokenAmount(
-              rewards * $store.tokens[invData.rewardToken].exchangeRate,
+              rewards * $store.tokens[invData.rewardToken].getExchangeRate(),
               2
             )}
             ꜩ / {formatTokenAmount(
               rewards *
-                $store.tokens[invData.rewardToken].exchangeRate *
+                $store.tokens[invData.rewardToken].getExchangeRate() *
                 $store.xtzExchangeRate,
               2
             )} USD)
-          </div>
+          </div> -->
         </div>
         <div>
           <div />

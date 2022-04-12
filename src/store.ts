@@ -5,10 +5,10 @@ import type {
   State,
   TezosAccountAddress,
   UserToken,
-  TokenContract,
   AvailableToken,
   InvestmentData
 } from "./types";
+import type Token from "./Token";
 import { AvailableInvestment } from "./types";
 import config from "./config";
 
@@ -16,7 +16,7 @@ const initialState: State = {
   isAppReady: false,
   settings: {
     rpcUrl: config.rpcUrl,
-    defiData: "QmUMrWdYg5XLpcFi1ksQaLhcBmAvqfwMDbmZAGTGUiGkpq"
+    defiData: "Qmf4Kt4qHfsxbu6Ne8rVtFW2TmYCsNgqgFShjP86LaMQXm"
   },
   Tezos: undefined,
   wallet: undefined,
@@ -66,7 +66,7 @@ const state = {
     store.update(store => ({ ...store, xtzPriceHistoric: historic })),
   updateUserTokens: (tokens: Array<UserToken>) =>
     store.update(store => ({ ...store, userTokens: tokens })),
-  updateTokens: (newTokens: Array<[AvailableToken, TokenContract]>) =>
+  updateTokens: (newTokens: Array<[AvailableToken, Token]>) =>
     store.update(store => {
       let tokens;
       if (!store.tokens) {
@@ -78,19 +78,6 @@ const state = {
       newTokens.forEach(
         ([tokenName, tokenData]) => (tokens[tokenName] = tokenData)
       );
-
-      if (store.userTokens) {
-        // updates the balance and exchange rate of user tokens
-        const newUserTokens = store.userTokens.map(userToken => {
-          if (tokens.hasOwnProperty(userToken.name)) {
-            return {
-              ...userToken,
-              exchangeRate: tokens[userToken.name].exchangeRate
-            };
-          }
-        });
-        return { ...store, tokens, userTokens: newUserTokens };
-      }
 
       return { ...store, tokens };
     }),

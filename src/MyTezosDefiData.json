@@ -1283,5 +1283,12 @@
     { "contract": "KT18oo99LkMMdH8aXTMbCBD9ZunLqtkCVUUi", "token": "wUSDT" },
     { "contract": "KT1C27Kz1maYphYZ5SLv821iumNQbgn95bRa", "token": "wWBTC" },
     { "contract": "KT1KsP1tyN7HvUD1TaCkP7X8nBGkvejuvEk8", "token": "wWETH" }
+  ],
+  "quipu-farms": [
+    { "index": 0, "tokens": ["XTZ", "QUIPU"], "lock": 0 },
+    { "index": 1, "tokens": ["XTZ", "QUIPU"], "lock": 14 },
+    { "index": 2, "tokens": ["XTZ", "QUIPU"], "lock": 30 },
+    { "index": 3, "tokens": ["QUIPU"], "lock": 0 },
+    { "index": 4, "tokens": ["QUIPU"], "lock": 14 }
   ]
 }

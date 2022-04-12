@@ -52,9 +52,9 @@
 
           stakeInXtz =
             (token1Value / 10 ** $store.tokens.uUSD.decimals) *
-              $store.tokens[token1].exchangeRate +
+              $store.tokens[token1].getExchangeRate() +
             (token2Value / 10 ** $store.tokens.uBTC.decimals) *
-              $store.tokens[token2].exchangeRate;
+              $store.tokens[token2].getExchangeRate();
         }
         // computes total supply value in XTZ
         const totalSupplyPrice = computeLpTokenPrice(
@@ -69,9 +69,9 @@
             inToken: total_supply.toNumber(),
             inTez:
               (token1Output.toNumber() / 10 ** $store.tokens.uUSD.decimals) *
-                $store.tokens[token1].exchangeRate +
+                $store.tokens[token1].getExchangeRate() +
               (token2Output.toNumber() / 10 ** $store.tokens.uBTC.decimals) *
-                $store.tokens[token2].exchangeRate
+                $store.tokens[token2].getExchangeRate()
           };
         }
         // computes the long term rewards
@@ -112,9 +112,9 @@
         token2Value = token2Output.toNumber();
         stakeInXtz =
           (token1Value / 10 ** $store.tokens.uUSD.decimals) *
-            $store.tokens[token1].exchangeRate +
+            $store.tokens[token1].getExchangeRate() +
           (token2Value / 10 ** $store.tokens.wUSDC.decimals) *
-            $store.tokens[token2].exchangeRate;
+            $store.tokens[token2].getExchangeRate();
 
         // computes total supply value in XTZ
         const totalSupplyPrice = computeLpTokenPrice(
@@ -129,9 +129,9 @@
             inToken: lqtTotal.toNumber(),
             inTez:
               (token1Output.toNumber() / 10 ** $store.tokens.uUSD.decimals) *
-                $store.tokens[token1].exchangeRate +
+                $store.tokens[token1].getExchangeRate() +
               (token2Output.toNumber() / 10 ** $store.tokens.wUSDC.decimals) *
-                $store.tokens[token2].exchangeRate
+                $store.tokens[token2].getExchangeRate()
           };
         }
       }
@@ -139,14 +139,14 @@
       stakingToken = "YOU";
       stakeInXtz =
         (invData.balance / 10 ** $store.tokens.YOU.decimals) *
-        $store.tokens.YOU.exchangeRate;
+        $store.tokens.YOU.getExchangeRate();
     }
     // converts rewards into XTZ
     dispatch("farm-update", {
       id: invData.id,
       balance: invData.balance,
       value: stakeInXtz,
-      rewards: rewards * $store.tokens[invData.rewardToken].exchangeRate
+      rewards: rewards * $store.tokens[invData.rewardToken].getExchangeRate()
     });
   };
 
@@ -227,9 +227,14 @@
             {invData.rewardToken}
           </div>
           <div style="font-size: 0.8rem">
-            ({formatTokenAmount(rewards * $store.tokens.YOU.exchangeRate, 2)} ꜩ /
+            ({formatTokenAmount(
+              rewards * $store.tokens.YOU.getExchangeRate(),
+              2
+            )} ꜩ /
             {formatTokenAmount(
-              rewards * $store.tokens.YOU.exchangeRate * $store.xtzExchangeRate,
+              rewards *
+                $store.tokens.YOU.getExchangeRate() *
+                $store.xtzExchangeRate,
               2
             )} USD)
           </div>
@@ -241,11 +246,11 @@
             </div>
             <div style="font-size: 0.8rem">
               ({formatTokenAmount(
-                longTermRewards * $store.tokens.YOU.exchangeRate,
+                longTermRewards * $store.tokens.YOU.getExchangeRate(),
                 2
               )} ꜩ / {formatTokenAmount(
                 longTermRewards *
-                  $store.tokens.YOU.exchangeRate *
+                  $store.tokens.YOU.getExchangeRate() *
                   $store.xtzExchangeRate,
                 2
               )} USD)

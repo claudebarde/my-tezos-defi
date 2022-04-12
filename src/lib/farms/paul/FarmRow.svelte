@@ -31,13 +31,13 @@
         balance: invData.balance,
         paulToken: {
           decimals: $store.tokens.PAUL.decimals,
-          exchangeRate: $store.tokens.PAUL.exchangeRate
+          exchangeRate: $store.tokens.PAUL.getExchangeRate()
         }
       });
     } else if (invData.id === "PAUL-PAUL") {
       stakeInXtz = formatTokenAmount(
         (invData.balance / 10 ** invData.decimals) *
-          $store.tokens.PAUL.exchangeRate
+          $store.tokens.PAUL.getExchangeRate()
       );
     } else {
       stakeInXtz = null;
@@ -85,7 +85,7 @@
         id: invData.id,
         balance: invData.balance,
         value: stakeInXtz,
-        rewards: rewards * $store.tokens.PAUL.exchangeRate
+        rewards: rewards * $store.tokens.PAUL.getExchangeRate()
       });
     }
   };
@@ -207,11 +207,13 @@
           <div>Rewards</div>
           <div class="bold">{formatTokenAmount(rewards)} PAUL</div>
           <div style="font-size: 0.8rem">
-            ({formatTokenAmount(rewards * $store.tokens.PAUL.exchangeRate, 2)} ꜩ
-            /
+            ({formatTokenAmount(
+              rewards * $store.tokens.PAUL.getExchangeRate(),
+              2
+            )} ꜩ /
             {formatTokenAmount(
               rewards *
-                $store.tokens.PAUL.exchangeRate *
+                $store.tokens.PAUL.getExchangeRate() *
                 $store.xtzExchangeRate,
               2
             )} USD)

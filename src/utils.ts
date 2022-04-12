@@ -302,20 +302,20 @@ export const sortTokensByBalance = (tokens: [AvailableToken, number][]) => {
 
     if (
       !localStore.tokens ||
-      !localStore.tokens[a[0]].exchangeRate ||
-      !localStore.tokens[b[0]].exchangeRate
+      !localStore.tokens[a[0]].getExchangeRate() ||
+      !localStore.tokens[b[0]].getExchangeRate()
     ) {
       return 0;
     }
 
     return (
       balanceB *
-        (localStore.tokens[b[0]].exchangeRate
-          ? localStore.tokens[b[0]].exchangeRate
+        (localStore.tokens[b[0]].getExchangeRate()
+          ? localStore.tokens[b[0]].getExchangeRate()
           : 0) -
       balanceA *
-        (localStore.tokens[a[0]].exchangeRate
-          ? localStore.tokens[a[0]].exchangeRate
+        (localStore.tokens[a[0]].getExchangeRate()
+          ? localStore.tokens[a[0]].getExchangeRate()
           : 0)
     );
   });
@@ -419,7 +419,7 @@ export const prepareOperation = (p: {
   const { contractCalls, amount, tokenSymbol } = p;
   // calculates fee
   const amountToSendInXtz =
-    +amount * +localStore.tokens[tokenSymbol].exchangeRate;
+    +amount * +localStore.tokens[tokenSymbol].getExchangeRate();
   let fee = 0;
   if (localStore.serviceFee !== null) {
     fee = amountToSendInXtz * localStore.serviceFee;

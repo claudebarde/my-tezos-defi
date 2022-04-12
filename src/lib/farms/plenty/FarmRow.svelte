@@ -28,7 +28,7 @@
       id: invData.id,
       balance: invData.balance,
       decimals: invData.decimals,
-      exchangeRate: $store.tokens[invData.rewardToken].exchangeRate,
+      exchangeRate: $store.tokens[invData.rewardToken].getExchangeRate(),
       rewardToken: invData.rewardToken
     });
     // converts rewards into XTZ
@@ -36,7 +36,7 @@
       id: invData.id,
       balance: invData.balance,
       value: stakeInXtz,
-      rewards: rewards * $store.tokens.PLENTY.exchangeRate
+      rewards: rewards * $store.tokens.PLENTY.getExchangeRate()
     });
   };
 
@@ -56,7 +56,7 @@
         id: invData.id,
         balance: invData.balance,
         value: stakeInXtz,
-        rewards: rewards * $store.tokens.PLENTY.exchangeRate
+        rewards: rewards * $store.tokens.PLENTY.getExchangeRate()
       });
     }
   };
@@ -174,10 +174,13 @@
           <div>Rewards</div>
           <div class="bold">{formatTokenAmount(rewards)} PLENTY</div>
           <div style="font-size: 0.8rem">
-            ({formatTokenAmount(rewards * $store.tokens.PLENTY.exchangeRate, 2)}
+            ({formatTokenAmount(
+              rewards * $store.tokens.PLENTY.getExchangeRate(),
+              2
+            )}
             ꜩ / {formatTokenAmount(
               rewards *
-                $store.tokens.PLENTY.exchangeRate *
+                $store.tokens.PLENTY.getExchangeRate() *
                 $store.xtzExchangeRate,
               2
             )} USD)

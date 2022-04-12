@@ -32,7 +32,7 @@
       stakeInXtz =
         +(
           (invData.balance / 10 ** $store.tokens.kUSD.decimals) *
-          $store.tokens.kUSD.exchangeRate
+          $store.tokens.kUSD.getExchangeRate()
         ).toFixed(5) / 1;
     } else if (invData.id === "KUSD-QUIPU-LP") {
       const tezInStakesRaw = await estimateQuipuTezInShares(
@@ -48,7 +48,7 @@
       );
       const tokensInStakes =
         (tokensInStakesRaw.toNumber() / 10 ** $store.tokens.kUSD.decimals) *
-        $store.tokens.kUSD.exchangeRate;
+        $store.tokens.kUSD.getExchangeRate();
 
       stakeInXtz = formatTokenAmount(tezInStakes + tokensInStakes);
     } else if (invData.id === "KUSD-QL") {
@@ -92,7 +92,7 @@
       stakeInXtz = formatTokenAmount(
         +(invData.balance / 10 ** invData.decimals) *
           redeemRate *
-          $store.tokens.kUSD.exchangeRate
+          $store.tokens.kUSD.getExchangeRate()
       );
     } else if (invData.id === "KDAO-KUSD-UUSD") {
       const kUSDuUSDdexAddress = "KT1AVbWyM8E7DptyBCu4B5J5B7Nswkq7Skc6";
@@ -109,11 +109,11 @@
         const token1ToXtz =
           (computedResult.token1Output.toNumber() /
             10 ** $store.tokens.kUSD.decimals) *
-          $store.tokens.kUSD.exchangeRate;
+          $store.tokens.kUSD.getExchangeRate();
         const token2ToXtz =
           (computedResult.token2Output.toNumber() /
             10 ** $store.tokens.uUSD.decimals) *
-          $store.tokens.uUSD.exchangeRate;
+          $store.tokens.uUSD.getExchangeRate();
         stakeInXtz = token1ToXtz + token2ToXtz;
       }
     }
@@ -133,7 +133,7 @@
       id: invData.id,
       balance: invData.balance,
       value: stakeInXtz,
-      rewards: rewards * $store.tokens.kDAO.exchangeRate
+      rewards: rewards * $store.tokens.kDAO.getExchangeRate()
     });
   };
 
@@ -221,7 +221,9 @@
         <div class="farm-info__tokens-price">
           {#each invData.icons as token}
             <div>
-              1 {token} = {formatTokenAmount($store.tokens[token].exchangeRate)}
+              1 {token} = {formatTokenAmount(
+                $store.tokens[token].getExchangeRate()
+              )}
               ꜩ
             </div>
           {/each}
@@ -250,11 +252,13 @@
           <div>Rewards</div>
           <div class="bold">{formatTokenAmount(rewards)} kDAO</div>
           <div style="font-size: 0.8rem">
-            ({formatTokenAmount(rewards * $store.tokens.kDAO.exchangeRate, 2)} ꜩ
-            /
+            ({formatTokenAmount(
+              rewards * $store.tokens.kDAO.getExchangeRate(),
+              2
+            )} ꜩ /
             {formatTokenAmount(
               rewards *
-                $store.tokens.kDAO.exchangeRate *
+                $store.tokens.kDAO.getExchangeRate() *
                 $store.xtzExchangeRate,
               2
             )} USD)

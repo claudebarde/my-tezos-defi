@@ -33,16 +33,23 @@
   </div>
   <div>
     <div>Rewards</div>
-    <div class="bold">{formatTokenAmount(rewards)} {rewardToken}</div>
-    <div style="font-size: 0.8rem">
-      ({formatTokenAmount(rewards * $store.tokens[rewardToken].exchangeRate, 2)}
-      ꜩ / {formatTokenAmount(
-        rewards *
-          $store.tokens[rewardToken].exchangeRate *
-          $store.xtzExchangeRate,
-        2
-      )} USD)
-    </div>
+    {#if invData.platform === "smartlink"}
+      <div>Coming soon!</div>
+    {:else}
+      <div class="bold">{formatTokenAmount(rewards)} {rewardToken}</div>
+      <div style="font-size: 0.8rem">
+        ({formatTokenAmount(
+          rewards * $store.tokens[rewardToken].getExchangeRate(),
+          2
+        )}
+        ꜩ / {formatTokenAmount(
+          rewards *
+            $store.tokens[rewardToken].getExchangeRate() *
+            $store.xtzExchangeRate,
+          2
+        )} USD)
+      </div>
+    {/if}
   </div>
   <div class="buttons">
     <button class="primary" on:click={() => dispatch("harvest")}>

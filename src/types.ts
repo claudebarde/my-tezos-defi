@@ -1,5 +1,6 @@
 import type { TezosToolkit } from "@taquito/taquito";
 import type { BeaconWallet } from "@taquito/beacon-wallet";
+import type Token from "./Token";
 
 export type TezosContractAddress = `KT1${string}`;
 export type TezosAccountAddress = `tz${"1" | "2" | "3"}${string}`;
@@ -167,7 +168,12 @@ export enum AvailableInvestment {
   "YOUVES-YOU-UBTC" = "YOUVES-YOU-UBTC",
   "YOUVES-YOU-UUSD" = "YOUVES-YOU-UUSD",
   "YOUVES-YOU-UDEFI" = "YOUVES-YOU-UDEFI",
-  "SMLK-XTZ-ANTI" = "SMLK-XTZ-ANTI"
+  "SMLK-XTZ-ANTI" = "SMLK-XTZ-ANTI",
+  "QUIPU-FARM-0" = "QUIPU-FARM-0",
+  "QUIPU-FARM-1" = "QUIPU-FARM-1",
+  "QUIPU-FARM-2" = "QUIPU-FARM-2",
+  "QUIPU-FARM-3" = "QUIPU-FARM-3",
+  "QUIPU-FARM-4" = "QUIPU-FARM-4"
 }
 
 export type InvestmentPlatform =
@@ -180,9 +186,14 @@ export type InvestmentPlatform =
   | "smartlink"
   | "youves";
 
+export enum AvailableDex {
+  QUIPU = "quipu",
+  PLENTY = "plenty",
+  VORTEX = "vortex"
+}
+
 export interface UserToken {
   name: AvailableToken;
-  exchangeRate: number;
   balance: number;
 }
 
@@ -197,7 +208,9 @@ export interface TokenContract {
   ledgerKey: "address" | ["address", number] | [string, "address"];
   type: "fa1.2" | "fa2";
   color: string;
-  exchangeRate: null | number; // token to XTZ
+  exchangeRates: { [p in AvailableDex]: null | number };
+  setExchangeRate: (p: Array<{ rate: number; dex: AvailableDex }>) => void;
+  getExchangeRate: (p?: AvailableDex) => null | number;
   tokenId?: number; // only for fa2 contracts;
   thumbnail?: string;
   websiteLink?: string;
@@ -231,7 +244,7 @@ export interface State {
   userTokens: Array<UserToken> | undefined;
   xtzExchangeRate: number | undefined;
   xtzPriceHistoric: Array<{ timestamp: string; price: number }>;
-  tokens: { [p in AvailableToken]: TokenContract } | undefined;
+  tokens: { [p in AvailableToken]: Token } | undefined;
   investments:
     | {
         [p in AvailableInvestment]: InvestmentData;

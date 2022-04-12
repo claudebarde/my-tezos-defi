@@ -7,6 +7,8 @@
   import WrapFarms from "$lib/farms/wrap/WrapFarms.svelte";
   import YouvesFarms from "$lib/farms/youves/YouvesFarms.svelte";
   import SmartlinkFarms from "$lib/farms/smartlink/SmartlinkFarms.svelte";
+  import QuipuFarms from "$lib/farms/quipu/QuipuFarms.svelte";
+  import FarmsHeader from "$lib/farms/FarmsHeader.svelte";
   import type { AvailableInvestment } from "../types";
 
   let totalFarms:
@@ -28,6 +30,7 @@
 <div class="container">
   {#if $store.userAddress}
     <ProfileHeader farms={totalFarms} />
+    <FarmsHeader farms={totalFarms} />
     <div class="farms">
       <PlentyFarms
         on:farm-update={event => {
@@ -66,6 +69,18 @@
         }}
       />
       <PaulFarms
+        on:farm-update={event => {
+          const val = event.detail;
+          if (totalFarms === undefined) {
+            totalFarms = [val];
+          } else {
+            // filters existing values in array
+            const farms = totalFarms.filter(farm => farm.id !== val.id);
+            totalFarms = [...farms, val];
+          }
+        }}
+      />
+      <QuipuFarms
         on:farm-update={event => {
           const val = event.detail;
           if (totalFarms === undefined) {

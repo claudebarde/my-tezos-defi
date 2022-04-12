@@ -30,7 +30,7 @@
           ...$store.userTokens.map(
             tk =>
               (tk.balance / 10 ** $store.tokens[tk.name].decimals) *
-              $store.tokens[tk.name].exchangeRate
+              $store.tokens[tk.name].getExchangeRate()
           )
         ].reduce((a, b) => a + b)
       );
@@ -122,40 +122,6 @@
     <div class="tokens-info">
       <div>{$store.userTokens.length} tokens with balance</div>
       <div>Total value: {totalTokensBalance} ꜩ</div>
-    </div>
-  {:else if $page.url.pathname === "/farms" && !!farms}
-    <div class="tokens-info">
-      <div>{farms.length} farms</div>
-      <div>
-        Total value:
-        <b
-          >{formatTokenAmount(
-            [0, 0, ...farms.map(farm => farm.value)].reduce((a, b) => a + b)
-          )} ꜩ
-        </b>
-        <span style="font-size:0.8rem">
-          ({formatTokenAmount(
-            [0, 0, ...farms.map(farm => farm.value)].reduce((a, b) => a + b) *
-              $store.xtzExchangeRate,
-            2
-          ).toLocaleString()} USD)
-        </span>
-      </div>
-      <div>
-        Total rewards:
-        <b
-          >{formatTokenAmount(
-            [0, 0, ...farms.map(farm => farm.rewards)].reduce((a, b) => a + b)
-          )} ꜩ
-        </b>
-        <span style="font-size:0.8rem">
-          ({formatTokenAmount(
-            [0, 0, ...farms.map(farm => farm.rewards)].reduce((a, b) => a + b) *
-              $store.xtzExchangeRate,
-            2
-          ).toLocaleString()} USD)
-        </span>
-      </div>
     </div>
   {:else}
     <div />

@@ -170,29 +170,29 @@ export const calcPlentyStakeInXtz = async ({
         // when reward token is YOU
         stakeInXtz =
           (tokens.token1Amount / 10 ** localStore.tokens.uUSD.decimals) *
-            localStore.tokens.uUSD.exchangeRate +
+            localStore.tokens.uUSD.getExchangeRate() +
           (tokens.token2Amount /
             10 ** localStore.tokens[tokens.token2].decimals) *
-            localStore.tokens[tokens.token2].exchangeRate;
+            localStore.tokens[tokens.token2].getExchangeRate();
       } else if (id.slice(0, 4).toLowerCase() === "ctez") {
         // when staked token is Ctez
         stakeInXtz =
           (tokens.token1Amount / 10 ** localStore.tokens.ctez.decimals) *
-            localStore.tokens.ctez.exchangeRate +
+            localStore.tokens.ctez.getExchangeRate() +
           (tokens.token2Amount /
             10 ** localStore.tokens[tokens.token2].decimals) *
-            localStore.tokens[tokens.token2].exchangeRate;
+            localStore.tokens[tokens.token2].getExchangeRate();
       } else {
         // when reward token is PLENTY
         stakeInXtz =
           (tokens.token1Amount / 10 ** localStore.tokens.PLENTY.decimals) *
-            localStore.tokens.PLENTY.exchangeRate +
+            localStore.tokens.PLENTY.getExchangeRate() +
           (tokens.token2Amount /
             10 ** localStore.tokens[tokens.token2].decimals) *
-            localStore.tokens[tokens.token2].exchangeRate;
+            localStore.tokens[tokens.token2].getExchangeRate();
       }
 
-      return +stakeInXtz.toFixed(5) / 1;
+      return +stakeInXtz;
     }
   }
 };

@@ -1,15 +1,17 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { slide } from "svelte/transition";
+  import BigNumber from "bignumber.js";
   import type { AvailableInvestment, InvestmentData } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
-  import { formatTokenAmount, prepareOperation } from "../../../utils";
-  import {
-    calcTokenStakesInWrapFarms,
-    getWrapReward
-  } from "../../../tokenUtils/wrapUtils";
+  import config from "../../../config";
   import FarmMiniRow from "../FarmMiniRow.svelte";
+  import {
+    prepareOperation,
+    formatTokenAmount,
+    calculateLqtOutput
+  } from "../../../utils";
 
   export let invName: AvailableInvestment;
 
@@ -23,52 +25,38 @@
   let harvestingSuccess = false;
 
   const calcStake = async () => {
-    if (invData.type === "fee-farming") {
-      stakeInXtz =
-        +(
-          (invData.balance / 10 ** invData.decimals) *
-          $store.tokens.WRAP.getExchangeRate()
-        ).toFixed(5) / 1;
-    } else if (invData.type === "staking") {
-      const stakes = await calcTokenStakesInWrapFarms({
-        invData,
-        balance: invData.balance,
-        tokenExchangeRate: $store.tokens[invData.rewardToken].getExchangeRate(),
-        tokenDecimals: $store.tokens[invData.rewardToken].decimals,
-        Tezos: $store.Tezos
+    if (invData.icons.includes("XTZ")) {
+      const contract = await $store.Tezos.wallet.at(
+        "KT1X3zxdTzPB9DgVzA3ad6dgZe9JEamoaeRy"
+      );
+      const storage: any = await contract.storage();
+      const { tez_pool, token_pool, total_supply } = storage.storage;
+      // XTZ-QUIPU LP token
+      const output = calculateLqtOutput({
+        lqTokens: invData.balance,
+        xtzPool: tez_pool.toNumber(),
+        tokenPool: token_pool.toNumber(),
+        lqtTotal: total_supply.toNumber(),
+        tokenDecimal: invData.decimals
       });
-
-      if (stakes) {
-        stakeInXtz = +stakes.toFixed(5) / 1;
-      } else {
-        stakeInXtz = null;
+      if (output && !isNaN(output.xtz) && !isNaN(output.tokens)) {
+        stakeInXtz =
+          output.xtz + output.tokens * $store.tokens.QUIPU.getExchangeRate();
       }
     } else {
-      stakeInXtz =
-        +(
-          (invData.balance / 10 ** invData.decimals) *
-          $store.tokens.WRAP.getExchangeRate()
-        ).toFixed(5) / 1;
+      // QUIPU LP token
+      stakeInXtz = invData.balance * $store.tokens.QUIPU.getExchangeRate();
     }
   };
 
   const calcRewards = async () => {
-    const rewardsRes = await getWrapReward(
-      invData.id,
-      invData.address,
-      $store.userAddress,
-      invData.balance
-    );
-    if (rewardsRes) {
-      rewards = rewardsRes.toNumber() / 10 ** $store.tokens.WRAP.decimals;
-      // converts rewards into XTZ
-      dispatch("farm-update", {
-        id: invData.id,
-        balance: invData.balance,
-        value: stakeInXtz,
-        rewards: rewards * $store.tokens[invData.rewardToken].getExchangeRate()
-      });
-    }
+    // converts rewards into XTZ
+    dispatch("farm-update", {
+      id: invData.id,
+      balance: invData.balance,
+      value: stakeInXtz,
+      rewards: rewards * $store.tokens.kDAO.getExchangeRate()
+    });
   };
 
   const harvest = async () => {
@@ -154,14 +142,12 @@
         </div>
         <div class="farm-info__tokens-price">
           {#each invData.icons as token}
-            {#if token !== "XTZ"}
-              <div>
-                1 {token} = {formatTokenAmount(
-                  $store.tokens[token].exchangeRate
-                )}
-                ꜩ
-              </div>
-            {/if}
+            <div>
+              1 {token} = {formatTokenAmount(
+                $store.tokens[token].getExchangeRate()
+              )}
+              ꜩ
+            </div>
           {/each}
         </div>
       </div>
@@ -186,15 +172,18 @@
       <div class="actions">
         <div>
           <div>Rewards</div>
-          <div class="bold">{formatTokenAmount(rewards)} WRAP</div>
+          <div class="bold">
+            {formatTokenAmount(rewards)}
+            {invData.rewardToken}
+          </div>
           <div style="font-size: 0.8rem">
             ({formatTokenAmount(
-              rewards * $store.tokens.WRAP.getExchangeRate(),
+              rewards * $store.tokens.kDAO.getExchangeRate(),
               2
             )} ꜩ /
             {formatTokenAmount(
               rewards *
-                $store.tokens.WRAP.getExchangeRate() *
+                $store.tokens.kDAO.getExchangeRate() *
                 $store.xtzExchangeRate,
               2
             )} USD)
@@ -202,7 +191,7 @@
         </div>
         <div>
           <div />
-          <button class="primary">
+          <button class="primary" on:click={harvest}>
             <span class="material-icons-outlined"> agriculture </span>
             Harvest
           </button>
@@ -224,8 +213,9 @@
       {rewards}
       rewardToken={invData.rewardToken}
       on:expand={() => (expand = true)}
+      on:harvest={harvest}
     />
   {/if}
 {:else}
-  <div>No data found for the {invData ? invData.alias : ""} farm</div>
+  <div>No data found for this farm</div>
 {/if}
