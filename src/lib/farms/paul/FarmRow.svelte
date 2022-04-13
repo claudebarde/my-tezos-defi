@@ -64,12 +64,12 @@
         const token1InXtz =
           ((shares.tokenAAmount /
             10 ** $store.tokens[invData.icons[0]].decimals) *
-            $store.tokens[invData.icons[0]].exchangeRate) /
+            $store.tokens[invData.icons[0]].getExchangeRate()) /
           10 ** 6;
         const token2InXtz =
           ((shares.tokenBAmount /
             10 ** $store.tokens[invData.icons[1]].decimals) *
-            $store.tokens[invData.icons[1]].exchangeRate) /
+            $store.tokens[invData.icons[1]].getExchangeRate()) /
           10 ** 6;
         stakeInXtz = formatTokenAmount(token1InXtz + token2InXtz);
       }

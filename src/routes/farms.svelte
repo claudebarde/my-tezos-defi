@@ -29,7 +29,7 @@
 
 <div class="container">
   {#if $store.userAddress}
-    <ProfileHeader farms={totalFarms} />
+    <ProfileHeader />
     <FarmsHeader farms={totalFarms} />
     <div class="farms">
       <PlentyFarms

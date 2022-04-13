@@ -16,6 +16,7 @@
   export let invName: AvailableInvestment;
 
   const dispatch = createEventDispatcher();
+  let farmId: number | undefined = undefined;
   let invData: InvestmentData;
   let stakeInXtz: null | number = null;
   let rewards = 0;
@@ -50,12 +51,47 @@
   };
 
   const calcRewards = async () => {
+    const contract = await $store.Tezos.wallet.at(invData.address);
+    const storage: any = await contract.storage();
+    const farmData = await storage.storage.farms.get(farmId);
+    console.log(farmData);
+    const userData = await storage.storage.users_info.get({
+      0: farmId,
+      1: $store.userAddress
+    });
+    console.log(userData);
+    // calculates number of seconds since last stake
+    const seconds = Math.round(
+      (Date.now() - new Date(userData.last_staked).getTime()) / 1000
+    );
+    // calculates rewards per share
+    console.log({
+      reward_per_share: farmData.reward_per_share.toNumber(),
+      reward_per_second: farmData.reward_per_second.toNumber(),
+      staked: farmData.staked.toNumber(),
+      my_stake: invData.balance
+    });
+
+    const rewardsFromShares =
+      invData.balance *
+      (farmData.reward_per_share.toNumber() *
+        farmData.reward_per_second.toNumber());
+    const estimatedRewards = rewardsFromShares * seconds;
+    rewards = estimatedRewards / 10 ** 51;
+    console.log(rewards);
+
+    const _rewardsFromShares =
+      invData.balance /
+      (farmData.reward_per_share.toNumber() /
+        farmData.reward_per_second.toNumber());
+    const _estimatedRewards = _rewardsFromShares * seconds;
+    console.log(_estimatedRewards);
     // converts rewards into XTZ
     dispatch("farm-update", {
       id: invData.id,
       balance: invData.balance,
       value: stakeInXtz,
-      rewards: rewards * $store.tokens.kDAO.getExchangeRate()
+      rewards: rewards * $store.tokens.QUIPU.getExchangeRate()
     });
   };
 
@@ -66,7 +102,7 @@
       const batch = prepareOperation({
         contractCalls: [contract.methods.claim([["unit"]])],
         amount: rewards,
-        tokenSymbol: AvailableToken.kDAO
+        tokenSymbol: AvailableToken.QUIPU
       });
       const op = await batch.send();
       await op.confirmation();
@@ -105,6 +141,7 @@
 
   onMount(async () => {
     invData = $store.investments[invName];
+    farmId = +invData.id.replace("QUIPU-FARM-", "");
     if (!invData.balance) {
       stakeInXtz = 0;
     } else {
@@ -178,12 +215,12 @@
           </div>
           <div style="font-size: 0.8rem">
             ({formatTokenAmount(
-              rewards * $store.tokens.kDAO.getExchangeRate(),
+              rewards * $store.tokens.QUIPU.getExchangeRate(),
               2
             )} ꜩ /
             {formatTokenAmount(
               rewards *
-                $store.tokens.kDAO.getExchangeRate() *
+                $store.tokens.QUIPU.getExchangeRate() *
                 $store.xtzExchangeRate,
               2
             )} USD)

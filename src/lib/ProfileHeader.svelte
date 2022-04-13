@@ -4,8 +4,6 @@
   import store from "../store";
   import { formatTokenAmount, calculateTrend } from "../utils";
 
-  export let farms = undefined;
-
   let xtzPrice24hourDifference: number | undefined = undefined;
   let xtzTrend;
   let totalTokensBalance: number;

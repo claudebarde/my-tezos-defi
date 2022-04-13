@@ -2,6 +2,9 @@
   import { afterUpdate } from "svelte";
   import Wallet from "./Wallet.svelte";
   import logoPic from "../assets/logo.png";
+  import twitterLogo from "../assets/twitter-circled.svg";
+  import telegramLogo from "../assets/telegram-app.svg";
+  import githubLogo from "../assets/github.svg";
   import LiveTrafficWorker from "../livetraffic.worker?worker";
   import store from "../store";
   import config from "../config";
@@ -59,6 +62,21 @@
         text-decoration: none;
       }
     }
+
+    .contact-links {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 20px 0px;
+
+      a {
+        text-decoration: none;
+      }
+
+      img {
+        width: 32px;
+      }
+    }
   }
 </style>
 
@@ -114,7 +132,32 @@
     </nav>
   </div>
   <div>
-    <img src={logoPic} alt="logo" />
-    <span>My Tezos Defi</span>
+    <div class="contact-links">
+      <a
+        href="https://twitter.com/MyTezosDefi"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img src={twitterLogo} alt="twitter" />
+      </a>
+      <a
+        href="https://github.com/claudebarde/my-tezos-defi"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img src={githubLogo} alt="github" />
+      </a>
+      <a
+        href="https://t.me/+KzrVBZ9u8EhjYjI0"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img src={telegramLogo} alt="telegram" />
+      </a>
+    </div>
+    <div>
+      <img src={logoPic} alt="logo" />
+      <span>My Tezos Defi</span>
+    </div>
   </div>
 </div>
