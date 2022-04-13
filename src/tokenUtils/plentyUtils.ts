@@ -1,7 +1,9 @@
 import type { TezosToolkit } from "@taquito/taquito";
-import { AvailableInvestment, AvailableToken } from "../types";
 import { get } from "svelte/store";
-import store from "../store";
+import { Option, Result } from "@swan-io/boxed";
+import { AvailableInvestment, AvailableToken } from "../types";
+import type { InvestmentData, TezosAccountAddress } from "../types";
+import _store from "../store";
 import config from "../config";
 import type { TezosContractAddress } from "../types";
 
@@ -90,7 +92,7 @@ export const getPlentyReward = async (
   currentLevel: number,
   decimals: number
 ) => {
-  const localStore = get(store);
+  const localStore = get(_store);
 
   try {
     if (!stakingContractAddress) {
@@ -149,7 +151,7 @@ export const calcPlentyStakeInXtz = async ({
 }): Promise<number> => {
   if (!balance) return 0;
 
-  const localStore = get(store);
+  const localStore = get(_store);
 
   if (!isPlentyLpToken) {
     const stakeInXtz =
@@ -262,7 +264,7 @@ const xPlentyComputation = async (
   Tezos: TezosToolkit,
   currentBlockLevel: number
 ) => {
-  const localStore = get(store);
+  const localStore = get(_store);
   const rewardManagerAddress = "KT1MCgouivQ2rzam5hA2gqF1eMtY5i6ndJvT";
   const xPlentyCurveAddress = "KT1PxkrCckgh5fA5v2cZEE2bX5q2RV1rv8dj";
 
@@ -425,7 +427,7 @@ export const computeTokenOutput = async (
   token2: { name: AvailableToken | "XTZ"; decimals: number },
   slippage: number
 ) => {
-  const localStore = get(store);
+  const localStore = get(_store);
 
   const dexAddressVal = Object.entries(config.plentyDexAddresses).find(
     val => val[0].includes(token1.name) && val[0].includes(token2.name)
@@ -445,4 +447,49 @@ export const computeTokenOutput = async (
   const fees = token1Amount * exchangeFee;
 
   return { token2Amount: swapOutput, minimumOut, fees };
+};
+
+export const calcPlentyRewards = async (
+  invData: InvestmentData,
+  userAddress: TezosAccountAddress,
+  currentLevel: number
+): Promise<Option<number>> => {
+  const store = get(_store);
+
+  const rewardsRes = await getPlentyReward(
+    userAddress,
+    invData.address,
+    currentLevel,
+    invData.rewardToken === AvailableToken.YOU
+      ? store.investments[invData.id].decimals
+      : 18
+  );
+  if (rewardsRes.status) {
+    return Option.Some(+rewardsRes.totalRewards);
+  } else {
+    return Option.None();
+  }
+};
+
+export const calcPlentyStake = async (
+  invData: InvestmentData
+): Promise<Result<number, string>> => {
+  const store = get(_store);
+
+  const stakeInXtz = await calcPlentyStakeInXtz({
+    isPlentyLpToken: invData.platform === "plenty",
+    id: invData.id,
+    balance: invData.balance,
+    decimals: invData.decimals,
+    exchangeRate: store.tokens[invData.rewardToken].getExchangeRate(),
+    rewardToken: invData.rewardToken
+  });
+
+  if (stakeInXtz && !isNaN(stakeInXtz)) {
+    return Result.Ok(stakeInXtz);
+  } else {
+    return Result.Error(
+      `Stake in XTZ coudn't be computed for ${invData.alias}`
+    );
+  }
 };

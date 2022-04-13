@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { slide } from "svelte/transition";
+  import { Option } from "@swan-io/boxed";
   import type { AvailableInvestment, InvestmentData } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
@@ -11,13 +12,14 @@
   } from "../../../utils";
   import FarmMiniRow from "../FarmMiniRow.svelte";
   import config from "../../../config";
+  import Loader from "$lib/farms/Loader.svelte";
 
   export let invName: AvailableInvestment;
 
   const dispatch = createEventDispatcher();
   let invData: InvestmentData;
   let stakeInXtz: null | number = null;
-  let rewards = 0;
+  let rewards = Option.None<number>();
   let recalcInterval;
   let expand = false;
   let harvesting = false;
@@ -58,12 +60,16 @@
         id: invData.id,
         balance: invData.balance,
         value: stakeInXtz,
-        rewards: rewards * $store.tokens.ANTI.getExchangeRate()
+        rewards: rewards.match({
+          None: () => 0,
+          Some: rw => rw * $store.tokens.ANTI.getExchangeRate()
+        })
       });
     }
   };
 
   const calcRewards = async () => {
+    rewards = Option.Some(0);
     /*if (rewardsRes.status) {
       rewards = +rewardsRes.totalRewards;
       // converts rewards into XTZ
@@ -79,10 +85,12 @@
   const harvest = async () => {
     harvesting = true;
     try {
+      if (rewards.isNone()) throw "No rewards to harvest";
+
       const contract = await $store.Tezos.wallet.at(invData.address);
       const batch = prepareOperation({
         contractCalls: [contract.methods.GetReward([["unit"]])],
-        amount: rewards,
+        amount: rewards.getWithDefault(0),
         tokenSymbol: AvailableToken.PLENTY
       });
       const op = await batch.send();
@@ -91,7 +99,7 @@
       const opStatus = await op.status();
       if (opStatus === "applied") {
         harvestingSuccess = true;
-        rewards = 0;
+        rewards = Option.Some(0);
         /*toastStore.addToast({
           type: "success",
           title: "Success!",
@@ -222,15 +230,23 @@
       </div>
     </div>
   {:else}
-    <FarmMiniRow
-      {invData}
-      stake={invData.balance / 10 ** invData.decimals}
-      {stakeInXtz}
-      {rewards}
-      rewardToken={invData.rewardToken}
-      on:expand={() => (expand = true)}
-      on:harvest={harvest}
-    />
+    <!-- Loader-->
+    {#if stakeInXtz && rewards}
+      <FarmMiniRow
+        {invData}
+        stake={invData.balance / 10 ** invData.decimals}
+        {stakeInXtz}
+        {rewards}
+        rewardToken={invData.rewardToken}
+        on:expand={() => (expand = true)}
+        on:harvest={harvest}
+      />
+    {:else}
+      <Loader
+        icons={invData.icons}
+        stake={invData.balance / 10 ** invData.decimals}
+      />
+    {/if}
   {/if}
 {:else}
   <div>No data found for this farm</div>

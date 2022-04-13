@@ -1,0 +1,362 @@
+<script lang="ts">
+  import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import { slide } from "svelte/transition";
+  import { Option } from "@swan-io/boxed";
+  import type { AvailableInvestment, InvestmentData } from "../../types";
+  import { AvailableToken } from "../../types";
+  import store from "../../store";
+  import { formatTokenAmount, prepareOperation } from "../../utils";
+  import { calcKdaoRewards, calcKdaoStake } from "../../tokenUtils/kdaoUtils";
+  import { calcPaulRewards, calcPaulStake } from "../../tokenUtils/paulUtils";
+  import {
+    calcPlentyRewards,
+    calcPlentyStake
+  } from "../../tokenUtils/plentyUtils";
+  import {
+    calcQuipuRewards,
+    calcQuipuStake
+  } from "../../tokenUtils/quipuUtils";
+  import {
+    calcSmartlinkRewards,
+    calcSmartlinkStake
+  } from "../../tokenUtils/smartlinkUtils";
+  import { calcWrapRewards, calcWrapStake } from "../../tokenUtils/wrapUtils";
+  import {
+    calcYouvesRewards,
+    calcYouvesStake
+  } from "../../tokenUtils/youvesUtils";
+  import FarmMiniRow from "./FarmMiniRow.svelte";
+  import Loader from "$lib/farms/Loader.svelte";
+
+  export let invName: AvailableInvestment;
+
+  const dispatch = createEventDispatcher();
+  let invData: InvestmentData;
+  let stakeInXtz: null | number = null;
+  let rewards = Option.None<number>();
+  let recalcInterval;
+  let expand = false;
+  let harvesting = false;
+  let harvestingSuccess = false;
+
+  const calcStake = async () => {
+    switch (invData.platform) {
+      case "kdao":
+        const kdaoStake = await calcKdaoStake(invData, $store.Tezos);
+        kdaoStake.match({
+          Ok: val => {
+            stakeInXtz = val;
+            return;
+          },
+          Error: err => console.error(err)
+        });
+        break;
+      case "paul":
+        const paulStake = await calcPaulStake(invData, $store.Tezos);
+        paulStake.match({
+          Ok: val => {
+            stakeInXtz = val;
+            return;
+          },
+          Error: err => console.error(err)
+        });
+        break;
+      case "plenty":
+        const plentyStake = await calcPlentyStake(invData);
+        plentyStake.match({
+          Ok: val => {
+            stakeInXtz = val;
+            return;
+          },
+          Error: err => console.error(err)
+        });
+        break;
+      case "quipuswap":
+        const quipuStake = await calcQuipuStake(invData, $store.Tezos);
+        quipuStake.match({
+          Ok: val => {
+            stakeInXtz = val;
+            return;
+          },
+          Error: err => console.error(err)
+        });
+        break;
+      case "smartlink":
+        const smartlinkStake = await calcSmartlinkStake($store.Tezos, invData);
+        smartlinkStake.match({
+          Ok: val => {
+            stakeInXtz = val;
+            return;
+          },
+          Error: err => console.error(err)
+        });
+        break;
+      case "wrap":
+        const wrapStake = await calcWrapStake(invData, $store.Tezos);
+        wrapStake.match({
+          Ok: val => {
+            stakeInXtz = val;
+            return;
+          },
+          Error: err => console.error(err)
+        });
+        break;
+      case "youves":
+        const youvesStake = await calcYouvesStake(
+          invData,
+          $store.Tezos,
+          $store.userAddress
+        );
+        youvesStake.match({
+          Ok: val => {
+            stakeInXtz = val;
+            return;
+          },
+          Error: err => console.error(err)
+        });
+        break;
+    }
+  };
+
+  const calcRewards = async () => {
+    switch (invData.platform) {
+      case "kdao":
+        rewards = await calcKdaoRewards(
+          invData,
+          $store.userAddress,
+          $store.currentLevel
+        );
+        break;
+      case "paul":
+        rewards = await calcPaulRewards(invData);
+        break;
+      case "plenty":
+        rewards = await calcPlentyRewards(
+          invData,
+          $store.userAddress,
+          $store.currentLevel
+        );
+        break;
+      case "quipuswap":
+        const farmId = +invData.id.replace("QUIPU-FARM-", "");
+        rewards = await calcQuipuRewards(
+          $store.Tezos,
+          invData,
+          farmId,
+          $store.userAddress
+        );
+        break;
+      case "smartlink":
+        rewards = await calcSmartlinkRewards();
+        break;
+      case "wrap":
+        rewards = await calcWrapRewards(invData, $store.userAddress);
+        break;
+      case "youves":
+        rewards = await calcYouvesRewards(
+          $store.Tezos,
+          invData,
+          $store.userAddress
+        );
+        break;
+    }
+    // converts rewards into XTZ
+    rewards.match({
+      None: () => console.log("No rewards available"),
+      Some: rw => {
+        dispatch("farm-update", {
+          id: invData.id,
+          balance: invData.balance,
+          value: stakeInXtz,
+          rewards: rw * $store.tokens[invData.rewardToken].getExchangeRate()
+        });
+      }
+    });
+  };
+
+  const harvest = async () => {
+    harvesting = true;
+    try {
+      const rewardsToHarvest = rewards.match({
+        None: () => 0,
+        Some: rw => rw
+      });
+      if (rewardsToHarvest === 0) throw "No rewards to harvest";
+
+      const contract = await $store.Tezos.wallet.at(invData.address);
+      const batch = prepareOperation({
+        contractCalls: [contract.methods.claim([["unit"]])],
+        amount: rewardsToHarvest,
+        tokenSymbol: AvailableToken[invData.rewardToken]
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      harvesting = false;
+      const opStatus = await op.status();
+      if (opStatus === "applied") {
+        harvestingSuccess = true;
+        rewards = Option.Some(0);
+        /*toastStore.addToast({
+          type: "success",
+          title: "Success!",
+          text: `Successfully harvested ${rewardsToHarvest} kDAO!`,
+          dismissable: false,
+          icon: "agriculture"
+        });*/
+        setTimeout(() => {
+          harvestingSuccess = undefined;
+        }, 2000);
+      } else {
+        harvestingSuccess = false;
+        throw `Error when applying operation: _${opStatus}_`;
+      }
+    } catch (error) {
+      console.log(error);
+      /*toastStore.addToast({
+        type: "error",
+        title: "Harvest error",
+        text: "Couldn't harvest PLENTY tokens",
+        dismissable: false,
+        icon: "agriculture"
+      });*/
+    } finally {
+      harvesting = false;
+    }
+  };
+
+  onMount(async () => {
+    invData = $store.investments[invName];
+    if (!invData.balance) {
+      stakeInXtz = 0;
+    } else {
+      await calcRewards();
+      await calcStake();
+      recalcInterval = setInterval(async () => {
+        await calcRewards();
+        await calcStake();
+      }, 60_000);
+    }
+  });
+
+  onDestroy(() => {
+    clearInterval(recalcInterval);
+  });
+</script>
+
+{#if invData && $store.tokens}
+  {#if expand}
+    <div class="farm-row" in:slide|local={{ duration: 500 }}>
+      <div class="farm-info">
+        <div class="icons">
+          {#each invData.icons as icon}
+            <img src={`tokens/${icon}.png`} alt="farm-token-icon" />
+          {/each}
+        </div>
+        <div class="farm-info__link">
+          <a
+            href={`https://better-call.dev/mainnet/${invData.address}/operations`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {invData.alias}
+          </a>
+        </div>
+        <div class="farm-info__tokens-price">
+          {#each invData.icons as token}
+            <div>
+              1 {token} = {formatTokenAmount(
+                $store.tokens[token].getExchangeRate()
+              )}
+              ꜩ
+            </div>
+          {/each}
+        </div>
+      </div>
+      <div class="user-info">
+        <div>
+          <div>Stake</div>
+          <div class="bold">
+            {#if invData.platform === "plenty"}
+              {formatTokenAmount(invData.balance / 10 ** 18)} LPT
+            {:else}
+              {formatTokenAmount(invData.balance / 10 ** invData.decimals)} LPT
+            {/if}
+          </div>
+        </div>
+        <div>
+          <div>Value in XTZ</div>
+          <div class="bold">{formatTokenAmount(stakeInXtz)} ꜩ</div>
+        </div>
+        <div>
+          <div>Value in USD</div>
+          <div class="bold">
+            {formatTokenAmount(stakeInXtz * $store.xtzExchangeRate, 2)} USD
+          </div>
+        </div>
+      </div>
+      <div class="actions">
+        <div>
+          <div>Rewards</div>
+          {#if rewards.isNone()}
+            <div>No rewards available</div>
+          {:else}
+            <div class="bold">
+              {formatTokenAmount(rewards.getWithDefault(0))}
+              {invData.rewardToken}
+            </div>
+            <div style="font-size: 0.8rem">
+              ({formatTokenAmount(
+                rewards.getWithDefault(0) *
+                  $store.tokens[invData.rewardToken].getExchangeRate(),
+                2
+              )} ꜩ /
+              {formatTokenAmount(
+                rewards.getWithDefault(0) *
+                  $store.tokens[invData.rewardToken].getExchangeRate() *
+                  $store.xtzExchangeRate,
+                2
+              )} USD)
+            </div>
+          {/if}
+        </div>
+        <div>
+          <div />
+          <button class="primary" on:click={harvest}>
+            <span class="material-icons-outlined"> agriculture </span>
+            Harvest
+          </button>
+        </div>
+      </div>
+      <div class="token-box_expand-less">
+        <button class="transparent" on:click={() => (expand = !expand)}>
+          <span class="material-icons-outlined" style="margin:0px">
+            expand_less
+          </span>
+        </button>
+      </div>
+    </div>
+  {:else}
+    <!-- Loader-->
+    {#if !isNaN(stakeInXtz) && rewards.isSome()}
+      <FarmMiniRow
+        {invData}
+        stake={invData.platform === "plenty"
+          ? invData.balance / 10 ** 18
+          : invData.balance / 10 ** invData.decimals}
+        {stakeInXtz}
+        {rewards}
+        on:expand={() => (expand = true)}
+        on:harvest={harvest}
+      />
+    {:else}
+      <Loader
+        icons={invData.icons}
+        stake={invData.platform === "plenty"
+          ? invData.balance / 10 ** 18
+          : invData.balance / 10 ** invData.decimals}
+      />
+    {/if}
+  {/if}
+{:else}
+  <div>No data found for this farm</div>
+{/if}

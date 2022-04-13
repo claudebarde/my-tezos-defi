@@ -2,6 +2,7 @@
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { slide } from "svelte/transition";
   import BigNumber from "bignumber.js";
+  import { Option } from "@swan-io/boxed";
   import type { AvailableInvestment, InvestmentData } from "../../../types";
   import { AvailableToken } from "../../../types";
   import store from "../../../store";
@@ -15,13 +16,14 @@
   import { computeLpTokenPrice } from "../../../tokenUtils/youvesUtils";
   import config from "../../../config";
   import FarmMiniRow from "../FarmMiniRow.svelte";
+  import Loader from "$lib/farms/Loader.svelte";
 
   export let invName: AvailableInvestment;
 
   const dispatch = createEventDispatcher();
   let invData: InvestmentData;
   let stakeInXtz: null | number = null;
-  let rewards = 0;
+  let rewards = Option.None<number>();
   let recalcInterval;
   let expand = false;
   let harvesting = false;
@@ -281,15 +283,23 @@
       </div>
     </div>
   {:else}
-    <FarmMiniRow
-      {invData}
-      stake={invData.balance / 10 ** invData.decimals}
-      {stakeInXtz}
-      {rewards}
-      rewardToken={AvailableToken.kDAO}
-      on:expand={() => (expand = true)}
-      on:harvest={harvest}
-    />
+    <!-- Loader-->
+    {#if stakeInXtz && rewards}
+      <FarmMiniRow
+        {invData}
+        stake={invData.balance / 10 ** invData.decimals}
+        {stakeInXtz}
+        {rewards}
+        rewardToken={AvailableToken.kDAO}
+        on:expand={() => (expand = true)}
+        on:harvest={harvest}
+      />
+    {:else}
+      <Loader
+        icons={invData.icons}
+        stake={invData.balance / 10 ** invData.decimals}
+      />
+    {/if}
   {/if}
 {:else}
   <div>No data found for this farm</div>

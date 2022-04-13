@@ -2,6 +2,7 @@ import BigNumber from "bignumber.js";
 import { get } from "svelte/store";
 import type { TezosToolkit } from "@taquito/taquito";
 import { tzip16 } from "@taquito/tzip16";
+import { Option, Result } from "@swan-io/boxed";
 import store from "../store";
 import { AvailableInvestment } from "../types";
 import type {
@@ -248,5 +249,71 @@ export const calcWrapUnstakingFee = (
     return null;
   } else {
     return results;
+  }
+};
+
+export const calcWrapRewards = async (
+  invData: InvestmentData,
+  userAddress: TezosAccountAddress
+): Promise<Option<number>> => {
+  const localStore = get(store);
+
+  const rewardsRes = await getWrapReward(
+    invData.id,
+    invData.address,
+    userAddress,
+    invData.balance
+  );
+  if (rewardsRes && !isNaN(rewardsRes.toNumber())) {
+    return Option.Some(
+      rewardsRes.toNumber() / 10 ** localStore.tokens.WRAP.decimals
+    );
+  } else {
+    return Option.None();
+  }
+};
+
+export const calcWrapStake = async (
+  invData: InvestmentData,
+  Tezos: TezosToolkit
+): Promise<Result<number, string>> => {
+  let stakeInXtz: number;
+  let localStore = get(store);
+
+  if (invData.type === "fee-farming") {
+    stakeInXtz =
+      +(
+        (invData.balance / 10 ** invData.decimals) *
+        localStore.tokens.WRAP.getExchangeRate()
+      ).toFixed(5) / 1;
+  } else if (invData.type === "staking") {
+    const stakes = await calcTokenStakesInWrapFarms({
+      invData,
+      balance: invData.balance,
+      tokenExchangeRate:
+        localStore.tokens[invData.rewardToken].getExchangeRate(),
+      tokenDecimals: localStore.tokens[invData.rewardToken].decimals,
+      Tezos
+    });
+
+    if (stakes) {
+      stakeInXtz = +stakes.toFixed(5) / 1;
+    } else {
+      stakeInXtz = null;
+    }
+  } else {
+    stakeInXtz =
+      +(
+        (invData.balance / 10 ** invData.decimals) *
+        localStore.tokens.WRAP.getExchangeRate()
+      ).toFixed(5) / 1;
+  }
+
+  if (!isNaN(stakeInXtz)) {
+    return Result.Ok(stakeInXtz);
+  } else {
+    return Result.Error(
+      `Stake in XTZ coudn't be computed for ${invData.alias}`
+    );
   }
 };

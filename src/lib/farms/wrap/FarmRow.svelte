@@ -10,6 +10,7 @@
     getWrapReward
   } from "../../../tokenUtils/wrapUtils";
   import FarmMiniRow from "../FarmMiniRow.svelte";
+  import Loader from "$lib/farms/Loader.svelte";
 
   export let invName: AvailableInvestment;
 
@@ -217,14 +218,22 @@
       </div>
     </div>
   {:else}
-    <FarmMiniRow
-      {invData}
-      stake={invData.balance / 10 ** invData.decimals}
-      {stakeInXtz}
-      {rewards}
-      rewardToken={invData.rewardToken}
-      on:expand={() => (expand = true)}
-    />
+    <!-- Loader-->
+    {#if stakeInXtz && rewards}
+      <FarmMiniRow
+        {invData}
+        stake={invData.balance / 10 ** invData.decimals}
+        {stakeInXtz}
+        {rewards}
+        rewardToken={invData.rewardToken}
+        on:expand={() => (expand = true)}
+      />
+    {:else}
+      <Loader
+        icons={invData.icons}
+        stake={invData.balance / 10 ** invData.decimals}
+      />
+    {/if}
   {/if}
 {:else}
   <div>No data found for the {invData ? invData.alias : ""} farm</div>

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
   import store from "../../../store";
-  import { AvailableInvestment } from "../../../types";
-  import FarmRow from "./FarmRow.svelte";
+  import type { AvailableInvestment } from "../../../types";
+  import FarmRow from "../FarmRow.svelte";
   import FarmRowHeader from "../FarmRowHeader.svelte";
   import config from "../../../config";
 
@@ -40,6 +40,8 @@
             { ...$store.investments[farm.id], balance: farm.balance }
           ])
         );
+        // updates local storage
+        $store.localStorage.addFarms(farms.map(farm => farm.id));
       } else {
         // TODO: display a toast with the error
         console.error("Error while fetching Plenty farms");

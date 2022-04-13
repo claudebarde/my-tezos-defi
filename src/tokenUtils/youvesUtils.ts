@@ -1,7 +1,10 @@
 import BigNumber from "bignumber.js";
 import type { TezosToolkit } from "@taquito/taquito";
-import { AvailableInvestment } from "../types";
+import { get } from "svelte/store";
+import { Option, Result } from "@swan-io/boxed";
+import { AvailableInvestment, AvailableToken } from "../types";
 import type { InvestmentData, TezosAccountAddress } from "../types";
+import _store from "../store";
 
 export const computeToken2Output = (
   token1Amount: BigNumber | number,
@@ -128,5 +131,152 @@ export const getYouvesRewards = async (
       .dividedBy(10 ** youTokenDecimals);
 
     return reward.toNumber();
+  }
+};
+
+export const calcYouvesRewards = async (
+  Tezos: TezosToolkit,
+  invData: InvestmentData,
+  userAddress: TezosAccountAddress
+): Promise<Option<number>> => {
+  const store = get(_store);
+
+  const rewards = await getYouvesRewards(
+    Tezos,
+    invData,
+    userAddress,
+    store.tokens.YOU.decimals
+  );
+  if (rewards && !isNaN(rewards)) {
+    return Option.Some(rewards);
+  } else {
+    return Option.None();
+  }
+};
+
+export const calcYouvesStake = async (
+  invData: InvestmentData,
+  Tezos: TezosToolkit,
+  userAddress: TezosAccountAddress
+): Promise<Result<number, string>> => {
+  const store = get(_store);
+  let stakeInXtz: number;
+
+  if (invData.id === AvailableInvestment["YOUVES-UUSD-UBTC"]) {
+    const token1 = AvailableToken.uUSD;
+    const token2 = AvailableToken.uBTC;
+    const stakingToken = "LPT";
+    const dexAddress = "KT1VNEzpf631BLsdPJjt2ZhgUitR392x6cSi";
+    const contract = await Tezos.wallet.at(dexAddress);
+    const storage: any = await contract.storage();
+    const pair = await storage.storage.pairs.get(21);
+    if (pair) {
+      const { token_a_pool, token_b_pool, total_supply } = pair;
+      const lptPrice = computeLpTokenPrice(
+        invData.balance,
+        total_supply,
+        token_a_pool,
+        token_b_pool
+      );
+      if (lptPrice) {
+        const { token1Output, token2Output } = lptPrice;
+        const token1Value = token1Output.toNumber();
+        const token2Value = token2Output.toNumber();
+
+        stakeInXtz =
+          (token1Value / 10 ** store.tokens.uUSD.decimals) *
+            store.tokens[token1].getExchangeRate() +
+          (token2Value / 10 ** store.tokens.uBTC.decimals) *
+            store.tokens[token2].getExchangeRate();
+      }
+      // computes total supply value in XTZ
+      const totalSupplyPrice = computeLpTokenPrice(
+        total_supply,
+        total_supply,
+        token_a_pool,
+        token_b_pool
+      );
+      if (totalSupplyPrice) {
+        const { token1Output, token2Output } = totalSupplyPrice;
+        const totalSupply = {
+          inToken: total_supply.toNumber(),
+          inTez:
+            (token1Output.toNumber() / 10 ** store.tokens.uUSD.decimals) *
+              store.tokens[token1].getExchangeRate() +
+            (token2Output.toNumber() / 10 ** store.tokens.uBTC.decimals) *
+              store.tokens[token2].getExchangeRate()
+        };
+      }
+      // computes the long term rewards
+      const rewardsPoolContract = await Tezos.wallet.at(invData.address);
+      const rewardsPoolStorage: any = await rewardsPoolContract.storage();
+      const stake = await rewardsPoolStorage.stakes.get(userAddress);
+      const longTermRewards_ = longTermFarmFullRewards(
+        rewardsPoolStorage.dist_factor,
+        stake.stake.dividedBy(10 ** invData.decimals),
+        stake.dist_factor,
+        invData.decimals
+      );
+      if (longTermRewards_) {
+        const longTermRewards =
+          longTermRewards_ / 10 ** store.tokens.YOU.decimals;
+      }
+      const fullRewardsAvailable =
+        Date.parse(stake.age_timestamp) + 180 * 24 * 60 * 60 * 1000;
+    }
+  } else if (invData.id === AvailableInvestment["YOUVES-UUSD-WUSDC"]) {
+    const token1 = AvailableToken.uUSD;
+    const token2 = AvailableToken.wUSDC;
+    const dexAddress = "KT1JeWiS8j1kic4PHx7aTnEr9p4xVtJNzk5b";
+    const contract = await Tezos.wallet.at(dexAddress);
+    const storage: any = await contract.storage();
+    const { cashPool, tokenPool, lqtTotal } = storage;
+    const lptPrice = computeLpTokenPrice(
+      invData.balance,
+      lqtTotal,
+      tokenPool,
+      cashPool
+    );
+    if (lptPrice) {
+      const { token1Output, token2Output } = lptPrice;
+      const token1Value = token1Output.toNumber();
+      const token2Value = token2Output.toNumber();
+      stakeInXtz =
+        (token1Value / 10 ** store.tokens.uUSD.decimals) *
+          store.tokens[token1].getExchangeRate() +
+        (token2Value / 10 ** store.tokens.wUSDC.decimals) *
+          store.tokens[token2].getExchangeRate();
+
+      // computes total supply value in XTZ
+      const totalSupplyPrice = computeLpTokenPrice(
+        lqtTotal,
+        lqtTotal,
+        tokenPool,
+        cashPool
+      );
+      if (totalSupplyPrice) {
+        const { token1Output, token2Output } = totalSupplyPrice;
+        const totalSupply = {
+          inToken: lqtTotal.toNumber(),
+          inTez:
+            (token1Output.toNumber() / 10 ** store.tokens.uUSD.decimals) *
+              store.tokens[token1].getExchangeRate() +
+            (token2Output.toNumber() / 10 ** store.tokens.wUSDC.decimals) *
+              store.tokens[token2].getExchangeRate()
+        };
+      }
+    }
+  } else {
+    stakeInXtz =
+      (invData.balance / 10 ** store.tokens.YOU.decimals) *
+      store.tokens.YOU.getExchangeRate();
+  }
+
+  if (stakeInXtz && !isNaN(stakeInXtz)) {
+    return Result.Ok(stakeInXtz);
+  } else {
+    return Result.Error(
+      `Stake in XTZ coudn't be computed for ${invData.alias}`
+    );
   }
 };

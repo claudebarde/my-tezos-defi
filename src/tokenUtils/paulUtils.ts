@@ -2,8 +2,13 @@ import type { TezosToolkit } from "@taquito/taquito";
 import { Parser } from "@taquito/michel-codec";
 import BigNumber from "bignumber.js";
 import { get } from "svelte/store";
-import store from "../store";
-import type { TezosContractAddress, AvailableToken } from "../types";
+import { Option, Result } from "@swan-io/boxed";
+import _store from "../store";
+import type {
+  TezosContractAddress,
+  AvailableToken,
+  InvestmentData
+} from "../types";
 import { AvailableInvestment } from "../types";
 import {
   estimateQuipuTezInShares,
@@ -121,7 +126,7 @@ export const calcPaulFarmApr = async ({
   tokenDecimals: number;
   paulPrice: number;
 }): Promise<number | null> => {
-  const localStore = get(store);
+  const localStore = get(_store);
 
   const contract = await Tezos.wallet.at(farmAddress);
   const storage: any = await contract.storage();
@@ -166,19 +171,19 @@ export const calcPaulFarmApr = async ({
       if (farmId === AvailableInvestment["PAUL-kUSD-uUSD"]) {
         lpTokenPrice =
           (((tokenAAmount / 10 ** localStore.tokens.kUSD.decimals) *
-            localStore.tokens.kUSD.exchangeRate) /
+            localStore.tokens.kUSD.getExchangeRate()) /
             10 ** 6) *
           2;
       } else if (invData.icons[0] === "PAUL") {
         lpTokenPrice =
           (((tokenAAmount / 10 ** localStore.tokens.PAUL.decimals) *
-            localStore.tokens.PAUL.exchangeRate) /
+            localStore.tokens.PAUL.getExchangeRate()) /
             10 ** 6) *
           2;
       } else {
         lpTokenPrice =
           (((tokenBAmount / 10 ** localStore.tokens.PAUL.decimals) *
-            localStore.tokens.PAUL.exchangeRate) /
+            localStore.tokens.PAUL.getExchangeRate()) /
             10 ** 6) *
           2;
       }
@@ -215,7 +220,7 @@ export const getPaulReward = async (
   contractAddress: string,
   vaultMode?: boolean
 ): Promise<BigNumber | null> => {
-  const localStore = get(store);
+  const localStore = get(_store);
   const numberAccuracy = new BigNumber(1000000000000000000);
 
   const contract = await localStore.Tezos.wallet.at(contractAddress);
@@ -268,5 +273,85 @@ export const getPaulReward = async (
     return new BigNumber(0);
   } else {
     return result;
+  }
+};
+
+export const calcPaulRewards = async (
+  invData: InvestmentData
+): Promise<Option<number>> => {
+  const store = get(_store);
+
+  const rewardsRes = await getPaulReward(invData.address);
+  if (rewardsRes) {
+    return Option.Some(
+      rewardsRes.toNumber() / 10 ** store.tokens.PAUL.decimals
+    );
+  } else {
+    return Option.None();
+  }
+};
+
+export const calcPaulStake = async (
+  invData: InvestmentData,
+  Tezos: TezosToolkit
+): Promise<Result<number, string>> => {
+  let stakeInXtz: number;
+  let store = get(_store);
+
+  if (invData.id === "PAUL-XTZ" || invData.id === "MAG-XTZ") {
+    stakeInXtz = await calcTokenStakesFromQuipu({
+      Tezos: Tezos,
+      id: invData.id,
+      balance: invData.balance,
+      paulToken: {
+        decimals: store.tokens.PAUL.decimals,
+        exchangeRate: store.tokens.PAUL.getExchangeRate()
+      }
+    });
+  } else if (invData.id === "PAUL-PAUL") {
+    stakeInXtz = formatTokenAmount(
+      (invData.balance / 10 ** invData.decimals) *
+        store.tokens.PAUL.getExchangeRate()
+    );
+  } else {
+    stakeInXtz = null;
+  }
+
+  if (invData.info?.includes("paul-lqt")) {
+    const shares = await calcTokenStakesInAlienFarm({
+      Tezos,
+      amountOfTokens: invData.balance,
+      tokens: invData.icons.map(icon => {
+        const {
+          address,
+          tokenId = 0,
+          type
+        } = store.tokens[icon as AvailableToken];
+        return {
+          address,
+          tokenId,
+          tokenType: type
+        };
+      })
+    });
+    if (shares) {
+      const token1InXtz =
+        ((shares.tokenAAmount / 10 ** store.tokens[invData.icons[0]].decimals) *
+          store.tokens[invData.icons[0]].getExchangeRate()) /
+        10 ** 6;
+      const token2InXtz =
+        ((shares.tokenBAmount / 10 ** store.tokens[invData.icons[1]].decimals) *
+          store.tokens[invData.icons[1]].getExchangeRate()) /
+        10 ** 6;
+      stakeInXtz = formatTokenAmount(token1InXtz + token2InXtz);
+    }
+  }
+
+  if (stakeInXtz && !isNaN(stakeInXtz)) {
+    return Result.Ok(stakeInXtz);
+  } else {
+    return Result.Error(
+      `Stake in XTZ coudn't be computed for ${invData.alias}`
+    );
   }
 };

@@ -11,6 +11,7 @@ import type {
 import type Token from "./Token";
 import { AvailableInvestment } from "./types";
 import config from "./config";
+import type { LocalStorage } from "./localStorage";
 
 const initialState: State = {
   isAppReady: false,
@@ -30,7 +31,8 @@ const initialState: State = {
   investments: undefined,
   currentLevel: 0,
   serviceFee: process.env.NODE_ENV === "development" ? null : 0.003,
-  admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At"
+  admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
+  localStorage: undefined
 };
 
 const store = writable(initialState);
@@ -100,7 +102,9 @@ const state = {
       return { ...store, investments };
     }),
   updateCurrentLevel: (level: number) =>
-    store.update(store => ({ ...store, currentLevel: level }))
+    store.update(store => ({ ...store, currentLevel: level })),
+  updateLocalStorage: (localStorage: LocalStorage) =>
+    store.update(store => ({ ...store, localStorage }))
 };
 
 export default state;

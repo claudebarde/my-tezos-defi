@@ -1,6 +1,11 @@
+import { get } from "svelte/store";
 import type { TezosToolkit } from "@taquito/taquito";
+import { Option, Result } from "@swan-io/boxed";
 import BigNumber from "bignumber.js";
 import config from "../config";
+import type { InvestmentData } from "src/types";
+import { calculateLqtOutput } from "../utils";
+import _store from "../store";
 
 const tokenToXtzXtzOutput = (
   tokenIn: BigNumber,
@@ -85,5 +90,56 @@ export const fetchAntiPrice = async (
     }
   } else {
     return null;
+  }
+};
+
+export const calcSmartlinkRewards = async (): Promise<Option<number>> => {
+  return Option.Some(0);
+};
+
+export const calcSmartlinkStake = async (
+  Tezos: TezosToolkit,
+  invData: InvestmentData
+): Promise<Result<number, string>> => {
+  const store = get(_store);
+  let stakeInXtz: number;
+
+  // finds LP token total supply
+  const contract = await Tezos.wallet.at(invData.address);
+  const storage: any = await contract.storage();
+  const { input_token_address } = storage;
+  const lptContract = await Tezos.wallet.at(input_token_address);
+  const lptStorage: any = await lptContract.storage();
+  const { total_supply } = lptStorage;
+  // finds DEX address
+  const dexAddress =
+    config.vortexDexAddresses[`${invData.icons[0]}-${invData.icons[1]}`];
+  if (total_supply && dexAddress) {
+    const dexContract = await Tezos.wallet.at(dexAddress);
+    const dexStorage: any = await dexContract.storage();
+    const { xtzPool, tokenPool } = dexStorage;
+
+    const result = calculateLqtOutput({
+      lqTokens: invData.balance,
+      xtzPool,
+      tokenPool,
+      lqtTotal: total_supply.toNumber(),
+      tokenDecimal: store.tokens[invData.icons[1]].decimals
+    });
+    if (result && !isNaN(result.xtz) && !isNaN(result.tokens)) {
+      // TODO: use exchange rate from TezTools when it becomes available
+      /*stakeInXtz =
+      result.xtz +
+      result.tokens * $store.tokens[invData.icons[1]].exchangeRate;*/
+      stakeInXtz = result.xtz * 2;
+    }
+  }
+
+  if (stakeInXtz && !isNaN(stakeInXtz)) {
+    return Result.Ok(stakeInXtz);
+  } else {
+    return Result.Error(
+      `Stake in XTZ coudn't be computed for ${invData.alias}`
+    );
   }
 };

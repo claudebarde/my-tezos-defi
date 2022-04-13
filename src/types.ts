@@ -1,6 +1,7 @@
 import type { TezosToolkit } from "@taquito/taquito";
 import type { BeaconWallet } from "@taquito/beacon-wallet";
 import type Token from "./Token";
+import type { LocalStorage } from "./localStorage";
 
 export type TezosContractAddress = `KT1${string}`;
 export type TezosAccountAddress = `tz${"1" | "2" | "3"}${string}`;
@@ -200,22 +201,6 @@ export interface UserToken {
 export type IconValue = AvailableToken | "XTZ" | "QUIPUSWAP" | "crDAO" | "user";
 export type IconSet = IconValue[];
 
-export interface TokenContract {
-  address: TezosContractAddress;
-  dexContractAddress: TezosContractAddress;
-  decimals: number;
-  ledgerPath: string;
-  ledgerKey: "address" | ["address", number] | [string, "address"];
-  type: "fa1.2" | "fa2";
-  color: string;
-  exchangeRates: { [p in AvailableDex]: null | number };
-  setExchangeRate: (p: Array<{ rate: number; dex: AvailableDex }>) => void;
-  getExchangeRate: (p?: AvailableDex) => null | number;
-  tokenId?: number; // only for fa2 contracts;
-  thumbnail?: string;
-  websiteLink?: string;
-}
-
 export interface InvestmentData {
   id: AvailableInvestment;
   platform: InvestmentPlatform;
@@ -253,6 +238,7 @@ export interface State {
   currentLevel: number;
   serviceFee: number;
   admin: TezosAccountAddress;
+  localStorage: LocalStorage | undefined;
 }
 
 export interface HistoricalDataState {

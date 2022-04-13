@@ -10,6 +10,7 @@
     getPlentyReward
   } from "../../../tokenUtils/plentyUtils";
   import FarmMiniRow from "../FarmMiniRow.svelte";
+  import Loader from "$lib/farms/Loader.svelte";
 
   export let invName: AvailableInvestment;
 
@@ -203,15 +204,20 @@
       </div>
     </div>
   {:else}
-    <FarmMiniRow
-      {invData}
-      stake={invData.balance / 10 ** 18}
-      {stakeInXtz}
-      {rewards}
-      rewardToken={AvailableToken.PLENTY}
-      on:expand={() => (expand = true)}
-      on:harvest={harvest}
-    />
+    <!-- Loader-->
+    {#if stakeInXtz && rewards}
+      <FarmMiniRow
+        {invData}
+        stake={invData.balance / 10 ** 18}
+        {stakeInXtz}
+        {rewards}
+        rewardToken={AvailableToken.PLENTY}
+        on:expand={() => (expand = true)}
+        on:harvest={harvest}
+      />
+    {:else}
+      <Loader icons={invData.icons} stake={invData.balance / 10 ** 18} />
+    {/if}
   {/if}
 {:else}
   <div>No data found for this farm</div>

@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { afterUpdate, createEventDispatcher } from "svelte";
   import { slide } from "svelte/transition";
+  import type { Option } from "@swan-io/boxed";
   import type { InvestmentData, AvailableToken } from "../../types";
   import { formatTokenAmount } from "../../utils";
   import store from "../../store";
@@ -8,10 +9,17 @@
   export let invData: InvestmentData,
     stake: number,
     stakeInXtz: number,
-    rewards: number,
-    rewardToken: AvailableToken;
+    rewards: Option<number>;
 
   const dispatch = createEventDispatcher();
+  let localRewards = 0;
+
+  afterUpdate(() => {
+    rewards.match({
+      None: () => (localRewards = 0),
+      Some: rw => (localRewards = rw)
+    });
+  });
 </script>
 
 <div class="farm-row-mini" in:slide|local={{ duration: 500 }}>
@@ -35,20 +43,25 @@
     <div>Rewards</div>
     {#if invData.platform === "smartlink"}
       <div>Coming soon!</div>
-    {:else}
-      <div class="bold">{formatTokenAmount(rewards)} {rewardToken}</div>
+    {:else if !isNaN(localRewards)}
+      <div class="bold">
+        {formatTokenAmount(localRewards)}
+        {invData.rewardToken}
+      </div>
       <div style="font-size: 0.8rem">
         ({formatTokenAmount(
-          rewards * $store.tokens[rewardToken].getExchangeRate(),
+          localRewards * $store.tokens[invData.rewardToken].getExchangeRate(),
           2
         )}
         ꜩ / {formatTokenAmount(
-          rewards *
-            $store.tokens[rewardToken].getExchangeRate() *
+          localRewards *
+            $store.tokens[invData.rewardToken].getExchangeRate() *
             $store.xtzExchangeRate,
           2
         )} USD)
       </div>
+    {:else if rewards.isNone()}
+      <div>No reward</div>
     {/if}
   </div>
   <div class="buttons">

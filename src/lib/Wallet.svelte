@@ -21,7 +21,6 @@
   import type {
     TezosAccountAddress,
     State,
-    TokenContract,
     AvailableInvestment,
     InvestmentData
   } from "../types";
@@ -29,6 +28,7 @@
   import { TezToolsSDK } from "./teztools";
   import config from "../config";
   import { fetchAntiPrice } from "../tokenUtils/smartlinkUtils";
+  import { LocalStorage } from "../localStorage";
 
   const dispatch = createEventDispatcher();
 
@@ -58,6 +58,7 @@
     const userAddress = (await wallet.getPKH()) as TezosAccountAddress;
     store.updateUserAddress(userAddress);
     store.updateWallet(wallet);
+    store.updateLocalStorage(new LocalStorage(userAddress));
     let username = shortenHash(userAddress);
     username = await fetchTezosDomain($store.Tezos, userAddress);
     store.updateUserName(username);
@@ -139,7 +140,7 @@
       );
       if (defiData) {
         if (defiData.tokens) {
-          let tokens: [AvailableToken, TokenContract][] = [];
+          let tokens: [AvailableToken, Token][] = [];
           // stores tokens info
           Object.entries(defiData.tokens).forEach(
             ([tokenSymbol, tokenData]) => {
