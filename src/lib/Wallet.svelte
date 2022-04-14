@@ -234,7 +234,9 @@
               platform: "quipuswap",
               address: config.quipuFarmsContract,
               decimals: 6,
-              info: [],
+              info: [
+                farmData.lock === 0 ? "no-lock" : farmData.lock + "-day-lock"
+              ],
               alias: `QuipuSwap Farming ${
                 farmData.lock === 0
                   ? "(no lock)"

@@ -23,6 +23,17 @@
 </script>
 
 <div class="farm-row-mini" in:slide|local={{ duration: 500 }}>
+  {#if invData.platform === "youves" && invData.type === "long-term"}
+    <div>
+      <span class="material-icons-outlined"> lock_clock </span>
+    </div>
+  {:else if invData.platform === "quipuswap" && !invData.info.includes("no-lock")}
+    <div>
+      <span class="material-icons-outlined"> lock_clock </span>
+    </div>
+  {:else}
+    <div />
+  {/if}
   <div class="icons">
     {#each invData.icons as icon}
       <img src={`tokens/${icon}.png`} alt="farm-token-icon" />

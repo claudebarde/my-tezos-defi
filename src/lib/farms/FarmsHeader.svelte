@@ -2,6 +2,7 @@
   import type { AvailableInvestment } from "../../types";
   import { formatTokenAmount } from "../../utils";
   import store from "../../store";
+  import BarnImg from "../../assets/farm-48.png";
 
   export let farms:
     | Array<{
@@ -9,6 +10,7 @@
         balance: number;
         value: number;
         rewards: number;
+        roiPerWeek: number;
       }>
     | undefined;
 </script>
@@ -44,7 +46,7 @@
     <div>
       <div>{farms.length} farms</div>
       <div>
-        <span class="material-icons-outlined"> agriculture </span>
+        <img src={BarnImg} alt="barn" />
       </div>
     </div>
     <div>
@@ -80,6 +82,36 @@
           ({formatTokenAmount(
             [0, 0, ...farms.map(farm => farm.rewards)].reduce((a, b) => a + b) *
               $store.xtzExchangeRate,
+            2
+          ).toLocaleString()} USD)
+        </span>
+      </div>
+    </div>
+    <div>
+      <div>ROI per week</div>
+      <div>
+        <b>
+          &thickapprox; {formatTokenAmount(
+            [
+              0,
+              0,
+              ...farms
+                .filter(farm => !isNaN(farm.roiPerWeek))
+                .map(farm => farm.roiPerWeek)
+            ].reduce((a, b) => a + b)
+          )} ꜩ
+        </b>
+      </div>
+      <div>
+        <span style="font-size:0.8rem">
+          ({formatTokenAmount(
+            [
+              0,
+              0,
+              ...farms
+                .filter(farm => !isNaN(farm.roiPerWeek))
+                .map(farm => farm.roiPerWeek)
+            ].reduce((a, b) => a + b) * $store.xtzExchangeRate,
             2
           ).toLocaleString()} USD)
         </span>

@@ -7,10 +7,15 @@
   import store from "../../store";
   import { formatTokenAmount, prepareOperation } from "../../utils";
   import { calcKdaoRewards, calcKdaoStake } from "../../tokenUtils/kdaoUtils";
-  import { calcPaulRewards, calcPaulStake } from "../../tokenUtils/paulUtils";
+  import {
+    calcPaulRewards,
+    calcPaulStake,
+    calcPaulFarmApr
+  } from "../../tokenUtils/paulUtils";
   import {
     calcPlentyRewards,
-    calcPlentyStake
+    calcPlentyStake,
+    fetchPlentyStatistics
   } from "../../tokenUtils/plentyUtils";
   import {
     calcQuipuRewards,
@@ -28,16 +33,23 @@
   import FarmMiniRow from "./FarmMiniRow.svelte";
   import Loader from "$lib/farms/Loader.svelte";
 
-  export let invName: AvailableInvestment;
+  export let invName: AvailableInvestment,
+    farmsWorker: Worker = undefined;
 
   const dispatch = createEventDispatcher();
   let invData: InvestmentData;
   let stakeInXtz: null | number = null;
   let rewards = Option.None<number>();
   let recalcInterval;
-  let expand = false;
+  let expand = true;
   let harvesting = false;
   let harvestingSuccess = false;
+  let apr: number, apy: number;
+  let youvesLongTermFullRewards: number;
+
+  const handleFarmsWorker = () => {
+    console.log("worker for", invData.id);
+  };
 
   const calcStake = async () => {
     switch (invData.platform) {
@@ -50,6 +62,7 @@
           },
           Error: err => console.error(err)
         });
+        // TODO: calculate ROI per week
         break;
       case "paul":
         const paulStake = await calcPaulStake(invData, $store.Tezos);
@@ -60,6 +73,31 @@
           },
           Error: err => console.error(err)
         });
+        if (stakeInXtz) {
+          const aprRes = await calcPaulFarmApr({
+            Tezos: $store.Tezos,
+            farmId: invData.id,
+            farmAddress: invData.address,
+            earnCoinPrice: $store.tokens.PAUL.getExchangeRate(),
+            tokenDecimals: $store.tokens.PAUL.decimals,
+            paulPrice: $store.tokens.PAUL.getExchangeRate()
+          });
+          aprRes.match({
+            Ok: _apr => {
+              apr = _apr;
+              // calculates estimated ROI per week
+              const roiPerWeek = formatTokenAmount(
+                (stakeInXtz * _apr) / 100 / 52,
+                2
+              );
+              dispatch("roi-per-week", {
+                id: invData.id,
+                roi: roiPerWeek
+              });
+            },
+            Error: err => console.error(err)
+          });
+        }
         break;
       case "plenty":
         const plentyStake = await calcPlentyStake(invData);
@@ -70,6 +108,20 @@
           },
           Error: err => console.error(err)
         });
+        if (stakeInXtz) {
+          const statsRes = await fetchPlentyStatistics(invData, stakeInXtz);
+          statsRes.match({
+            Ok: stats => {
+              apr = stats.apr;
+              apy = stats.apy;
+              dispatch("roi-per-week", {
+                id: invData.id,
+                roi: stats.roiPerWeek
+              });
+            },
+            Error: err => console.error(err)
+          });
+        }
         break;
       case "quipuswap":
         const quipuStake = await calcQuipuStake(invData, $store.Tezos);
@@ -109,7 +161,7 @@
         );
         youvesStake.match({
           Ok: val => {
-            stakeInXtz = val;
+            stakeInXtz = val.stakeInXtz;
             return;
           },
           Error: err => console.error(err)
@@ -153,16 +205,25 @@
         rewards = await calcWrapRewards(invData, $store.userAddress);
         break;
       case "youves":
-        rewards = await calcYouvesRewards(
+        const rewardsRes = await calcYouvesRewards(
           $store.Tezos,
           invData,
           $store.userAddress
         );
+        rewards = rewardsRes.match({
+          None: () => Option.None(),
+          Some: rw => {
+            if (invData.type === "long-term") {
+              youvesLongTermFullRewards = rw.longTermRewards;
+            }
+            return Option.Some(rw.availableRewards);
+          }
+        });
         break;
     }
     // converts rewards into XTZ
     rewards.match({
-      None: () => console.log("No rewards available"),
+      None: () => console.log(`No rewards available for ${invData.alias}`),
       Some: rw => {
         dispatch("farm-update", {
           id: invData.id,
@@ -235,6 +296,14 @@
         await calcRewards();
         await calcStake();
       }, 60_000);
+      // if (farmsWorker) {
+      //   farmsWorker.onmessage = handleFarmsWorker;
+      //   farmsWorker.postMessage({
+      //     type: "calc-stake",
+      //     payload: { invData, userAddress: $store.userAddress }
+      //   });
+      // } else {
+      // }
     }
   });
 
@@ -263,12 +332,19 @@
         </div>
         <div class="farm-info__tokens-price">
           {#each invData.icons as token}
-            <div>
-              1 {token} = {formatTokenAmount(
-                $store.tokens[token].getExchangeRate()
-              )}
-              ꜩ
-            </div>
+            {#if token === "XTZ"}
+              <div>
+                1 {token} = {formatTokenAmount($store.xtzExchangeRate, 2)}
+                USD
+              </div>
+            {:else}
+              <div>
+                1 {token} = {formatTokenAmount(
+                  $store.tokens[token].getExchangeRate()
+                )}
+                ꜩ
+              </div>
+            {/if}
           {/each}
         </div>
       </div>
@@ -296,10 +372,10 @@
       </div>
       <div class="actions">
         <div>
-          <div>Rewards</div>
           {#if rewards.isNone()}
             <div>No rewards available</div>
-          {:else}
+          {:else if invData.platform !== "smartlink"}
+            <div>Rewards</div>
             <div class="bold">
               {formatTokenAmount(rewards.getWithDefault(0))}
               {invData.rewardToken}
@@ -317,6 +393,28 @@
                 2
               )} USD)
             </div>
+            {#if invData.platform === "youves" && invData.type === "long-term"}
+              <div style="margin-top:15px">Full rewards</div>
+              <div class="bold">
+                {formatTokenAmount(youvesLongTermFullRewards)}
+                {invData.rewardToken}
+              </div>
+              <div style="font-size: 0.8rem">
+                ({formatTokenAmount(
+                  youvesLongTermFullRewards *
+                    $store.tokens[invData.rewardToken].getExchangeRate(),
+                  2
+                )} ꜩ /
+                {formatTokenAmount(
+                  youvesLongTermFullRewards *
+                    $store.tokens[invData.rewardToken].getExchangeRate() *
+                    $store.xtzExchangeRate,
+                  2
+                )} USD)
+              </div>
+            {/if}
+          {:else}
+            <div>Coming soon!</div>
           {/if}
         </div>
         <div>

@@ -251,3 +251,10 @@ export interface HistoricalDataState {
       }
     | undefined;
 }
+
+export enum ToastType {
+  INFO,
+  ERROR,
+  SUCCESS,
+  WARNING
+}

@@ -64,6 +64,7 @@
         totalRewards = [...farms, val];
         dispatch("farm-update", val);
       }}
+      on:roi-per-week={event => dispatch("roi-per-week", event.detail)}
     />
   {/each}
 {/if}

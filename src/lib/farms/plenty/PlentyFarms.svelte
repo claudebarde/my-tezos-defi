@@ -4,13 +4,21 @@
   import type { AvailableInvestment } from "../../../types";
   import FarmRow from "../FarmRow.svelte";
   import FarmRowHeader from "../FarmRowHeader.svelte";
+  import FarmWorker from "../farms.worker?worker";
 
   let farms: Array<{ id: AvailableInvestment; balance: number }> = [];
   const dispatch = createEventDispatcher();
   let totalRewards: Array<{ id: AvailableInvestment; rewards: number }> = [];
+  let farmsWorker;
 
   onMount(async () => {
     if ($store.userAddress) {
+      // spins up the dedicated web worker
+      farmsWorker = new FarmWorker();
+      farmsWorker.postMessage({
+        type: "init"
+      });
+      // fetches farms data
       const plentyFarmsAddresses = Object.values($store.investments)
         .filter(inv => inv.platform === "plenty")
         .map(inv => inv.address);
@@ -59,12 +67,14 @@
   {#each farms as farm}
     <FarmRow
       invName={farm.id}
+      {farmsWorker}
       on:farm-update={event => {
         const val = event.detail;
         const farms = totalRewards.filter(farm => farm.id !== val.id);
         totalRewards = [...farms, val];
         dispatch("farm-update", val);
       }}
+      on:roi-per-week={event => dispatch("roi-per-week", event.detail)}
     />
   {/each}
 {/if}

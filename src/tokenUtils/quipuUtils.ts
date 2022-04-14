@@ -19,37 +19,25 @@ export const calcQuipuRewards = async (
     0: farmId,
     1: userAddress
   });
-  //console.log(userData);
-  // calculates number of seconds since last stake
-  const seconds = Math.round(
-    (Date.now() - new Date(userData.last_staked).getTime()) / 1000
-  );
-  // calculates rewards per share
-  // console.log({
-  //   reward_per_share: farmData.reward_per_share.toNumber(),
-  //   reward_per_second: farmData.reward_per_second.toNumber(),
-  //   staked: farmData.staked.toNumber(),
-  //   my_stake: invData.balance
-  // });
 
-  const rewardsFromShares =
-    invData.balance *
-    (farmData.reward_per_share.toNumber() *
-      farmData.reward_per_second.toNumber());
-  const estimatedRewards = rewardsFromShares * seconds;
-  if (estimatedRewards && !isNaN(estimatedRewards)) {
-    // console.log(estimatedRewards / 10 ** 51);
-    return Option.Some(estimatedRewards / 10 ** 51);
+  const new_farm_reward =
+    ((Date.now() - new Date(farmData.upd).getTime()) / 1000) *
+    farmData.reward_per_second.toNumber();
+  const updated_reward_per_share =
+    farmData.reward_per_share.toNumber() +
+    new_farm_reward / farmData.staked.toNumber();
+  const pending =
+    (userData.earned.toNumber() +
+      userData.staked.toNumber() * updated_reward_per_share -
+      userData.prev_earned.toNumber()) /
+    1e18;
+
+  if (!isNaN(pending)) {
+    const availableRewards = (pending - pending * 0.0005) / 10 ** 6;
+    return Option.Some(availableRewards);
   } else {
     return Option.None();
   }
-
-  // const _rewardsFromShares =
-  //   invData.balance /
-  //   (farmData.reward_per_share.toNumber() /
-  //     farmData.reward_per_second.toNumber());
-  // const _estimatedRewards = _rewardsFromShares * seconds;
-  // console.log(_estimatedRewards);
 };
 
 export const calcQuipuStake = async (

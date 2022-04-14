@@ -138,7 +138,15 @@ export const calcYouvesRewards = async (
   Tezos: TezosToolkit,
   invData: InvestmentData,
   userAddress: TezosAccountAddress
-): Promise<Option<number>> => {
+): Promise<
+  Option<{
+    availableRewards: number;
+    longTermRewards: number;
+    fullRewardsAvailable: number;
+  }>
+> => {
+  let longTermRewards, fullRewardsAvailable;
+
   const store = get(_store);
 
   const rewards = await getYouvesRewards(
@@ -148,7 +156,29 @@ export const calcYouvesRewards = async (
     store.tokens.YOU.decimals
   );
   if (rewards && !isNaN(rewards)) {
-    return Option.Some(rewards);
+    if (invData.type === "long-term") {
+      // computes the long term rewards
+      const rewardsPoolContract = await Tezos.wallet.at(invData.address);
+      const rewardsPoolStorage: any = await rewardsPoolContract.storage();
+      const stake = await rewardsPoolStorage.stakes.get(userAddress);
+      const longTermRewards_ = longTermFarmFullRewards(
+        rewardsPoolStorage.dist_factor,
+        stake.stake.dividedBy(10 ** invData.decimals),
+        stake.dist_factor,
+        invData.decimals
+      );
+      if (longTermRewards_) {
+        longTermRewards = longTermRewards_ / 10 ** store.tokens.YOU.decimals;
+      }
+      fullRewardsAvailable =
+        Date.parse(stake.age_timestamp) + 180 * 24 * 60 * 60 * 1000;
+    }
+
+    return Option.Some({
+      availableRewards: rewards,
+      longTermRewards,
+      fullRewardsAvailable
+    });
   } else {
     return Option.None();
   }
@@ -158,9 +188,10 @@ export const calcYouvesStake = async (
   invData: InvestmentData,
   Tezos: TezosToolkit,
   userAddress: TezosAccountAddress
-): Promise<Result<number, string>> => {
+): Promise<Result<{ stakeInXtz: number; totalSupply: number }, string>> => {
   const store = get(_store);
   let stakeInXtz: number;
+  let totalSupply: { inToken: number; inTez: number };
 
   if (invData.id === AvailableInvestment["YOUVES-UUSD-UBTC"]) {
     const token1 = AvailableToken.uUSD;
@@ -198,7 +229,7 @@ export const calcYouvesStake = async (
       );
       if (totalSupplyPrice) {
         const { token1Output, token2Output } = totalSupplyPrice;
-        const totalSupply = {
+        totalSupply = {
           inToken: total_supply.toNumber(),
           inTez:
             (token1Output.toNumber() / 10 ** store.tokens.uUSD.decimals) *
@@ -221,7 +252,7 @@ export const calcYouvesStake = async (
         const longTermRewards =
           longTermRewards_ / 10 ** store.tokens.YOU.decimals;
       }
-      const fullRewardsAvailable =
+      const availableRewards =
         Date.parse(stake.age_timestamp) + 180 * 24 * 60 * 60 * 1000;
     }
   } else if (invData.id === AvailableInvestment["YOUVES-UUSD-WUSDC"]) {
@@ -256,7 +287,7 @@ export const calcYouvesStake = async (
       );
       if (totalSupplyPrice) {
         const { token1Output, token2Output } = totalSupplyPrice;
-        const totalSupply = {
+        totalSupply = {
           inToken: lqtTotal.toNumber(),
           inTez:
             (token1Output.toNumber() / 10 ** store.tokens.uUSD.decimals) *
@@ -273,7 +304,7 @@ export const calcYouvesStake = async (
   }
 
   if (stakeInXtz && !isNaN(stakeInXtz)) {
-    return Result.Ok(stakeInXtz);
+    return Result.Ok({ stakeInXtz, totalSupply });
   } else {
     return Result.Error(
       `Stake in XTZ coudn't be computed for ${invData.alias}`

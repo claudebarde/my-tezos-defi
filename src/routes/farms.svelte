@@ -17,8 +17,34 @@
         balance: number;
         value: number;
         rewards: number;
+        roiPerWeek: number;
       }>
     | undefined = undefined;
+
+  const updateFarms = event => {
+    const val = event.detail;
+    if (totalFarms === undefined) {
+      totalFarms = [val];
+    } else {
+      // filters existing values in array
+      const farms = totalFarms.filter(farm => farm.id !== val.id);
+      totalFarms = [...farms, val];
+    }
+  };
+
+  const updateRoiPerWeek = event => {
+    const val = event.detail;
+    if (totalFarms) {
+      const farms = totalFarms.map(farm => {
+        if (farm.id === val.id) {
+          return { ...farm, roiPerWeek: val.roi };
+        } else {
+          return farm;
+        }
+      });
+      totalFarms = [...farms];
+    }
+  };
 </script>
 
 <style lang="scss">
@@ -33,88 +59,32 @@
     <FarmsHeader farms={totalFarms} />
     <div class="farms">
       <PlentyFarms
-        on:farm-update={event => {
-          const val = event.detail;
-          if (totalFarms === undefined) {
-            totalFarms = [val];
-          } else {
-            // filters existing values in array
-            const farms = totalFarms.filter(farm => farm.id !== val.id);
-            totalFarms = [...farms, val];
-          }
-        }}
+        on:farm-update={updateFarms}
+        on:roi-per-week={updateRoiPerWeek}
       />
       <KdaoFarms
-        on:farm-update={event => {
-          const val = event.detail;
-          if (totalFarms === undefined) {
-            totalFarms = [val];
-          } else {
-            // filters existing values in array
-            const farms = totalFarms.filter(farm => farm.id !== val.id);
-            totalFarms = [...farms, val];
-          }
-        }}
+        on:farm-update={updateFarms}
+        on:roi-per-week={updateRoiPerWeek}
       />
       <YouvesFarms
-        on:farm-update={event => {
-          const val = event.detail;
-          if (totalFarms === undefined) {
-            totalFarms = [val];
-          } else {
-            // filters existing values in array
-            const farms = totalFarms.filter(farm => farm.id !== val.id);
-            totalFarms = [...farms, val];
-          }
-        }}
+        on:farm-update={updateFarms}
+        on:roi-per-week={updateRoiPerWeek}
       />
       <PaulFarms
-        on:farm-update={event => {
-          const val = event.detail;
-          if (totalFarms === undefined) {
-            totalFarms = [val];
-          } else {
-            // filters existing values in array
-            const farms = totalFarms.filter(farm => farm.id !== val.id);
-            totalFarms = [...farms, val];
-          }
-        }}
+        on:farm-update={updateFarms}
+        on:roi-per-week={updateRoiPerWeek}
       />
       <QuipuFarms
-        on:farm-update={event => {
-          const val = event.detail;
-          if (totalFarms === undefined) {
-            totalFarms = [val];
-          } else {
-            // filters existing values in array
-            const farms = totalFarms.filter(farm => farm.id !== val.id);
-            totalFarms = [...farms, val];
-          }
-        }}
+        on:farm-update={updateFarms}
+        on:roi-per-week={updateRoiPerWeek}
       />
       <SmartlinkFarms
-        on:farm-update={event => {
-          const val = event.detail;
-          if (totalFarms === undefined) {
-            totalFarms = [val];
-          } else {
-            // filters existing values in array
-            const farms = totalFarms.filter(farm => farm.id !== val.id);
-            totalFarms = [...farms, val];
-          }
-        }}
+        on:farm-update={updateFarms}
+        on:roi-per-week={updateRoiPerWeek}
       />
       <WrapFarms
-        on:farm-update={event => {
-          const val = event.detail;
-          if (totalFarms === undefined) {
-            totalFarms = [val];
-          } else {
-            // filters existing values in array
-            const farms = totalFarms.filter(farm => farm.id !== val.id);
-            totalFarms = [...farms, val];
-          }
-        }}
+        on:farm-update={updateFarms}
+        on:roi-per-week={updateRoiPerWeek}
       />
     </div>
   {:else}

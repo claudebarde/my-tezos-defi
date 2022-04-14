@@ -125,7 +125,7 @@ export const calcPaulFarmApr = async ({
   earnCoinPrice: number;
   tokenDecimals: number;
   paulPrice: number;
-}): Promise<number | null> => {
+}): Promise<Result<number, string>> => {
   const localStore = get(_store);
 
   const contract = await Tezos.wallet.at(farmAddress);
@@ -202,11 +202,11 @@ export const calcPaulFarmApr = async ({
       10 ** tokenDecimals;
     const totalStakedInUsd = (storage.total_staked / 10 ** 6) * lpTokenPrice;
 
-    return (
+    return Result.Ok(
       (((earnCoinPrice * earnCoinsPerYear) / totalStakedInUsd) * 100) / 100
     );
   } else {
-    return null;
+    return Result.Error("No LPT price found");
   }
   /*
     For farming: earnCoinPrice * earnCoinsPerYear / totalStakedInUsd * 100%, 

@@ -1,6 +1,7 @@
 <script>
   import "../styles/index.scss";
   import Sidebar from "$lib/Sidebar.svelte";
+  import Toast from "$lib/Toast.svelte";
   import store from "../store";
 </script>
 
@@ -12,3 +13,4 @@
     <div>Loading, please wait...</div>
   {/if}
 </main>
+<Toast />

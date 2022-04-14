@@ -2,10 +2,11 @@ import type { TezosToolkit } from "@taquito/taquito";
 import { get } from "svelte/store";
 import { Option, Result } from "@swan-io/boxed";
 import { AvailableInvestment, AvailableToken } from "../types";
-import type { InvestmentData, TezosAccountAddress } from "../types";
+import type { InvestmentData, TezosAccountAddress, State } from "../types";
 import _store from "../store";
 import config from "../config";
 import type { TezosContractAddress } from "../types";
+import { formatTokenAmount } from "../utils";
 
 export const formatPlentyLpAmount = (
   lpAmount: number,
@@ -491,5 +492,47 @@ export const calcPlentyStake = async (
     return Result.Error(
       `Stake in XTZ coudn't be computed for ${invData.alias}`
     );
+  }
+};
+
+export const fetchPlentyStatistics = async (
+  invData: InvestmentData,
+  stakeInXtz: number
+): Promise<
+  Result<{ roiPerWeek: number; apr: number; apy: number }, string>
+> => {
+  const store = get(_store);
+
+  const tokenPair = invData.id;
+  const token1 = invData.icons[0];
+  const token2 = invData.icons[1];
+  const lpTokenPrice = await getLPTokenPrice({
+    tokenPair,
+    token1_price: store.tokens[token1].getExchangeRate(),
+    token1_decimal: store.tokens[token1].decimals,
+    token2_price: store.tokens[token2].getExchangeRate(),
+    token2_decimal: store.tokens[token2].decimals,
+    lp_token_decimal: store.investments[tokenPair].decimals,
+    Tezos: store.Tezos
+  });
+  const result = await calcPlentyAprApy({
+    Tezos: store.Tezos,
+    farmAddress: invData.address,
+    rewardTokenPriceInFiat: store.tokens[invData.rewardToken].getExchangeRate(),
+    stakeTokenPriceInFiat: lpTokenPrice
+  });
+  if (result && !isNaN(result.apr) && !isNaN(result.apy)) {
+    const apr = result.apr;
+    const apy = result.apy;
+    // calculates estimated ROI per week
+    const roiPerWeek = formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
+
+    return Result.Ok({
+      roiPerWeek,
+      apr,
+      apy
+    });
+  } else {
+    return Result.Error("Error while calculating Plenty's APR/APY");
   }
 };
