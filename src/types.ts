@@ -196,7 +196,8 @@ export enum AvailableDex {
 export enum AvailableVault {
   WXTZ = "wXTZ",
   KDAO = "kDAO",
-  YOUVES = "youves"
+  YOUVES = "youves",
+  CTEZ = "ctez"
 }
 
 export interface UserToken {

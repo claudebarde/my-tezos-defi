@@ -8,6 +8,7 @@
   import WxtzVaultRow from "$lib/vaults/wXTZ/VaultRow.svelte";
   import KdaoVaultRow from "$lib/vaults/kDAO/VaultRow.svelte";
   import YouvesVaultRow from "$lib/vaults/youves/VaultRow.svelte";
+  import CtezVaultRow from "$lib/vaults/ctez/VaultRow.svelte";
   // wXTZ find user vaults
   // https://api.tzkt.io/v1/bigmaps/updates?bigmap=260&value=tz1Me1MGhK7taay748h4gPnX2cXvbgL6xsYL
 
@@ -131,6 +132,35 @@
           ];
         }
       }
+
+      // Ctez
+      const ctezVaultsPromises = await Promise.allSettled([
+        fetch(
+          `https://api.tzkt.io/v1/bigmaps/20919/keys?key.owner=${$store.userAddress}`
+        )
+      ]);
+      if (ctezVaultsPromises) {
+        const ctezVaults = await Promise.allSettled(
+          ctezVaultsPromises.map(data =>
+            data.status === "fulfilled" ? data.value.json() : undefined
+          )
+        );
+        if (ctezVaults.length > 0) {
+          allVaults = [
+            ...allVaults,
+            ...ctezVaults
+              .map(storage =>
+                (storage as PromiseFulfilledResult<any>).value.map(val => ({
+                  platform: AvailableVault.CTEZ,
+                  address: val.value.address,
+                  xtzLocked: 0,
+                  isLiquidated: false
+                }))
+              )
+              .flat()
+          ];
+        }
+      }
     }
   });
 
@@ -142,6 +172,11 @@
 <style lang="scss">
   .vaults {
     width: 90%;
+
+    h3 {
+      padding: 0px;
+      margin: 0px;
+    }
   }
 </style>
 
@@ -153,7 +188,7 @@
       <div
         style="display:flex;justify-content:space-between;align-items:center"
       >
-        <div>Kolibri ovens</div>
+        <h3>Kolibri ovens</h3>
         <div>
           <label for="liquidated-ovens">
             <span>Show liquidated ovens</span>
@@ -172,7 +207,7 @@
       {:else}
         <div>No oven</div>
       {/each}
-      <div>Youves vaults</div>
+      <h3>Youves vaults</h3>
       {#each allVaults
         .filter(vault => vault.platform === AvailableVault.YOUVES)
         .filter( vault => (showLiquidatedOvens ? true : vault.isLiquidated === false) ) as vault (vault.address)}
@@ -180,7 +215,15 @@
       {:else}
         <div>No oven</div>
       {/each}
-      <div>wXTZ vaults</div>
+      <h3>Ctez vaults</h3>
+      {#each allVaults
+        .filter(vault => vault.platform === AvailableVault.CTEZ)
+        .filter( vault => (showLiquidatedOvens ? true : vault.isLiquidated === false) ) as vault (vault.address)}
+        <CtezVaultRow {vault} on:update-xtz-locked={updateXtzLocked} />
+      {:else}
+        <div>No oven</div>
+      {/each}
+      <h3>wXTZ vaults</h3>
       {#each allVaults
         .filter(vault => vault.platform === AvailableVault.WXTZ)
         .filter( vault => (showLiquidatedOvens ? true : vault.isLiquidated === false) ) as vault (vault.address)}
