@@ -12,13 +12,10 @@
     rewards: Option<number>;
 
   const dispatch = createEventDispatcher();
-  let localRewards = 0;
+  let localRewards: number | null = 0;
 
   afterUpdate(() => {
-    rewards.match({
-      None: () => (localRewards = 0),
-      Some: rw => (localRewards = rw)
-    });
+    localRewards = rewards.toNull();
   });
 </script>
 
@@ -71,7 +68,7 @@
           2
         )} USD)
       </div>
-    {:else if rewards.isNone()}
+    {:else}
       <div>No reward</div>
     {/if}
   </div>

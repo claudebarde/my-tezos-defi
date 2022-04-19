@@ -23,13 +23,17 @@ export const shortenHash = (hash: string): string =>
 
 export const formatTokenAmount = (
   amount: number,
-  decimals?: number
-): number => {
-  if (decimals) {
-    return amount ? +amount.toFixed(decimals) / 1 : 0;
-  } else {
-    return amount ? +amount.toFixed(5) / 1 : 0;
-  }
+  decimals: number = 3
+): string => {
+  if (isNaN(amount)) return "NaN";
+
+  amount = +amount;
+
+  return amount
+    ? (+amount.toFixed(decimals) / 1).toLocaleString("en-US", {
+        minimumFractionDigits: decimals
+      })
+    : "0";
 };
 
 export const fetchTezosDomain = async (

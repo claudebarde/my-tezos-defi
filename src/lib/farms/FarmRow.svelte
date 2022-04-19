@@ -41,7 +41,7 @@
   let stakeInXtz: null | number = null;
   let rewards = Option.None<number>();
   let recalcInterval;
-  let expand = true;
+  let expand = false;
   let harvesting = false;
   let harvestingSuccess = false;
   let apr: number, apy: number;
@@ -435,7 +435,7 @@
     </div>
   {:else}
     <!-- Loader-->
-    {#if !isNaN(stakeInXtz) && rewards.isSome()}
+    {#if !isNaN(stakeInXtz)}
       <FarmMiniRow
         {invData}
         stake={invData.platform === "plenty"

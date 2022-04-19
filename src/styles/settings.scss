@@ -23,3 +23,31 @@ $emerald-green: #50c878;
 
 $std-font-size: 1rem;
 $std-border-radius: 0.4rem;
+
+@mixin row {
+  display: grid;
+  grid-template-columns: 5% 15% 25% 20% 30% 5%;
+  align-items: center;
+  padding: 30px 20px;
+  margin: 20px 0px;
+  background-color: $blizzard-blue;
+  border-radius: $std-border-radius;
+  text-align: center;
+
+  .icons {
+    margin: 0 auto;
+
+    img {
+      width: 48px;
+      height: 48px;
+      background-color: white;
+      border-radius: 50%;
+      transition: 0.3s;
+
+      &:not(:first-child) {
+        margin-left: -8px;
+        border-radius: 50%;
+      }
+    }
+  }
+}

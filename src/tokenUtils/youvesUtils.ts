@@ -188,7 +188,12 @@ export const calcYouvesStake = async (
   invData: InvestmentData,
   Tezos: TezosToolkit,
   userAddress: TezosAccountAddress
-): Promise<Result<{ stakeInXtz: number; totalSupply: number }, string>> => {
+): Promise<
+  Result<
+    { stakeInXtz: number; totalSupply: { inToken: number; inTez: number } },
+    string
+  >
+> => {
   const store = get(_store);
   let stakeInXtz: number;
   let totalSupply: { inToken: number; inTez: number };

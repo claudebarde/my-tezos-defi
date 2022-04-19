@@ -237,7 +237,7 @@
               info: [
                 farmData.lock === 0 ? "no-lock" : farmData.lock + "-day-lock"
               ],
-              alias: `QuipuSwap Farming ${
+              alias: `${farmData.tokens.join("-")} farm ${
                 farmData.lock === 0
                   ? "(no lock)"
                   : "(" + farmData.lock + "-day lock)"

@@ -193,6 +193,12 @@ export enum AvailableDex {
   VORTEX = "vortex"
 }
 
+export enum AvailableVault {
+  WXTZ = "wXTZ",
+  KDAO = "kDAO",
+  YOUVES = "youves"
+}
+
 export interface UserToken {
   name: AvailableToken;
   balance: number;

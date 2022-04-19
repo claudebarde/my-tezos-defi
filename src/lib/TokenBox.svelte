@@ -121,9 +121,7 @@
   afterUpdate(async () => {
     const userToken = $store.userTokens.find(tk => tk.name === token);
     if (userToken) {
-      userBalance = formatTokenAmount(
-        userToken.balance / 10 ** $store.tokens[token].decimals
-      );
+      userBalance = userToken.balance / 10 ** $store.tokens[token].decimals;
     } else {
       console.error("Token for TokenBox not found");
     }
@@ -258,7 +256,7 @@
       <div class="title">Your balance</div>
       <div class="token-box__info__left">
         <div>
-          {formatTokenAmount($store.tokens[token].getExchangeRate(), 6)} ꜩ
+          {formatTokenAmount($store.tokens[token].getExchangeRate(), 8)} ꜩ
         </div>
         <div>
           {formatTokenAmount(
@@ -287,21 +285,26 @@
       </div>
       <div class="title">Actions</div>
       <div class="token-box__info__middle">
-        <div>
-          {userBalance} tokens
-        </div>
-        <div>
-          {formatTokenAmount(
-            userBalance * $store.tokens[token].getExchangeRate()
-          )} ꜩ
-        </div>
-        <div>
-          {formatTokenAmount(
-            userBalance *
-              $store.tokens[token].getExchangeRate() *
-              $store.xtzExchangeRate
-          )} USD
-        </div>
+        {#if userBalance && $store.tokens[token]}
+          <div>
+            {formatTokenAmount(userBalance)} tokens
+          </div>
+          <div>
+            {formatTokenAmount(
+              +userBalance * $store.tokens[token].getExchangeRate(),
+              8
+            )} ꜩ
+          </div>
+          <div>
+            {formatTokenAmount(
+              +userBalance *
+                $store.tokens[token].getExchangeRate() *
+                $store.xtzExchangeRate
+            )} USD
+          </div>
+        {:else}
+          <div>Loading</div>
+        {/if}
       </div>
       <div class="buttons">
         <button class="primary small">Send</button>
@@ -340,7 +343,7 @@
       <div>
         <div class="token-box__info__left">
           <div>
-            {formatTokenAmount($store.tokens[token].getExchangeRate(), 6)} ꜩ
+            {formatTokenAmount($store.tokens[token].getExchangeRate(), 8)} ꜩ
           </div>
           <div>
             {formatTokenAmount(
@@ -370,7 +373,11 @@
       </div>
       <div>
         <div>
-          {userBalance} tokens
+          {#if [AvailableToken.tzBTC, AvailableToken.wWBTC, AvailableToken.BTCtz].includes(token)}
+            {formatTokenAmount(userBalance, 6)} tokens
+          {:else}
+            {formatTokenAmount(userBalance)} tokens
+          {/if}
         </div>
         <div>
           {formatTokenAmount(

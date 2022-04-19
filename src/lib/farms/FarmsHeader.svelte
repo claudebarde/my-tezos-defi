@@ -54,14 +54,14 @@
       <div>
         <b>
           {formatTokenAmount(
-            [0, 0, ...farms.map(farm => farm.value)].reduce((a, b) => a + b)
+            [0, 0, ...farms.map(farm => +farm.value)].reduce((a, b) => a + b)
           )} ꜩ
         </b>
       </div>
       <div>
         <span style="font-size:0.8rem">
           ({formatTokenAmount(
-            [0, 0, ...farms.map(farm => farm.value)].reduce((a, b) => a + b) *
+            [0, 0, ...farms.map(farm => +farm.value)].reduce((a, b) => a + b) *
               $store.xtzExchangeRate,
             2
           ).toLocaleString()} USD)
@@ -97,7 +97,7 @@
               0,
               ...farms
                 .filter(farm => !isNaN(farm.roiPerWeek))
-                .map(farm => farm.roiPerWeek)
+                .map(farm => +farm.roiPerWeek)
             ].reduce((a, b) => a + b)
           )} ꜩ
         </b>
@@ -110,7 +110,7 @@
               0,
               ...farms
                 .filter(farm => !isNaN(farm.roiPerWeek))
-                .map(farm => farm.roiPerWeek)
+                .map(farm => +farm.roiPerWeek)
             ].reduce((a, b) => a + b) * $store.xtzExchangeRate,
             2
           ).toLocaleString()} USD)
