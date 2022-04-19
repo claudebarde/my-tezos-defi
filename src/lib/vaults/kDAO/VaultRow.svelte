@@ -30,7 +30,15 @@
   });
 </script>
 
-<div class="vault-row">
+<style lang="scss">
+  @import "../../../styles/settings.scss";
+
+  .liquidated {
+    background-color: $cyber-yellow;
+  }
+</style>
+
+<div class="vault-row" class:liquidated={vault.isLiquidated}>
   <div>
     <a
       href={`https://better-call.dev/mainnet/${vault.address}/operations`}
@@ -41,7 +49,7 @@
     </a>
   </div>
   <div class="icons">
-    <img src={`tokens/wXTZ.png`} alt="vault-icon" />
+    <img src={`tokens/kDAO.png`} alt="vault-icon" />
   </div>
   <div class="user-info">
     <div>
@@ -71,7 +79,11 @@
       </div>
     </div>
   </div>
-  <div>slot 2</div>
-  <div class="buttons">button</div>
-  <div>button</div>
+  {#if vault.isLiquidated}
+    <div>Liquidated</div>
+  {:else}
+    <div>slot 2</div>
+    <div class="buttons">button</div>
+    <div>button</div>
+  {/if}
 </div>

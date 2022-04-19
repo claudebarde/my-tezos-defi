@@ -41,7 +41,7 @@
     </a>
   </div>
   <div class="icons">
-    <img src={`tokens/wXTZ.png`} alt="vault-icon" />
+    <img src={`tokens/uUSD.png`} alt="vault-icon" />
   </div>
   <div class="user-info">
     <div>
