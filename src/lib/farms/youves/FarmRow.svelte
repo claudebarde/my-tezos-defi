@@ -202,7 +202,12 @@
         <div>
           <div>Stake</div>
           <div class="bold">
-            {formatTokenAmount(invData.balance / 10 ** invData.decimals)} LPT
+            {formatTokenAmount(invData.balance / 10 ** invData.decimals)}
+            {#if invData.alias === "YOU staking"}
+              {AvailableToken.YOU}
+            {:else}
+              LPT
+            {/if}
           </div>
         </div>
         <div>
@@ -224,7 +229,9 @@
             <div>Rewards</div>
           {/if}
           <div class="bold">
-            {formatTokenAmount(rewards)}
+            {invData.rewardToken === AvailableToken.uBTC
+              ? formatTokenAmount(rewards, 8)
+              : formatTokenAmount(rewards)}
             {invData.rewardToken}
           </div>
           <div style="font-size: 0.8rem">
@@ -242,7 +249,9 @@
           {#if invData.type === "long-term"}
             <div style="margin-top:15px">Long term rewards</div>
             <div class="bold">
-              {formatTokenAmount(longTermRewards)}
+              {invData.rewardToken === AvailableToken.uBTC
+                ? formatTokenAmount(longTermRewards, 8)
+                : formatTokenAmount(longTermRewards)}
               {invData.rewardToken}
             </div>
             <div style="font-size: 0.8rem">

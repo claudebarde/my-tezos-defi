@@ -2,7 +2,7 @@
   import { afterUpdate, createEventDispatcher } from "svelte";
   import { slide } from "svelte/transition";
   import type { Option } from "@swan-io/boxed";
-  import type { InvestmentData, AvailableToken } from "../../types";
+  import { type InvestmentData, AvailableToken } from "../../types";
   import { formatTokenAmount } from "../../utils";
   import store from "../../store";
 
@@ -39,7 +39,12 @@
   <div class="user-info">
     <div>
       <div class="bold">
-        {formatTokenAmount(stake)} LPT
+        {formatTokenAmount(stake)}
+        {#if invData.alias === "YOU staking"}
+          {AvailableToken.YOU}
+        {:else}
+          LPT
+        {/if}
       </div>
     </div>
     <div>{formatTokenAmount(stakeInXtz)} ꜩ</div>
@@ -53,7 +58,9 @@
       <div>Coming soon!</div>
     {:else if !isNaN(localRewards)}
       <div class="bold">
-        {formatTokenAmount(localRewards)}
+        {invData.rewardToken === AvailableToken.uBTC
+          ? formatTokenAmount(localRewards, 8)
+          : formatTokenAmount(localRewards)}
         {invData.rewardToken}
       </div>
       <div style="font-size: 0.8rem">

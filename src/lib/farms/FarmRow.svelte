@@ -236,6 +236,9 @@
   };
 
   const harvest = async () => {
+    // TODO: display a toast when rewards are zero
+    if (rewards.isNone()) return;
+
     harvesting = true;
     try {
       const rewardsToHarvest = rewards.match({
@@ -245,12 +248,35 @@
       if (rewardsToHarvest === 0) throw "No rewards to harvest";
 
       const contract = await $store.Tezos.wallet.at(invData.address);
-      const batch = prepareOperation({
-        contractCalls: [contract.methods.claim([["unit"]])],
-        amount: rewardsToHarvest,
-        tokenSymbol: AvailableToken[invData.rewardToken]
-      });
-      const op = await batch.send();
+      const op = await (async () => {
+        switch (invData.platform) {
+          case "kdao":
+            const kdaoBatch = prepareOperation({
+              contractCalls: [contract.methods.claim([["unit"]])],
+              amount: rewards.getWithDefault(0),
+              tokenSymbol: AvailableToken.kDAO
+            });
+            return await kdaoBatch.send();
+          case "plenty":
+            const plentyBatch = prepareOperation({
+              contractCalls: [contract.methods.GetReward([["unit"]])],
+              amount: rewards.getWithDefault(0),
+              tokenSymbol: AvailableToken.PLENTY
+            });
+            return await plentyBatch.send();
+          case "paul":
+            const paulBatch = prepareOperation({
+              contractCalls: [
+                invData.id === "PAUL-PAUL"
+                  ? contract.methods.earn($store.userAddress, false)
+                  : contract.methods.earn($store.userAddress)
+              ],
+              amount: rewards.getWithDefault(0),
+              tokenSymbol: AvailableToken.PAUL
+            });
+            return await paulBatch.send();
+        }
+      })();
       await op.confirmation();
       harvesting = false;
       const opStatus = await op.status();
@@ -355,7 +381,12 @@
             {#if invData.platform === "plenty"}
               {formatTokenAmount(invData.balance / 10 ** 18)} LPT
             {:else}
-              {formatTokenAmount(invData.balance / 10 ** invData.decimals)} LPT
+              {formatTokenAmount(invData.balance / 10 ** invData.decimals)}
+              {#if invData.alias === "YOU staking"}
+                {AvailableToken.YOU}
+              {:else}
+                LPT
+              {/if}
             {/if}
           </div>
         </div>
@@ -377,7 +408,9 @@
           {:else if invData.platform !== "smartlink"}
             <div>Rewards</div>
             <div class="bold">
-              {formatTokenAmount(rewards.getWithDefault(0))}
+              {invData.rewardToken === AvailableToken.uBTC
+                ? formatTokenAmount(rewards.getWithDefault(0), 8)
+                : formatTokenAmount(rewards.getWithDefault(0))}
               {invData.rewardToken}
             </div>
             <div style="font-size: 0.8rem">
@@ -421,7 +454,11 @@
           <div />
           <button class="primary" on:click={harvest}>
             <span class="material-icons-outlined"> agriculture </span>
-            Harvest
+            {#if harvesting}
+              Harvesting
+            {:else}
+              Harvest
+            {/if}
           </button>
         </div>
       </div>

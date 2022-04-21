@@ -64,7 +64,7 @@
     totalRewards={totalRewards.map(farm => farm.rewards)}
     name="Plenty"
   />
-  {#each farms as farm}
+  {#each farms as farm (farm.id)}
     <FarmRow
       invName={farm.id}
       {farmsWorker}

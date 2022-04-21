@@ -486,7 +486,7 @@ export const calcPlentyStake = async (
     rewardToken: invData.rewardToken
   });
 
-  if (stakeInXtz && !isNaN(stakeInXtz)) {
+  if ((stakeInXtz || stakeInXtz === 0) && !isNaN(stakeInXtz)) {
     return Result.Ok(stakeInXtz);
   } else {
     return Result.Error(
