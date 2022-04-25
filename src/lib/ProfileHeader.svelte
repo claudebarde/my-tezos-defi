@@ -6,7 +6,7 @@
 
   let xtzPrice24hourDifference: number | undefined = undefined;
   let xtzTrend;
-  let totalTokensBalance: number;
+  let totalTokensBalance: string;
 
   afterUpdate(() => {
     if ($store.xtzPriceHistoric && $store.xtzPriceHistoric.length > 0) {
@@ -118,8 +118,11 @@
   </div>
   {#if $page.url.pathname === "/" && $store.userTokens && $store.userTokens.length > 0}
     <div class="tokens-info">
-      <div>{$store.userTokens.length} tokens with balance</div>
-      <div>Total value: {totalTokensBalance} ꜩ</div>
+      <p>{$store.userTokens.length} tokens with balance</p>
+      <p>Total value: {totalTokensBalance} ꜩ</p>
+      <p>
+        ({formatTokenAmount(+totalTokensBalance * $store.xtzExchangeRate, 2)} USD)
+      </p>
     </div>
   {:else}
     <div />

@@ -348,7 +348,9 @@
       store.updateAppReady();
     }
 
-    connectedRpcUrl = $store.Tezos.rpc.getRpcUrl();
+    if ($store.Tezos) {
+      connectedRpcUrl = $store.Tezos.rpc.getRpcUrl();
+    }
   });
 
   onDestroy(() => {

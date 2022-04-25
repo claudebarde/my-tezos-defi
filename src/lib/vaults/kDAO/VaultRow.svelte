@@ -36,7 +36,12 @@
       borrowedKusd = undefined;
     }
 
-    balance.match({
+    const collateralUtilization = await ovenClient.getCollateralUtilization();
+    if (collateralUtilization) {
+      collateralPercent = (collateralUtilization.toNumber() / 10 ** 18) * 100;
+    }
+
+    /*balance.match({
       NotAsked: () => undefined,
       Loading: () => undefined,
       Done: blnc =>
@@ -56,7 +61,7 @@
             }
           }
         })
-    });
+    });*/
   };
 
   onMount(async () => {
@@ -95,7 +100,6 @@
           stableCoinClient,
           harbingerClient
         );
-        console.log((await ovenClient.getCollateralUtilization()).toNumber());
         await calcOvenStats();
       }
     } else {
