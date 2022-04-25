@@ -1,9 +1,12 @@
 export default {
   version: "5.0.0",
-  rpcUrl: "https://teznode.letzbake.com/",
-  //"https://eu01-node.teztools.net",
-  //"https://mainnet.api.tez.ie",
-  //"https://mainnet.smartpy.io",
+  rpcUrl: "https://mainnet.api.tez.ie",
+  availableRpcUrls: [
+    "https://mainnet.api.tez.ie",
+    "https://eu01-node.teztools.net",
+    "https://teznode.letzbake.com/",
+    "https://mainnet.smartpy.io"
+  ],
   lbContracts: [
     "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
     "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"

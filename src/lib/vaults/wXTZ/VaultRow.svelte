@@ -72,6 +72,5 @@
     </div>
   </div>
   <div>slot 2</div>
-  <div class="buttons">button</div>
-  <div>button</div>
+  <div class="buttons">buttons</div>
 </div>

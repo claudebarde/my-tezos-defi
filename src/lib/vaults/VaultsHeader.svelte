@@ -52,16 +52,19 @@
           {formatTokenAmount(
             [0, 0, ...vaults.map(vault => +vault.xtzLocked)].reduce(
               (a, b) => a + b
-            )
+            ) /
+              10 ** 6
           )} ꜩ
         </b>
       </div>
       <div>
         <span style="font-size:0.8rem">
           ({formatTokenAmount(
-            [0, 0, ...vaults.map(vault => +vault.xtzLocked)].reduce(
+            ([0, 0, ...vaults.map(vault => +vault.xtzLocked)].reduce(
               (a, b) => a + b
-            ) * $store.xtzExchangeRate,
+            ) /
+              10 ** 6) *
+              $store.xtzExchangeRate,
             2
           ).toLocaleString()} USD)
         </span>

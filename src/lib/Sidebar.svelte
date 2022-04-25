@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { afterUpdate } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import Wallet from "./Wallet.svelte";
   import logoPic from "../assets/logo.png";
   import twitterLogo from "../assets/twitter-circled.svg";
@@ -10,12 +10,37 @@
   import config from "../config";
 
   let liveTrafficWorker;
+  let hidden, visibilityChange;
 
   const handleLiveTrafficWorker = message => {
     if (message.data.type === "new-level") {
-      store.updateCurrentLevel(message.data.payload);
+      const level = message.data.payload;
+      store.updateCurrentLevel(level);
     }
   };
+
+  const handleVisibilityChange = () => {
+    if (document[hidden]) {
+      // saves the last level when user switches tabs
+      $store.localStorage.updateLastActiveLevel($store.currentLevel);
+    }
+  };
+
+  onMount(() => {
+    if (typeof document.hidden !== "undefined") {
+      // Opera 12.10 and Firefox 18 and later support
+      hidden = "hidden";
+      visibilityChange = "visibilitychange";
+    } else if (typeof document.msHidden !== "undefined") {
+      hidden = "msHidden";
+      visibilityChange = "msvisibilitychange";
+    } else if (typeof document.webkitHidden !== "undefined") {
+      hidden = "webkitHidden";
+      visibilityChange = "webkitvisibilitychange";
+    }
+
+    document.addEventListener(visibilityChange, handleVisibilityChange, false);
+  });
 
   afterUpdate(() => {
     if (!liveTrafficWorker && $store.tokens && $store.investments) {

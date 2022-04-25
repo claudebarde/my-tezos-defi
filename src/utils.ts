@@ -31,7 +31,7 @@ export const formatTokenAmount = (
 
   return amount
     ? (+amount.toFixed(decimals) / 1).toLocaleString("en-US", {
-        minimumFractionDigits: decimals
+        maximumFractionDigits: decimals
       })
     : "0";
 };

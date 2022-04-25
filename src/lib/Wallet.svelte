@@ -52,13 +52,16 @@
   let fetchTeztoolsPricesInterval;
   let openWalletMenu = false;
   let connectedWallet = "";
+  let connectedRpcUrl = "";
 
   const setup = async () => {
     $store.Tezos.setWalletProvider(wallet);
     const userAddress = (await wallet.getPKH()) as TezosAccountAddress;
     store.updateUserAddress(userAddress);
     store.updateWallet(wallet);
-    store.updateLocalStorage(new LocalStorage(userAddress));
+    store.updateLocalStorage(
+      new LocalStorage(userAddress, $store.currentLevel)
+    );
     let username = shortenHash(userAddress);
     username = await fetchTezosDomain($store.Tezos, userAddress);
     store.updateUserName(username);
@@ -120,9 +123,6 @@
   };
 
   onMount(async () => {
-    const Tezos = new TezosToolkit(config.rpcUrl);
-    Tezos.addExtension(new Tzip16Module());
-    store.updateTezos(Tezos);
     // fetches DeFi data from Pinata
     try {
       // fetches data from the IPFS
@@ -266,6 +266,10 @@
       console.error(error);
     }
 
+    const Tezos = new TezosToolkit(LocalStorage.getRpcUrl());
+    Tezos.addExtension(new Tzip16Module());
+    store.updateTezos(Tezos);
+
     wallet = new BeaconWallet(walletOptions as any);
     const activeAccount = await wallet.client.getActiveAccount();
     if (activeAccount) {
@@ -343,6 +347,8 @@
       // ap becomes available when tokens, investments, exchange rate and level are ready
       store.updateAppReady();
     }
+
+    connectedRpcUrl = $store.Tezos.rpc.getRpcUrl();
   });
 
   onDestroy(() => {
@@ -497,6 +503,15 @@
             </span>
           </div>
         </div>
+        {#if $store.Tezos}
+          <div
+            class="wallet-menu__info"
+            style="font-size:0.9rem;flex-direction:column;align-items:flex-start"
+          >
+            <p>Connected to</p>
+            <p>{connectedRpcUrl}</p>
+          </div>
+        {/if}
         <div class="wallet-menu__actions">
           <button class="transparent full" on:click={disconnect}>
             <span class="material-icons-outlined">

@@ -265,3 +265,18 @@ export enum ToastType {
   SUCCESS,
   WARNING
 }
+
+export enum TxProgress {
+  INITIALIZED,
+  INJECTED,
+  BAKING,
+  CONFIRMED
+}
+
+export interface VaultData {
+  platform: AvailableVault;
+  address: TezosContractAddress;
+  xtzLocked: number;
+  isLiquidated: boolean;
+  borrowed?: number;
+}

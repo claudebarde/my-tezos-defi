@@ -29,7 +29,7 @@ const init = (contractsToWatch: Array<TezosContractAddress>) => {
             contractsToWatch.includes((content as any).destination) &&
             (content as any).source !== userAddress
           ) {
-            //console.log(`General op on contract ${(content as any).destination}`);
+            // console.log(`General op on contract ${(content as any).destination} (${tx})`);
           }
           // if connected user sent a transaction to a contract MTD is watching
           if (
@@ -38,7 +38,9 @@ const init = (contractsToWatch: Array<TezosContractAddress>) => {
             contractsToWatch.includes((content as any).destination) &&
             (content as any).source === userAddress
           ) {
-            console.log(`User op on contract ${(content as any).destination}`);
+            console.log(
+              `User op on contract ${(content as any).destination} (${tx})`
+            );
           }
         });
       }
