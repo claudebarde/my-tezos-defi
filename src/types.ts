@@ -113,6 +113,7 @@ export enum AvailableInvestment {
   "wWETH-PAUL" = "wWETH-PAUL",
   "PAUL-uUSD" = "PAUL-uUSD",
   "PAUL-kUSD-uUSD" = "PAUL-kUSD-uUSD",
+  "PAUL-YOU" = "PAUL-YOU",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
   "KUSD-QL" = "KUSD-QL",
@@ -280,3 +281,10 @@ export interface VaultData {
   isLiquidated: boolean;
   borrowed?: number;
 }
+
+export type modalAction =
+  | "borrow"
+  | "payBack"
+  | "withdraw"
+  | "deposit"
+  | undefined;

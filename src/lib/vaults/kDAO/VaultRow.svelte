@@ -1,16 +1,21 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
-  import { AsyncData, Result, Option } from "@swan-io/boxed";
+  import { AsyncData, Result } from "@swan-io/boxed";
   import {
     StableCoinClient,
     HarbingerClient,
     OvenClient,
     Network
   } from "@hover-labs/kolibri-js";
-  import type { AvailableVault, TezosContractAddress } from "../../../types";
+  import type {
+    AvailableVault,
+    TezosContractAddress,
+    modalAction
+  } from "../../../types";
   import store from "../../../store";
   import { formatTokenAmount } from "../../../utils";
   import config from "../../../config";
+  import Modal from "$lib/modal/Modal.svelte";
 
   export let vault: {
     platform: AvailableVault;
@@ -26,6 +31,8 @@
   let ovenClient: OvenClient;
   let borrowedKusd: number;
   let collateralPercent: number;
+  let showModal = false;
+  let modalAction: modalAction;
 
   const calcOvenStats = async () => {
     const borrowedTokens = await ovenClient.getBorrowedTokens();
@@ -207,10 +214,50 @@
       {/if}
     </div>
     <div class="buttons">
-      <button class="primary mini">Borrow</button>
-      <button class="primary mini">Pay back</button>
-      <button class="primary mini">Withdraw ꜩ</button>
-      <button class="primary mini">Deposit ꜩ</button>
+      <button
+        class="primary mini"
+        on:click={() => {
+          modalAction = "borrow";
+          showModal = true;
+        }}
+      >
+        Borrow
+      </button>
+      <button
+        class="primary mini"
+        on:click={() => {
+          modalAction = "payBack";
+          showModal = true;
+        }}
+      >
+        Pay back
+      </button>
+      <button
+        class="primary mini"
+        on:click={() => {
+          modalAction = "withdraw";
+          showModal = true;
+        }}
+      >
+        Withdraw ꜩ
+      </button>
+      <button
+        class="primary mini"
+        on:click={() => {
+          modalAction = "deposit";
+          showModal = true;
+        }}
+      >
+        Deposit ꜩ
+      </button>
     </div>
   {/if}
 </div>
+{#if showModal}
+  <Modal
+    type="vault"
+    platform="kdao"
+    action={modalAction}
+    on:close={() => (showModal = false)}
+  />
+{/if}

@@ -480,6 +480,7 @@
           : invData.balance / 10 ** invData.decimals}
         {stakeInXtz}
         {rewards}
+        {harvesting}
         on:expand={() => (expand = true)}
         on:harvest={harvest}
       />

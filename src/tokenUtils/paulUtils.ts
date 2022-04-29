@@ -78,7 +78,7 @@ export const calcTokenStakesFromQuipu = async (param: {
   id: AvailableInvestment;
   balance: number;
   paulToken: { decimals: number; exchangeRate: number };
-}) => {
+}): Promise<number> => {
   let { Tezos, id, balance, paulToken } = param;
 
   let dexAddress = "";
@@ -108,7 +108,7 @@ export const calcTokenStakesFromQuipu = async (param: {
     (tokensInStakesRaw.toNumber() / 10 ** paulToken.decimals) *
     paulToken.exchangeRate;
 
-  return formatTokenAmount(tezInStakes + tokensInStakes);
+  return tezInStakes + tokensInStakes;
 };
 
 export const calcPaulFarmApr = async ({
@@ -309,10 +309,9 @@ export const calcPaulStake = async (
       }
     });
   } else if (invData.id === "PAUL-PAUL") {
-    stakeInXtz = formatTokenAmount(
+    stakeInXtz =
       (invData.balance / 10 ** invData.decimals) *
-        store.tokens.PAUL.getExchangeRate()
-    );
+      store.tokens.PAUL.getExchangeRate();
   } else {
     stakeInXtz = null;
   }
@@ -343,7 +342,7 @@ export const calcPaulStake = async (
         ((shares.tokenBAmount / 10 ** store.tokens[invData.icons[1]].decimals) *
           store.tokens[invData.icons[1]].getExchangeRate()) /
         10 ** 6;
-      stakeInXtz = formatTokenAmount(token1InXtz + token2InXtz);
+      stakeInXtz = token1InXtz + token2InXtz;
     }
   }
 
@@ -351,7 +350,7 @@ export const calcPaulStake = async (
     return Result.Ok(stakeInXtz);
   } else {
     return Result.Error(
-      `Stake in XTZ coudn't be computed for ${invData.alias}`
+      `Stake in XTZ coudn't be computed for ${invData.alias} (${invData.platform})`
     );
   }
 };

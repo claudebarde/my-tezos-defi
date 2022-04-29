@@ -94,6 +94,7 @@
 
 .farm-row-mini {
   @include row;
+  overflow: hidden;
 
   &:hover .icons img:not(:first-child) {
     margin-left: 5px;
@@ -101,5 +102,19 @@
 
   div.bold {
     font-weight: bold;
+  }
+
+  div.ribbon {
+    width: 150px;
+    background: $pacific-blue;
+    position: absolute;
+    top: 10px;
+    left: -50px;
+    text-align: center;
+    line-height: 40px;
+    letter-spacing: 1px;
+    color: #f0f0f0;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
   }
 }
