@@ -275,6 +275,13 @@
               tokenSymbol: AvailableToken.PAUL
             });
             return await paulBatch.send();
+          case "youves":
+            const youvesBatch = prepareOperation({
+              contractCalls: [contract.methods.claim([["unit"]])],
+              amount: rewards.getWithDefault(0),
+              tokenSymbol: invData.rewardToken
+            });
+            return await youvesBatch.send();
         }
       })();
       await op.confirmation();

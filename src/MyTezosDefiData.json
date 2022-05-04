@@ -1289,6 +1289,8 @@
     { "index": 1, "tokens": ["XTZ", "QUIPU"], "lock": 14 },
     { "index": 2, "tokens": ["XTZ", "QUIPU"], "lock": 30 },
     { "index": 3, "tokens": ["QUIPU"], "lock": 0 },
-    { "index": 4, "tokens": ["QUIPU"], "lock": 14 }
+    { "index": 4, "tokens": ["QUIPU"], "lock": 14 },
+    { "index": 5, "tokens": ["XTZ", "uUSD"], "lock": 90 },
+    { "index": 6, "tokens": ["QUIPU", "uUSD"], "lock": 30 }
   ]
 }

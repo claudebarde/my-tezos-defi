@@ -12,7 +12,7 @@
 
   onMount(async () => {
     if ($store.userAddress) {
-      const farmsUrls = [0, 1, 2, 3, 4].map(
+      const farmsUrls = [...Array(7).keys()].map(
         index =>
           `https://api.tzkt.io/v1/contracts/${config.quipuFarmsContract}/bigmaps/users_info/keys/{"nat":"${index}","address":"${$store.userAddress}"}`
       );

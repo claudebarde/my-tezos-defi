@@ -175,7 +175,9 @@ export enum AvailableInvestment {
   "QUIPU-FARM-1" = "QUIPU-FARM-1",
   "QUIPU-FARM-2" = "QUIPU-FARM-2",
   "QUIPU-FARM-3" = "QUIPU-FARM-3",
-  "QUIPU-FARM-4" = "QUIPU-FARM-4"
+  "QUIPU-FARM-4" = "QUIPU-FARM-4",
+  "QUIPU-FARM-5" = "QUIPU-FARM-5",
+  "QUIPU-FARM-6" = "QUIPU-FARM-6"
 }
 
 export type InvestmentPlatform =

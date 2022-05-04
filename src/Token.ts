@@ -1,7 +1,8 @@
 import type { TezosContractAddress } from "./types";
-import type { AvailableDex } from "./types";
+import type { AvailableDex, AvailableToken } from "./types";
 
 export default class Token {
+  id: AvailableToken;
   address: TezosContractAddress;
   dexContractAddress: TezosContractAddress;
   decimals: number;
@@ -15,6 +16,7 @@ export default class Token {
   websiteLink?: string;
 
   constructor(data) {
+    this.id = data.id;
     this.address = data.address;
     this.dexContractAddress = data.dexContractAddress;
     this.decimals = data.decimals;

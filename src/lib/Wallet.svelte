@@ -147,7 +147,7 @@
               if (tokenSymbol !== "sDAO") {
                 tokens.push([
                   tokenSymbol as AvailableToken,
-                  new Token({ ...tokenData })
+                  new Token({ ...tokenData, id: tokenSymbol })
                 ]);
                 // tokens.push([
                 //   tokenSymbol as AvailableToken,

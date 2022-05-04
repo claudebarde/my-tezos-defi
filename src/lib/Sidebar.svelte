@@ -47,11 +47,17 @@
       liveTrafficWorker = new LiveTrafficWorker();
       liveTrafficWorker.postMessage({
         type: "init",
-        payload: [
-          ...Object.values($store.tokens).map(tk => tk.address),
-          ...Object.values($store.investments).map(inv => inv.address),
-          ...config.lbContracts
-        ]
+        payload: {
+          tokens: { ...$store.tokens },
+          farms: [
+            ...Object.entries($store.investments).map(([invId, invData]) => ({
+              id: invId,
+              address: invData.address
+            }))
+          ],
+          vaults: [],
+          lbDex: [...config.lbContracts]
+        }
       });
       liveTrafficWorker.onmessage = handleLiveTrafficWorker;
     }

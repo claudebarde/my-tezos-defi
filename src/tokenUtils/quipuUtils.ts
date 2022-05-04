@@ -47,9 +47,11 @@ export const calcQuipuStake = async (
   const store = get(_store);
   let stakeInXtz: number;
 
-  if (invData.icons.includes("XTZ")) {
+  if (invData.icons.length === 2) {
     const contract = await Tezos.wallet.at(
-      "KT1X3zxdTzPB9DgVzA3ad6dgZe9JEamoaeRy"
+      invData.icons[1] === "QUIPU"
+        ? "KT1X3zxdTzPB9DgVzA3ad6dgZe9JEamoaeRy"
+        : "KT1EtjRRCBC2exyCRXz8UfV7jz7svnkqi7di"
     );
     const storage: any = await contract.storage();
     const { tez_pool, token_pool, total_supply } = storage.storage;
@@ -59,13 +61,14 @@ export const calcQuipuStake = async (
       xtzPool: tez_pool.toNumber(),
       tokenPool: token_pool.toNumber(),
       lqtTotal: total_supply.toNumber(),
-      tokenDecimal: invData.decimals
+      tokenDecimal: store.tokens[invData.icons[1]].decimals
     });
     if (output && !isNaN(output.xtz) && !isNaN(output.tokens)) {
       stakeInXtz =
-        output.xtz + output.tokens * store.tokens.QUIPU.getExchangeRate();
+        output.xtz +
+        output.tokens * store.tokens[invData.icons[1]].getExchangeRate();
     }
-  } else {
+  } else if (invData.icons.length === 1 && invData.icons[0] === "QUIPU") {
     // QUIPU LP token
     stakeInXtz = invData.balance * store.tokens.QUIPU.getExchangeRate();
   }
