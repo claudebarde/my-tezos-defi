@@ -84,6 +84,11 @@
       vertical-align: middle;
     }
 
+    p {
+      text-align: center;
+      font-size: 0.8rem;
+    }
+
     nav {
       display: flex;
       flex-direction: column;
@@ -94,11 +99,6 @@
         margin: 5px 0px;
         padding: 0px;
         text-decoration: none;
-      }
-
-      p {
-        text-align: center;
-        font-size: 0.8rem;
       }
     }
 
@@ -132,9 +132,6 @@
       }}
     />
     <nav>
-      {#if $store.xtzExchangeRate}
-        <p>1 XTZ = {formatTokenAmount($store.xtzExchangeRate, 2)} USD</p>
-      {/if}
       <a href="/">
         <button class="nav">
           <span class="material-icons-outlined"> toll </span>
@@ -174,6 +171,9 @@
     </nav>
   </div>
   <div>
+    {#if $store.xtzExchangeRate}
+      <p>1 XTZ = {formatTokenAmount($store.xtzExchangeRate, 2)} USD</p>
+    {/if}
     <div class="contact-links">
       <a
         href="https://twitter.com/MyTezosDefi"
