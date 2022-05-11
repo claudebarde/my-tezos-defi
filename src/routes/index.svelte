@@ -28,7 +28,7 @@
     <div class="user-tokens">
       {#if $store.userAddress && $store.userTokens && $store.tokens}
         <div class="user-tokens__grid">
-          {#each sortTokensByBalance($store.userTokens.map( tk => [tk.name, tk.balance / 10 ** $store.tokens[tk.name].decimals] )) as [token, _]}
+          {#each sortTokensByBalance($store.userTokens.map( tk => [tk.name, tk.balance / 10 ** $store.tokens[tk.name].decimals] )) as [token, _] (token)}
             <TokenBox {token} />
           {/each}
         </div>

@@ -1,10 +1,5 @@
 import { TezosToolkit } from "@taquito/taquito";
-import type {
-  TezosContractAddress,
-  InvestmentPlatform,
-  AvailableToken
-} from "./types";
-import config from "./config";
+import type { TezosContractAddress } from "./types";
 
 const ctx: Worker = self as any;
 
@@ -47,8 +42,11 @@ const findPlatform = (
   }
 };
 
-const init = (contractsToWatch: Array<TezosContractAddress>) => {
-  const Tezos = new TezosToolkit(config.rpcUrl);
+const init = (
+  contractsToWatch: Array<TezosContractAddress>,
+  rpcUrl: string
+) => {
+  const Tezos = new TezosToolkit(rpcUrl);
   const subscriber = Tezos.stream.subscribe("head");
   subscriber.on("data", async blockHash => {
     const block = await Tezos.rpc.getBlock({ block: blockHash });
@@ -104,12 +102,15 @@ ctx.addEventListener("message", async e => {
   if (e.data.type === "init") {
     console.log("init from worker");
     data = e.data.payload;
-    init([
-      ...Object.values(data.tokens).map((tk: any) => tk.address),
-      ...data.farms.map(farm => farm.address),
-      ...data.vaults,
-      ...data.lbDex
-    ]);
+    init(
+      [
+        ...Object.values(data.tokens).map((tk: any) => tk.address),
+        ...data.farms.map(farm => farm.address),
+        ...data.vaults,
+        ...data.lbDex
+      ],
+      data.rpcUrl
+    );
   } else if (e.data.type === "new-user") {
     userAddress = e.data.payload;
   }

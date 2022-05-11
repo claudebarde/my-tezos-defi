@@ -223,7 +223,7 @@
     }
     // converts rewards into XTZ
     rewards.match({
-      None: () => console.log(`No rewards available for ${invData.alias}`),
+      None: () => undefined, //console.log(`No rewards available for ${invData.alias}`),
       Some: rw => {
         dispatch("farm-update", {
           id: invData.id,

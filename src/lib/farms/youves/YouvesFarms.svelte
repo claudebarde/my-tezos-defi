@@ -9,6 +9,10 @@
   const dispatch = createEventDispatcher();
   let totalRewards: Array<{ id: AvailableInvestment; rewards: number }> = [];
 
+  const harvestAll = async () => {
+    console.log("harvest all youves");
+  };
+
   onMount(async () => {
     if ($store.userAddress) {
       const youvesFarmsAddresses = Object.values($store.investments).filter(
@@ -57,10 +61,11 @@
   });
 </script>
 
-{#if $store.userAddress}
+{#if $store.userAddress && farms.length > 0}
   <FarmRowHeader
     totalRewards={totalRewards.map(farm => farm.rewards)}
     name="Youves"
+    on:harvest-all={harvestAll}
   />
   {#each farms as farm}
     <FarmRow

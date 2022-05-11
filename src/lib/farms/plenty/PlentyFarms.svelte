@@ -11,6 +11,10 @@
   let totalRewards: Array<{ id: AvailableInvestment; rewards: number }> = [];
   let farmsWorker;
 
+  const harvestAll = async () => {
+    console.log("harvest all");
+  };
+
   onMount(async () => {
     if ($store.userAddress) {
       // spins up the dedicated web worker
@@ -59,10 +63,11 @@
   });
 </script>
 
-{#if $store.userAddress}
+{#if $store.userAddress && farms.length > 0}
   <FarmRowHeader
     totalRewards={totalRewards.map(farm => farm.rewards)}
     name="Plenty"
+    on:harvest-all={harvestAll}
   />
   {#each farms as farm (farm.id)}
     <FarmRow

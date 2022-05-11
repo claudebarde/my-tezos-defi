@@ -1234,6 +1234,42 @@
       "rewardToken": "uDEFI",
       "liquidityToken": false
     },
+    "YOUVES-UUSD-SAVING": {
+      "id": "YOUVES-UUSD-SAVING",
+      "platform": "youves",
+      "address": "KT1TMfRfmJ5mkJEXZGRCsqLHn2rgnV1SdUzb",
+      "decimals": 12,
+      "info": [],
+      "type": "saving",
+      "alias": "uUSD saving",
+      "icons": ["uUSD"],
+      "rewardToken": "uUSD",
+      "liquidityToken": false
+    },
+    "YOUVES-UDEFI-SAVING": {
+      "id": "YOUVES-UDEFI-SAVING",
+      "platform": "youves",
+      "address": "KT1Kvg5eJVuYfTC1bU1bwWyn4e1PRGKAf6sy",
+      "decimals": 12,
+      "info": [],
+      "type": "saving",
+      "alias": "uDEFI saving",
+      "icons": ["uDEFI"],
+      "rewardToken": "uDEFI",
+      "liquidityToken": false
+    },
+    "YOUVES-UBTC-SAVING": {
+      "id": "YOUVES-UBTC-SAVING",
+      "platform": "youves",
+      "address": "KT1KNbtEBKumoZoyp5uq6A4v3ETN7boJ9ArF",
+      "decimals": 12,
+      "info": [],
+      "type": "saving",
+      "alias": "uBTC saving",
+      "icons": ["uBTC"],
+      "rewardToken": "uBTC",
+      "liquidityToken": false
+    },
     "SMLK-XTZ-ANTI": {
       "id": "SMLK-XTZ-ANTI",
       "platform": "smartlink",

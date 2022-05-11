@@ -36,6 +36,10 @@
       </div>
     {:else if invData.platform === "paul" && [AvailableInvestment["PAUL-kUSD-uUSD"], AvailableInvestment["wUSDC-PAUL"], AvailableInvestment["wWETH-PAUL"], AvailableInvestment["PAUL-uUSD"], AvailableInvestment["PAUL-YOU"]].includes(invData.id)}
       <div class="ribbon" style="font-size:0.6rem">withdraw fee</div>
+    {:else if invData.platform === "youves" && invData.type === "saving"}
+      <div class="ribbon">
+        <span class="material-icons-outlined"> savings </span>
+      </div>
     {/if}
   </div>
   <div class="icons">
@@ -49,6 +53,10 @@
         {formatTokenAmount(stake)}
         {#if invData.alias === "YOU staking"}
           {AvailableToken.YOU}
+        {:else if invData.platform === "youves" && invData.type === "saving"}
+          {invData.icons[0]}
+        {:else if invData.platform === "kdao" && invData.id === AvailableInvestment["KUSD-KDAO"]}
+          kUSD
         {:else}
           LPT
         {/if}

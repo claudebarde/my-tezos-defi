@@ -8,6 +8,8 @@
   import LiveTrafficWorker from "../livetraffic.worker?worker";
   import store from "../store";
   import config from "../config";
+  import { LocalStorage } from "../localStorage";
+  import { formatTokenAmount } from "../utils";
 
   let liveTrafficWorker;
   let hidden, visibilityChange;
@@ -56,7 +58,8 @@
             }))
           ],
           vaults: [],
-          lbDex: [...config.lbContracts]
+          lbDex: [...config.lbContracts],
+          rpcUrl: LocalStorage.getRpcUrl()
         }
       });
       liveTrafficWorker.onmessage = handleLiveTrafficWorker;
@@ -92,6 +95,11 @@
         padding: 0px;
         text-decoration: none;
       }
+
+      p {
+        text-align: center;
+        font-size: 0.8rem;
+      }
     }
 
     .contact-links {
@@ -124,6 +132,9 @@
       }}
     />
     <nav>
+      {#if $store.xtzExchangeRate}
+        <p>1 XTZ = {formatTokenAmount($store.xtzExchangeRate, 2)} USD</p>
+      {/if}
       <a href="/">
         <button class="nav">
           <span class="material-icons-outlined"> toll </span>
