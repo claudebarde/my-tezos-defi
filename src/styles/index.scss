@@ -39,6 +39,11 @@ main {
 span.material-icons,
 span.material-icons-outlined {
   vertical-align: middle;
+
+  &.loading {
+    animation: spin 2s infinite forwards;
+    animation-delay: 500;
+  }
 }
 
 a {
@@ -48,5 +53,19 @@ a {
   &:hover {
     font-style: italic;
     text-decoration: underline;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(180deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }

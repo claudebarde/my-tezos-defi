@@ -96,10 +96,11 @@
   </div>
   <div class="buttons">
     <button class="primary" on:click={() => dispatch("harvest")}>
-      <span class="material-icons-outlined"> agriculture </span>
       {#if harvesting}
+        <span class="material-icons-outlined loading"> hourglass_empty </span>
         Harvesting
       {:else}
+        <span class="material-icons-outlined"> agriculture </span>
         Harvest
       {/if}
     </button>

@@ -1,6 +1,17 @@
 <script lang="ts">
+  import { fly } from "svelte/transition";
   import toastStore from "../toastStore";
   import { ToastType } from "../types";
+
+  const calcToastPos = (index: number): number => {
+    const bottomGap = 30;
+
+    if (index === 0) {
+      return bottomGap;
+    } else {
+      return bottomGap + 100 * index;
+    }
+  };
 </script>
 
 <style lang="scss">
@@ -8,7 +19,6 @@
 
   .toast {
     position: absolute;
-    bottom: 30px;
     right: 30px;
     border-radius: $std-border-radius;
     padding: 20px;
@@ -17,6 +27,7 @@
     align-items: center;
     gap: 10px;
     width: 35%;
+    max-height: 90px;
     box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px,
       rgba(0, 0, 0, 0.23) 0px 6px 6px;
 
@@ -87,15 +98,18 @@
   }
 </style>
 
-{#each $toastStore as toast}
+{#each $toastStore as toast, index (toast.id)}
   <div
     class="toast"
-    class:info={toast.type === ToastType.INFO}
+    class:info={toast.type === ToastType.INFO ||
+      toast.type === ToastType.TRANSFER}
     class:error={toast.type === ToastType.ERROR}
     class:success={toast.type === ToastType.SUCCESS}
     class:warning={toast.type === ToastType.WARNING}
+    transition:fly={{ duration: 600, x: 400 }}
+    style={`bottom:${calcToastPos(index)}px`}
   >
-    <button id="close-toast">
+    <button id="close-toast" on:click={() => toastStore.removeToast(toast.id)}>
       <span class="material-icons-outlined"> highlight_off </span>
     </button>
     <div>
@@ -107,6 +121,8 @@
         <span class="material-icons-outlined"> celebration </span>
       {:else if toast.type === ToastType.WARNING}
         <span class="material-icons-outlined"> report_problem </span>
+      {:else if toast.type === ToastType.TRANSFER}
+        <span class="material-icons-outlined"> file_download </span>
       {/if}
     </div>
     <div>{toast.message}</div>

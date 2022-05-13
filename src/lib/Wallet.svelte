@@ -292,10 +292,13 @@
       );
       store.updateXtzExchangeRate(exchangeRate);
       store.updatePriceHistoric(priceHistoric);
-      fetchCoinGeckoInterval = setInterval(
-        async () => await coinGeckoFetch(AvailableFiat.USD),
-        10_000
-      );
+      fetchCoinGeckoInterval = setInterval(async () => {
+        const { exchangeRate, priceHistoric } = await coinGeckoFetch(
+          AvailableFiat.USD
+        );
+        store.updateXtzExchangeRate(exchangeRate);
+        store.updatePriceHistoric(priceHistoric);
+      }, 30_000);
     } catch (error) {
       console.error(error);
     }

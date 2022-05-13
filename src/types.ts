@@ -268,7 +268,8 @@ export enum ToastType {
   INFO,
   ERROR,
   SUCCESS,
-  WARNING
+  WARNING,
+  TRANSFER
 }
 
 export enum TxProgress {

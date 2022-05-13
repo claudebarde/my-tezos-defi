@@ -1,10 +1,11 @@
-import { TezosToolkit } from "@taquito/taquito";
 import type { TezosContractAddress } from "./types";
+import { HubConnectionBuilder } from "@microsoft/signalr";
 
 const ctx: Worker = self as any;
 
 let userAddress;
 let data;
+let connection;
 
 const findPlatform = (
   contractAddress: TezosContractAddress
@@ -42,12 +43,61 @@ const findPlatform = (
   }
 };
 
-const init = (
+const init = async (
   contractsToWatch: Array<TezosContractAddress>,
   rpcUrl: string
 ) => {
-  const Tezos = new TezosToolkit(rpcUrl);
-  const subscriber = Tezos.stream.subscribe("head");
+  connection = new HubConnectionBuilder()
+    .withUrl("https://api.tzkt.io/v1/events")
+    .build();
+
+  // open connection
+  await connection.start();
+  // subscribe to head
+  await connection.invoke("SubscribeToHead");
+
+  // auto-reconnect
+  connection.onclose(init);
+
+  connection.on("head", msg => {
+    if (msg.type !== 0) {
+      ctx.postMessage({ type: "new-level", payload: msg.data.level });
+    }
+  });
+
+  connection.on("transfers", msg => {
+    console.log("transfers", msg);
+    // gets the necessary data about the transfer
+    if (msg.type !== 0) {
+      const transfers = msg.data.map(transfer => {
+        const { amount, from, to, token } = transfer;
+        if (amount && from && to && token) {
+          return {
+            amount: isNaN(+amount) ? null : +amount,
+            from,
+            to,
+            token: token.contract.alias,
+            tokenId: token.standard === "fa2" ? token.tokenId : null,
+            tokenAddress: token.contract.address,
+            inOrOut: from.address === userAddress ? "out" : "in"
+          };
+        } else {
+          console.error("Missing token transfer data:", {
+            amount,
+            from,
+            to,
+            token
+          });
+          return null;
+        }
+      });
+      ctx.postMessage({
+        type: "new-transfers",
+        payload: transfers.filter(el => el)
+      });
+    }
+  });
+  /*const subscriber = Tezos.stream.subscribe("head");
   subscriber.on("data", async blockHash => {
     const block = await Tezos.rpc.getBlock({ block: blockHash });
     console.log("New block:", block.hash);
@@ -95,7 +145,7 @@ const init = (
   });
   subscriber.on("close", () => {
     console.log("Taquito subscriber closed");
-  });
+  });*/
 };
 
 ctx.addEventListener("message", async e => {
@@ -113,6 +163,10 @@ ctx.addEventListener("message", async e => {
     );
   } else if (e.data.type === "new-user") {
     userAddress = e.data.payload;
+    // subscribe to token transfers
+    await connection.invoke("SubscribeToTokenTransfers", {
+      account: userAddress
+    });
   }
 });
 

@@ -10,6 +10,8 @@
   import config from "../config";
   import { LocalStorage } from "../localStorage";
   import { formatTokenAmount } from "../utils";
+  import toastStore from "../toastStore";
+  import { ToastType } from "../types";
 
   let liveTrafficWorker;
   let hidden, visibilityChange;
@@ -18,6 +20,33 @@
     if (message.data.type === "new-level") {
       const level = message.data.payload;
       store.updateCurrentLevel(level);
+    } else if (message.data.type === "new-transfers") {
+      // loads token data
+      message.data.payload.forEach(transfer => {
+        const token = Object.values($store.tokens).find(
+          val =>
+            val.address === transfer.tokenAddress &&
+            (transfer.tokenId ? val.tokenId === transfer.tokenId : true)
+        );
+        if (token) {
+          const message = (() => {
+            if (transfer.inOrOut === "in") {
+              return `You just received ${formatTokenAmount(
+                transfer.amount / 10 ** token.decimals
+              )} ${token.id}!`;
+            } else {
+              return `You just spent ${formatTokenAmount(
+                transfer.amount / 10 ** token.decimals
+              )} ${token.id}!`;
+            }
+          })();
+          toastStore.addToast({
+            type: ToastType.INFO,
+            message,
+            dismissable: true
+          });
+        }
+      });
     }
   };
 
