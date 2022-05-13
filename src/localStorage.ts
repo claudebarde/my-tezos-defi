@@ -20,6 +20,7 @@ export class LocalStorage {
   private version: string;
   private farms: Array<AvailableInvestment>;
   private lastActiveLevel: number;
+  private allowPushNotifications: boolean;
   public showLiquidatedVaults: boolean;
   public rpcUrl: string;
 

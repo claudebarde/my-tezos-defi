@@ -40,11 +40,23 @@
               )} ${token.id}!`;
             }
           })();
-          toastStore.addToast({
-            type: ToastType.INFO,
-            message,
-            dismissable: true
-          });
+          if (
+            "Notification" in window &&
+            Notification.permission === "granted"
+          ) {
+            const notif = new Notification("New transfer", {
+              body: message,
+              icon: `tokens/${token.id}.png`,
+              requireInteraction: true
+            });
+            setTimeout(() => notif.close(), 4000);
+          } else {
+            toastStore.addToast({
+              type: ToastType.INFO,
+              message,
+              dismissable: true
+            });
+          }
         }
       });
     }
