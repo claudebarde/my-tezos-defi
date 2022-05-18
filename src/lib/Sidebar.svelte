@@ -115,11 +115,6 @@
 
   .menu {
     padding: 15px;
-
-    p {
-      text-align: center;
-      font-size: 0.8rem;
-    }
   }
 
   .menu,
@@ -129,6 +124,11 @@
     justify-content: space-between;
     align-items: stretch;
     background-color: $light-cyan;
+
+    p {
+      text-align: center;
+      font-size: 0.8rem;
+    }
 
     img {
       width: 38px;
@@ -199,6 +199,7 @@
       left: 0px;
       height: calc(100vh - 40px);
       width: 60vw;
+      z-index: 999;
     }
   }
 </style>
@@ -306,6 +307,16 @@
 </button>
 {#if showMobileMenuSidebar}
   <div class="mobile-menu" transition:fly={{ duration: 400, x: -200 }}>
+    <Wallet
+      on:new-user={event => {
+        if (liveTrafficWorker) {
+          liveTrafficWorker.postMessage({
+            type: "new-user",
+            payload: event.detail
+          });
+        }
+      }}
+    />
     <nav>
       <a href="/">
         <button class="nav">
