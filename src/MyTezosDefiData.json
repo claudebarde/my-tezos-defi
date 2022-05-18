@@ -597,6 +597,17 @@
       "color": "#5553FF",
       "tokenId": 0,
       "whitelisted": false
+    },
+    "DOGA": {
+      "address": "KT1Ha4yFVeyzw6KRAdkzq6TxDHB97KG4pZe8",
+      "dexContractAddress": null,
+      "decimals": 5,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address"],
+      "type": "fa1.2",
+      "color": "#79368A",
+      "tokenId": 0,
+      "whitelisted": false
     }
   },
   "investments": {
@@ -883,6 +894,28 @@
       "info": [],
       "alias": "Plenty-YOU LP farm",
       "icons": ["PLENTY", "YOU"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-CTEZ-TEZ-LP": {
+      "id": "PLENTY-CTEZ-TEZ-LP",
+      "platform": "plenty",
+      "address": "KT1WzUmmF98aQdpKnWigkg3SnJiL1s2Fj6QQ",
+      "decimals": 6,
+      "info": [],
+      "alias": "Ctez-TEZ LP farm",
+      "icons": ["ctez", "XTZ"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-DOGA-CTEZ-LP": {
+      "id": "PLENTY-DOGA-CTEZ-LP",
+      "platform": "plenty",
+      "address": "KT1E6qsUB3EKEDs4S3yQCyr39zVjsjBtFjEp",
+      "decimals": 5,
+      "info": [],
+      "alias": "DOGA-CTEZ LP farm",
+      "icons": ["DOGA", "ctez"],
       "rewardToken": "PLENTY",
       "liquidityToken": true
     },

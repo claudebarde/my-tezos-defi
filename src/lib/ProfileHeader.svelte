@@ -66,6 +66,14 @@
       text-align: center;
     }
   }
+
+  @media (max-width: $mobile-breakpoint) {
+    .user-details {
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+  }
 </style>
 
 <div class="user-details">

@@ -69,3 +69,15 @@ a {
     transform: rotate(360deg);
   }
 }
+
+@media (max-width: $mobile-breakpoint) {
+  main {
+    display: block;
+
+    .container {
+      padding: 10px;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}

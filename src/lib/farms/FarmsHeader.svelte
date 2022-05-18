@@ -39,6 +39,17 @@
       border-right: solid 2px $blizzard-blue;
     }
   }
+
+  @media (max-width: $mobile-breakpoint) {
+    .farms-header {
+      flex-direction: column;
+      padding: 10px;
+
+      & > div {
+        border: none;
+      }
+    }
+  }
 </style>
 
 {#if farms}

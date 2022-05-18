@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
+  import { fly } from "svelte/transition";
   import Wallet from "./Wallet.svelte";
   import logoPic from "../assets/logo.png";
   import twitterLogo from "../assets/twitter-circled.svg";
@@ -15,6 +16,7 @@
 
   let liveTrafficWorker;
   let hidden, visibilityChange;
+  let showMobileMenuSidebar = false;
 
   const handleLiveTrafficWorker = message => {
     if (message.data.type === "new-level") {
@@ -49,7 +51,7 @@
               icon: `tokens/${token.id}.png`,
               requireInteraction: true
             });
-            setTimeout(() => notif.close(), 4000);
+            setTimeout(() => notif.close(), 10_000);
           } else {
             toastStore.addToast({
               type: ToastType.INFO,
@@ -113,6 +115,15 @@
 
   .menu {
     padding: 15px;
+
+    p {
+      text-align: center;
+      font-size: 0.8rem;
+    }
+  }
+
+  .menu,
+  .mobile-menu {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -123,11 +134,6 @@
       width: 38px;
       height: 38px;
       vertical-align: middle;
-    }
-
-    p {
-      text-align: center;
-      font-size: 0.8rem;
     }
 
     nav {
@@ -158,8 +164,46 @@
       }
     }
   }
+
+  .mobile-menu,
+  .mobile-menu__button {
+    display: none;
+  }
+
+  @media (max-width: $mobile-breakpoint) {
+    .menu {
+      display: none;
+    }
+
+    .mobile-menu__button {
+      display: block;
+      position: absolute;
+      top: 10px;
+      background-color: $light-cyan;
+      z-index: 999;
+
+      &:not(.open-menu) {
+        left: 10px;
+      }
+
+      &.open-menu {
+        right: 10px;
+      }
+    }
+
+    .mobile-menu {
+      padding: 20px;
+      display: flex;
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      height: calc(100vh - 40px);
+      width: 60vw;
+    }
+  }
 </style>
 
+<!-- DESKTOP MENU -->
 <div class="menu">
   <div>
     <Wallet
@@ -244,3 +288,93 @@
     </div>
   </div>
 </div>
+<!-- MOBILE MENU -->
+<button
+  class="transparent mobile-menu__button"
+  class:open-menu={showMobileMenuSidebar}
+  on:click={() => (showMobileMenuSidebar = !showMobileMenuSidebar)}
+>
+  {#if showMobileMenuSidebar}
+    <span class="material-icons-outlined" style="margin-right: 0px">
+      close
+    </span>
+  {:else}
+    <span class="material-icons-outlined" style="margin-right: 0px">
+      menu
+    </span>
+  {/if}
+</button>
+{#if showMobileMenuSidebar}
+  <div class="mobile-menu" transition:fly={{ duration: 400, x: -200 }}>
+    <nav>
+      <a href="/">
+        <button class="nav">
+          <span class="material-icons-outlined"> toll </span>
+          <span>My tokens</span>
+        </button>
+      </a>
+      <a href="/farms">
+        <button class="nav">
+          <span class="material-icons-outlined"> agriculture </span>
+          <span>My farms</span>
+        </button>
+      </a>
+      <a href="/vaults">
+        <button class="nav">
+          <span class="material-icons-outlined"> savings </span>
+          <span>My vaults</span>
+        </button>
+      </a>
+      <a href="/liquidity-baking">
+        <button class="nav">
+          <span class="material-icons-outlined"> bakery_dining </span>
+          <span>LB DEX</span>
+        </button>
+      </a>
+      <a href="/profile">
+        <button class="nav">
+          <span class="material-icons-outlined"> portrait </span>
+          <span>My profile</span>
+        </button>
+      </a>
+      <a href="/settings">
+        <button class="nav">
+          <span class="material-icons-outlined"> settings </span>
+          <span>Settings</span>
+        </button>
+      </a>
+    </nav>
+    <div>
+      {#if $store.xtzExchangeRate}
+        <p>1 XTZ = {formatTokenAmount($store.xtzExchangeRate, 2)} USD</p>
+      {/if}
+      <div class="contact-links">
+        <a
+          href="https://twitter.com/MyTezosDefi"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img src={twitterLogo} alt="twitter" />
+        </a>
+        <a
+          href="https://github.com/claudebarde/my-tezos-defi"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img src={githubLogo} alt="github" />
+        </a>
+        <a
+          href="https://t.me/+KzrVBZ9u8EhjYjI0"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img src={telegramLogo} alt="telegram" />
+        </a>
+      </div>
+      <div>
+        <img src={logoPic} alt="logo" />
+        <span>My Tezos Defi</span>
+      </div>
+    </div>
+  </div>
+{/if}

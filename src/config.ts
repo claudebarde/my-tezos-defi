@@ -73,7 +73,8 @@ export default {
     "Ctez-WRAP-LP": "KT19Qe4KbEVAiaVeNsgo9Tkqa6qvZho8c4W5",
     "Ctez-tzBTC-LP": "KT1Wryxte8NnVCm569yb8dcSPmvFBVs4ufD6",
     "Ctez-INSTA-LP": "KT1EnESbHxmzd2XeENyYNege4L5TKxeatJk9",
-    "Ctez-CRUNCH-LP": "KT1WZztBneC9NrhVqvo9yXq8St7p8c1JVTxm"
+    "Ctez-CRUNCH-LP": "KT1WZztBneC9NrhVqvo9yXq8St7p8c1JVTxm",
+    "PLENTY-CTEZ-TEZ-LP": "KT1CAYNQGvYSF5UvHK21grMrKpe2563w9UcX"
   },
   plentyLptAddresses: {
     "PLENTY-wBUSD-LP": "KT1UC3vcVZ4K9b39uQxaMNA2N1RuJXKLCnoA",

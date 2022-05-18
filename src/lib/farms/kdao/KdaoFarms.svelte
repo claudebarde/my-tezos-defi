@@ -8,6 +8,7 @@
   let farms: Array<{ id: AvailableInvestment; balance: number }> = [];
   const dispatch = createEventDispatcher();
   let totalRewards: Array<{ id: AvailableInvestment; rewards: number }> = [];
+  let harvestingAll = false;
 
   const harvestAll = async () => {
     console.log("harvest all kdao");
@@ -58,6 +59,7 @@
   <FarmRowHeader
     totalRewards={totalRewards.map(farm => farm.rewards)}
     name="Kolibri"
+    {harvestingAll}
     on:harvest-all={harvestAll}
   />
   {#each farms as farm}

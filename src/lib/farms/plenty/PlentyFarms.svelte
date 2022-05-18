@@ -1,18 +1,68 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
   import store from "../../../store";
-  import type { AvailableInvestment } from "../../../types";
+  import toastStore from "../../../toastStore";
+  import type {
+    AvailableInvestment,
+    TezosContractAddress
+  } from "../../../types";
+  import { AvailableToken, ToastType } from "../../../types";
   import FarmRow from "../FarmRow.svelte";
   import FarmRowHeader from "../FarmRowHeader.svelte";
   import FarmWorker from "../farms.worker?worker";
+  import { prepareOperation } from "../../../utils";
 
-  let farms: Array<{ id: AvailableInvestment; balance: number }> = [];
+  let farms: Array<{
+    id: AvailableInvestment;
+    address: TezosContractAddress;
+    balance: number;
+  }> = [];
   const dispatch = createEventDispatcher();
   let totalRewards: Array<{ id: AvailableInvestment; rewards: number }> = [];
   let farmsWorker;
+  let harvestingAll = false;
+  let harvestingAllSuccess = undefined;
 
   const harvestAll = async () => {
-    console.log("harvest all");
+    harvestingAll = true;
+    // gets the addresses of pools with rewards to harvest
+    let allRewards = [0, 0, ...totalRewards.map(rw => rw.rewards)].reduce(
+      (a, b) => a + b
+    );
+    const contractCalls = await Promise.all(
+      farms.map(async res => {
+        const contract = await $store.Tezos.wallet.at(res.address);
+        return contract.methods.GetReward([["unit"]]);
+      })
+    );
+    const fee = $store.serviceFee
+      ? allRewards * $store.xtzExchangeRate * $store.serviceFee
+      : null;
+    // batches transactions
+    try {
+      const batch = prepareOperation({
+        contractCalls: contractCalls,
+        amount: fee,
+        tokenSymbol: AvailableToken.PLENTY
+      });
+      const op = await batch.send();
+      await op.confirmation();
+      const receipt = await op.receipt();
+      harvestingAll = false;
+      if (!receipt) {
+        harvestingAllSuccess = false;
+        throw `Operation failed: ${receipt}`;
+      } else {
+        harvestingAllSuccess = true;
+        setTimeout(() => {
+          harvestingAllSuccess = undefined;
+        }, 2000);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      harvestingAll = false;
+    }
   };
 
   onMount(async () => {
@@ -39,12 +89,15 @@
       if (farmsData) {
         farms = farmsData
           .filter(data => typeof data !== "string")
-          .filter(data => data.active && +data.value.balance > 0)
+          .filter(
+            data => data.active && (+data.value.balance > 0 || +data.value > 0)
+          )
           .map(data => ({
             id: Object.values($store.investments).find(
               inv => inv.address === data.address
             ).id,
-            balance: +data.value.balance
+            address: data.address,
+            balance: data.value.balance ? +data.value.balance : +data.value
           }));
         // updates investment balance
         store.updateInvestments(
@@ -56,8 +109,11 @@
         // updates local storage
         $store.localStorage.addFarms(farms.map(farm => farm.id));
       } else {
-        // TODO: display a toast with the error
-        console.error("Error while fetching Plenty farms");
+        toastStore.addToast({
+          type: ToastType.ERROR,
+          message: "Error while fetching Plenty farms",
+          dismissable: true
+        });
       }
     }
   });
@@ -67,6 +123,7 @@
   <FarmRowHeader
     totalRewards={totalRewards.map(farm => farm.rewards)}
     name="Plenty"
+    {harvestingAll}
     on:harvest-all={harvestAll}
   />
   {#each farms as farm (farm.id)}

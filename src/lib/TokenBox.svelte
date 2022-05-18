@@ -236,6 +236,18 @@
       left: -20px;
     }
   }
+
+  @media (max-width: $mobile-breakpoint) {
+    .token-box-mini {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+
+      .token-expand {
+        display: none;
+      }
+    }
+  }
 </style>
 
 {#if $store.tokens.hasOwnProperty(token) && userBalance}
@@ -397,7 +409,7 @@
         <button class="primary">Send</button>
         <button class="primary">Exchange</button>
       </div>
-      <div>
+      <div class="token-expand">
         <button
           class="transparent"
           style="float:right"

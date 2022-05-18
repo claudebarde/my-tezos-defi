@@ -2,7 +2,7 @@ import type { TezosToolkit } from "@taquito/taquito";
 import { get } from "svelte/store";
 import { Option, Result } from "@swan-io/boxed";
 import { AvailableInvestment, AvailableToken } from "../types";
-import type { InvestmentData, TezosAccountAddress, State } from "../types";
+import type { InvestmentData, TezosAccountAddress, IconValue } from "../types";
 import _store from "../store";
 import config from "../config";
 import type { TezosContractAddress } from "../types";
@@ -26,11 +26,13 @@ export const formatPlentyLpAmount = (
     case "PLENTY-Ctez-LP":
     case "Ctez-kUSD-LP":
     case "Ctez-wDAI-LP":
+    case "PLENTY-CTEZ-TEZ-LP":
       return lpAmount / 10 ** 6;
     case "PLENTY-wWBTC":
     case "PLENTY-tzBTC-LP":
     case "PLENTY-WRAP-LP":
     case "PLENTY-UNO-LP":
+    case "PLENTY-DOGA-CTEZ-LP":
       return lpAmount / 10 ** 5;
     case "PLENTY-uUSD-LP":
     case "PLENTY-KALAM-LP":
@@ -74,13 +76,29 @@ export const getPlentyLqtValue = async (
 
     const exchangeContract = await Tezos.wallet.at(exchangeAddress);
     const exchangeStorage: any = await exchangeContract.storage();
+    let token1_pool, token2_pool, totalSupply;
+    if (exchangePair === "PLENTY-CTEZ-TEZ-LP") {
+      token1_pool = exchangeStorage.tezPool.toNumber();
+      token2_pool = exchangeStorage.ctezPool.toNumber();
+      totalSupply = exchangeStorage.lqtTotal.toNumber();
+    } else {
+      token1_pool = exchangeStorage.token1_pool.toNumber();
+      token2_pool = exchangeStorage.token2_pool.toNumber();
+      totalSupply = exchangeStorage.totalSupply.toNumber();
+    }
     const tokenAmounts = getLPConversion(
-      exchangeStorage.token1_pool.toNumber(),
-      exchangeStorage.token2_pool.toNumber(),
-      exchangeStorage.totalSupply.toNumber(),
+      token1_pool,
+      token2_pool,
+      totalSupply,
       formattedLpAmount
     );
-    return { ...tokenAmounts, token2: exchangePair.split("-")[1] };
+    return {
+      ...tokenAmounts,
+      token2:
+        exchangePair === "PLENTY-CTEZ-TEZ-LP"
+          ? AvailableToken.ctez
+          : exchangePair.split("-")[1]
+    };
   } catch (error) {
     console.error(error);
     return null;
@@ -177,14 +195,17 @@ export const calcPlentyStakeInXtz = async ({
           (tokens.token2Amount /
             10 ** localStore.tokens[tokens.token2].decimals) *
             localStore.tokens[tokens.token2].getExchangeRate();
-      } else if (id.slice(0, 4).toLowerCase() === "ctez") {
+      } else if (id === "PLENTY-CTEZ-TEZ-LP") {
         // when staked token is Ctez
         stakeInXtz =
-          (tokens.token1Amount / 10 ** localStore.tokens.ctez.decimals) *
+          tokens.token1Amount +
+          tokens.token2Amount * localStore.tokens.ctez.getExchangeRate();
+      } else if (id === "PLENTY-DOGA-CTEZ-LP") {
+        stakeInXtz =
+          (tokens.token2Amount / 10 ** localStore.tokens.ctez.decimals) *
             localStore.tokens.ctez.getExchangeRate() +
-          (tokens.token2Amount /
-            10 ** localStore.tokens[tokens.token2].decimals) *
-            localStore.tokens[tokens.token2].getExchangeRate();
+          (tokens.token1Amount / 10 ** localStore.tokens.DOGA.decimals) *
+            localStore.tokens.DOGA.getExchangeRate();
       } else {
         // when reward token is PLENTY
         stakeInXtz =
@@ -461,10 +482,12 @@ export const calcPlentyRewards = async (
     userAddress,
     invData.address,
     currentLevel,
-    invData.rewardToken === AvailableToken.YOU
+    invData.rewardToken === AvailableToken.YOU ||
+      invData.id === "PLENTY-CTEZ-TEZ-LP"
       ? store.investments[invData.id].decimals
       : 18
   );
+  console.log(invData.id, rewardsRes)
   if (rewardsRes.status) {
     return Option.Some(+rewardsRes.totalRewards);
   } else {
@@ -506,20 +529,36 @@ export const fetchPlentyStatistics = async (
   const tokenPair = invData.id;
   const token1 = invData.icons[0];
   const token2 = invData.icons[1];
-  const lpTokenPrice = await getLPTokenPrice({
-    tokenPair,
-    token1_price: store.tokens[token1].getExchangeRate(),
-    token1_decimal: store.tokens[token1].decimals,
-    token2_price: store.tokens[token2].getExchangeRate(),
-    token2_decimal: store.tokens[token2].decimals,
-    lp_token_decimal: store.investments[tokenPair].decimals,
-    Tezos: store.Tezos
-  });
-  const result = await calcPlentyAprApy({
-    Tezos: store.Tezos,
-    farmAddress: invData.address,
-    rewardTokenPriceInFiat: store.tokens[invData.rewardToken].getExchangeRate(),
-    stakeTokenPriceInFiat: lpTokenPrice
+
+  let lpTokenPrice = await (async () => {
+    // TODO: calculate APR/APY with TEZ pair
+    if (token1 === ("XTZ" as IconValue)) {
+      return Result.Error("error");
+    } else if (token2 === ("XTZ" as IconValue)) {
+      return Result.Error("error");
+    } else {
+      const res = await getLPTokenPrice({
+        tokenPair,
+        token1_price: store.tokens[token1].getExchangeRate(),
+        token1_decimal: store.tokens[token1].decimals,
+        token2_price: store.tokens[token2].getExchangeRate(),
+        token2_decimal: store.tokens[token2].decimals,
+        lp_token_decimal: store.investments[tokenPair].decimals,
+        Tezos: store.Tezos
+      });
+      return Result.Ok(res);
+    }
+  })();
+  const result = await lpTokenPrice.match({
+    Error: () => undefined,
+    Ok: async price =>
+      await calcPlentyAprApy({
+        Tezos: store.Tezos,
+        farmAddress: invData.address,
+        rewardTokenPriceInFiat:
+          store.tokens[invData.rewardToken].getExchangeRate(),
+        stakeTokenPriceInFiat: price
+      })
   });
   if (result && !isNaN(result.apr) && !isNaN(result.apy)) {
     const apr = result.apr;

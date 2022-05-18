@@ -61,7 +61,8 @@ export enum AvailableToken {
   GIF = "GIF",
   TezDAO = "TezDAO",
   uBTC = "uBTC",
-  ANTI = "ANTI"
+  ANTI = "ANTI",
+  DOGA = "DOGA"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -93,6 +94,9 @@ export enum AvailableInvestment {
   "PLENTY-KALAM-LP" = "PLENTY-KALAM-LP",
   "PLENTY-wDAI-LP" = "PLENTY-wDAI-LP",
   "PLENTY-Ctez-LP" = "PLENTY-Ctez-LP",
+  "PLENTY-uUSD-LP" = "PLENTY-uUSD-LP",
+  "PLENTY-CTEZ-TEZ-LP" = "PLENTY-CTEZ-TEZ-LP",
+  "PLENTY-DOGA-CTEZ-LP" = "PLENTY-DOGA-CTEZ-LP",
   "xPLENTY-Staking" = "xPLENTY-Staking",
   "uUSD-YOU-LP" = "uUSD-YOU-LP",
   "uUSD-wUSDC-LP" = "uUSD-wUSDC-LP",

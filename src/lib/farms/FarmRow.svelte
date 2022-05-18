@@ -385,7 +385,7 @@
         <div>
           <div>Stake</div>
           <div class="bold">
-            {#if invData.platform === "plenty"}
+            {#if invData.platform === "plenty" && invData.id !== "PLENTY-CTEZ-TEZ-LP"}
               {formatTokenAmount(invData.balance / 10 ** 18)} LPT
             {:else}
               {formatTokenAmount(invData.balance / 10 ** invData.decimals)}
@@ -482,7 +482,8 @@
     {#if !isNaN(stakeInXtz)}
       <FarmMiniRow
         {invData}
-        stake={invData.platform === "plenty"
+        stake={invData.platform === "plenty" &&
+        invData.id !== "PLENTY-CTEZ-TEZ-LP"
           ? invData.balance / 10 ** 18
           : invData.balance / 10 ** invData.decimals}
         {stakeInXtz}
