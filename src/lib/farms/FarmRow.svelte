@@ -100,6 +100,8 @@
         }
         break;
       case "plenty":
+        if (invData.id === "xPLENTY-Staking") return;
+
         const plentyStake = await calcPlentyStake(invData);
         plentyStake.match({
           Ok: val => {

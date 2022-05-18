@@ -72,6 +72,8 @@
       flex-direction: column;
       gap: 20px;
       text-align: center;
+      padding: 0px;
+      margin-bottom: 0px;
     }
   }
 </style>

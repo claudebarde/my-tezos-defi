@@ -43,9 +43,10 @@
   @media (max-width: $mobile-breakpoint) {
     .farms-header {
       flex-direction: column;
+      gap: 20px;
       padding: 10px;
 
-      & > div {
+      & > div:not(:last-child) {
         border: none;
       }
     }
