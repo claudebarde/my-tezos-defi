@@ -177,17 +177,15 @@
 
     .mobile-menu__button {
       display: block;
-      position: absolute;
-      top: 10px;
       background-color: $light-cyan;
       z-index: 999;
+      transform: translate(2vw, 2vw);
 
-      &:not(.open-menu) {
-        left: 10px;
+      &.to-left {
+        animation: menu-to-left 0.6s forwards;
       }
-
-      &.open-menu {
-        right: 10px;
+      &.to-right {
+        animation: menu-to-right 0.6s forwards;
       }
     }
 
@@ -199,7 +197,35 @@
       left: 0px;
       height: calc(100vh - 40px);
       width: 60vw;
-      z-index: 999;
+      z-index: 990;
+    }
+  }
+
+  @keyframes menu-to-right {
+    0% {
+      transform: translate(2vw, 2vw) rotate(15deg);
+    }
+
+    99% {
+      transform: translate(calc(98vw - 44px), 2vw) rotate(15deg);
+    }
+
+    100% {
+      transform: translate(calc(98vw - 44px), 2vw) rotate(0deg);
+    }
+  }
+
+  @keyframes menu-to-left {
+    0% {
+      transform: translate(calc(98vw - 44px), 2vw) rotate(-15deg);
+    }
+
+    99% {
+      transform: translate(2vw, 2vw) rotate(-15deg);
+    }
+
+    100% {
+      transform: translate(2vw, 2vw) rotate(0deg);
     }
   }
 </style>
@@ -292,9 +318,11 @@
 <!-- MOBILE MENU -->
 <button
   class="transparent mobile-menu__button"
-  class:open-menu={showMobileMenuSidebar}
+  class:to-left={showMobileMenuSidebar === false}
+  class:to-right={showMobileMenuSidebar === true}
   on:click={() => (showMobileMenuSidebar = !showMobileMenuSidebar)}
 >
+  <!-- class:open-menu={showMobileMenuSidebar} -->
   {#if showMobileMenuSidebar}
     <span class="material-icons-outlined" style="margin-right: 0px">
       close
@@ -319,37 +347,37 @@
     />
     <nav>
       <a href="/">
-        <button class="nav">
+        <button class="nav" on:click={() => (showMobileMenuSidebar = false)}>
           <span class="material-icons-outlined"> toll </span>
           <span>My tokens</span>
         </button>
       </a>
       <a href="/farms">
-        <button class="nav">
+        <button class="nav" on:click={() => (showMobileMenuSidebar = false)}>
           <span class="material-icons-outlined"> agriculture </span>
           <span>My farms</span>
         </button>
       </a>
       <a href="/vaults">
-        <button class="nav">
+        <button class="nav" on:click={() => (showMobileMenuSidebar = false)}>
           <span class="material-icons-outlined"> savings </span>
           <span>My vaults</span>
         </button>
       </a>
       <a href="/liquidity-baking">
-        <button class="nav">
+        <button class="nav" on:click={() => (showMobileMenuSidebar = false)}>
           <span class="material-icons-outlined"> bakery_dining </span>
           <span>LB DEX</span>
         </button>
       </a>
       <a href="/profile">
-        <button class="nav">
+        <button class="nav" on:click={() => (showMobileMenuSidebar = false)}>
           <span class="material-icons-outlined"> portrait </span>
           <span>My profile</span>
         </button>
       </a>
       <a href="/settings">
-        <button class="nav">
+        <button class="nav" on:click={() => (showMobileMenuSidebar = false)}>
           <span class="material-icons-outlined"> settings </span>
           <span>Settings</span>
         </button>
