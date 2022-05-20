@@ -136,5 +136,9 @@
     gap: 20px;
     padding: 10px;
     margin: 20px auto;
+
+    button.expand {
+      display: none;
+    }
   }
 }

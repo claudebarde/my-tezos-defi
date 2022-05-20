@@ -16,7 +16,7 @@
 
   let liveTrafficWorker;
   let hidden, visibilityChange;
-  let showMobileMenuSidebar = false;
+  let showMobileMenuSidebar: boolean | undefined = undefined;
 
   const handleLiveTrafficWorker = message => {
     if (message.data.type === "new-level") {
@@ -65,7 +65,7 @@
   };
 
   const handleVisibilityChange = () => {
-    if (document[hidden]) {
+    if (document[hidden] && $store.localStorage) {
       // saves the last level when user switches tabs
       $store.localStorage.updateLastActiveLevel($store.currentLevel);
     }

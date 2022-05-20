@@ -89,8 +89,12 @@
     }
 
     fetchBalanceInterval = setInterval(async () => {
-      const balance = await $store.Tezos.tz.getBalance(userAddress);
-      store.updateUserBalance(balance.toNumber());
+      if ($store.userAddress) {
+        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
+        store.updateUserBalance(balance.toNumber());
+      } else {
+        store.updateUserBalance(undefined);
+      }
     }, 10_000);
   };
 
@@ -279,14 +283,22 @@
       if (peers && peers.length > 0) {
         connectedWallet = (peers[0] as any).icon;
       }
-
-      fetchBalanceInterval = setInterval(async () => {
-        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-        store.updateUserBalance(balance.toNumber());
-      }, 10_000);
     }
+    // fetches current block level
+    const blockHeader = await $store.Tezos.rpc.getBlockHeader();
+    if (blockHeader && blockHeader.level && !isNaN(blockHeader.level)) {
+      store.updateCurrentLevel(blockHeader.level);
+    }
+
     // fetches XTZ price
     try {
+      // fetching the price only is faster from TezTools
+      const teztoolsPrice = await fetch("https://api.teztools.io/v1/xtz-price");
+      if (teztoolsPrice && teztoolsPrice.status === 200) {
+        const priceData = await teztoolsPrice.json();
+        store.updateXtzExchangeRate(priceData.price);
+      }
+      // CoinGecko is necessary to get price history data
       const { exchangeRate, priceHistoric } = await coinGeckoFetch(
         AvailableFiat.USD
       );
@@ -347,7 +359,7 @@
       $store.currentLevel &&
       !$store.isAppReady
     ) {
-      // ap becomes available when tokens, investments, exchange rate and level are ready
+      // app becomes available when tokens, investments, exchange rate and level are ready
       store.updateAppReady();
     }
 

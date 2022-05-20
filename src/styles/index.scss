@@ -56,6 +56,26 @@ a {
   }
 }
 
+.bubbles {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+
+  .bubble {
+    opacity: 0;
+    transform: translateY(200px);
+    animation: rise linear;
+
+    img {
+      opacity: 0.3;
+    }
+  }
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -70,6 +90,53 @@ a {
   }
 }
 
+@keyframes rise {
+  0% {
+    opacity: 1;
+    transform: translate(0px, 100px);
+  }
+
+  10% {
+    transform: translate(75px, -150px);
+  }
+
+  20% {
+    transform: translate(150px, -300px);
+  }
+
+  30% {
+    transform: translate(75px, -450px);
+  }
+
+  40% {
+    transform: translate(0px, -600px);
+  }
+
+  50% {
+    transform: translate(75px, -750px);
+  }
+
+  60% {
+    transform: translate(150px, -900px);
+  }
+
+  70% {
+    transform: translate(75px, -1050px);
+  }
+
+  80% {
+    transform: translate(0px, -1200px);
+  }
+
+  90% {
+    transform: translate(75px, -1350px);
+  }
+
+  100% {
+    transform: translate(150px, -1500px);
+  }
+}
+
 @media (max-width: $mobile-breakpoint) {
   main {
     grid-template-columns: 100%;
@@ -81,6 +148,14 @@ a {
       padding: 0px;
       width: 100%;
       height: 100%;
+    }
+  }
+
+  .bubbles {
+    bottom: -100px;
+
+    .bubble {
+      transform: translateY(500px);
     }
   }
 }

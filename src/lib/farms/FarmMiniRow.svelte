@@ -107,7 +107,7 @@
   </div>
   <div>
     <button
-      class="transparent"
+      class="transparent expand"
       style="float:right"
       on:click={() => dispatch("expand")}
     >
