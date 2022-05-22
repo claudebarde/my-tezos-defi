@@ -65,4 +65,8 @@ button {
     padding: 5px;
     font-size: 0.8rem;
   }
+
+  &.round {
+    border-radius: 50%;
+  }
 }

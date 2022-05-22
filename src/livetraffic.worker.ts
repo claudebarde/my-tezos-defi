@@ -1,5 +1,6 @@
 import type { TezosContractAddress } from "./types";
 import { HubConnectionBuilder } from "@microsoft/signalr";
+import config from "./config";
 
 const ctx: Worker = self as any;
 
@@ -59,9 +60,20 @@ const init = async (
   // auto-reconnect
   connection.onclose(init);
 
-  connection.on("head", msg => {
+  connection.on("head", async msg => {
     if (msg.type !== 0) {
       ctx.postMessage({ type: "new-level", payload: msg.data.level });
+      // fetches data about the liquiditu baking contract
+      const lbStorageRes = await fetch(
+        `https://api.tzkt.io/v1/contracts/${config.lbContractAddress}/storage`
+      );
+      if (lbStorageRes && lbStorageRes.status === 200) {
+        const { tokenPool, xtzPool, lqtTotal } = await lbStorageRes.json();
+        ctx.postMessage({
+          type: "lb-data",
+          payload: { tokenPool, xtzPool, lqtTotal }
+        });
+      }
     }
   });
 

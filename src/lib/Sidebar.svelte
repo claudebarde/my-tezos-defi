@@ -61,6 +61,15 @@
           }
         }
       });
+    } else if (message.data.type === "lb-data") {
+      const { tokenPool, xtzPool, lqtTotal } = message.data.payload;
+      if (!isNaN(+tokenPool) && !isNaN(+xtzPool) && !isNaN(+lqtTotal)) {
+        store.updateLbData({
+          tokenPool: +tokenPool,
+          xtzPool: +xtzPool,
+          lqtTotal: +lqtTotal
+        });
+      }
     }
   };
 

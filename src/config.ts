@@ -142,5 +142,7 @@ export default {
   vortexDexAddresses: {
     "XTZ-ANTI": "KT1VFUkjYDh6QG8iLx5uKHPU3BWFMeYoVPTL"
   },
-  quipuFarmsContract: "KT1RdoweZPFjttwMUsaTo1E2EWNX3WcR9nxZ"
+  quipuFarmsContract: "KT1RdoweZPFjttwMUsaTo1E2EWNX3WcR9nxZ",
+  lbContractAddress: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
+  lqtContractAddress: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
 };

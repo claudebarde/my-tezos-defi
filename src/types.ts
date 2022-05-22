@@ -255,6 +255,7 @@ export interface State {
   serviceFee: number;
   admin: TezosAccountAddress;
   localStorage: LocalStorage | undefined;
+  lbData: { xtzPool: number; tokenPool: number; lqtTotal: number };
 }
 
 export interface HistoricalDataState {
