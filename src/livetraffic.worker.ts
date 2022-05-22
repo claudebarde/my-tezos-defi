@@ -48,6 +48,18 @@ const init = async (
   contractsToWatch: Array<TezosContractAddress>,
   rpcUrl: string
 ) => {
+  // fetches data about the liquidity baking contract
+  const lbStorageRes = await fetch(
+    `https://api.tzkt.io/v1/contracts/${config.lbContractAddress}/storage`
+  );
+  if (lbStorageRes && lbStorageRes.status === 200) {
+    const { tokenPool, xtzPool, lqtTotal } = await lbStorageRes.json();
+    ctx.postMessage({
+      type: "lb-data",
+      payload: { tokenPool, xtzPool, lqtTotal }
+    });
+  }
+
   connection = new HubConnectionBuilder()
     .withUrl("https://api.tzkt.io/v1/events")
     .build();
@@ -63,17 +75,6 @@ const init = async (
   connection.on("head", async msg => {
     if (msg.type !== 0) {
       ctx.postMessage({ type: "new-level", payload: msg.data.level });
-      // fetches data about the liquiditu baking contract
-      const lbStorageRes = await fetch(
-        `https://api.tzkt.io/v1/contracts/${config.lbContractAddress}/storage`
-      );
-      if (lbStorageRes && lbStorageRes.status === 200) {
-        const { tokenPool, xtzPool, lqtTotal } = await lbStorageRes.json();
-        ctx.postMessage({
-          type: "lb-data",
-          payload: { tokenPool, xtzPool, lqtTotal }
-        });
-      }
     }
   });
 

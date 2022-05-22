@@ -5,6 +5,7 @@ import type {
   WalletOperationBatch
 } from "@taquito/taquito";
 import { bytes2Char } from "@taquito/utils";
+import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
 import { get } from "svelte/store";
 import BigNumber from "bignumber.js";
 import type {
@@ -501,4 +502,34 @@ export const shuffle = (array: Array<string>) => {
   }
 
   return array;
+};
+
+export const findTzbtcBalance = async (
+  ledger,
+  userAddress,
+  decimals
+): Promise<number> => {
+  const packedAddress = packDataBytes(
+    { string: userAddress },
+    { prim: "address" }
+  );
+  const ledgerKey: any = {
+    prim: "Pair",
+    args: [{ string: "ledger" }, { bytes: packedAddress.bytes.slice(12) }]
+  };
+  const ledgerKeyBytes = packDataBytes(ledgerKey);
+  const bigmapVal = await ledger.get(ledgerKeyBytes.bytes);
+  if (bigmapVal) {
+    const bigmapValData = unpackDataBytes({ bytes: bigmapVal });
+    if (
+      bigmapValData.hasOwnProperty("prim") &&
+      (bigmapValData as any).prim === "Pair"
+    ) {
+      return +(bigmapValData as any).args[0].int / 10 ** decimals;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
 };

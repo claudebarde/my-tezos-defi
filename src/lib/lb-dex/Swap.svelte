@@ -1,10 +1,13 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
+  import { AsyncData } from "@swan-io/boxed";
+  import { OpKind } from "@taquito/taquito";
   import store from "../../store";
   import toastStore from "../../toastStore";
-  import { formatTokenAmount } from "../../utils";
+  import { formatTokenAmount, findTzbtcBalance } from "../../utils";
   import { AvailableToken, ToastType } from "../../types";
   import { xtzToTokenTokenOutput, tokenToXtzXtzOutput } from "./lbUtils";
+  import config from "../../config";
 
   let coinToBuy: "xtz" | "tzbtc" = "xtz";
   let xtzValue = 1;
@@ -12,6 +15,9 @@
   let tzbtcBalance = 0;
   let xtzBalanceError = false;
   let tzbtcBalanceError = false;
+  let slippage = 0.5;
+  let swapLoading: AsyncData<boolean> = AsyncData.NotAsked();
+  let swapSuccessfull = false;
 
   $: if (
     coinToBuy === "tzbtc" &&
@@ -73,6 +79,145 @@
       }
     } else {
       xtzValue = null;
+    }
+  };
+
+  const swap = async () => {
+    try {
+      if (isNaN(+xtzValue) || isNaN(+tzbtcValue)) {
+        return;
+      }
+      swapLoading = AsyncData.Loading();
+      swapSuccessfull = false;
+      const lbContract = await $store.Tezos.wallet.at(config.lbContractAddress);
+      const deadline = new Date(Date.now() + 60000).toISOString();
+      if (coinToBuy === "xtz") {
+        // selling tzbtc for xtz => tokenToXTZ
+        const tzBtcContract = await $store.Tezos.wallet.at(
+          $store.tokens.tzBTC.address
+        );
+        const tokensSold = Math.floor(
+          +tzbtcValue * 10 ** $store.tokens.tzBTC.decimals
+        );
+        const minXtzBought = calcSlippageValue();
+        let batch = $store.Tezos.wallet
+          .batch()
+          .withContractCall(
+            tzBtcContract.methods.approve(config.lbContractAddress, 0)
+          )
+          .withContractCall(
+            tzBtcContract.methods.approve(config.lbContractAddress, tokensSold)
+          )
+          .withContractCall(
+            lbContract.methods.tokenToXtz(
+              $store.userAddress,
+              tokensSold,
+              minXtzBought,
+              deadline
+            )
+          );
+        if ($store.serviceFee) {
+          batch = batch.withTransfer({
+            to: $store.admin,
+            amount: Math.ceil($store.serviceFee * 10 ** 6),
+            mutez: true
+          });
+        }
+        const batchOp = await batch.send();
+        await batchOp.confirmation();
+      } else {
+        // selling xtz for tzbtc => xtzToToken
+        const minTokensBought = calcSlippageValue();
+        let batch = $store.Tezos.wallet.batch([
+          {
+            kind: OpKind.TRANSACTION,
+            ...lbContract.methods
+              .xtzToToken($store.userAddress, minTokensBought, deadline)
+              .toTransferParams(),
+            amount: +xtzValue * 10 ** 6,
+            mutez: true
+          }
+        ]);
+        if ($store.serviceFee) {
+          batch = batch.withTransfer({
+            to: $store.admin,
+            amount: Math.ceil($store.serviceFee * 10 ** 6),
+            mutez: true
+          });
+        }
+
+        const batchOp = await batch.send();
+        await batchOp.confirmation();
+        /*const op = await lbContract.methods
+          .xtzToToken($store.userAddress, minTokensBought, deadline)
+          .send({ amount: +amountInXTZ * 10 ** 6, mutez: true });
+        await op.confirmation();*/
+      }
+      toastStore.addToast({
+        type: ToastType.SUCCESS,
+        message: `${
+          coinToBuy === "xtz" ? "XTZ" : "tzBTC"
+        } successfully bought!`,
+        dismissable: true
+      });
+      tzbtcValue = null;
+      xtzValue = null;
+      swapLoading = AsyncData.Done(true);
+      swapSuccessfull = true;
+      setTimeout(() => (swapSuccessfull = false), 2000);
+      // fetches new XTZ balance
+      const xtzBalance = await $store.Tezos.tz.getBalance($store.userAddress);
+      if (xtzBalance) {
+        store.updateUserBalance(xtzBalance.toNumber());
+      }
+      // fetches new tzBTC balance
+      const tzBtcContract = await $store.Tezos.wallet.at(
+        $store.tokens.tzBTC.address
+      );
+      const tzBtcStorage: any = await tzBtcContract.storage();
+      const newTzbtcBalance = await findTzbtcBalance(
+        tzBtcStorage[0],
+        $store.userAddress,
+        $store.tokens.tzBTC.decimals
+      );
+      if (newTzbtcBalance) {
+        tzbtcBalance = newTzbtcBalance;
+      }
+    } catch (error) {
+      console.log(error);
+      toastStore.addToast({
+        type: ToastType.ERROR,
+        message: "An error occured during the swap",
+        dismissable: true
+      });
+      swapLoading = AsyncData.Done(true);
+      swapSuccessfull = true;
+      setTimeout(() => (swapSuccessfull = false), 2000);
+    }
+  };
+
+  $: calcSlippageValue = (formatWithDecimals = false): number => {
+    if (coinToBuy === "xtz") {
+      const tokens = Math.floor(
+        +xtzValue * 10 ** 6 - (+xtzValue * 10 ** 6 * slippage) / 100
+      );
+      if (formatWithDecimals) {
+        return tokens / 10 ** 6;
+      } else {
+        return tokens;
+      }
+    } else {
+      const formattedTzbtc = Math.floor(
+        +tzbtcValue * 10 ** $store.tokens.tzBTC.decimals
+      );
+      const tokens = Math.floor(
+        +formattedTzbtc - (+formattedTzbtc * slippage) / 100
+      );
+      if (formatWithDecimals) {
+        return tokens / 10 ** $store.tokens.tzBTC.decimals;
+      } else {
+        return tokens;
+      }
     }
   };
 
@@ -149,6 +294,11 @@
       display: block;
       text-align: right;
       font-size: 0.7rem;
+    }
+
+    .swap-info {
+      text-align: center;
+      font-size: 0.9rem;
     }
   }
 </style>
@@ -228,6 +378,25 @@
         </span>
       </label>
     {/if}
+    <div class="swap-info">
+      <p>Slippage: {slippage}%</p>
+      <p>
+        Minimum received: {formatTokenAmount(calcSlippageValue(true), 8)}
+        {coinToBuy === "xtz" ? "XTZ" : "tzBTC"}
+      </p>
+      <p>
+        {formatTokenAmount(xtzValue)} XTZ = {formatTokenAmount(
+          xtzValue * $store.xtzExchangeRate
+        )} USD
+      </p>
+      <p>
+        {formatTokenAmount(tzbtcValue, 8)} tzBTC = {formatTokenAmount(
+          tzbtcValue *
+            $store.tokens.tzBTC.getExchangeRate() *
+            $store.xtzExchangeRate
+        )} USD
+      </p>
+    </div>
     {#if (coinToBuy === "xtz" && tzbtcBalanceError) || (coinToBuy === "tzbtc" && xtzBalanceError)}
       <button class="primary">
         <span class="material-icons-outlined">
@@ -236,12 +405,24 @@
         Invalid swap
       </button>
     {:else}
-      <button class="primary">
-        Buy {coinToBuy === "xtz"
-          ? formatTokenAmount(xtzValue)
-          : formatTokenAmount(tzbtcValue, 8)}
-        {coinToBuy === "xtz" ? "XTZ" : "tzBTC"}
-      </button>
+      <!-- SWAP BUTTON-->
+      {#if swapLoading.isNotAsked()}
+        <button class="primary" on:click={swap}>
+          Buy {coinToBuy === "xtz"
+            ? formatTokenAmount(xtzValue)
+            : formatTokenAmount(tzbtcValue, 8)}
+          {coinToBuy === "xtz" ? "XTZ" : "tzBTC"}
+        </button>
+      {:else if swapLoading.isLoading()}
+        <button class="primary" disabled>
+          <span class="material-icons-outlined loading"> hourglass_empty </span>
+          Swapping...
+        </button>
+      {:else if swapLoading.isDone() && swapSuccessfull === true}
+        <button class="primary" disabled> Swap successful! </button>
+      {:else if swapLoading.isDone() && swapSuccessfull === false}
+        <button class="primary" disabled> An error occured </button>
+      {/if}
     {/if}
   </div>
 {:else}
