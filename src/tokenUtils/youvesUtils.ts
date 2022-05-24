@@ -116,6 +116,37 @@ export const getYouvesRewards = async (
     const claimFactor = BigNumber.min(1, BigNumber.max(factor, 0));
 
     return (claimFactor.toNumber() * longTermRewards) / 10 ** youTokenDecimals;
+  } else if (invData.id === AvailableInvestment["YOUVES-YOU-STAKING"]) {
+    const stakeNumbers = await rewardsPoolStorage.stakes_owner_lookup.get(
+      userAddress
+    );
+    if (
+      !stakeNumbers ||
+      (Array.isArray(stakeNumbers) && stakeNumbers.length === 0)
+    )
+      return null;
+
+    const stake = await rewardsPoolStorage.stakes.get(stakeNumbers[0]);
+    if (!stake) return null;
+
+    const longTermRewards = longTermFarmFullRewards(
+      rewardsPoolStorage.disc_factor,
+      stake.stake.dividedBy(10 ** invData.decimals),
+      // stake.dist_factor,
+      stake.token_amount,
+      invData.decimals
+    );
+    const dateStaked = new Date(stake.age_timestamp);
+    const secondsSinceStaked = (Date.now() - dateStaked.getTime()) / 1000;
+    const factor = secondsSinceStaked / rewardsPoolStorage.max_release_period;
+    const claimFactor = BigNumber.min(1, BigNumber.max(factor, 0));
+
+    console.log(
+      (claimFactor.toNumber() * longTermRewards) / 10 ** youTokenDecimals
+    );
+    // return (claimFactor.toNumber() * longTermRewards) / 10 ** youTokenDecimals;
+
+    return null;
   } else {
     let currentDistFactor = rewardsPoolStorage.dist_factor;
     const ownStake = new BigNumber(

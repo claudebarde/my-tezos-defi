@@ -51,7 +51,7 @@
     <div>
       <div class="bold">
         {formatTokenAmount(stake)}
-        {#if invData.alias === "YOU staking"}
+        {#if invData.alias === "YOU staking" || invData.id === AvailableInvestment["YOUVES-YOU-STAKING"]}
           {AvailableToken.YOU}
         {:else if invData.platform === "youves" && invData.type === "saving"}
           {invData.icons[0]}

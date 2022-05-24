@@ -10,7 +10,7 @@
   import config from "../../config";
 
   let coinToBuy: "xtz" | "tzbtc" = "xtz";
-  let xtzValue = 1;
+  let xtzValue = 0;
   let tzbtcValue = 0;
   let tzbtcBalance = 0;
   let xtzBalanceError = false;
@@ -260,38 +260,106 @@
     justify-content: center;
     align-items: center;
     gap: 20px;
+    position: relative;
 
-    button.mini {
-      .material-icons-outlined {
-        margin: 0px;
+    .form-input {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+
+      button.mini {
+        background-color: white;
+        position: absolute;
+
+        .material-icons-outlined {
+          margin: 0px;
+        }
       }
     }
 
-    input {
-      padding: 10px;
-      font-size: 0.9rem;
-      border: solid 3px transparent;
+    label {
+      border: solid 2px $sky-blue-crayola;
       border-radius: $std-border-radius;
-      background-color: $light-cyan;
-      color: inherit;
-      outline: none;
+      padding: 0px;
+      display: grid;
+      grid-template-columns: 20% 50% 30%;
+      width: 100%;
 
-      &:focus {
-        border-color: $middle-blue;
+      $padding: 15px;
+
+      .input-token {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: $padding 20px;
+        position: relative;
+
+        img {
+          position: absolute;
+          height: 34px;
+          width: 34px;
+          transition: height width 1s;
+        }
       }
 
-      &::-webkit-inner-spin-button,
-      &::-webkit-outer-spin-button {
-        opacity: 0;
+      .input-value {
+        padding: $padding 5px;
+        background-color: $light-cyan;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
 
-      &.error {
-        border-color: $international-orange-aerospace;
+      .input-token-balance {
+        padding: $padding;
+        background-color: $light-cyan;
+        border-top-right-radius: $std-border-radius;
+        border-bottom-right-radius: $std-border-radius;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.7rem;
+        text-align: center;
+
+        p {
+          padding: 0px;
+          margin: 0px;
+        }
+      }
+
+      &:focus-within {
+        border-color: $blue-green;
+
+        img {
+          height: 38px;
+          width: 38px;
+        }
+      }
+      input {
+        padding: 0px;
+        margin: 0px;
+        width: calc(100% - 20px);
+        font-size: 1rem;
+        border: none;
+        background-color: $light-cyan;
+        color: inherit;
+        outline: none;
+
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+          opacity: 0;
+        }
+
+        &.error {
+          border-color: $international-orange-aerospace;
+        }
       }
     }
 
     .lb-balance {
-      display: block;
       text-align: right;
       font-size: 0.7rem;
     }
@@ -305,97 +373,136 @@
 
 {#if $store.lbData.xtzPool > 0 && $store.lbData.tokenPool > 0 && $store.lbData.lqtTotal > 0}
   <div class="form">
-    {#if coinToBuy === "xtz"}
-      <label for="xtz-input">
-        <span>&nbsp;&nbsp;XTZ:</span>
-        <input
-          type="number"
-          id="xtz-input"
-          bind:value={xtzValue}
-          on:input={updateTzbtcValue}
-        />
-        <span class="lb-balance">
-          Balance: {formatTokenAmount($store.userBalance / 10 ** 6)} XTZ
-        </span>
-      </label>
-    {:else}
-      <label for="tzbtc-input">
-        <span>tzBTC:</span>
-        <input
-          type="number"
-          id="tzbtc-input"
-          bind:value={tzbtcValue}
-          on:input={updateXtzValue}
-        />
-        <span class="lb-balance">
-          Balance: {formatTokenAmount(
-            tzbtcBalance / 10 ** $store.tokens.tzBTC.decimals
-          )} tzBTC
-        </span>
-      </label>
-    {/if}
-    <button
-      class="primary mini round"
-      on:click={() => {
-        if (coinToBuy === "xtz") {
-          coinToBuy = "tzbtc";
-        } else {
-          coinToBuy = "xtz";
-        }
-      }}
-    >
-      <span class="material-icons-outlined"> swap_vert </span>
-    </button>
-    {#if coinToBuy === "xtz"}
-      <label for="tzbtc-input">
-        <span>tzBTC:</span>
-        <input
-          type="number"
-          id="tzbtc-input"
-          class:error={tzbtcBalanceError}
-          bind:value={tzbtcValue}
-          on:input={updateXtzValue}
-          disabled
-        />
-        <span class="lb-balance">
-          Balance: {formatTokenAmount(
-            tzbtcBalance / 10 ** $store.tokens.tzBTC.decimals
-          )} tzBTC
-        </span>
-      </label>
-    {:else}
-      <label for="xtz-input">
-        <span>&nbsp;&nbsp;XTZ:</span>
-        <input
-          type="number"
-          id="xtz-input"
-          class:error={xtzBalanceError}
-          bind:value={xtzValue}
-          on:input={updateTzbtcValue}
-        />
-        <span class="lb-balance">
-          Balance: {formatTokenAmount($store.userBalance / 10 ** 6)} XTZ
-        </span>
-      </label>
-    {/if}
+    <div class="form-input">
+      {#if coinToBuy === "xtz"}
+        <label for="xtz-input">
+          <div class="input-token">
+            <img src="tokens/XTZ.png" alt="xtz-token" />
+          </div>
+          <div class="input-value">
+            <input
+              type="number"
+              id="xtz-input"
+              bind:value={xtzValue}
+              on:input={updateTzbtcValue}
+              on:focus={() => {
+                if (xtzValue === 0) xtzValue = null;
+              }}
+            />
+          </div>
+          <div class="input-token-balance">
+            <p>Balance</p>
+            <p>{formatTokenAmount($store.userBalance / 10 ** 6)}</p>
+          </div>
+        </label>
+      {:else}
+        <label for="tzbtc-input">
+          <div class="input-token">
+            <img src="tokens/tzBTC.png" alt="xtz-token" />
+          </div>
+          <div class="input-value">
+            <input
+              type="number"
+              id="tzbtc-input"
+              bind:value={tzbtcValue}
+              on:input={updateXtzValue}
+              on:focus={() => {
+                if (tzbtcValue === 0) tzbtcValue = null;
+              }}
+            />
+          </div>
+          <div class="input-token-balance">
+            <p>Balance</p>
+            <p>
+              {formatTokenAmount(
+                tzbtcBalance / 10 ** $store.tokens.tzBTC.decimals,
+                6
+              )}
+            </p>
+          </div>
+        </label>
+      {/if}
+      <button
+        class="primary mini round"
+        on:click={() => {
+          if (coinToBuy === "xtz") {
+            coinToBuy = "tzbtc";
+          } else {
+            coinToBuy = "xtz";
+          }
+        }}
+      >
+        <span class="material-icons-outlined"> swap_vert </span>
+      </button>
+      {#if coinToBuy === "xtz"}
+        <label for="tzbtc-input">
+          <div class="input-token">
+            <img src="tokens/tzBTC.png" alt="xtz-token" />
+          </div>
+          <div class="input-value">
+            <input
+              type="number"
+              id="tzbtc-input"
+              bind:value={tzbtcValue}
+              on:input={updateXtzValue}
+              on:focus={() => {
+                if (tzbtcValue === 0) tzbtcValue = null;
+              }}
+            />
+          </div>
+          <div class="input-token-balance">
+            <p>Balance</p>
+            <p>
+              {formatTokenAmount(
+                tzbtcBalance / 10 ** $store.tokens.tzBTC.decimals,
+                6
+              )}
+            </p>
+          </div>
+        </label>
+      {:else}
+        <label for="xtz-input">
+          <div class="input-token">
+            <img src="tokens/XTZ.png" alt="xtz-token" />
+          </div>
+          <div class="input-value">
+            <input
+              type="number"
+              id="xtz-input"
+              bind:value={xtzValue}
+              on:input={updateTzbtcValue}
+              on:focus={() => {
+                if (xtzValue === 0) xtzValue = null;
+              }}
+            />
+          </div>
+          <div class="input-token-balance">
+            <p>Balance</p>
+            <p>{formatTokenAmount($store.userBalance / 10 ** 6)}</p>
+          </div>
+        </label>
+      {/if}
+    </div>
     <div class="swap-info">
       <p>Slippage: {slippage}%</p>
-      <p>
-        Minimum received: {formatTokenAmount(calcSlippageValue(true), 8)}
-        {coinToBuy === "xtz" ? "XTZ" : "tzBTC"}
-      </p>
-      <p>
-        {formatTokenAmount(xtzValue)} XTZ = {formatTokenAmount(
-          xtzValue * $store.xtzExchangeRate
-        )} USD
-      </p>
-      <p>
-        {formatTokenAmount(tzbtcValue, 8)} tzBTC = {formatTokenAmount(
-          tzbtcValue *
-            $store.tokens.tzBTC.getExchangeRate() *
-            $store.xtzExchangeRate
-        )} USD
-      </p>
+      {#if xtzValue && tzbtcValue}
+        <p>
+          Minimum received: {formatTokenAmount(calcSlippageValue(true), 8)}
+          {coinToBuy === "xtz" ? "XTZ" : "tzBTC"}
+        </p>
+        <p>
+          {formatTokenAmount(xtzValue)} XTZ = {formatTokenAmount(
+            xtzValue * $store.xtzExchangeRate
+          )} USD
+        </p>
+        <p>
+          {formatTokenAmount(tzbtcValue, 8)} tzBTC = {formatTokenAmount(
+            tzbtcValue *
+              $store.tokens.tzBTC.getExchangeRate() *
+              $store.xtzExchangeRate
+          )} USD
+        </p>
+      {/if}
     </div>
     {#if (coinToBuy === "xtz" && tzbtcBalanceError) || (coinToBuy === "tzbtc" && xtzBalanceError)}
       <button class="primary">

@@ -2,11 +2,8 @@
   import store from "../store";
   import ProfileHeader from "$lib/ProfileHeader.svelte";
   import PlentyFarms from "$lib/farms/plenty/PlentyFarms.svelte";
-  import PaulFarms from "$lib/farms/paul/PaulFarms.svelte";
   import KdaoFarms from "$lib/farms/kdao/KdaoFarms.svelte";
-  import WrapFarms from "$lib/farms/wrap/WrapFarms.svelte";
   import YouvesFarms from "$lib/farms/youves/YouvesFarms.svelte";
-  import SmartlinkFarms from "$lib/farms/smartlink/SmartlinkFarms.svelte";
   import QuipuFarms from "$lib/farms/quipu/QuipuFarms.svelte";
   import FarmsHeader from "$lib/farms/FarmsHeader.svelte";
   import type { AvailableInvestment } from "../types";
@@ -70,19 +67,7 @@
         on:farm-update={updateFarms}
         on:roi-per-week={updateRoiPerWeek}
       />
-      <PaulFarms
-        on:farm-update={updateFarms}
-        on:roi-per-week={updateRoiPerWeek}
-      />
       <QuipuFarms
-        on:farm-update={updateFarms}
-        on:roi-per-week={updateRoiPerWeek}
-      />
-      <SmartlinkFarms
-        on:farm-update={updateFarms}
-        on:roi-per-week={updateRoiPerWeek}
-      />
-      <WrapFarms
         on:farm-update={updateFarms}
         on:roi-per-week={updateRoiPerWeek}
       />

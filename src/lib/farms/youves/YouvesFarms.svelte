@@ -29,7 +29,41 @@
             .catch(err => JSON.stringify(err))
         )
       );
-      if (farmsData) {
+      // the YOU staking farm has a different pattern
+      const youStakingEntryRes = await fetch(
+        `https://api.tzkt.io/v1/contracts/${$store.investments["YOUVES-YOU-STAKING"].address}/bigmaps/stakes_owner_lookup/keys/${$store.userAddress}`
+      );
+      if (youStakingEntryRes && youStakingEntryRes.status === 200) {
+        const youStakingEntry = await youStakingEntryRes.json();
+        if (
+          youStakingEntry &&
+          youStakingEntry.active === true &&
+          Array.isArray(youStakingEntry.value) &&
+          !isNaN(youStakingEntry.value[0])
+        ) {
+          const stakeEntryRes = await fetch(
+            `https://api.tzkt.io/v1/contracts/${$store.investments["YOUVES-YOU-STAKING"].address}/bigmaps/stakes/keys/${youStakingEntry.value[0]}`
+          );
+          if (stakeEntryRes && stakeEntryRes.status === 200) {
+            const stakeEntry = await stakeEntryRes.json();
+            if (stakeEntry && stakeEntry.active === true) {
+              const { stake, token_amount } = stakeEntry.value;
+              if (!isNaN(token_amount)) {
+                if (farmsData) {
+                  farmsData.push({
+                    address: $store.investments["YOUVES-YOU-STAKING"].address,
+                    active: true,
+                    value: { stake: token_amount },
+                    type: "long-term"
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (farmsData.length > 0) {
         farms = farmsData
           .filter(data => typeof data !== "string")
           .filter(data => {

@@ -1303,6 +1303,18 @@
       "rewardToken": "uBTC",
       "liquidityToken": false
     },
+    "YOUVES-YOU-STAKING": {
+      "id": "YOUVES-YOU-STAKING",
+      "platform": "youves",
+      "address": "KT1UZcNDxTdkn33Xx5HRkqQoZedc3mEs11yV",
+      "decimals": 12,
+      "info": [],
+      "type": "long-term",
+      "alias": "YOU Staking Long term Farm",
+      "icons": ["YOU"],
+      "rewardToken": "YOU",
+      "liquidityToken": false
+    },
     "SMLK-XTZ-ANTI": {
       "id": "SMLK-XTZ-ANTI",
       "platform": "smartlink",
