@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
   import store from "../../../store";
-  import type { AvailableInvestment } from "../../../types";
+  import type { AvailableInvestment, Farm } from "../../../types";
   import FarmRow from "../FarmRow.svelte";
   import FarmRowHeader from "../FarmRowHeader.svelte";
+  import { sortFarmsPerRewards } from "../../../utils";
 
-  let farms: Array<{ id: AvailableInvestment; balance: number }> = [];
+  let farms: Array<Farm> = [];
   const dispatch = createEventDispatcher();
   let totalRewards: Array<{ id: AvailableInvestment; rewards: number }> = [];
   let harvestingAll = false;
@@ -77,6 +78,7 @@
             id: Object.values($store.investments).find(
               inv => inv.address === data.address
             ).id,
+            address: data.address,
             balance: data.type === "long-term" ? +data.value.stake : +data.value
           }));
         // updates investment balance
@@ -103,7 +105,7 @@
     {harvestingAll}
     on:harvest-all={harvestAll}
   />
-  {#each farms as farm}
+  {#each farms.sort((a, b) => sortFarmsPerRewards(a, b, totalRewards)) as farm}
     <FarmRow
       invName={farm.id}
       on:farm-update={event => {

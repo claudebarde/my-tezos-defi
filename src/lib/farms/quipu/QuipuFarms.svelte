@@ -1,12 +1,13 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
   import store from "../../../store";
-  import type { AvailableInvestment } from "../../../types";
+  import type { AvailableInvestment, Farm } from "../../../types";
   import FarmRow from "../FarmRow.svelte";
   import FarmRowHeader from "../FarmRowHeader.svelte";
   import config from "../../../config";
+  import { sortFarmsPerRewards } from "../../../utils";
 
-  let farms: Array<{ id: AvailableInvestment; balance: number }> = [];
+  let farms: Array<Farm> = [];
   const dispatch = createEventDispatcher();
   let totalRewards: Array<{ id: AvailableInvestment; rewards: number }> = [];
   let harvestingAll = false;
@@ -25,7 +26,11 @@
         farmsUrls.map((url, index) =>
           fetch(url)
             .then(res => res.json())
-            .then(res => ({ index, ...res }))
+            .then(res => ({
+              index,
+              address: config.quipuFarmsContract,
+              ...res
+            }))
             .catch(err => JSON.stringify(err))
         )
       );
@@ -36,6 +41,7 @@
           .map(data => ({
             //HACK: maybe find a more elegant way for the id
             id: `QUIPU-FARM-${data.index}` as AvailableInvestment,
+            address: data.address,
             balance: +data.value.staked
           }));
         // updates investment balance
@@ -62,7 +68,7 @@
     {harvestingAll}
     on:harvest-all={harvestAll}
   />
-  {#each farms as farm}
+  {#each farms.sort((a, b) => sortFarmsPerRewards(a, b, totalRewards)) as farm}
     <FarmRow
       invName={farm.id}
       on:farm-update={event => {

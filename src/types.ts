@@ -1,4 +1,4 @@
-import type { TezosToolkit } from "@taquito/taquito";
+import type { TezosToolkit, WalletParamsWithKind } from "@taquito/taquito";
 import type { BeaconWallet } from "@taquito/beacon-wallet";
 import type Token from "./Token";
 import type { LocalStorage } from "./localStorage";
@@ -54,6 +54,7 @@ export enum AvailableToken {
   ctez = "ctez",
   MAG = "MAG",
   PXL = "PXL",
+  uDEFI = "uDEFI",
   pxlDAO = "pxlDAO",
   fDAO = "fDAO",
   BTCtz = "BTCtz",
@@ -195,7 +196,8 @@ export type InvestmentPlatform =
   | "kdao"
   | "wrap"
   | "smartlink"
-  | "youves";
+  | "youves"
+  | "ctez";
 
 export enum AvailableDex {
   QUIPU = "quipu",
@@ -257,6 +259,7 @@ export interface State {
   admin: TezosAccountAddress;
   localStorage: LocalStorage | undefined;
   lbData: { xtzPool: number; tokenPool: number; lqtTotal: number };
+  blurryBalances: boolean;
 }
 
 export interface HistoricalDataState {
@@ -298,4 +301,18 @@ export type modalAction =
   | "payBack"
   | "withdraw"
   | "deposit"
+  | "stake"
+  | "unstake"
   | undefined;
+
+export type Farm = {
+  id: AvailableInvestment;
+  address: TezosContractAddress;
+  balance: number;
+};
+
+export interface QueuedTx {
+  id: number;
+  description: string;
+  tx: WalletParamsWithKind;
+}

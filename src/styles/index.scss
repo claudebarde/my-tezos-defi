@@ -3,6 +3,7 @@
 @import "./buttons.scss";
 @import "./farms.scss";
 @import "./vaults.scss";
+@import "./modal.scss";
 
 html,
 body,
@@ -56,6 +57,21 @@ a {
   }
 }
 
+input {
+  padding: 5px;
+  border: solid 2px transparent;
+  border-radius: $std-border-radius;
+  outline: none;
+  background-color: $middle-blue;
+  font-size: inherit;
+  color: inherit;
+  transition: border-color 0.5s;
+
+  &:focus {
+    border-color: $pacific-blue;
+  }
+}
+
 .bubbles {
   position: absolute;
   bottom: 0px;
@@ -73,6 +89,21 @@ a {
     img {
       opacity: 0.3;
     }
+  }
+}
+
+.blurry-text {
+  color: transparent;
+  text-shadow: 0 0 7px rgba(30, 58, 138, 0.5);
+  position: relative;
+
+  &:after {
+    content: "XXXXXXXXXX";
+    visibility: visible;
+    display: block;
+    position: absolute;
+    top: 2px;
+    width: 100%;
   }
 }
 

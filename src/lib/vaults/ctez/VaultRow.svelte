@@ -1,9 +1,13 @@
 <script lang="ts">
-  import type { VaultData } from "../../../types";
+  import type { VaultData, modalAction } from "../../../types";
   import store from "../../../store";
   import { formatTokenAmount } from "../../../utils";
+  import Modal from "$lib/modal/Modal.svelte";
 
   export let vault: VaultData;
+
+  let showModal = false;
+  let modalAction: modalAction;
 </script>
 
 <style lang="scss">
@@ -37,10 +41,10 @@
     <div>
       <div>XTZ locked</div>
       {#if vault.xtzLocked || vault.xtzLocked === 0}
-        <div>
+        <div class:blurry-text={$store.blurryBalances}>
           <b>{formatTokenAmount(vault.xtzLocked / 10 ** 6)} ꜩ</b>
         </div>
-        <div>
+        <div class:blurry-text={$store.blurryBalances}>
           {formatTokenAmount(
             (+vault.xtzLocked / 10 ** 6) * $store.xtzExchangeRate,
             2
@@ -58,7 +62,7 @@
     <div>
       <div>Borrowed</div>
       {#if vault.borrowed || vault.borrowed === 0}
-        <div>
+        <div class:blurry-text={$store.blurryBalances}>
           <b
             >{formatTokenAmount(
               vault.borrowed / 10 ** $store.tokens.ctez.decimals,
@@ -66,7 +70,7 @@
             )} Ctez</b
           >
         </div>
-        <div>
+        <div class:blurry-text={$store.blurryBalances}>
           {formatTokenAmount(
             (vault.borrowed / 10 ** $store.tokens.ctez.decimals) *
               $store.tokens.uUSD.getExchangeRate()
@@ -78,10 +82,51 @@
       {/if}
     </div>
     <div class="buttons">
-      <button class="primary mini">Borrow</button>
-      <button class="primary mini">Pay back</button>
-      <button class="primary mini">Withdraw ꜩ</button>
-      <button class="primary mini">Deposit ꜩ</button>
+      <button
+        class="primary mini"
+        on:click={() => {
+          modalAction = "borrow";
+          showModal = true;
+        }}
+      >
+        Borrow
+      </button>
+      <button
+        class="primary mini"
+        on:click={() => {
+          modalAction = "payBack";
+          showModal = true;
+        }}
+      >
+        Pay back
+      </button>
+      <button
+        class="primary mini"
+        on:click={() => {
+          modalAction = "withdraw";
+          showModal = true;
+        }}
+      >
+        Withdraw ꜩ
+      </button>
+      <button
+        class="primary mini"
+        on:click={() => {
+          modalAction = "deposit";
+          showModal = true;
+        }}
+      >
+        Deposit ꜩ
+      </button>
     </div>
   {/if}
 </div>
+{#if showModal}
+  <Modal
+    type="vault"
+    platform="ctez"
+    action={modalAction}
+    payload={{ vault }}
+    on:close={() => (showModal = false)}
+  />
+{/if}

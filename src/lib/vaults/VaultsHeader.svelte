@@ -47,7 +47,7 @@
     </div>
     <div>
       <div>Total value</div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         <b>
           {formatTokenAmount(
             [0, 0, ...vaults.map(vault => +vault.xtzLocked)].reduce(
@@ -57,7 +57,7 @@
           )} ꜩ
         </b>
       </div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         <span style="font-size:0.8rem">
           ({formatTokenAmount(
             ([0, 0, ...vaults.map(vault => +vault.xtzLocked)].reduce(

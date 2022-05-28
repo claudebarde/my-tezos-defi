@@ -20,7 +20,9 @@ button {
   transition: 0.3s;
 
   span.material-icons,
-  span.material-icons-outlined {
+  span.material-icons-outlined,
+  span.material-symbols,
+  span.material-symbols-outlined {
     color: inherit;
     margin-right: 10px;
   }
@@ -34,6 +36,17 @@ button {
     &:hover {
       background-color: $blue-green;
       color: white;
+    }
+
+    &:disabled {
+      border-color: $light-slate-grey;
+      color: $light-slate-grey;
+      cursor: not-allowed;
+
+      &:hover {
+        background-color: transparent;
+        color: $light-slate-grey;
+      }
     }
   }
 

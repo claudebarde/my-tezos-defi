@@ -116,5 +116,24 @@
         </p>
       </div>
     {/if}
+    <div>
+      <h4>Blur balances</h4>
+      <p>
+        {$store.blurryBalances ? "Reveal" : "Hide"} the amounts of your balances
+        in the dapp
+      </p>
+      <p>
+        <input
+          type="checkbox"
+          checked={$store.blurryBalances}
+          on:change={() => store.updateBlurryBalances()}
+        />
+        <span>
+          {$store.blurryBalances
+            ? "Balances are hidden"
+            : "Balances are visible"}
+        </span>
+      </p>
+    </div>
   </div>
 </div>

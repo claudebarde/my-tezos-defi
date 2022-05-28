@@ -34,6 +34,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      position: relative;
     }
     & > div:not(:last-child) {
       border-right: solid 2px $blizzard-blue;
@@ -63,14 +64,14 @@
     </div>
     <div>
       <div>Total value</div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         <b>
           {formatTokenAmount(
             [0, 0, ...farms.map(farm => +farm.value)].reduce((a, b) => a + b)
           )} ꜩ
         </b>
       </div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         <span style="font-size:0.8rem">
           ({formatTokenAmount(
             [0, 0, ...farms.map(farm => +farm.value)].reduce((a, b) => a + b) *
@@ -82,14 +83,14 @@
     </div>
     <div>
       <div>Total rewards</div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         <b>
           {formatTokenAmount(
             [0, 0, ...farms.map(farm => farm.rewards)].reduce((a, b) => a + b)
           )} ꜩ
         </b>
       </div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         <span style="font-size:0.8rem">
           ({formatTokenAmount(
             [0, 0, ...farms.map(farm => farm.rewards)].reduce((a, b) => a + b) *
@@ -101,7 +102,7 @@
     </div>
     <div>
       <div>ROI per week</div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         <b>
           &thickapprox; {formatTokenAmount(
             [
@@ -114,7 +115,7 @@
           )} ꜩ
         </b>
       </div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         <span style="font-size:0.8rem">
           ({formatTokenAmount(
             [

@@ -33,7 +33,8 @@ const initialState: State = {
   serviceFee: process.env.NODE_ENV === "development" ? null : 0.003,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
   localStorage: undefined,
-  lbData: { xtzPool: 0, tokenPool: 0, lqtTotal: 0 }
+  lbData: { xtzPool: 0, tokenPool: 0, lqtTotal: 0 },
+  blurryBalances: false
 };
 
 const store = writable(initialState);
@@ -107,7 +108,9 @@ const state = {
   updateLocalStorage: (localStorage: LocalStorage) =>
     store.update(store => ({ ...store, localStorage })),
   updateLbData: (lbData: State["lbData"]) =>
-    store.update(store => ({ ...store, lbData }))
+    store.update(store => ({ ...store, lbData })),
+  updateBlurryBalances: () =>
+    store.update(store => ({ ...store, blurryBalances: !store.blurryBalances }))
 };
 
 export default state;

@@ -99,7 +99,7 @@
         <span>Loading...</span>
       {/if}
     </div>
-    <div>
+    <div class:blurry-text={$store.blurryBalances}>
       {#if $store.userBalance}
         {formatTokenAmount($store.userBalance / 10 ** 6)} ꜩ
         {#if $store.xtzExchangeRate}
@@ -127,8 +127,10 @@
   {#if $page.url.pathname === "/" && $store.userTokens && $store.userTokens.length > 0}
     <div class="tokens-info">
       <p>{$store.userTokens.length} tokens with balance</p>
-      <p>Total value: {formatTokenAmount(totalTokensBalance)} ꜩ</p>
-      <p>
+      <p class:blurry-text={$store.blurryBalances}>
+        Total value: {formatTokenAmount(totalTokensBalance)} ꜩ
+      </p>
+      <p class:blurry-text={$store.blurryBalances}>
         ({formatTokenAmount(+totalTokensBalance * $store.xtzExchangeRate, 2)} USD)
       </p>
     </div>

@@ -49,7 +49,7 @@
   </div>
   <div class="user-info">
     <div>
-      <div class="bold">
+      <div class="bold" class:blurry-text={$store.blurryBalances}>
         {formatTokenAmount(stake)}
         {#if invData.alias === "YOU staking" || invData.id === AvailableInvestment["YOUVES-YOU-STAKING"]}
           {AvailableToken.YOU}
@@ -62,23 +62,23 @@
         {/if}
       </div>
     </div>
-    <div>{formatTokenAmount(stakeInXtz)} ꜩ</div>
-    <div>
+    <div class:blurry-text={$store.blurryBalances}>
+      {formatTokenAmount(stakeInXtz)} ꜩ
+    </div>
+    <div class:blurry-text={$store.blurryBalances}>
       {formatTokenAmount(stakeInXtz * $store.xtzExchangeRate, 2)} USD
     </div>
   </div>
   <div>
     <div>Rewards</div>
-    {#if invData.platform === "smartlink"}
-      <div>Coming soon!</div>
-    {:else if !isNaN(localRewards)}
-      <div class="bold">
+    {#if !isNaN(localRewards)}
+      <div class="bold" class:blurry-text={$store.blurryBalances}>
         {invData.rewardToken === AvailableToken.uBTC
           ? formatTokenAmount(localRewards, 8)
           : formatTokenAmount(localRewards)}
         {invData.rewardToken}
       </div>
-      <div style="font-size: 0.8rem">
+      <div style="font-size: 0.8rem" class:blurry-text={$store.blurryBalances}>
         ({formatTokenAmount(
           localRewards * $store.tokens[invData.rewardToken].getExchangeRate(),
           2
@@ -103,6 +103,10 @@
         <span class="material-icons-outlined"> agriculture </span>
         Harvest
       {/if}
+    </button>
+    <button class="primary" on:click={() => dispatch("modal-action", true)}>
+      <span class="material-symbols-outlined"> more_horiz </span>
+      More
     </button>
   </div>
   <div>

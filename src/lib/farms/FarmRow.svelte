@@ -32,6 +32,7 @@
   } from "../../tokenUtils/youvesUtils";
   import FarmMiniRow from "./FarmMiniRow.svelte";
   import Loader from "$lib/farms/Loader.svelte";
+  import Modal from "$lib/modal/Modal.svelte";
 
   export let invName: AvailableInvestment,
     farmsWorker: Worker = undefined;
@@ -46,6 +47,7 @@
   let harvestingSuccess = false;
   let apr: number, apy: number;
   let youvesLongTermFullRewards: number;
+  let showModal = false;
 
   const handleFarmsWorker = () => {
     console.log("worker for", invData.id);
@@ -386,7 +388,7 @@
       <div class="user-info">
         <div>
           <div>Stake</div>
-          <div class="bold">
+          <div class="bold" class:blurry-text={$store.blurryBalances}>
             {#if invData.platform === "plenty" && invData.id !== "PLENTY-CTEZ-TEZ-LP"}
               {formatTokenAmount(invData.balance / 10 ** 18)} LPT
             {:else}
@@ -401,11 +403,13 @@
         </div>
         <div>
           <div>Value in XTZ</div>
-          <div class="bold">{formatTokenAmount(stakeInXtz)} ꜩ</div>
+          <div class="bold" class:blurry-text={$store.blurryBalances}>
+            {formatTokenAmount(stakeInXtz)} ꜩ
+          </div>
         </div>
         <div>
           <div>Value in USD</div>
-          <div class="bold">
+          <div class="bold" class:blurry-text={$store.blurryBalances}>
             {formatTokenAmount(stakeInXtz * $store.xtzExchangeRate, 2)} USD
           </div>
         </div>
@@ -416,13 +420,16 @@
             <div>No rewards available</div>
           {:else if invData.platform !== "smartlink"}
             <div>Rewards</div>
-            <div class="bold">
+            <div class="bold" class:blurry-text={$store.blurryBalances}>
               {invData.rewardToken === AvailableToken.uBTC
                 ? formatTokenAmount(rewards.getWithDefault(0), 8)
                 : formatTokenAmount(rewards.getWithDefault(0))}
               {invData.rewardToken}
             </div>
-            <div style="font-size: 0.8rem">
+            <div
+              style="font-size: 0.8rem"
+              class:blurry-text={$store.blurryBalances}
+            >
               ({formatTokenAmount(
                 rewards.getWithDefault(0) *
                   $store.tokens[invData.rewardToken].getExchangeRate(),
@@ -437,11 +444,14 @@
             </div>
             {#if invData.platform === "youves" && invData.type === "long-term"}
               <div style="margin-top:15px">Full rewards</div>
-              <div class="bold">
+              <div class="bold" class:blurry-text={$store.blurryBalances}>
                 {formatTokenAmount(youvesLongTermFullRewards)}
                 {invData.rewardToken}
               </div>
-              <div style="font-size: 0.8rem">
+              <div
+                style="font-size: 0.8rem"
+                class:blurry-text={$store.blurryBalances}
+              >
                 ({formatTokenAmount(
                   youvesLongTermFullRewards *
                     $store.tokens[invData.rewardToken].getExchangeRate(),
@@ -493,6 +503,7 @@
         {harvesting}
         on:expand={() => (expand = true)}
         on:harvest={harvest}
+        on:modal-action={event => (showModal = event.detail)}
       />
     {:else}
       <Loader
@@ -505,4 +516,17 @@
   {/if}
 {:else}
   <div>No data found for this farm</div>
+{/if}
+{#if showModal}
+  <Modal
+    type="farm"
+    platform={invData.platform}
+    action={undefined}
+    payload={{
+      farmAddress: invData.address,
+      farmId: invData.id,
+      farmAlias: invData.alias
+    }}
+    on:close={() => (showModal = false)}
+  />
 {/if}

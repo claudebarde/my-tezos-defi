@@ -6,6 +6,7 @@
   import Toast from "$lib/Toast.svelte";
   import store from "../store";
   import Bubbles from "$lib/Bubbles.svelte";
+  import Queue from "$lib/transaction-queue/Queue.svelte";
 
   let routeId;
 
@@ -84,3 +85,4 @@
   {/if}
 </main>
 <Toast />
+<Queue />

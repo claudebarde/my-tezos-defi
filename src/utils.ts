@@ -15,8 +15,10 @@ import type {
   State,
   TezosAccountAddress,
   TezosContractAddress,
-  UserToken
+  UserToken,
+  Farm
 } from "./types";
+import type { AvailableInvestment } from "./types";
 import store from "./store";
 
 export const shortenHash = (hash: string): string =>
@@ -24,7 +26,7 @@ export const shortenHash = (hash: string): string =>
 
 export const formatTokenAmount = (
   amount: number,
-  decimals: number = 3
+  decimals: number = 4
 ): string => {
   if (isNaN(amount)) return "NaN";
 
@@ -526,6 +528,41 @@ export const findTzbtcBalance = async (
       (bigmapValData as any).prim === "Pair"
     ) {
       return +(bigmapValData as any).args[0].int / 10 ** decimals;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+};
+
+export const sortFarmsPerRewards = (
+  token1Data: Farm,
+  token2Data: Farm,
+  availableRewards: Array<{
+    id: AvailableInvestment;
+    rewards: number;
+  }>
+): number => {
+  if (
+    availableRewards.length > 0 &&
+    availableRewards.find(rw => rw.id === token1Data.id) &&
+    availableRewards.find(rw => rw.id === token2Data.id)
+  ) {
+    //console.log(availableRewards.find(rw => rw.id === a[1].id).amount, availableRewards.find(rw => rw.id === b[1].id).amount);
+    const token1Amount = availableRewards.find(
+      rw => rw.id === token1Data.id
+    ).rewards;
+    const token2Amount = availableRewards.find(
+      rw => rw.id === token2Data.id
+    ).rewards;
+    // TODO: the sorting only works for Plenty farms, for unknown reasons (yet)
+    if (token1Amount === undefined || token2Amount === undefined) {
+      return 0;
+    } else if (token1Amount > token2Amount) {
+      return -1;
+    } else if (token1Amount < token2Amount) {
+      return 1;
     } else {
       return 0;
     }

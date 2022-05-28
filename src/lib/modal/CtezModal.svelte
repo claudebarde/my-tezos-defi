@@ -1,13 +1,11 @@
 <script lang="ts">
   import { OpKind, type WalletParamsWithKind } from "@taquito/taquito";
   import { Option } from "@swan-io/boxed";
-  import type { OvenClient } from "@hover-labs/kolibri-js";
   import type { modalAction, VaultData } from "../../types";
   import store from "../../store";
   import queueStore from "$lib/transaction-queue/queue-store";
 
-  export let action: modalAction,
-    payload: { ovenClient: OvenClient; vault: VaultData };
+  export let action: modalAction, payload: { vault: VaultData };
 
   let selectedAction = action;
   let borrowAmount: number | null = null;
@@ -33,6 +31,9 @@
     Option<Array<{ tx: WalletParamsWithKind; description: string }>>
   > => {
     const contract = await $store.Tezos.wallet.at(payload.vault.address);
+    const storage: any = await contract.storage();
+    const targetContractAddress = "KT1GWnsoFZVHGh7roXEER3qeCcgJgrXT3de2";
+    const targetContract = await $store.Tezos.wallet.at(targetContractAddress);
 
     if (selectedAction === "borrow" && borrowAmount) {
       return Option.Some([
@@ -43,7 +44,7 @@
               .borrow(borrowAmount * 10 ** $store.tokens.kUSD.decimals)
               .toTransferParams()
           },
-          description: `Borrow ${borrowAmount} kUSD from kDAO oven`
+          description: `Borrow ${borrowAmount} Ctez from Ctez oven`
         }
       ]);
     } else if (selectedAction === "payBack" && payBackAmount) {
@@ -55,7 +56,7 @@
               .repay(payBackAmount * 10 ** $store.tokens.kUSD.decimals)
               .toTransferParams()
           },
-          description: `Repay ${payBackAmount} kUSD from kDAO oven`
+          description: `Repay ${payBackAmount} Ctez from Ctez oven`
         }
       ]);
     } else if (selectedAction === "deposit" && depositAmount) {
@@ -66,7 +67,7 @@
             amount: depositAmount * 10 ** 6,
             ...contract.methods.default([["unit"]]).toTransferParams()
           },
-          description: `Deposit ${depositAmount} XTZ in kDAO oven`
+          description: `Deposit ${depositAmount} XTZ in Ctez oven`
         }
       ]);
     } else if (selectedAction === "withdraw" && withdrawAmount) {
@@ -74,11 +75,15 @@
         {
           tx: {
             kind: OpKind.TRANSACTION,
-            ...contract.methods
-              .withdraw(withdrawAmount * 10 ** 6)
+            ...targetContract.methodsObject
+              .withdraw({
+                id: storage.handle.id,
+                amount: withdrawAmount * 10 ** 6,
+                to: storage.handle.owner
+              })
               .toTransferParams()
           },
-          description: `Withdraw ${withdrawAmount} XTZ from kDAO oven`
+          description: `Withdraw ${withdrawAmount} XTZ from Ctez oven`
         }
       ]);
     } else {
@@ -129,13 +134,13 @@
       class:selected={selectedAction === "borrow"}
       on:click={() => (selectedAction = "borrow")}
     >
-      <button>Borrow kUSD</button>
+      <button>Borrow Ctez</button>
     </li>
     <li
       class:selected={selectedAction === "payBack"}
       on:click={() => (selectedAction = "payBack")}
     >
-      <button>Pay back kUSD</button>
+      <button>Pay back Ctez</button>
     </li>
     <li
       class:selected={selectedAction === "withdraw"}
@@ -156,13 +161,13 @@
     <label>
       <span>Amount to borrow:</span>
       <input type="number" bind:value={borrowAmount} />
-      <span>kUSD</span>
+      <span>Ctez</span>
     </label>
   {:else if selectedAction === "payBack"}
     <label>
       <span>Amount to pay back:</span>
       <input type="number" bind:value={payBackAmount} />
-      <span>kUSD</span>
+      <span>Ctez</span>
     </label>
   {:else if selectedAction === "deposit"}
     <label>

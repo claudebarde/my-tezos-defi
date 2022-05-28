@@ -40,10 +40,10 @@
     <div>
       <div>XTZ locked</div>
       {#if vault.xtzLocked}
-        <div>
+        <div class:blurry-text={$store.blurryBalances}>
           <b>{formatTokenAmount(vault.xtzLocked / 10 ** 6)} ꜩ</b>
         </div>
-        <div>
+        <div class:blurry-text={$store.blurryBalances}>
           {formatTokenAmount(
             (+vault.xtzLocked / 10 ** 6) * $store.xtzExchangeRate,
             2
@@ -61,7 +61,7 @@
     <div>
       <div>Borrowed</div>
       {#if vault.borrowed}
-        <div>
+        <div class:blurry-text={$store.blurryBalances}>
           <b
             >{formatTokenAmount(
               vault.borrowed / 10 ** $store.tokens.uUSD.decimals,
@@ -69,7 +69,7 @@
             )} uUSD</b
           >
         </div>
-        <div>
+        <div class:blurry-text={$store.blurryBalances}>
           {formatTokenAmount(
             (vault.borrowed / 10 ** $store.tokens.uUSD.decimals) *
               $store.tokens.uUSD.getExchangeRate()

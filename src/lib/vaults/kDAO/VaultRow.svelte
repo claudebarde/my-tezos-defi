@@ -7,22 +7,13 @@
     OvenClient,
     Network
   } from "@hover-labs/kolibri-js";
-  import type {
-    AvailableVault,
-    TezosContractAddress,
-    modalAction
-  } from "../../../types";
+  import type { modalAction, VaultData } from "../../../types";
   import store from "../../../store";
   import { formatTokenAmount } from "../../../utils";
   import config from "../../../config";
   import Modal from "$lib/modal/Modal.svelte";
 
-  export let vault: {
-    platform: AvailableVault;
-    address: TezosContractAddress;
-    xtzLocked: number;
-    isLiquidated: boolean;
-  };
+  export let vault: VaultData;
 
   const dispatch = createEventDispatcher();
   let balance: AsyncData<Result<string, string>> = AsyncData.NotAsked();
@@ -169,7 +160,7 @@
   <div class="user-info">
     <div>
       <div>XTZ locked</div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         {@html balance.match({
           NotAsked: () => "",
           Loading: () => "loading...",
@@ -180,7 +171,7 @@
             })
         })}
       </div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         {balance.match({
           NotAsked: () => "",
           Loading: () => "loading...",
@@ -200,10 +191,10 @@
     <div>
       <div>Borrowed</div>
       {#if borrowedKusd}
-        <div>
+        <div class:blurry-text={$store.blurryBalances}>
           <b>{formatTokenAmount(borrowedKusd, 3)} kUSD</b>
         </div>
-        <div>
+        <div class:blurry-text={$store.blurryBalances}>
           {formatTokenAmount(
             borrowedKusd * $store.tokens.kUSD.getExchangeRate()
           )} ꜩ
@@ -258,6 +249,7 @@
     type="vault"
     platform="kdao"
     action={modalAction}
+    payload={{ vault, ovenClient }}
     on:close={() => (showModal = false)}
   />
 {/if}

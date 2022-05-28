@@ -3,8 +3,30 @@ import type { TezosToolkit } from "@taquito/taquito";
 import { get } from "svelte/store";
 import { Option, Result } from "@swan-io/boxed";
 import { AvailableInvestment, AvailableToken } from "../types";
-import type { InvestmentData, TezosAccountAddress } from "../types";
+import type {
+  InvestmentData,
+  TezosAccountAddress,
+  TezosContractAddress
+} from "../types";
 import _store from "../store";
+
+export interface UnifiedStakeItem {
+  id: BigNumber;
+  age_timestamp: string;
+  stake: BigNumber;
+  token_amount: BigNumber;
+}
+export interface UnifiedStakeExtendedItem {
+  id: BigNumber;
+  age_timestamp: string;
+  stake: BigNumber;
+  token_amount: BigNumber;
+  endTimestamp: string;
+  originalStake: BigNumber;
+  rewardTotal: BigNumber;
+  rewardNow: BigNumber;
+  rewardNowPercentage: BigNumber;
+}
 
 export const computeToken2Output = (
   token1Amount: BigNumber | number,
@@ -117,9 +139,8 @@ export const getYouvesRewards = async (
 
     return (claimFactor.toNumber() * longTermRewards) / 10 ** youTokenDecimals;
   } else if (invData.id === AvailableInvestment["YOUVES-YOU-STAKING"]) {
-    const stakeNumbers = await rewardsPoolStorage.stakes_owner_lookup.get(
-      userAddress
-    );
+    const stakeNumbers: Array<number> | undefined =
+      await rewardsPoolStorage.stakes_owner_lookup.get(userAddress);
     if (
       !stakeNumbers ||
       (Array.isArray(stakeNumbers) && stakeNumbers.length === 0)
@@ -129,24 +150,20 @@ export const getYouvesRewards = async (
     const stake = await rewardsPoolStorage.stakes.get(stakeNumbers[0]);
     if (!stake) return null;
 
-    const longTermRewards = longTermFarmFullRewards(
-      rewardsPoolStorage.disc_factor,
-      stake.stake.dividedBy(10 ** invData.decimals),
-      // stake.dist_factor,
-      stake.token_amount,
-      invData.decimals
-    );
-    const dateStaked = new Date(stake.age_timestamp);
-    const secondsSinceStaked = (Date.now() - dateStaked.getTime()) / 1000;
-    const factor = secondsSinceStaked / rewardsPoolStorage.max_release_period;
-    const claimFactor = BigNumber.min(1, BigNumber.max(factor, 0));
+    const store = get(_store);
+    const userYou = store.userTokens.find(tk => tk.name === AvailableToken.YOU);
+    if (!userYou) return null;
 
-    console.log(
-      (claimFactor.toNumber() * longTermRewards) / 10 ** youTokenDecimals
+    const result = await getOwnStakesWithExtraInfo(
+      Tezos,
+      stakeNumbers,
+      invData.address,
+      userYou.balance
     );
-    // return (claimFactor.toNumber() * longTermRewards) / 10 ** youTokenDecimals;
 
-    return null;
+    return result[0].rewardNow
+      .dividedBy(10 ** store.tokens.YOU.decimals)
+      .toNumber();
   } else {
     let currentDistFactor = rewardsPoolStorage.dist_factor;
     const ownStake = new BigNumber(
@@ -187,7 +204,10 @@ export const calcYouvesRewards = async (
     store.tokens.YOU.decimals
   );
   if (rewards && !isNaN(rewards)) {
-    if (invData.type === "long-term") {
+    if (
+      invData.type === "long-term" &&
+      invData.id !== AvailableInvestment["YOUVES-YOU-STAKING"]
+    ) {
       // computes the long term rewards
       const rewardsPoolContract = await Tezos.wallet.at(invData.address);
       const rewardsPoolStorage: any = await rewardsPoolContract.storage();
@@ -346,4 +366,88 @@ export const calcYouvesStake = async (
       `Stake in XTZ coudn't be computed for ${invData.alias}`
     );
   }
+};
+
+const getOwnStakes = async (
+  stakeIds: Array<number>,
+  dexStorage
+): Promise<UnifiedStakeItem[]> => {
+  const stakes: UnifiedStakeItem[] = await Promise.all(
+    stakeIds.map(async id => {
+      const stakeData: any = await dexStorage.stakes.get(id);
+      return { id, ...stakeData };
+    })
+  );
+
+  return stakes;
+};
+
+const getClaimNowFactor = (stake: UnifiedStakeItem, dexStorage): BigNumber => {
+  if (!stake) {
+    return new BigNumber(0);
+  }
+  const dateStaked = new Date(stake.age_timestamp);
+  const secondsSinceStaked = (Date.now() - dateStaked.getTime()) / 1000;
+  const factor = secondsSinceStaked / dexStorage.max_release_period;
+  return BigNumber.min(1, BigNumber.max(factor, 0));
+};
+const getOwnStakesWithExtraInfo = async (
+  Tezos: TezosToolkit,
+  stakeIds: Array<number>,
+  farmAddress: TezosContractAddress,
+  userYouBalance: number
+): Promise<UnifiedStakeExtendedItem[] | null> => {
+  const stakingPoolContract = await Tezos.wallet.at(farmAddress);
+  const dexStorage: any = await stakingPoolContract.storage();
+  const stakes = await getOwnStakes(stakeIds, dexStorage);
+  // const rewardTokenBalance = new BigNumber(
+  //   await getFA2Balance(
+  //     this.stakingContract,
+  //     this.rewardToken.contractAddress,
+  //     this.rewardToken.tokenId,
+  //     this.tezos,
+  //     mainnetNetworkConstants.fakeAddress,
+  //     mainnetNetworkConstants.balanceOfViewerCallback
+  //   )
+  // )
+  const youContract = await Tezos.wallet.at(
+    "KT1Xobej4mc6XgEjDoJoHtTKgbD1ELMvcQuL"
+  );
+  const youStorage: any = await youContract.storage();
+  const rewardTokenBalance = await youStorage.ledger.get({
+    token_id: 0,
+    owner: farmAddress
+  });
+  if (!rewardTokenBalance) return null;
+
+  return Promise.all(
+    stakes.map(async stake => {
+      // const rewardTotal = dexStorage.disc_factor.times(stake.stake).shiftedBy(-1 * mainnetTokens.youToken.decimals)
+      const claimNowFactor = await getClaimNowFactor(stake, dexStorage);
+      const entireWithdrawableAmount = rewardTokenBalance
+        .times(stake.stake)
+        .div(dexStorage.total_stake);
+      return {
+        ...stake,
+        endTimestamp: new Date(
+          new Date(stake.age_timestamp).getTime() +
+            dexStorage.max_release_period * 1000
+        ).toString(),
+        originalStake: stake.token_amount,
+        rewardTotal: BigNumber.max(
+          0,
+          entireWithdrawableAmount.minus(stake.token_amount)
+        ),
+        rewardNow: BigNumber.max(
+          0,
+          entireWithdrawableAmount
+            .minus(stake.token_amount)
+            .times(claimNowFactor)
+        ),
+        rewardNowPercentage: claimNowFactor
+          .times(100)
+          .decimalPlaces(2, BigNumber.ROUND_DOWN)
+      };
+    })
+  );
 };

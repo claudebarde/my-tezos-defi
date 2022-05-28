@@ -13,31 +13,11 @@
   let xtzValue = 0;
   let tzbtcValue = 0;
   let tzbtcBalance = 0;
-  let xtzBalanceError = false;
-  let tzbtcBalanceError = false;
+  let xtzError = false;
+  let tzbtcError = false;
   let slippage = 0.5;
   let swapLoading: AsyncData<boolean> = AsyncData.NotAsked();
   let swapSuccessfull = false;
-
-  $: if (
-    coinToBuy === "tzbtc" &&
-    (!xtzValue || isNaN(xtzValue) || xtzValue > $store.userBalance / 10 ** 6)
-  ) {
-    xtzBalanceError = true;
-  } else {
-    xtzBalanceError = false;
-  }
-
-  $: if (
-    coinToBuy === "xtz" &&
-    (!tzbtcValue ||
-      isNaN(tzbtcValue) ||
-      tzbtcValue > tzbtcBalance / 10 ** $store.tokens.tzBTC.decimals)
-  ) {
-    tzbtcBalanceError = true;
-  } else {
-    tzbtcBalanceError = false;
-  }
 
   const updateTzbtcValue = () => {
     if (!!xtzValue && !isNaN(xtzValue)) {
@@ -248,6 +228,21 @@
         tzbtcValue = tokenValue.toNumber() / 10 ** $store.tokens.tzBTC.decimals;
       }
     }
+    // checks if the user has enough tokens
+    if (
+      coinToBuy === "xtz" &&
+      tzbtcValue > tzbtcBalance * 10 ** $store.tokens.tzBTC.decimals
+    ) {
+      tzbtcError = true;
+    } else {
+      tzbtcError = false;
+    }
+
+    if (coinToBuy === "tzbtc" && xtzValue > $store.userBalance / 10 ** 6) {
+      xtzError = true;
+    } else {
+      xtzError = false;
+    }
   });
 </script>
 
@@ -270,11 +265,17 @@
       gap: 15px;
 
       button.mini {
-        background-color: white;
         position: absolute;
+        background-color: white;
+
+        &:hover {
+          background-color: $blue-green;
+          color: white;
+        }
 
         .material-icons-outlined {
           margin: 0px;
+          color: inherit;
         }
       }
     }
@@ -286,6 +287,10 @@
       display: grid;
       grid-template-columns: 20% 50% 30%;
       width: 100%;
+
+      &.error {
+        border-color: $international-orange-aerospace;
+      }
 
       $padding: 15px;
 
@@ -352,10 +357,6 @@
         &::-webkit-outer-spin-button {
           opacity: 0;
         }
-
-        &.error {
-          border-color: $international-orange-aerospace;
-        }
       }
     }
 
@@ -367,6 +368,17 @@
     .swap-info {
       text-align: center;
       font-size: 0.9rem;
+
+      .select-slippage {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        .material-symbols-outlined {
+          margin: 0px !important;
+          color: inherit;
+        }
+      }
     }
   }
 </style>
@@ -375,7 +387,7 @@
   <div class="form">
     <div class="form-input">
       {#if coinToBuy === "xtz"}
-        <label for="xtz-input">
+        <label for="xtz-input" class:error={tzbtcError}>
           <div class="input-token">
             <img src="tokens/XTZ.png" alt="xtz-token" />
           </div>
@@ -396,7 +408,7 @@
           </div>
         </label>
       {:else}
-        <label for="tzbtc-input">
+        <label for="tzbtc-input" class:error={xtzError}>
           <div class="input-token">
             <img src="tokens/tzBTC.png" alt="xtz-token" />
           </div>
@@ -435,7 +447,7 @@
         <span class="material-icons-outlined"> swap_vert </span>
       </button>
       {#if coinToBuy === "xtz"}
-        <label for="tzbtc-input">
+        <label for="tzbtc-input" class:error={tzbtcError}>
           <div class="input-token">
             <img src="tokens/tzBTC.png" alt="xtz-token" />
           </div>
@@ -461,7 +473,7 @@
           </div>
         </label>
       {:else}
-        <label for="xtz-input">
+        <label for="xtz-input" class:error={xtzError}>
           <div class="input-token">
             <img src="tokens/XTZ.png" alt="xtz-token" />
           </div>
@@ -484,7 +496,29 @@
       {/if}
     </div>
     <div class="swap-info">
-      <p>Slippage: {slippage}%</p>
+      <div class="select-slippage">
+        <p>Slippage: {slippage}%</p>
+        <button
+          class="transparent mini"
+          on:click={() => {
+            if (slippage < 100) {
+              slippage += 0.5;
+            }
+          }}
+        >
+          <span class="material-symbols-outlined"> add_circle </span>
+        </button>
+        <button
+          class="transparent mini"
+          on:click={() => {
+            if (slippage > 0.5) {
+              slippage -= 0.5;
+            }
+          }}
+        >
+          <span class="material-symbols-outlined"> do_not_disturb_on </span>
+        </button>
+      </div>
       {#if xtzValue && tzbtcValue}
         <p>
           Minimum received: {formatTokenAmount(calcSlippageValue(true), 8)}
@@ -504,32 +538,31 @@
         </p>
       {/if}
     </div>
-    {#if (coinToBuy === "xtz" && tzbtcBalanceError) || (coinToBuy === "tzbtc" && xtzBalanceError)}
+    {#if (coinToBuy === "xtz" && tzbtcError) || (coinToBuy === "tzbtc" && xtzError)}
       <button class="primary">
         <span class="material-icons-outlined">
           sentiment_very_dissatisfied
         </span>
         Invalid swap
       </button>
-    {:else}
-      <!-- SWAP BUTTON-->
-      {#if swapLoading.isNotAsked()}
-        <button class="primary" on:click={swap}>
-          Buy {coinToBuy === "xtz"
-            ? formatTokenAmount(xtzValue)
-            : formatTokenAmount(tzbtcValue, 8)}
-          {coinToBuy === "xtz" ? "XTZ" : "tzBTC"}
-        </button>
-      {:else if swapLoading.isLoading()}
-        <button class="primary" disabled>
-          <span class="material-icons-outlined loading"> hourglass_empty </span>
-          Swapping...
-        </button>
-      {:else if swapLoading.isDone() && swapSuccessfull === true}
-        <button class="primary" disabled> Swap successful! </button>
-      {:else if swapLoading.isDone() && swapSuccessfull === false}
-        <button class="primary" disabled> An error occured </button>
-      {/if}
+    {:else if (xtzValue === 0 || xtzValue === null) && (tzbtcValue === 0 || tzbtcValue === null)}
+      <button class="primary"> Enter an amount to swap </button>
+    {:else if swapLoading.isNotAsked()}
+      <button class="primary" on:click={swap}>
+        Buy {coinToBuy === "xtz"
+          ? formatTokenAmount(xtzValue)
+          : formatTokenAmount(tzbtcValue, 8)}
+        {coinToBuy === "xtz" ? "XTZ" : "tzBTC"}
+      </button>
+    {:else if swapLoading.isLoading()}
+      <button class="primary" disabled>
+        <span class="material-icons-outlined loading"> hourglass_empty </span>
+        Swapping...
+      </button>
+    {:else if swapLoading.isDone() && swapSuccessfull === true}
+      <button class="primary" disabled> Swap successful! </button>
+    {:else if swapLoading.isDone() && swapSuccessfull === false}
+      <button class="primary" disabled> An error occured </button>
     {/if}
   </div>
 {:else}

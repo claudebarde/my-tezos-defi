@@ -46,7 +46,7 @@
   <div class="user-info">
     <div>
       <div>XTZ locked</div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         {@html balance.match({
           NotAsked: () => "",
           Loading: () => "loading...",
@@ -57,7 +57,7 @@
             })
         })}
       </div>
-      <div>
+      <div class:blurry-text={$store.blurryBalances}>
         {balance.match({
           NotAsked: () => "",
           Loading: () => "loading...",

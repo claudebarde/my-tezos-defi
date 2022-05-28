@@ -1,0 +1,62 @@
+@import "./settings.scss";
+
+.modal-wrapper {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  padding: 0px;
+  margin: 0px;
+  width: 100vw;
+  height: 100vh;
+  z-index: 990;
+
+  .modal-background {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: rgba($dark-cornflower-blue, 0.6);
+    z-index: 995;
+  }
+
+  .modal {
+    background-color: white;
+    padding: 20px;
+    z-index: 999;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: $std-border-radius;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+
+    .modal-header {
+      margin-bottom: 20px;
+    }
+
+    .modal-body {
+      padding: 20px 10px;
+      width: 100%;
+
+      label {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+      }
+    }
+
+    .modal-footer {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+}

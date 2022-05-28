@@ -2,21 +2,14 @@
   import { onMount, createEventDispatcher } from "svelte";
   import store from "../../../store";
   import toastStore from "../../../toastStore";
-  import type {
-    AvailableInvestment,
-    TezosContractAddress
-  } from "../../../types";
+  import type { AvailableInvestment, Farm } from "../../../types";
   import { AvailableToken, ToastType } from "../../../types";
   import FarmRow from "../FarmRow.svelte";
   import FarmRowHeader from "../FarmRowHeader.svelte";
   import FarmWorker from "../farms.worker?worker";
-  import { prepareOperation } from "../../../utils";
+  import { prepareOperation, sortFarmsPerRewards } from "../../../utils";
 
-  let farms: Array<{
-    id: AvailableInvestment;
-    address: TezosContractAddress;
-    balance: number;
-  }> = [];
+  let farms: Array<Farm> = [];
   const dispatch = createEventDispatcher();
   let totalRewards: Array<{ id: AvailableInvestment; rewards: number }> = [];
   let farmsWorker;
@@ -126,7 +119,7 @@
     {harvestingAll}
     on:harvest-all={harvestAll}
   />
-  {#each farms as farm (farm.id)}
+  {#each farms.sort( (a, b) => sortFarmsPerRewards(a, b, totalRewards) ) as farm (farm.id)}
     <FarmRow
       invName={farm.id}
       {farmsWorker}
