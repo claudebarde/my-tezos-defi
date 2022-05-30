@@ -656,7 +656,6 @@ const calculateDualReward = async (
       totalRewards / Math.pow(10, 6) + userDetails.rewards.toNumber();
 
     totalRewards = totalRewards / Math.pow(10, 6); // Reducing to Token Decimals
-    console.log(totalRewards);
 
     rewardArray.push(totalRewards);
 

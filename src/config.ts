@@ -1,3 +1,5 @@
+import { AvailableFiat } from "./types";
+
 export default {
   version: "5.0.0",
   rpcUrl: "https://mainnet.api.tez.ie",
@@ -6,6 +8,16 @@ export default {
     "https://eu01-node.teztools.net",
     "https://teznode.letzbake.com/",
     "https://mainnet.smartpy.io"
+  ],
+  validFiats: [
+    { code: AvailableFiat.USD, name: "US dollar", symbol: "$" },
+    { code: AvailableFiat.EUR, name: "Euro", symbol: "€" },
+    { code: AvailableFiat.CAD, name: "Canadian Dollar", symbol: "CA$" },
+    { code: AvailableFiat.GBP, name: "British pound", symbol: "£" },
+    { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
+    { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" },
+    { code: AvailableFiat.CNY, name: "Chinese yuan", symbol: "¥" },
+    { code: AvailableFiat.BTC, name: "Bitcoin", symbol: "₿" }
   ],
   lbContracts: [
     "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",

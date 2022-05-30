@@ -1,4 +1,4 @@
-import adapter from "@sveltejs/adapter-static";
+import adapter from "@sveltejs/adapter-auto";
 import preprocess from "svelte-preprocess";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -13,9 +13,10 @@ const config = {
   preprocess: preprocess({}),
 
   kit: {
-    adapter: adapter({
-      fallback: "200.html"
-    }),
+    // adapter: adapter({
+    //   fallback: "200.html"
+    // }),
+    adapter: adapter(),
     vite: {
       resolve: {
         alias: {

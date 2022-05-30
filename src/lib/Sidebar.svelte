@@ -9,14 +9,15 @@
   import LiveTrafficWorker from "../livetraffic.worker?worker";
   import store from "../store";
   import config from "../config";
-  import { LocalStorage } from "../localStorage";
+  import { LocalStorage, type FiatData } from "../localStorage";
   import { formatTokenAmount } from "../utils";
   import toastStore from "../toastStore";
-  import { ToastType } from "../types";
+  import { ToastType, AvailableFiat } from "../types";
 
   let liveTrafficWorker;
   let hidden, visibilityChange;
   let showMobileMenuSidebar: boolean | undefined = undefined;
+  let currentFiat: FiatData;
 
   const handleLiveTrafficWorker = message => {
     if (message.data.type === "new-level") {
@@ -115,6 +116,14 @@
         }
       });
       liveTrafficWorker.onmessage = handleLiveTrafficWorker;
+    }
+
+    if ($store.localStorage) {
+      currentFiat = $store.localStorage.getFavoriteFiat();
+    } else {
+      currentFiat = config.validFiats.find(
+        fiat => fiat.code === AvailableFiat.USD
+      );
     }
   });
 </script>
@@ -292,8 +301,11 @@
     </nav>
   </div>
   <div>
-    {#if $store.xtzExchangeRate}
-      <p>1 XTZ = {formatTokenAmount($store.xtzExchangeRate, 2)} USD</p>
+    {#if $store.xtzExchangeRate && currentFiat}
+      <p>
+        1 XTZ = {formatTokenAmount($store.xtzExchangeRate, 2)}
+        {currentFiat.code}
+      </p>
     {/if}
     <div class="contact-links">
       <a
@@ -394,7 +406,10 @@
     </nav>
     <div>
       {#if $store.xtzExchangeRate}
-        <p>1 XTZ = {formatTokenAmount($store.xtzExchangeRate, 2)} USD</p>
+        <p>
+          1 XTZ = {formatTokenAmount($store.xtzExchangeRate, 2)}
+          {currentFiat}
+        </p>
       {/if}
       <div class="contact-links">
         <a

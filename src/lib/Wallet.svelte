@@ -114,6 +114,19 @@
         }
       });
       await setup();
+
+      fetchCoinGeckoInterval = setInterval(async () => {
+        const fiat = (() => {
+          if ($store.localStorage) {
+            return $store.localStorage.getFavoriteFiat().code;
+          } else {
+            return AvailableFiat.USD;
+          }
+        })();
+        const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
+        store.updateXtzExchangeRate(exchangeRate);
+        store.updatePriceHistoric(priceHistoric);
+      }, 30_000);
     } catch (err) {
       console.error(err);
     }
@@ -283,6 +296,7 @@
       if (peers && peers.length > 0) {
         connectedWallet = (peers[0] as any).icon;
       }
+    } else {
     }
     // fetches current block level
     const blockHeader = await $store.Tezos.rpc.getBlockHeader();
@@ -299,15 +313,25 @@
         store.updateXtzExchangeRate(priceData.price);
       }
       // CoinGecko is necessary to get price history data
-      const { exchangeRate, priceHistoric } = await coinGeckoFetch(
-        AvailableFiat.USD
-      );
+      const fiat = (() => {
+        if ($store.localStorage) {
+          return $store.localStorage.getFavoriteFiat().code;
+        } else {
+          return AvailableFiat.USD;
+        }
+      })();
+      const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
       store.updateXtzExchangeRate(exchangeRate);
       store.updatePriceHistoric(priceHistoric);
       fetchCoinGeckoInterval = setInterval(async () => {
-        const { exchangeRate, priceHistoric } = await coinGeckoFetch(
-          AvailableFiat.USD
-        );
+        const fiat = (() => {
+          if ($store.localStorage) {
+            return $store.localStorage.getFavoriteFiat().code;
+          } else {
+            return AvailableFiat.USD;
+          }
+        })();
+        const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
         store.updateXtzExchangeRate(exchangeRate);
         store.updatePriceHistoric(priceHistoric);
       }, 30_000);

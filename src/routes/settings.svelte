@@ -1,18 +1,39 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, afterUpdate } from "svelte";
   import { Option } from "@swan-io/boxed";
   import store from "../store";
   import ProfileHeader from "$lib/ProfileHeader.svelte";
   import config from "../config";
   import { LocalStorage } from "../localStorage";
+  import type { AvailableFiat } from "../types";
+  import { coinGeckoFetch } from "../utils";
+  import type { FiatData } from "../localStorage";
 
   let allowPushNotifications = Option.None<boolean>();
+  let currentFiat = Option.None<FiatData>();
 
   const updateRpcUrl = event => {
     const url = event.target.value;
     if (config.availableRpcUrls.includes(url)) {
       $store.localStorage.setRpcUrl(url);
       $store.Tezos.setRpcProvider(url);
+    }
+  };
+
+  const updateFavoriteFiat = async event => {
+    const newFavoriteFiat: AvailableFiat = event.target.value;
+    const fiatInfo = config.validFiats.find(
+      fiat => fiat.code === newFavoriteFiat
+    );
+    if (fiatInfo) {
+      $store.localStorage.setFavoriteFiat(fiatInfo);
+      currentFiat = Option.Some(fiatInfo);
+      // fetches exchange rate for new currency
+      const { exchangeRate, priceHistoric } = await coinGeckoFetch(
+        fiatInfo.code
+      );
+      store.updateXtzExchangeRate(exchangeRate);
+      store.updatePriceHistoric(priceHistoric);
     }
   };
 
@@ -24,6 +45,19 @@
       );
     } else {
       console.warn("Notifications are not available in this browser");
+    }
+  });
+
+  afterUpdate(() => {
+    if ($store.localStorage && currentFiat.isNone()) {
+      const fiat = config.validFiats.find(
+        fiat => fiat.code === $store.localStorage.getFavoriteFiat().code
+      );
+      if (fiat) {
+        currentFiat = Option.Some(fiat);
+      } else {
+        currentFiat = Option.None();
+      }
     }
   });
 </script>
@@ -114,6 +148,28 @@
             </button>
           {/if}
         </p>
+      </div>
+    {/if}
+    {#if $store.localStorage}
+      <div>
+        <h4>Choose your favorite currency</h4>
+        <p>
+          Currently: {currentFiat.match({
+            None: () => "no selected curency",
+            Some: val => val.name
+          })}
+        </p>
+        <select on:change={updateFavoriteFiat}>
+          {#each config.validFiats as fiat}
+            <option
+              value={fiat.code}
+              selected={fiat.code ===
+                $store.localStorage.getFavoriteFiat().code}
+            >
+              {fiat.name}
+            </option>
+          {/each}
+        </select>
       </div>
     {/if}
     <div>

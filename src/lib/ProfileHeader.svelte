@@ -100,10 +100,10 @@
       {/if}
     </div>
     <div class:blurry-text={$store.blurryBalances}>
-      {#if $store.userBalance}
+      {#if $store.userBalance && $store.localStorage}
         {formatTokenAmount($store.userBalance / 10 ** 6)} ꜩ
         {#if $store.xtzExchangeRate}
-          (${formatTokenAmount(
+          ({$store.localStorage.getFavoriteFiat().symbol}{formatTokenAmount(
             ($store.userBalance / 10 ** 6) * $store.xtzExchangeRate,
             2
           )})

@@ -2,9 +2,11 @@
   import { onMount, afterUpdate } from "svelte";
   import { slide } from "svelte/transition";
   import Chart from "chart.js/auto/auto.esm";
-  import { AvailableToken } from "../types";
+  import { AvailableToken, AvailableFiat } from "../types";
   import store from "../store";
   import { formatTokenAmount } from "../utils";
+  import type { FiatData } from "../localStorage";
+  import config from "../config";
 
   export let token: AvailableToken;
 
@@ -13,6 +15,7 @@
   let tokenStatsChartData: { timestamp: string; price: number }[] = [];
   let chart;
   let expand = false;
+  let currentFiat: FiatData;
 
   const generateChart = (chartData: { timestamp: string; price: number }[]) => {
     const data = {
@@ -128,6 +131,14 @@
 
     if (expand) {
       generateChart(tokenStatsChartData);
+    }
+
+    if ($store.localStorage) {
+      currentFiat = $store.localStorage.getFavoriteFiat();
+    } else {
+      currentFiat = config.validFiats.find(
+        fiat => fiat.code === AvailableFiat.USD
+      );
     }
   });
 </script>
@@ -274,7 +285,8 @@
           {formatTokenAmount(
             $store.tokens[token].getExchangeRate() * $store.xtzExchangeRate,
             2
-          )} USD
+          )}
+          {currentFiat.symbol}
         </div>
         {#if tokenAggregateDaily}
           <div
@@ -312,7 +324,8 @@
               +userBalance *
                 $store.tokens[token].getExchangeRate() *
                 $store.xtzExchangeRate
-            )} USD
+            )}
+            {currentFiat.symbol}
           </div>
         {:else}
           <div>Loading</div>
@@ -361,7 +374,8 @@
             {formatTokenAmount(
               $store.tokens[token].getExchangeRate() * $store.xtzExchangeRate,
               2
-            )} USD
+            )}
+            {currentFiat.symbol}
           </div>
           {#if tokenAggregateDaily}
             <div
@@ -402,7 +416,8 @@
               $store.tokens[token].getExchangeRate() *
               $store.xtzExchangeRate,
             2
-          )} USD
+          )}
+          {currentFiat.symbol}
         </div>
       </div>
       <div class="buttons">
