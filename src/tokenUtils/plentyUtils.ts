@@ -508,7 +508,6 @@ export const calcPlentyRewards = async (
       ? store.investments[invData.id].decimals
       : 18
   );
-  console.log(invData.id, rewardsRes);
   if (rewardsRes && rewardsRes.status) {
     return Option.Some(rewardsRes.totalRewards);
   } else {

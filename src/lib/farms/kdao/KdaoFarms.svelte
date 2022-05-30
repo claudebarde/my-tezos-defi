@@ -64,9 +64,10 @@
     {harvestingAll}
     on:harvest-all={harvestAll}
   />
-  {#each farms.sort((a, b) => sortFarmsPerRewards(a, b, totalRewards)) as farm}
+  {#each farms.sort( (a, b) => sortFarmsPerRewards(a, b, totalRewards) ) as farm, index (farm.id)}
     <FarmRow
       invName={farm.id}
+      pos={index}
       on:farm-update={event => {
         const val = event.detail;
         const farms = totalRewards.filter(farm => farm.id !== val.id);

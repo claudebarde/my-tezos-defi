@@ -2,6 +2,7 @@
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { slide } from "svelte/transition";
   import { Option } from "@swan-io/boxed";
+  import moment from "moment";
   import type { InvestmentData } from "../../types";
   import { AvailableToken, AvailableInvestment } from "../../types";
   import store from "../../store";
@@ -35,7 +36,8 @@
   import Modal from "$lib/modal/Modal.svelte";
 
   export let invName: AvailableInvestment,
-    farmsWorker: Worker = undefined;
+    farmsWorker: Worker = undefined,
+    pos: number;
 
   const dispatch = createEventDispatcher();
   let invData: InvestmentData;
@@ -49,6 +51,7 @@
   let youvesLongTermFullRewards: number;
   let showModal = false;
   let plentyCtezXtzRewards = Option.None<Array<number>>();
+  let longTermRewardsEndPeriod = "";
 
   const handleFarmsWorker = () => {
     console.log("worker for", invData.id);
@@ -238,6 +241,20 @@
             return Option.Some(rw.availableRewards);
           }
         });
+        // if long term farm, get end period
+        if (invData.type === "long-term") {
+          const contract = await $store.Tezos.wallet.at(invData.address);
+          const storage: any = await contract.storage();
+          const stake = await storage.stakes.get($store.userAddress);
+          if (stake) {
+            const end =
+              new Date(stake.age_timestamp).getTime() +
+              storage.max_release_period * 1000;
+            longTermRewardsEndPeriod = moment(end).format(
+              "MMM Do, YYYY - h:mm a"
+            );
+          }
+        }
         break;
     }
     // converts rewards into XTZ
@@ -459,6 +476,9 @@
             </div>
             {#if invData.platform === "youves" && invData.type === "long-term"}
               <div style="margin-top:15px">Full rewards</div>
+              <div style="font-size: 0.8rem;font-style: italic">
+                {longTermRewardsEndPeriod}
+              </div>
               <div class="bold" class:blurry-text={$store.blurryBalances}>
                 {formatTokenAmount(youvesLongTermFullRewards)}
                 {invData.rewardToken}
@@ -518,6 +538,7 @@
           ? plentyCtezXtzRewards
           : rewards}
         {harvesting}
+        {pos}
         on:expand={() => (expand = true)}
         on:harvest={harvest}
         on:modal-action={event => (showModal = event.detail)}

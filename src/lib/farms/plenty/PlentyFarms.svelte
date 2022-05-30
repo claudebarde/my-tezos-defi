@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
+  import { fly } from "svelte/transition";
   import store from "../../../store";
   import toastStore from "../../../toastStore";
   import type { AvailableInvestment, Farm } from "../../../types";
@@ -119,10 +120,11 @@
     {harvestingAll}
     on:harvest-all={harvestAll}
   />
-  {#each farms.sort( (a, b) => sortFarmsPerRewards(a, b, totalRewards) ) as farm (farm.id)}
+  {#each farms.sort( (a, b) => sortFarmsPerRewards(a, b, totalRewards) ) as farm, index (farm.id)}
     <FarmRow
       invName={farm.id}
       {farmsWorker}
+      pos={index}
       on:farm-update={event => {
         const val = event.detail;
         const farms = totalRewards.filter(farm => farm.id !== val.id);

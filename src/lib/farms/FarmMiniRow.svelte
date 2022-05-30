@@ -1,6 +1,6 @@
 <script lang="ts">
   import { afterUpdate, createEventDispatcher } from "svelte";
-  import { slide } from "svelte/transition";
+  import { slide, fly } from "svelte/transition";
   import type { Option } from "@swan-io/boxed";
   import {
     type InvestmentData,
@@ -14,7 +14,8 @@
     stake: number,
     stakeInXtz: number,
     rewards: Option<number> | Option<Array<number>>,
-    harvesting: boolean;
+    harvesting: boolean,
+    pos: number;
 
   const dispatch = createEventDispatcher();
   let localRewards: number | Array<number> | null = 0;
@@ -24,7 +25,11 @@
   });
 </script>
 
-<div class="farm-row-mini" in:slide|local={{ duration: 500 }}>
+<!-- <div class="farm-row-mini" in:slide|local={{ duration: 500 }}> -->
+<div
+  class="farm-row-mini"
+  in:fly={{ x: -200, duration: 500, delay: pos * 100 }}
+>
   <div>
     {#if invData.platform === "youves" && invData.type === "long-term"}
       <div class="ribbon">
