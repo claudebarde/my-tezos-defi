@@ -106,11 +106,14 @@ export const getPlentyLqtValue = async (
 };
 
 export const getPlentyReward = async (
-  userAddress: string,
+  userAddress: TezosAccountAddress,
   stakingContractAddress: string,
   currentLevel: number,
   decimals: number
-) => {
+): Promise<
+  | { status: true; totalRewards: Array<number> }
+  | { status: false; error: string }
+> => {
   const localStore = get(_store);
 
   try {
@@ -118,35 +121,53 @@ export const getPlentyReward = async (
       throw "No contract address provided";
     }
 
-    const contract = await localStore.Tezos.wallet.at(stakingContractAddress);
-    const storage: any = await contract.storage();
-    if (storage.totalSupply.toNumber() == 0) {
-      throw "No One Staked";
-    }
-    // Calculate Reward Per Token
-    let rewardPerToken = Math.min(
-      currentLevel,
-      storage.periodFinish.toNumber()
-    );
-    rewardPerToken = rewardPerToken - storage.lastUpdateTime.toNumber();
-    rewardPerToken *= storage.rewardRate.toNumber() * Math.pow(10, decimals);
-    rewardPerToken =
-      rewardPerToken / storage.totalSupply.toNumber() +
-      storage.rewardPerTokenStored.toNumber();
-    // Fetch User's Big Map Detais;   ​
-    const userDetails = await storage.balances.get(userAddress);
-    // Calculating Rewards   ​
-    let totalRewards =
-      userDetails.balance.toNumber() *
-      (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
-    totalRewards =
-      totalRewards / Math.pow(10, decimals) + userDetails.rewards.toNumber();
-    totalRewards = totalRewards / Math.pow(10, decimals); // Reducing to Token Decimals
+    if (stakingContractAddress === "KT1WzUmmF98aQdpKnWigkg3SnJiL1s2Fj6QQ") {
+      const rewards = await calculateDualReward(
+        localStore.Tezos,
+        "KT1QkadMTUTDxyNiTaz587ssPXFuwmWWQzDG",
+        "KT1PxZCPGoxukDXq1smJcmQcLiadTB6czjCY",
+        userAddress,
+        currentLevel
+      );
 
-    if (totalRewards >= 0) {
-      return { status: true, totalRewards };
+      return rewards.match<
+        | { status: true; totalRewards: Array<number> }
+        | { status: false; error: string }
+      >({
+        Ok: val => ({ status: true, totalRewards: val }),
+        Error: err => ({ status: false, error: err })
+      });
     } else {
-      throw `Negative rewards: ${totalRewards}`;
+      const contract = await localStore.Tezos.wallet.at(stakingContractAddress);
+      const storage: any = await contract.storage();
+      if (storage.totalSupply.toNumber() == 0) {
+        throw "No One Staked";
+      }
+      // Calculate Reward Per Token
+      let rewardPerToken = Math.min(
+        currentLevel,
+        storage.periodFinish.toNumber()
+      );
+      rewardPerToken = rewardPerToken - storage.lastUpdateTime.toNumber();
+      rewardPerToken *= storage.rewardRate.toNumber() * Math.pow(10, decimals);
+      rewardPerToken =
+        rewardPerToken / storage.totalSupply.toNumber() +
+        storage.rewardPerTokenStored.toNumber();
+      // Fetch User's Big Map Detais;   ​
+      const userDetails = await storage.balances.get(userAddress);
+      // Calculating Rewards   ​
+      let totalRewards =
+        userDetails.balance.toNumber() *
+        (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
+      totalRewards =
+        totalRewards / Math.pow(10, decimals) + userDetails.rewards.toNumber();
+      totalRewards = totalRewards / Math.pow(10, decimals); // Reducing to Token Decimals
+
+      if (totalRewards >= 0) {
+        return { status: true, totalRewards: [totalRewards] };
+      } else {
+        throw `Negative rewards: ${totalRewards}`;
+      }
     }
   } catch (error) {
     return { status: false, error };
@@ -475,7 +496,7 @@ export const calcPlentyRewards = async (
   invData: InvestmentData,
   userAddress: TezosAccountAddress,
   currentLevel: number
-): Promise<Option<number>> => {
+): Promise<Option<Array<number>>> => {
   const store = get(_store);
 
   const rewardsRes = await getPlentyReward(
@@ -487,9 +508,9 @@ export const calcPlentyRewards = async (
       ? store.investments[invData.id].decimals
       : 18
   );
-  console.log(invData.id, rewardsRes)
-  if (rewardsRes.status) {
-    return Option.Some(+rewardsRes.totalRewards);
+  console.log(invData.id, rewardsRes);
+  if (rewardsRes && rewardsRes.status) {
+    return Option.Some(rewardsRes.totalRewards);
   } else {
     return Option.None();
   }
@@ -573,5 +594,84 @@ export const fetchPlentyStatistics = async (
     });
   } else {
     return Result.Error("Error while calculating Plenty's APR/APY");
+  }
+};
+
+const calculateDualReward = async (
+  tezos: TezosToolkit,
+  plentyRewardAddress: string,
+  xtzRewardAddress: string,
+  userAddress: string,
+  currentLevel: number
+): Promise<Result<Array<number>, string>> => {
+  try {
+    let rewardArray = [];
+    var plentyRewardContract = await tezos.contract.at(plentyRewardAddress);
+
+    var plentyRewardStorage: any = await plentyRewardContract.storage();
+    let rewardPerToken = Math.min(
+      currentLevel,
+      plentyRewardStorage.periodFinish.toNumber()
+    );
+
+    rewardPerToken =
+      rewardPerToken - plentyRewardStorage.lastUpdateTime.toNumber();
+    rewardPerToken *=
+      plentyRewardStorage.rewardRate.toNumber() * Math.pow(10, 18);
+    rewardPerToken =
+      rewardPerToken / plentyRewardStorage.totalSupply.toNumber() +
+      plentyRewardStorage.rewardPerTokenStored.toNumber();
+
+    let userDetails = await plentyRewardStorage.balances.get(userAddress);
+
+    let totalRewards =
+      userDetails.balance.toNumber() *
+      (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
+    totalRewards =
+      totalRewards / Math.pow(10, 18) + userDetails.rewards.toNumber();
+
+    totalRewards = totalRewards / Math.pow(10, 18); // Reducing to Token Decimals
+
+    rewardArray.push(totalRewards);
+    // baking reward calculation
+    const xtzRewardContract = await tezos.contract.at(xtzRewardAddress);
+    const xtzRewardStorage: any = await xtzRewardContract.storage();
+    rewardPerToken = Math.min(
+      currentLevel,
+      xtzRewardStorage.periodFinish.toNumber()
+    );
+
+    rewardPerToken =
+      rewardPerToken - xtzRewardStorage.lastUpdateTime.toNumber();
+    rewardPerToken *= xtzRewardStorage.rewardRate.toNumber() * Math.pow(10, 6);
+    rewardPerToken =
+      rewardPerToken / xtzRewardStorage.totalSupply.toNumber() +
+      xtzRewardStorage.rewardPerTokenStored.toNumber();
+
+    userDetails = await xtzRewardStorage.balances.get(userAddress);
+
+    totalRewards =
+      userDetails.balance.toNumber() *
+      (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
+    totalRewards =
+      totalRewards / Math.pow(10, 6) + userDetails.rewards.toNumber();
+
+    totalRewards = totalRewards / Math.pow(10, 6); // Reducing to Token Decimals
+    console.log(totalRewards);
+
+    rewardArray.push(totalRewards);
+
+    if (
+      rewardArray.length === 2 &&
+      !isNaN(rewardArray[0]) &&
+      !isNaN(rewardArray[1])
+    ) {
+      return Result.Ok(rewardArray);
+    } else {
+      return Result.Error(`Unexpected result type: ${rewardArray.toString()}`);
+    }
+  } catch (error) {
+    console.log(error);
+    return Result.Error(JSON.stringify(error));
   }
 };

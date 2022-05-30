@@ -1,0 +1,135 @@
+@import "./settings.scss";
+
+.lb-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+
+  .form-input {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+
+    button.mini {
+      position: absolute;
+      background-color: white;
+
+      &:hover {
+        background-color: $blue-green;
+        color: white;
+      }
+
+      .material-icons-outlined {
+        margin: 0px;
+        color: inherit;
+      }
+    }
+  }
+
+  label {
+    border: solid 2px $sky-blue-crayola;
+    border-radius: $std-border-radius;
+    padding: 0px;
+    display: grid;
+    grid-template-columns: 20% 50% 30%;
+    width: 100%;
+
+    $padding: 15px;
+
+    .input-token {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: $padding 20px;
+      position: relative;
+
+      img {
+        position: absolute;
+        height: 34px;
+        width: 34px;
+        transition: height width 1s;
+      }
+    }
+
+    .input-value {
+      padding: $padding 5px;
+      background-color: $light-cyan;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .input-token-balance {
+      padding: $padding;
+      background-color: $light-cyan;
+      border-top-right-radius: $std-border-radius;
+      border-bottom-right-radius: $std-border-radius;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.7rem;
+      text-align: center;
+
+      p {
+        padding: 0px;
+        margin: 0px;
+      }
+    }
+
+    &:focus-within {
+      border-color: $blue-green;
+
+      img {
+        height: 38px;
+        width: 38px;
+      }
+    }
+
+    &.error {
+      border-color: $international-orange-aerospace;
+    }
+
+    input {
+      padding: 0px;
+      margin: 0px;
+      width: calc(100% - 20px);
+      font-size: 1rem;
+      border: none;
+      background-color: $light-cyan;
+      color: inherit;
+      outline: none;
+
+      &::-webkit-inner-spin-button,
+      &::-webkit-outer-spin-button {
+        opacity: 0;
+      }
+    }
+  }
+
+  .lb-balance {
+    text-align: right;
+    font-size: 0.7rem;
+  }
+
+  .swap-info {
+    text-align: center;
+    font-size: 0.9rem;
+
+    .select-slippage {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .material-symbols-outlined {
+        margin: 0px !important;
+        color: inherit;
+      }
+    }
+  }
+}

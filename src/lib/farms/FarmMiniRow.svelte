@@ -13,11 +13,11 @@
   export let invData: InvestmentData,
     stake: number,
     stakeInXtz: number,
-    rewards: Option<number>,
+    rewards: Option<number> | Option<Array<number>>,
     harvesting: boolean;
 
   const dispatch = createEventDispatcher();
-  let localRewards: number | null = 0;
+  let localRewards: number | Array<number> | null = 0;
 
   afterUpdate(() => {
     localRewards = rewards.toNull();
@@ -71,12 +71,18 @@
   </div>
   <div>
     <div>Rewards</div>
-    {#if !isNaN(localRewards)}
+    {#if !Array.isArray(localRewards) && !isNaN(localRewards)}
       <div class="bold" class:blurry-text={$store.blurryBalances}>
-        {invData.rewardToken === AvailableToken.uBTC
-          ? formatTokenAmount(localRewards, 8)
-          : formatTokenAmount(localRewards)}
-        {invData.rewardToken}
+        <img
+          src={`tokens/${invData.rewardToken}.png`}
+          alt="reward-token"
+          class="reward-token"
+        />
+        <span>
+          {invData.rewardToken === AvailableToken.uBTC
+            ? formatTokenAmount(localRewards, 8)
+            : formatTokenAmount(localRewards)}
+        </span>
       </div>
       <div style="font-size: 0.8rem" class:blurry-text={$store.blurryBalances}>
         ({formatTokenAmount(
@@ -89,6 +95,44 @@
             $store.xtzExchangeRate,
           2
         )} USD)
+      </div>
+    {:else if Array.isArray(localRewards) && invData.id === AvailableInvestment["PLENTY-CTEZ-TEZ-LP"]}
+      <div class="bold" class:blurry-text={$store.blurryBalances}>
+        <p>
+          <img
+            src={`tokens/PLENTY.png`}
+            alt="reward-token"
+            class="reward-token"
+          />
+          <span>
+            {formatTokenAmount(localRewards[0])}
+          </span>
+        </p>
+        <p>
+          <img src={`tokens/XTZ.png`} alt="reward-token" class="reward-token" />
+          <span>
+            {formatTokenAmount(localRewards[1])}
+          </span>
+        </p>
+        <div
+          style="font-size: 0.8rem"
+          class:blurry-text={$store.blurryBalances}
+        >
+          ({formatTokenAmount(
+            [
+              localRewards[0] * $store.tokens.PLENTY.getExchangeRate(),
+              localRewards[1]
+            ].reduce((a, b) => a + b),
+            2
+          )}
+          ꜩ / {formatTokenAmount(
+            [
+              localRewards[0] * $store.tokens.PLENTY.getExchangeRate(),
+              localRewards[1]
+            ].reduce((a, b) => a + b) * $store.xtzExchangeRate,
+            2
+          )} USD)
+        </div>
       </div>
     {:else}
       <div>No reward</div>

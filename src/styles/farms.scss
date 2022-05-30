@@ -117,6 +117,12 @@
     transform: rotate(-45deg);
     -webkit-transform: rotate(-45deg);
   }
+
+  .reward-token {
+    height: 18px;
+    width: 18px;
+    vertical-align: text-top;
+  }
 }
 
 @media (max-width: $mobile-breakpoint) {

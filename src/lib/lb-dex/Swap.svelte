@@ -20,7 +20,7 @@
   let swapSuccessfull = false;
 
   const updateTzbtcValue = () => {
-    if (!!xtzValue && !isNaN(xtzValue)) {
+    if (!!xtzValue && !isNaN(xtzValue) && xtzValue > 0) {
       const tokenOutput = xtzToTokenTokenOutput({
         xtzIn: xtzValue * 10 ** 6,
         xtzPool: $store.lbData.xtzPool,
@@ -42,7 +42,7 @@
   };
 
   const updateXtzValue = () => {
-    if (!!tzbtcValue && !isNaN(tzbtcValue)) {
+    if (!!tzbtcValue && !isNaN(tzbtcValue) && tzbtcValue > 0) {
       const xtzOutput = tokenToXtzXtzOutput({
         tokenIn: tzbtcValue * 10 ** $store.tokens.tzBTC.decimals,
         xtzPool: $store.lbData.xtzPool,
@@ -246,145 +246,8 @@
   });
 </script>
 
-<style lang="scss">
-  @import "../../styles/settings.scss";
-
-  .form {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    position: relative;
-
-    .form-input {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 15px;
-
-      button.mini {
-        position: absolute;
-        background-color: white;
-
-        &:hover {
-          background-color: $blue-green;
-          color: white;
-        }
-
-        .material-icons-outlined {
-          margin: 0px;
-          color: inherit;
-        }
-      }
-    }
-
-    label {
-      border: solid 2px $sky-blue-crayola;
-      border-radius: $std-border-radius;
-      padding: 0px;
-      display: grid;
-      grid-template-columns: 20% 50% 30%;
-      width: 100%;
-
-      &.error {
-        border-color: $international-orange-aerospace;
-      }
-
-      $padding: 15px;
-
-      .input-token {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: $padding 20px;
-        position: relative;
-
-        img {
-          position: absolute;
-          height: 34px;
-          width: 34px;
-          transition: height width 1s;
-        }
-      }
-
-      .input-value {
-        padding: $padding 5px;
-        background-color: $light-cyan;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .input-token-balance {
-        padding: $padding;
-        background-color: $light-cyan;
-        border-top-right-radius: $std-border-radius;
-        border-bottom-right-radius: $std-border-radius;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        font-size: 0.7rem;
-        text-align: center;
-
-        p {
-          padding: 0px;
-          margin: 0px;
-        }
-      }
-
-      &:focus-within {
-        border-color: $blue-green;
-
-        img {
-          height: 38px;
-          width: 38px;
-        }
-      }
-      input {
-        padding: 0px;
-        margin: 0px;
-        width: calc(100% - 20px);
-        font-size: 1rem;
-        border: none;
-        background-color: $light-cyan;
-        color: inherit;
-        outline: none;
-
-        &::-webkit-inner-spin-button,
-        &::-webkit-outer-spin-button {
-          opacity: 0;
-        }
-      }
-    }
-
-    .lb-balance {
-      text-align: right;
-      font-size: 0.7rem;
-    }
-
-    .swap-info {
-      text-align: center;
-      font-size: 0.9rem;
-
-      .select-slippage {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        .material-symbols-outlined {
-          margin: 0px !important;
-          color: inherit;
-        }
-      }
-    }
-  }
-</style>
-
 {#if $store.lbData.xtzPool > 0 && $store.lbData.tokenPool > 0 && $store.lbData.lqtTotal > 0}
-  <div class="form">
+  <div class="lb-form">
     <div class="form-input">
       {#if coinToBuy === "xtz"}
         <label for="xtz-input" class:error={tzbtcError}>

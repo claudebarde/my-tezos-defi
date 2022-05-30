@@ -2,8 +2,8 @@
   import { onMount, onDestroy, createEventDispatcher } from "svelte";
   import { slide } from "svelte/transition";
   import { Option } from "@swan-io/boxed";
-  import type { AvailableInvestment, InvestmentData } from "../../types";
-  import { AvailableToken } from "../../types";
+  import type { InvestmentData } from "../../types";
+  import { AvailableToken, AvailableInvestment } from "../../types";
   import store from "../../store";
   import { formatTokenAmount, prepareOperation } from "../../utils";
   import { calcKdaoRewards, calcKdaoStake } from "../../tokenUtils/kdaoUtils";
@@ -48,6 +48,7 @@
   let apr: number, apy: number;
   let youvesLongTermFullRewards: number;
   let showModal = false;
+  let plentyCtezXtzRewards = Option.None<Array<number>>();
 
   const handleFarmsWorker = () => {
     console.log("worker for", invData.id);
@@ -187,11 +188,25 @@
         rewards = await calcPaulRewards(invData);
         break;
       case "plenty":
-        rewards = await calcPlentyRewards(
+        const plentyRes = await calcPlentyRewards(
           invData,
           $store.userAddress,
           $store.currentLevel
         );
+        plentyRes.match({
+          None: () => {
+            rewards = Option.None();
+            return;
+          },
+          Some: val => {
+            if (val.length === 1) {
+              rewards = Option.Some(val[0]);
+            } else {
+              plentyCtezXtzRewards = Option.Some(val);
+            }
+            return;
+          }
+        });
         break;
       case "quipuswap":
         const farmId = +invData.id.replace("QUIPU-FARM-", "");
@@ -499,7 +514,9 @@
           ? invData.balance / 10 ** 18
           : invData.balance / 10 ** invData.decimals}
         {stakeInXtz}
-        {rewards}
+        rewards={invData.id === AvailableInvestment["PLENTY-CTEZ-TEZ-LP"]
+          ? plentyCtezXtzRewards
+          : rewards}
         {harvesting}
         on:expand={() => (expand = true)}
         on:harvest={harvest}
