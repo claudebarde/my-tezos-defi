@@ -102,8 +102,8 @@
         )} USD)
       </div>
     {:else if Array.isArray(localRewards) && invData.id === AvailableInvestment["PLENTY-CTEZ-TEZ-LP"]}
-      <div class="bold" class:blurry-text={$store.blurryBalances}>
-        <p>
+      <div class:blurry-text={$store.blurryBalances}>
+        <p class="bold">
           <img
             src={`tokens/PLENTY.png`}
             alt="reward-token"
@@ -113,7 +113,7 @@
             {formatTokenAmount(localRewards[0])}
           </span>
         </p>
-        <p>
+        <p class="bold">
           <img src={`tokens/XTZ.png`} alt="reward-token" class="reward-token" />
           <span>
             {formatTokenAmount(localRewards[1])}

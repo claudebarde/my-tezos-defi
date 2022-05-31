@@ -156,11 +156,13 @@
       "left middle right"
       "graph graph graph";
     grid-gap: 20px;
-    border: solid 1px $midnight-blue;
+    border: none;
     border-radius: $std-border-radius;
-    margin: 10px;
+    background-color: $blizzard-blue;
+    margin: 15px;
     padding: 20px;
     text-align: center;
+    z-index: 50;
 
     .token-box__name {
       img {
@@ -169,8 +171,8 @@
         position: absolute;
         top: 0px;
         left: 0px;
-        background-color: white;
-        padding: 5px;
+        background-color: $blizzard-blue;
+        padding: 0px;
         margin: 0px;
         border-radius: 50%;
         z-index: 100;
@@ -203,8 +205,9 @@
     display: grid;
     grid-template-columns: 15% 20% 25% 30% 10%;
     align-items: center;
-    border: solid 1px $midnight-blue;
+    border: none;
     border-radius: $std-border-radius;
+    background-color: $blizzard-blue;
     margin: 10px;
     padding: 20px;
     text-align: center;
@@ -323,7 +326,8 @@
             {formatTokenAmount(
               +userBalance *
                 $store.tokens[token].getExchangeRate() *
-                $store.xtzExchangeRate
+                $store.xtzExchangeRate,
+              2
             )}
             {currentFiat.symbol}
           </div>
