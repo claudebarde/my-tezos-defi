@@ -9,28 +9,20 @@
   import { formatTokenAmount, prepareOperation } from "../../utils";
   import { calcKdaoRewards, calcKdaoStake } from "../../tokenUtils/kdaoUtils";
   import {
-    calcPaulRewards,
-    calcPaulStake,
-    calcPaulFarmApr
-  } from "../../tokenUtils/paulUtils";
-  import {
     calcPlentyRewards,
     calcPlentyStake,
-    fetchPlentyStatistics
+    fetchPlentyStatistics,
+    getExpectedPlenty
   } from "../../tokenUtils/plentyUtils";
   import {
     calcQuipuRewards,
     calcQuipuStake
   } from "../../tokenUtils/quipuUtils";
   import {
-    calcSmartlinkRewards,
-    calcSmartlinkStake
-  } from "../../tokenUtils/smartlinkUtils";
-  import { calcWrapRewards, calcWrapStake } from "../../tokenUtils/wrapUtils";
-  import {
     calcYouvesRewards,
     calcYouvesStake
   } from "../../tokenUtils/youvesUtils";
+  import { calcMatterStake } from "../../tokenUtils/spicyUtils";
   import FarmMiniRow from "./FarmMiniRow.svelte";
   import Loader from "$lib/farms/Loader.svelte";
   import Modal from "$lib/modal/Modal.svelte";
@@ -70,7 +62,7 @@
         });
         // TODO: calculate ROI per week
         break;
-      case "paul":
+      /*case "paul":
         const paulStake = await calcPaulStake(invData, $store.Tezos);
         paulStake.match({
           Ok: val => {
@@ -104,31 +96,45 @@
             Error: err => console.error(err)
           });
         }
-        break;
+        break;*/
       case "plenty":
-        if (invData.id === "xPLENTY-Staking") return;
-
-        const plentyStake = await calcPlentyStake(invData);
-        plentyStake.match({
-          Ok: val => {
-            stakeInXtz = val;
-            return;
-          },
-          Error: err => console.error(err)
-        });
-        if (stakeInXtz) {
-          const statsRes = await fetchPlentyStatistics(invData, stakeInXtz);
-          statsRes.match({
-            Ok: stats => {
-              apr = stats.apr;
-              apy = stats.apy;
-              dispatch("roi-per-week", {
-                id: invData.id,
-                roi: stats.roiPerWeek
-              });
+        if (invData.id === AvailableInvestment["xPLENTY-Staking"]) {
+          const plentyAmount = await getExpectedPlenty(
+            $store.Tezos,
+            invData.balance,
+            $store.currentLevel
+          );
+          if (plentyAmount) {
+            stakeInXtz =
+              (plentyAmount / 10 ** $store.tokens.PLENTY.decimals) *
+              $store.tokens.PLENTY.getExchangeRate();
+          } else {
+            stakeInXtz = 0;
+          }
+        } else {
+          const plentyStake = await calcPlentyStake(invData);
+          plentyStake.match({
+            Ok: val => {
+              stakeInXtz = val;
+              return;
             },
             Error: err => console.error(err)
           });
+          // TODO: calculate APR and APY
+          /*if (stakeInXtz) {
+            const statsRes = await fetchPlentyStatistics(invData, stakeInXtz);
+            statsRes.match({
+              Ok: stats => {
+                apr = stats.apr;
+                apy = stats.apy;
+                dispatch("roi-per-week", {
+                  id: invData.id,
+                  roi: stats.roiPerWeek
+                });
+              },
+              Error: err => console.error(err)
+            });
+          }*/
         }
         break;
       case "quipuswap":
@@ -138,10 +144,10 @@
             stakeInXtz = val;
             return;
           },
-          Error: err => console.error(err)
+          Error: err => console.error(err, "zzz")
         });
         break;
-      case "smartlink":
+      /*case "smartlink":
         const smartlinkStake = await calcSmartlinkStake($store.Tezos, invData);
         smartlinkStake.match({
           Ok: val => {
@@ -160,7 +166,7 @@
           },
           Error: err => console.error(err)
         });
-        break;
+        break;*/
       case "youves":
         const youvesStake = await calcYouvesStake(
           invData,
@@ -170,6 +176,19 @@
         youvesStake.match({
           Ok: val => {
             stakeInXtz = val.stakeInXtz;
+            return;
+          },
+          Error: err => console.error(err)
+        });
+        break;
+      case "matter":
+        const matterStake = await calcMatterStake(
+          [$store.tokens.uUSD, $store.tokens.WTZ],
+          $store.Tezos
+        );
+        matterStake.match({
+          Ok: val => {
+            stakeInXtz = val;
             return;
           },
           Error: err => console.error(err)
@@ -187,29 +206,33 @@
           $store.currentLevel
         );
         break;
-      case "paul":
+      /*case "paul":
         rewards = await calcPaulRewards(invData);
-        break;
+        break;*/
       case "plenty":
-        const plentyRes = await calcPlentyRewards(
-          invData,
-          $store.userAddress,
-          $store.currentLevel
-        );
-        plentyRes.match({
-          None: () => {
-            rewards = Option.None();
-            return;
-          },
-          Some: val => {
-            if (val.length === 1) {
-              rewards = Option.Some(val[0]);
-            } else {
-              plentyCtezXtzRewards = Option.Some(val);
+        if (invData.id === "xPLENTY-Staking") {
+          rewards = Option.None();
+        } else {
+          const plentyRes = await calcPlentyRewards(
+            invData,
+            $store.userAddress,
+            $store.currentLevel
+          );
+          plentyRes.match({
+            None: () => {
+              rewards = Option.None();
+              return;
+            },
+            Some: val => {
+              if (val.length === 1) {
+                rewards = Option.Some(val[0]);
+              } else {
+                plentyCtezXtzRewards = Option.Some(val);
+              }
+              return;
             }
-            return;
-          }
-        });
+          });
+        }
         break;
       case "quipuswap":
         const farmId = +invData.id.replace("QUIPU-FARM-", "");
@@ -220,12 +243,12 @@
           $store.userAddress
         );
         break;
-      case "smartlink":
+      /*case "smartlink":
         rewards = await calcSmartlinkRewards();
         break;
       case "wrap":
         rewards = await calcWrapRewards(invData, $store.userAddress);
-        break;
+        break;*/
       case "youves":
         const rewardsRes = await calcYouvesRewards(
           $store.Tezos,
@@ -450,7 +473,7 @@
         <div>
           {#if rewards.isNone()}
             <div>No rewards available</div>
-          {:else if invData.platform !== "smartlink"}
+          {:else}
             <div>Rewards</div>
             <div class="bold" class:blurry-text={$store.blurryBalances}>
               {invData.rewardToken === AvailableToken.uBTC
@@ -500,8 +523,6 @@
                 )} USD)
               </div>
             {/if}
-          {:else}
-            <div>Coming soon!</div>
           {/if}
         </div>
         <div>

@@ -342,7 +342,9 @@
     const fetchTokensPrices = async (teztools: TezToolsSDK) => {
       await teztools.refresh();
       const tokens = teztools.getCurrentPrice(
-        Object.values(AvailableToken).filter(tk => tk !== "ANTI")
+        Object.values(AvailableToken).filter(
+          tk => tk !== AvailableToken.ANTI && tk !== AvailableToken.MTTR
+        )
       );
       Object.keys($store.tokens).forEach((tokenName: AvailableToken) => {
         const teztoolsToken = tokens.find(tk => tk.symbol === tokenName);

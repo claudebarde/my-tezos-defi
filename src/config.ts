@@ -1,4 +1,4 @@
-import { AvailableFiat } from "./types";
+import { AvailableFiat, AvailableInvestment } from "./types";
 
 export default {
   version: "5.0.0",
@@ -156,5 +156,8 @@ export default {
   },
   quipuFarmsContract: "KT1RdoweZPFjttwMUsaTo1E2EWNX3WcR9nxZ",
   lbContractAddress: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
-  lqtContractAddress: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
+  lqtContractAddress: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo",
+  matterFarms: {
+    KT1UefQz7nP8BuuDk5Dd5LWo22N1ZPB7JB5o: "MATTER-uUSD-wTZ"
+  }
 };

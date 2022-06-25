@@ -5,6 +5,7 @@
   import KdaoFarms from "$lib/farms/kdao/KdaoFarms.svelte";
   import YouvesFarms from "$lib/farms/youves/YouvesFarms.svelte";
   import QuipuFarms from "$lib/farms/quipu/QuipuFarms.svelte";
+  import MatterFarms from "$lib/farms/matter/MatterFarms.svelte";
   import FarmsHeader from "$lib/farms/FarmsHeader.svelte";
   import type { AvailableInvestment } from "../types";
 
@@ -52,7 +53,7 @@
 
 <div class="container">
   {#if $store.userAddress}
-    <ProfileHeader />
+    <ProfileHeader profileAddress={$store.userAddress} />
     <FarmsHeader farms={totalFarms} />
     <div class="farms">
       <PlentyFarms
@@ -68,6 +69,10 @@
         on:roi-per-week={updateRoiPerWeek}
       />
       <QuipuFarms
+        on:farm-update={updateFarms}
+        on:roi-per-week={updateRoiPerWeek}
+      />
+      <MatterFarms
         on:farm-update={updateFarms}
         on:roi-per-week={updateRoiPerWeek}
       />

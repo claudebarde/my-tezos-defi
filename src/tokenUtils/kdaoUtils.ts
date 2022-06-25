@@ -63,7 +63,7 @@ export const calcKdaoStake = async (
       (tokensInStakesRaw.toNumber() / 10 ** store.tokens.kUSD.decimals) *
       store.tokens.kUSD.getExchangeRate();
 
-    stakeInXtz = formatTokenAmount(tezInStakes + tokensInStakes);
+    stakeInXtz = +formatTokenAmount(tezInStakes + tokensInStakes);
   } else if (invData.id === "KUSD-QL") {
     // Load kUSD Contract
     const kUSDContract = await Tezos.wallet.at(store.tokens.kUSD.address);
@@ -98,7 +98,7 @@ export const calcKdaoStake = async (
       .dividedBy(lpBalanceDecimal)
       .toFixed(2);
 
-    stakeInXtz = formatTokenAmount(
+    stakeInXtz = +formatTokenAmount(
       +(invData.balance / 10 ** invData.decimals) *
         redeemRate *
         store.tokens.kUSD.getExchangeRate()

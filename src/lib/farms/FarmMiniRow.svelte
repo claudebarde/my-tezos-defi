@@ -75,8 +75,10 @@
     </div>
   </div>
   <div>
-    <div>Rewards</div>
-    {#if !Array.isArray(localRewards) && !isNaN(localRewards)}
+    {#if localRewards === null}
+      <div>No reward</div>
+    {:else if !Array.isArray(localRewards) && !isNaN(localRewards)}
+      <div>Rewards</div>
       <div class="bold" class:blurry-text={$store.blurryBalances}>
         <img
           src={`tokens/${invData.rewardToken}.png`}
@@ -102,6 +104,7 @@
         )} USD)
       </div>
     {:else if Array.isArray(localRewards) && invData.id === AvailableInvestment["PLENTY-CTEZ-TEZ-LP"]}
+      <div>Rewards</div>
       <div class:blurry-text={$store.blurryBalances}>
         <p class="bold">
           <img
@@ -139,8 +142,6 @@
           )} USD)
         </div>
       </div>
-    {:else}
-      <div>No reward</div>
     {/if}
   </div>
   <div class="buttons">

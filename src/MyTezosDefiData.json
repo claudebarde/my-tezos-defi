@@ -608,6 +608,28 @@
       "color": "#79368A",
       "tokenId": 0,
       "whitelisted": false
+    },
+    "MTTR": {
+      "address": "KT1K4jn23GonEmZot3pMGth7unnzZ6EaMVjY",
+      "dexContractAddress": null,
+      "decimals": 12,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#000000",
+      "tokenId": 0,
+      "whitelisted": false
+    },
+    "WTZ": {
+      "address": "KT1PnUZCp3u2KzWr93pn4DD7HAJnm3rWVrgn",
+      "dexContractAddress": null,
+      "decimals": 6,
+      "ledgerPath": "assets/ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#3269FC",
+      "tokenId": 0,
+      "whitelisted": false
     }
   },
   "investments": {
@@ -1324,6 +1346,17 @@
       "alias": "XTZ-ANTI farm",
       "icons": ["XTZ", "ANTI"],
       "rewardToken": "ANTI",
+      "liquidityToken": true
+    },
+    "MATTER-uUSD-wTZ": {
+      "id": "MATTER-uUSD-wTZ",
+      "platform": "matter",
+      "address": "KT1K4jn23GonEmZot3pMGth7unnzZ6EaMVjY",
+      "decimals": 0,
+      "info": [],
+      "alias": "uUSD/WTZ farm",
+      "icons": ["uUSD", "WTZ"],
+      "rewardToken": "MTTR",
       "liquidityToken": true
     }
   },

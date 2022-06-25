@@ -223,6 +223,10 @@ export const calcYouvesRewards = async (
       }
       fullRewardsAvailable =
         Date.parse(stake.age_timestamp) + 180 * 24 * 60 * 60 * 1000;
+    } else if (
+      invData.type === "long-term" &&
+      invData.id === AvailableInvestment["YOUVES-YOU-STAKING"]
+    ) {
     }
 
     return Option.Some({

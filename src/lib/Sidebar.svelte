@@ -286,12 +286,14 @@
           <span>LB DEX</span>
         </button>
       </a>
-      <a href="/profile">
-        <button class="nav">
-          <span class="material-icons-outlined"> portrait </span>
-          <span>My profile</span>
-        </button>
-      </a>
+      {#if $store.userAddress}
+        <a href={`/profile/${$store.userAddress}`}>
+          <button class="nav">
+            <span class="material-icons-outlined"> portrait </span>
+            <span>My profile</span>
+          </button>
+        </a>
+      {/if}
       <a href="/settings">
         <button class="nav">
           <span class="material-icons-outlined"> settings </span>
@@ -391,12 +393,14 @@
           <span>LB DEX</span>
         </button>
       </a>
-      <a href="/profile">
-        <button class="nav" on:click={() => (showMobileMenuSidebar = false)}>
-          <span class="material-icons-outlined"> portrait </span>
-          <span>My profile</span>
-        </button>
-      </a>
+      {#if $store.userAddress}
+        <a href={`/profile/${$store.userAddress}`}>
+          <button class="nav" on:click={() => (showMobileMenuSidebar = false)}>
+            <span class="material-icons-outlined"> portrait </span>
+            <span>My profile</span>
+          </button>
+        </a>
+      {/if}
       <a href="/settings">
         <button class="nav" on:click={() => (showMobileMenuSidebar = false)}>
           <span class="material-icons-outlined"> settings </span>

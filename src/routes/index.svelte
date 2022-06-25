@@ -41,7 +41,7 @@
 
 <div class="container">
   {#if $store.userAddress}
-    <ProfileHeader />
+    <ProfileHeader profileAddress={$store.userAddress} />
     <div class="user-tokens">
       {#if $store.userAddress && $store.userTokens && $store.tokens}
         <div class="user-tokens__grid">

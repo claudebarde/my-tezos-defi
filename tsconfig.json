@@ -3,6 +3,7 @@
   "compilerOptions": {
     "target": "es2020",
     "types": ["svelte"],
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true
   }
 }

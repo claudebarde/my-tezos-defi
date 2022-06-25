@@ -99,7 +99,7 @@
 
 <div class="container">
   {#if $store.userAddress}
-    <ProfileHeader />
+    <ProfileHeader profileAddress={$store.userAddress} />
   {/if}
   <div class="tabs">
     <div class="tab">

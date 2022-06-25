@@ -29,7 +29,7 @@
       };animation-delay:${Math.floor(Math.random() * (max - min + 1)) + min}s`}
     >
       <img
-        src={`tokens/${token}.png`}
+        src={`/tokens/${token}.png`}
         alt={`${token}-icon`}
         style={`width:${index % 2 === 0 ? "32px" : "48px"}`}
       />

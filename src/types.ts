@@ -63,7 +63,9 @@ export enum AvailableToken {
   TezDAO = "TezDAO",
   uBTC = "uBTC",
   ANTI = "ANTI",
-  DOGA = "DOGA"
+  DOGA = "DOGA",
+  MTTR = "MTTR",
+  WTZ = "WTZ"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -185,7 +187,8 @@ export enum AvailableInvestment {
   "QUIPU-FARM-3" = "QUIPU-FARM-3",
   "QUIPU-FARM-4" = "QUIPU-FARM-4",
   "QUIPU-FARM-5" = "QUIPU-FARM-5",
-  "QUIPU-FARM-6" = "QUIPU-FARM-6"
+  "QUIPU-FARM-6" = "QUIPU-FARM-6",
+  "MATTER-uUSD-wTZ" = "MATTER-uUSD-wTZ"
 }
 
 export type InvestmentPlatform =
@@ -197,7 +200,8 @@ export type InvestmentPlatform =
   | "wrap"
   | "smartlink"
   | "youves"
-  | "ctez";
+  | "ctez"
+  | "matter";
 
 export enum AvailableDex {
   QUIPU = "quipu",

@@ -1,14 +1,40 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
   import { page } from "$app/stores";
+  import { AsyncData } from "@swan-io/boxed";
   import store from "../store";
-  import { formatTokenAmount, calculateTrend } from "../utils";
+  import {
+    formatTokenAmount,
+    calculateTrend,
+    fetchTezosDomain
+  } from "../utils";
+  import type { TezosAccountAddress } from "../types";
+
+  export let profileAddress: TezosAccountAddress;
 
   let xtzPrice24hourDifference: number | undefined = undefined;
   let xtzTrend;
   let totalTokensBalance: number;
+  let tzDomainName: string;
+  let xtzBalance: AsyncData<number> = AsyncData.NotAsked();
 
-  afterUpdate(() => {
+  afterUpdate(async () => {
+    if (!profileAddress && $store.userAddress) {
+      profileAddress = $store.userAddress;
+    } else if (profileAddress && !tzDomainName) {
+      xtzBalance = AsyncData.Loading();
+
+      // fetches the Tezos domain name
+      tzDomainName = await fetchTezosDomain($store.Tezos, profileAddress);
+      // fetches the balance
+      const balance = await $store.Tezos.tz.getBalance(profileAddress);
+      if (balance) {
+        xtzBalance = AsyncData.Done(balance.toNumber());
+      } else {
+        xtzBalance = AsyncData.Done(0);
+      }
+    }
+
     if ($store.xtzPriceHistoric && $store.xtzPriceHistoric.length > 0) {
       // calculate XTZ monthly trend
       xtzTrend = calculateTrend($store.xtzPriceHistoric, "XTZ");
@@ -81,30 +107,32 @@
 <div class="user-details">
   <div>
     <img
-      src={`https://services.tzkt.io/v1/avatars/${$store.userAddress}`}
+      src={`https://services.tzkt.io/v1/avatars/${profileAddress}`}
       alt="identicon"
     />
   </div>
   <div class="user-details__info">
     <div>
-      {#if $store.userName}
+      {#if tzDomainName}
         <a
-          href={`https://tzkt.io/${$store.userAddress}`}
+          href={`https://tzkt.io/${profileAddress}`}
           target="_blank"
           rel="noopener noreferrer"
         >
-          {$store.userName}
+          {tzDomainName}
         </a>
       {:else}
-        <span>Loading...</span>
+        <span>Loading the Tezos domain...</span>
       {/if}
     </div>
     <div class:blurry-text={$store.blurryBalances}>
-      {#if $store.userBalance && $store.localStorage}
-        {formatTokenAmount($store.userBalance / 10 ** 6)} ꜩ
+      {#if xtzBalance.isLoading()}
+        <span>Loading the balance...</span>
+      {:else if xtzBalance.isDone()}
+        {formatTokenAmount(xtzBalance.getWithDefault(0) / 10 ** 6)} ꜩ
         {#if $store.xtzExchangeRate}
           ({$store.localStorage.getFavoriteFiat().symbol}{formatTokenAmount(
-            ($store.userBalance / 10 ** 6) * $store.xtzExchangeRate,
+            (xtzBalance.getWithDefault(0) / 10 ** 6) * $store.xtzExchangeRate,
             2
           )})
         {/if}

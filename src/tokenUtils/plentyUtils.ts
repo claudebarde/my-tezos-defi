@@ -584,7 +584,7 @@ export const fetchPlentyStatistics = async (
     const apr = result.apr;
     const apy = result.apy;
     // calculates estimated ROI per week
-    const roiPerWeek = formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
+    const roiPerWeek = +formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
 
     return Result.Ok({
       roiPerWeek,
