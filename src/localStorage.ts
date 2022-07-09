@@ -40,7 +40,7 @@ export class LocalStorage {
       const localStorage = this.getStorage();
       if (localStorage) {
         this.version = localStorage.version;
-        this.farms = localStorage.farms;
+        this.farms = localStorage.farms || [];
         this.lastActiveLevel = currentLevel;
         this.favoriteFiat = localStorage.favoriteFiat
           ? localStorage.favoriteFiat
