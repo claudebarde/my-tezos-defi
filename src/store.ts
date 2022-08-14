@@ -17,7 +17,7 @@ const initialState: State = {
   isAppReady: false,
   settings: {
     rpcUrl: config.rpcUrl,
-    defiData: "QmWoxYRi7h29LCpuzAXEPWWFfYRSSupbk5a3LvMBX42Xut" //"QmZXGrDedwo6yUwXjsg9zaqp3aYVoqMMzx9v9W1mR1sLZy"
+    defiData: "QmWb9Xe2SUfEtnciV3atJVG9VtvCN199rcYeaoLRvD3Fq2" //"QmZXGrDedwo6yUwXjsg9zaqp3aYVoqMMzx9v9W1mR1sLZy"
   },
   Tezos: undefined,
   wallet: undefined,

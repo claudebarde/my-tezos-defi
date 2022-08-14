@@ -76,15 +76,49 @@ export const getPlentyLqtValue = async (
 
     const exchangeContract = await Tezos.wallet.at(exchangeAddress);
     const exchangeStorage: any = await exchangeContract.storage();
-    let token1_pool, token2_pool, totalSupply;
+    let token1_pool, token2_pool, totalSupply, token2;
     if (exchangePair === "PLENTY-CTEZ-TEZ-LP") {
       token1_pool = exchangeStorage.tezPool.toNumber();
       token2_pool = exchangeStorage.ctezPool.toNumber();
       totalSupply = exchangeStorage.lqtTotal.toNumber();
+      token2 = AvailableToken.ctez;
+    } else if (
+      [
+        "PLENTY-BUSDE-USDCE-LP",
+        "PLENTY-KUSD-USDCE-LP",
+        "PLENTY-USDTZ-USDCE-LP",
+        "PLENTY-KUSD-USDT-LP",
+        "PLENTY-UUSD-USDT-LP",
+        "PLENTY-DAIE-USDCE-LP",
+        "PLENTY-UUSD-USDCE-LP"
+      ].includes(exchangePair)
+    ) {
+      token1_pool = exchangeStorage.token1Pool.toNumber();
+      token2_pool = exchangeStorage.token2Pool.toNumber();
+      totalSupply = exchangeStorage.lqtTotal.toNumber();
+      token2 = (() => {
+        switch (exchangePair) {
+          case "PLENTY-BUSDE-USDCE-LP":
+            return AvailableToken.USDCE;
+          case "PLENTY-KUSD-USDCE-LP":
+            return AvailableToken.USDCE;
+          case "PLENTY-USDTZ-USDCE-LP":
+            return AvailableToken.USDCE;
+          case "PLENTY-KUSD-USDT-LP":
+            return AvailableToken.USDT;
+          case "PLENTY-UUSD-USDT-LP":
+            return AvailableToken.USDT;
+          case "PLENTY-DAIE-USDCE-LP":
+            return AvailableToken.USDCE;
+          case "PLENTY-UUSD-USDCE-LP":
+            return AvailableToken.USDCE;
+        }
+      })();
     } else {
       token1_pool = exchangeStorage.token1_pool.toNumber();
       token2_pool = exchangeStorage.token2_pool.toNumber();
       totalSupply = exchangeStorage.totalSupply.toNumber();
+      token2 = exchangePair.split("-")[1];
     }
     const tokenAmounts = getLPConversion(
       token1_pool,
@@ -94,10 +128,7 @@ export const getPlentyLqtValue = async (
     );
     return {
       ...tokenAmounts,
-      token2:
-        exchangePair === "PLENTY-CTEZ-TEZ-LP"
-          ? AvailableToken.ctez
-          : exchangePair.split("-")[1]
+      token2
     };
   } catch (error) {
     console.error(error);

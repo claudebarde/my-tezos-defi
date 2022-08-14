@@ -153,7 +153,7 @@
         </p>
       </div>
       <div>
-        <p><b>LQT in DEX</b></p>
+        <p><b>SIRIUS in DEX</b></p>
         <p>{formatTokenAmount($store.lbData.lqtTotal)} tokens</p>
         <p class="fiat-value">
           ({formatTokenAmount(calcLqtValueInFiat($store.lbData.lqtTotal), 2)} USD)
@@ -161,7 +161,7 @@
       </div>
       {#if btcPrice && tzbtcPrice}
         <div>
-          <p><b>BTC & tzBTC -> XTZ</b></p>
+          <p><b>BTC & tzBTC</b></p>
           <p>1 BTC = {formatTokenAmount(btcPrice, 2)} XTZ</p>
           <p>
             1 tzBTC = {formatTokenAmount(tzbtcPrice, 2)} XTZ

@@ -342,9 +342,24 @@
     const fetchTokensPrices = async (teztools: TezToolsSDK) => {
       await teztools.refresh();
       const tokens = teztools.getCurrentPrice(
-        Object.values(AvailableToken).filter(
-          tk => tk !== AvailableToken.ANTI && tk !== AvailableToken.MTTR
-        )
+        Object.values(AvailableToken)
+          .map(tk => {
+            // formatting of token names
+            if (tk === "USDT") {
+              return "USDt";
+            } else if (tk === "BUSDE") {
+              return "BUSD.e";
+            } else if (tk === "DAIE") {
+              return "DAI.e";
+            } else if (tk === "USDCE") {
+              return "USDC.e";
+            }
+
+            return tk;
+          })
+          .filter(
+            tk => tk !== AvailableToken.ANTI && tk !== AvailableToken.MTTR
+          )
       );
       Object.keys($store.tokens).forEach((tokenName: AvailableToken) => {
         const teztoolsToken = tokens.find(tk => tk.symbol === tokenName);

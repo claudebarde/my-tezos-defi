@@ -65,7 +65,12 @@ export enum AvailableToken {
   ANTI = "ANTI",
   DOGA = "DOGA",
   MTTR = "MTTR",
-  WTZ = "WTZ"
+  WTZ = "WTZ",
+  BUSDE = "BUSD.e",
+  USDCE = "USDC.e",
+  EURL = "EURL",
+  USDT = "USDT",
+  DAIE = "DAI.e"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -188,7 +193,14 @@ export enum AvailableInvestment {
   "QUIPU-FARM-4" = "QUIPU-FARM-4",
   "QUIPU-FARM-5" = "QUIPU-FARM-5",
   "QUIPU-FARM-6" = "QUIPU-FARM-6",
-  "MATTER-uUSD-wTZ" = "MATTER-uUSD-wTZ"
+  "MATTER-uUSD-wTZ" = "MATTER-uUSD-wTZ",
+  "PLENTY-BUSDE-USDCE-LP" = "PLENTY-BUSDE-USDCE-LP",
+  "PLENTY-KUSD-USDCE-LP" = "PLENTY-KUSD-USDCE-LP",
+  "PLENTY-USDTZ-USDCE-LP" = "PLENTY-USDTZ-USDCE-LP",
+  "PLENTY-KUSD-USDT-LP" = "PLENTY-KUSD-USDT-LP",
+  "PLENTY-UUSD-USDT-LP" = "PLENTY-UUSD-USDT-LP",
+  "PLENTY-DAIE-USDCE-LP" = "PLENTY-DAIE-USDCE-LP",
+  "PLENTY-UUSD-USDCE-LP" = "PLENTY-UUSD-USDCE-LP"
 }
 
 export type InvestmentPlatform =

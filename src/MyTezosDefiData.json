@@ -630,6 +630,61 @@
       "color": "#3269FC",
       "tokenId": 0,
       "whitelisted": false
+    },
+    "USDCE": {
+      "address": "KT1UsSfaXyqcjSVPeiD7U1bWgKy3taYN7NWY",
+      "dexContractAddress": null,
+      "decimals": 6,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 2],
+      "type": "fa2",
+      "color": "#2774CA",
+      "tokenId": 2,
+      "whitelisted": false
+    },
+    "DAIE": {
+      "address": "KT1UsSfaXyqcjSVPeiD7U1bWgKy3taYN7NWY",
+      "dexContractAddress": null,
+      "decimals": 18,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 6],
+      "type": "fa2",
+      "color": "#F5AC37",
+      "tokenId": 6,
+      "whitelisted": false
+    },
+    "BUSDE": {
+      "address": "KT1UsSfaXyqcjSVPeiD7U1bWgKy3taYN7NWY",
+      "dexContractAddress": null,
+      "decimals": 18,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 7],
+      "type": "fa2",
+      "color": "#EFB90A",
+      "tokenId": 7,
+      "whitelisted": false
+    },
+    "EURL": {
+      "address": "KT1JBNFcB5tiycHNdYGYCtR3kk6JaJysUCi8",
+      "dexContractAddress": null,
+      "decimals": 6,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#2E53C9",
+      "tokenId": 0,
+      "whitelisted": false
+    },
+    "USDT": {
+      "address": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+      "dexContractAddress": null,
+      "decimals": 6,
+      "ledgerPath": "ledger",
+      "ledgerKey": ["address", 0],
+      "type": "fa2",
+      "color": "#009393",
+      "tokenId": 0,
+      "whitelisted": false
     }
   },
   "investments": {
@@ -949,6 +1004,83 @@
       "info": [],
       "alias": "Plenty-Ctez LP farm",
       "icons": ["PLENTY", "Ctez"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-BUSDE-USDCE-LP": {
+      "id": "PLENTY-BUSDE-USDCE-LP",
+      "platform": "plenty",
+      "address": "KT1HK91NY9uWa685DAYRH8ywNMaN52D8Z8NS",
+      "decimals": 12,
+      "info": [],
+      "alias": "BUSD.e-USDC.e LP farm",
+      "icons": ["BUSDE", "USDCE"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-KUSD-USDCE-LP": {
+      "id": "PLENTY-KUSD-USDCE-LP",
+      "platform": "plenty",
+      "address": "KT1HpncMNCYt1ZskHzZeFqHFgfM8ZEr8xd3f",
+      "decimals": 12,
+      "info": [],
+      "alias": "kUSD-USDC.e LP farm",
+      "icons": ["kUSD", "USDCE"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-USDTZ-USDCE-LP": {
+      "id": "PLENTY-USDTZ-USDCE-LP",
+      "platform": "plenty",
+      "address": "KT1BUqUTY4r8ByQ5psHeQS46zuXu7JUvvWHH",
+      "decimals": 6,
+      "info": [],
+      "alias": "USDtz-USDC.e LP farm",
+      "icons": ["USDtz", "USDCE"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-KUSD-USDT-LP": {
+      "id": "PLENTY-KUSD-USDT-LP",
+      "platform": "plenty",
+      "address": "KT1EQ9RzjVNozWTTbuHPFsoaHDFiP4nMBRGA",
+      "decimals": 12,
+      "info": [],
+      "alias": "kUSD-USDT LP farm",
+      "icons": ["kUSD", "USDT"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-UUSD-USDT-LP": {
+      "id": "PLENTY-UUSD-USDT-LP",
+      "platform": "plenty",
+      "address": "KT1BQgGMe4PECmbFK1kyEdJmoXyJeCWf8XzC",
+      "decimals": 9,
+      "info": [],
+      "alias": "uUSD-USDT LP farm",
+      "icons": ["uUSD", "USDT"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-DAIE-USDCE-LP": {
+      "id": "PLENTY-DAIE-USDCE-LP",
+      "platform": "plenty",
+      "address": "KT1Kx45mQaZMEtFrbd6ap814NoH7cQTqo33j",
+      "decimals": 12,
+      "info": [],
+      "alias": "DAI.e-USDC.e LP farm",
+      "icons": ["DAIE", "USDCE"],
+      "rewardToken": "PLENTY",
+      "liquidityToken": true
+    },
+    "PLENTY-UUSD-USDCE-LP": {
+      "id": "PLENTY-UUSD-USDCE-LP",
+      "platform": "plenty",
+      "address": "KT1GQ7UTHFA8gTH3uTzDnb1znDDBfJ7eXCUJ",
+      "decimals": 9,
+      "info": [],
+      "alias": "uUSD-USDC.e LP farm",
+      "icons": ["uUSD", "USDCE"],
       "rewardToken": "PLENTY",
       "liquidityToken": true
     },

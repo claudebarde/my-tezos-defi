@@ -76,3 +76,40 @@ export const tokenToXtzXtzOutput = (p: {
     return null;
   }
 };
+
+export const removeLiquidityXtzTzbtcOut = (p: {
+  liquidityBurned: number;
+  totalLiquidity: number;
+  xtzPool: number;
+  tzbtcPool: number;
+}): { xtzOut: BigNumber; tzbtcOut: BigNumber } | null => {
+  const { liquidityBurned, totalLiquidity, xtzPool: _xtzPool, tzbtcPool } = p;
+
+  let xtzPool = creditSubsidy(_xtzPool);
+  let liquidityBurned_ = new BigNumber(0);
+  let totalLiquidity_ = new BigNumber(0);
+  let xtzPool_ = new BigNumber(0);
+  let tzbtcPool_ = new BigNumber(0);
+  try {
+    liquidityBurned_ = new BigNumber(liquidityBurned);
+    totalLiquidity_ = new BigNumber(totalLiquidity);
+    xtzPool_ = new BigNumber(xtzPool);
+    tzbtcPool_ = new BigNumber(tzbtcPool);
+  } catch (err) {
+    return null;
+  }
+  if (
+    liquidityBurned_.isGreaterThan(0) &&
+    totalLiquidity_.isGreaterThan(0) &&
+    xtzPool_.isGreaterThan(0) &&
+    tzbtcPool_.isGreaterThan(0)
+  ) {
+    // xtzPool_ * liquidityBurned_ / totalLiquidity_
+    return {
+      xtzOut: xtzPool_.times(liquidityBurned_).dividedBy(totalLiquidity_),
+      tzbtcOut: tzbtcPool_.times(liquidityBurned_).dividedBy(totalLiquidity_)
+    };
+  } else {
+    return null;
+  }
+};
