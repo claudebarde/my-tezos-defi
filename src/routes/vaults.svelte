@@ -7,12 +7,12 @@
     AvailableVault
   } from "../types";
   import config from "../config";
-  import ProfileHeader from "$lib/ProfileHeader.svelte";
-  import VaultsHeader from "$lib/vaults/VaultsHeader.svelte";
-  import WxtzVaultRow from "$lib/vaults/wXTZ/VaultRow.svelte";
-  import KdaoVaultRow from "$lib/vaults/kDAO/VaultRow.svelte";
-  import YouvesVaultRow from "$lib/vaults/youves/VaultRow.svelte";
-  import CtezVaultRow from "$lib/vaults/ctez/VaultRow.svelte";
+  import ProfileHeader from "../lib/ProfileHeader.svelte";
+  import VaultsHeader from "../lib/vaults/VaultsHeader.svelte";
+  import WxtzVaultRow from "../lib/vaults/wXTZ/VaultRow.svelte";
+  import KdaoVaultRow from "../lib/vaults/kDAO/VaultRow.svelte";
+  import YouvesVaultRow from "../lib/vaults/youves/VaultRow.svelte";
+  import CtezVaultRow from "../lib/vaults/ctez/VaultRow.svelte";
 
   let allVaults: Array<VaultData> = [];
   let vaultsUpdateInterval;

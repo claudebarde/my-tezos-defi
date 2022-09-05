@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="description" content="" />
-    <link rel="icon" href="%svelte.assets%/favicon.png" />
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Taquito Test Dapp</title>
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
@@ -12,17 +13,11 @@
       href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
       rel="stylesheet"
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
       const global = globalThis;
     </script>
-    <script type="module">
-      import { Buffer } from "buffer";
-      window.Buffer = Buffer;
-    </script>
-    %svelte.head%
   </head>
   <body>
-    %svelte.body%
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

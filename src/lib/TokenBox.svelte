@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount, afterUpdate } from "svelte";
   import { slide } from "svelte/transition";
-  import Chart from "chart.js/auto/auto.esm";
+  import Chart from "chart.js/auto/auto.js";
   import { AvailableToken, AvailableFiat } from "../types";
   import store from "../store";
   import { formatTokenAmount } from "../utils";

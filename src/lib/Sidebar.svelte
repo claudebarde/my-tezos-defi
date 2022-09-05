@@ -262,39 +262,39 @@
       }}
     />
     <nav>
-      <a href="/">
+      <a href="#/">
         <button class="nav">
           <span class="material-icons-outlined"> toll </span>
           <span>My tokens</span>
         </button>
       </a>
-      <a href="/farms">
+      <a href="#/farms">
         <button class="nav">
           <span class="material-icons-outlined"> agriculture </span>
           <span>My farms</span>
         </button>
       </a>
-      <a href="/vaults">
+      <a href="#/vaults">
         <button class="nav">
           <span class="material-icons-outlined"> savings </span>
           <span>My vaults</span>
         </button>
       </a>
-      <a href="/liquidity-baking">
+      <a href="#/liquidity-baking">
         <button class="nav">
           <span class="material-icons-outlined"> bakery_dining </span>
           <span>LB DEX</span>
         </button>
       </a>
       {#if $store.userAddress}
-        <a href={`/profile/${$store.userAddress}`}>
+        <a href={`#/profile/${$store.userAddress}`}>
           <button class="nav">
             <span class="material-icons-outlined"> portrait </span>
             <span>My profile</span>
           </button>
         </a>
       {/if}
-      <a href="/settings">
+      <a href="#/settings">
         <button class="nav">
           <span class="material-icons-outlined"> settings </span>
           <span>Settings</span>

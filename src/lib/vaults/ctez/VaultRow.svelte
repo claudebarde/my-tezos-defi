@@ -2,7 +2,7 @@
   import type { VaultData, modalAction } from "../../../types";
   import store from "../../../store";
   import { formatTokenAmount } from "../../../utils";
-  import Modal from "$lib/modal/Modal.svelte";
+  import Modal from "../../modal/Modal.svelte";
 
   export let vault: VaultData;
 

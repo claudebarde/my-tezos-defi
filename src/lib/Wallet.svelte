@@ -166,15 +166,6 @@
                   tokenSymbol as AvailableToken,
                   new Token({ ...tokenData, id: tokenSymbol })
                 ]);
-                // tokens.push([
-                //   tokenSymbol as AvailableToken,
-                //   {
-                //     ...token,
-                //     exchangeRate: null,
-                //     thumbnail: undefined,
-                //     websiteLink: undefined
-                //   }
-                // ]);
               }
             }
           );
@@ -192,7 +183,7 @@
           );
         }
 
-        if (defiData["wrap-staking"]) {
+        /*if (defiData["wrap-staking"]) {
           // builds investment data for WRAP staking farms
           const investmentsWithWrapStaking = { ...$store.investments };
           defiData["wrap-staking"].forEach(
@@ -240,10 +231,10 @@
               [AvailableInvestment, InvestmentData]
             >
           );
-        }
+        }*/
 
         // creates QuipuSwap farms investment data
-        if (defiData["quipu-farms"]) {
+        /*if (defiData["quipu-farms"]) {
           const quipuFarms = defiData["quipu-farms"].map(farmData => [
             `QUIPU-FARM-${farmData.index}`,
             {
@@ -267,7 +258,7 @@
           store.updateInvestments(
             quipuFarms as Array<[AvailableInvestment, InvestmentData]>
           );
-        }
+        }*/
       } else {
         /*toastStore.addToast({
           type: "error",
@@ -347,11 +338,11 @@
             // formatting of token names
             if (tk === "USDT") {
               return "USDt";
-            } else if (tk === "BUSDE") {
+            } else if (tk === AvailableToken.BUSDE) {
               return "BUSD.e";
-            } else if (tk === "DAIE") {
+            } else if (tk === AvailableToken.DAIE) {
               return "DAI.e";
-            } else if (tk === "USDCE") {
+            } else if (tk === AvailableToken.USDCE) {
               return "USDC.e";
             }
 
@@ -470,6 +461,7 @@
     -webkit-box-shadow: 10px 10px 39px -20px rgba(184, 184, 184, 1);
     -moz-box-shadow: 10px 10px 39px -20px rgba(184, 184, 184, 1);
     box-shadow: 10px 10px 39px -20px rgba(184, 184, 184, 1);
+    z-index: 100;
 
     & > div {
       margin: 10px 0px;

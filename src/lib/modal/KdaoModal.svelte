@@ -4,7 +4,7 @@
   import type { OvenClient } from "@hover-labs/kolibri-js";
   import type { modalAction, VaultData } from "../../types";
   import store from "../../store";
-  import queueStore from "$lib/transaction-queue/queue-store";
+  import queueStore from "../transaction-queue/queue-store";
 
   export let action: modalAction,
     payload: { ovenClient: OvenClient; vault: VaultData };

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { afterUpdate } from "svelte";
-  import { page } from "$app/stores";
   import { AsyncData } from "@swan-io/boxed";
+  import { location } from "svelte-spa-router";
   import store from "../store";
   import {
     formatTokenAmount,
@@ -152,7 +152,7 @@
       </div>
     {/if}
   </div>
-  {#if $page.url.pathname === "/" && $store.userTokens && $store.userTokens.length > 0}
+  {#if $location === "/" && $store.userTokens && $store.userTokens.length > 0}
     <div class="tokens-info">
       <p>{$store.userTokens.length} tokens with balance</p>
       <p class:blurry-text={$store.blurryBalances}>

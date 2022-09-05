@@ -3,7 +3,7 @@
   import { Option } from "@swan-io/boxed";
   import type { modalAction, VaultData } from "../../types";
   import store from "../../store";
-  import queueStore from "$lib/transaction-queue/queue-store";
+  import queueStore from "../transaction-queue/queue-store";
 
   export let action: modalAction, payload: { vault: VaultData };
 

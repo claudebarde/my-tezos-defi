@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, createEventDispatcher } from "svelte";
-  import queueStore from "$lib/transaction-queue/queue-store";
+  import queueStore from "../transaction-queue/queue-store";
   import type { QueuedTx } from "../../types";
   import store from "../../store";
 

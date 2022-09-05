@@ -3,6 +3,7 @@
   import { slide } from "svelte/transition";
   import { Option } from "@swan-io/boxed";
   import moment from "moment";
+  import type BigNumber from "bignumber.js";
   import type { InvestmentData } from "../../types";
   import { AvailableToken, AvailableInvestment } from "../../types";
   import store from "../../store";
@@ -24,8 +25,8 @@
   } from "../../tokenUtils/youvesUtils";
   import { calcMatterStake } from "../../tokenUtils/spicyUtils";
   import FarmMiniRow from "./FarmMiniRow.svelte";
-  import Loader from "$lib/farms/Loader.svelte";
-  import Modal from "$lib/modal/Modal.svelte";
+  import Loader from "./Loader.svelte";
+  import Modal from "../modal/Modal.svelte";
 
   export let invName: AvailableInvestment,
     farmsWorker: Worker = undefined,
@@ -268,15 +269,55 @@
         if (invData.type === "long-term") {
           const contract = await $store.Tezos.wallet.at(invData.address);
           const storage: any = await contract.storage();
-          const stake = await storage.stakes.get($store.userAddress);
-          if (stake) {
-            const end =
-              new Date(stake.age_timestamp).getTime() +
-              storage.max_release_period * 1000;
-            longTermRewardsEndPeriod = moment(end).format(
-              "MMM Do, YYYY - h:mm a"
-            );
-          }
+          const stake = await (async (): Promise<
+            Option<Array<{ age_timestamp: string; stake: BigNumber }>>
+          > => {
+            if (invData.icons.length === 1) {
+              const stakeSet = await storage.stakes_owner_lookup.get(
+                $store.userAddress
+              );
+              if (stakeSet && stakeSet.length > 0) {
+                const stakes = await Promise.all(
+                  stakeSet.map(
+                    async stakeId => await storage.stakes.get(stakeId)
+                  )
+                );
+                if (stakes && stakes.length > 0) {
+                  return Option.Some([
+                    ...stakes.map(stake => ({
+                      age_timestamp: stake.age_timestamp,
+                      stake: stake.stake
+                    }))
+                  ]);
+                } else {
+                  return Option.None();
+                }
+              } else {
+                return Option.None();
+              }
+            } else if (invData.icons.length === 2) {
+              const stake = await storage.stakes.get($store.userAddress);
+              if (stake) {
+                return Option.Some([stake]);
+              } else {
+                return Option.None();
+              }
+            }
+          })();
+          stake.match({
+            None: () => undefined,
+            Some: stake => {
+              // TODO: handles cases when there are multiple stakes
+              if (stake.length === 1) {
+                const end =
+                  new Date(stake[0].age_timestamp).getTime() +
+                  storage.max_release_period * 1000;
+                longTermRewardsEndPeriod = moment(end).format(
+                  "MMM Do, YYYY - h:mm a"
+                );
+              }
+            }
+          });
         }
         break;
     }
@@ -379,7 +420,7 @@
 
   onMount(async () => {
     invData = $store.investments[invName];
-    if (!invData.balance) {
+    if (!invData || !invData.balance) {
       stakeInXtz = 0;
     } else {
       await calcRewards();

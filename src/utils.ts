@@ -8,6 +8,7 @@ import { bytes2Char } from "@taquito/utils";
 import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
 import { get } from "svelte/store";
 import BigNumber from "bignumber.js";
+import { Option } from "@swan-io/boxed";
 import type {
   AvailableFiat,
   HistoricalDataState,
@@ -37,6 +38,15 @@ export const formatTokenAmount = (
         maximumFractionDigits: decimals
       })
     : "0";
+};
+
+export const toNumberOpt = (val: string): Option<number> => {
+  const result = Number(val);
+  if (isNaN(result)) {
+    return Option.None();
+  } else {
+    return Option.Some(result);
+  }
 };
 
 export const fetchTezosDomain = async (

@@ -8,7 +8,7 @@
     AvailableInvestment
   } from "../../types";
   import store from "../../store";
-  import queueStore from "$lib/transaction-queue/queue-store";
+  import queueStore from "../transaction-queue/queue-store";
 
   export let payload: {
       farmAddress: TezosContractAddress;

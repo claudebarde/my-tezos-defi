@@ -2,7 +2,7 @@
   import { onMount, afterUpdate } from "svelte";
   import { Option } from "@swan-io/boxed";
   import store from "../store";
-  import ProfileHeader from "$lib/ProfileHeader.svelte";
+  import ProfileHeader from "../lib/ProfileHeader.svelte";
   import config from "../config";
   import { LocalStorage } from "../localStorage";
   import type { AvailableFiat } from "../types";
@@ -41,7 +41,7 @@
     // checks for push notification permission
     if ("Notification" in window) {
       allowPushNotifications = Option.Some(
-        Notification.permission === "granted" ? true : false
+        window.Notification.permission === "granted" ? true : false
       );
     } else {
       console.warn("Notifications are not available in this browser");
@@ -136,7 +136,8 @@
             <button
               class="primary"
               on:click={async () => {
-                const permission = await Notification.requestPermission();
+                const permission =
+                  await window.Notification.requestPermission();
                 if (permission === "granted") {
                   allowPushNotifications = Option.Some(true);
                 } else {

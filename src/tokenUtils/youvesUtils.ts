@@ -395,6 +395,7 @@ const getClaimNowFactor = (stake: UnifiedStakeItem, dexStorage): BigNumber => {
   const factor = secondsSinceStaked / dexStorage.max_release_period;
   return BigNumber.min(1, BigNumber.max(factor, 0));
 };
+
 const getOwnStakesWithExtraInfo = async (
   Tezos: TezosToolkit,
   stakeIds: Array<number>,

@@ -1,12 +1,13 @@
 <script lang="ts">
   import store from "../store";
-  import ProfileHeader from "$lib/ProfileHeader.svelte";
-  import PlentyFarms from "$lib/farms/plenty/PlentyFarms.svelte";
-  import KdaoFarms from "$lib/farms/kdao/KdaoFarms.svelte";
-  import YouvesFarms from "$lib/farms/youves/YouvesFarms.svelte";
-  import QuipuFarms from "$lib/farms/quipu/QuipuFarms.svelte";
-  import MatterFarms from "$lib/farms/matter/MatterFarms.svelte";
-  import FarmsHeader from "$lib/farms/FarmsHeader.svelte";
+  import Layout from "./__layout.svelte";
+  import ProfileHeader from "../lib/ProfileHeader.svelte";
+  import PlentyFarms from "../lib/farms/plenty/PlentyFarms.svelte";
+  import KdaoFarms from "../lib/farms/kdao/KdaoFarms.svelte";
+  import YouvesFarms from "../lib/farms/youves/YouvesFarms.svelte";
+  import QuipuFarms from "../lib/farms/quipu/QuipuFarms.svelte";
+  // import MatterFarms from "../lib/farms/matter/MatterFarms.svelte";
+  import FarmsHeader from "../lib/farms/FarmsHeader.svelte";
   import type { AvailableInvestment } from "../types";
 
   let totalFarms:
@@ -51,33 +52,35 @@
   }
 </style>
 
-<div class="container">
-  {#if $store.userAddress}
-    <ProfileHeader profileAddress={$store.userAddress} />
-    <FarmsHeader farms={totalFarms} />
-    <div class="farms">
-      <PlentyFarms
-        on:farm-update={updateFarms}
-        on:roi-per-week={updateRoiPerWeek}
-      />
-      <KdaoFarms
-        on:farm-update={updateFarms}
-        on:roi-per-week={updateRoiPerWeek}
-      />
-      <YouvesFarms
-        on:farm-update={updateFarms}
-        on:roi-per-week={updateRoiPerWeek}
-      />
-      <QuipuFarms
-        on:farm-update={updateFarms}
-        on:roi-per-week={updateRoiPerWeek}
-      />
-      <MatterFarms
-        on:farm-update={updateFarms}
-        on:roi-per-week={updateRoiPerWeek}
-      />
-    </div>
-  {:else}
-    <div>No user connected</div>
-  {/if}
-</div>
+<Layout>
+  <div class="container">
+    {#if $store.userAddress}
+      <ProfileHeader profileAddress={$store.userAddress} />
+      <FarmsHeader farms={totalFarms} />
+      <div class="farms">
+        <PlentyFarms
+          on:farm-update={updateFarms}
+          on:roi-per-week={updateRoiPerWeek}
+        />
+        <KdaoFarms
+          on:farm-update={updateFarms}
+          on:roi-per-week={updateRoiPerWeek}
+        />
+        <YouvesFarms
+          on:farm-update={updateFarms}
+          on:roi-per-week={updateRoiPerWeek}
+        />
+        <QuipuFarms
+          on:farm-update={updateFarms}
+          on:roi-per-week={updateRoiPerWeek}
+        />
+        <!-- <MatterFarms
+          on:farm-update={updateFarms}
+          on:roi-per-week={updateRoiPerWeek}
+        /> -->
+      </div>
+    {:else}
+      <div>No user connected</div>
+    {/if}
+  </div>
+</Layout>

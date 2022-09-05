@@ -11,7 +11,7 @@
   import store from "../../../store";
   import { formatTokenAmount } from "../../../utils";
   import config from "../../../config";
-  import Modal from "$lib/modal/Modal.svelte";
+  import Modal from "../../modal/Modal.svelte";
 
   export let vault: VaultData;
 

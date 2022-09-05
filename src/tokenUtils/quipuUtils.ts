@@ -1,6 +1,6 @@
 import { get } from "svelte/store";
 import type { TezosToolkit } from "@taquito/taquito";
-import type { InvestmentData, TezosAccountAddress } from "src/types";
+import type { InvestmentData, TezosAccountAddress, IconValue } from "../types";
 import { Option, Result } from "@swan-io/boxed";
 import { calculateLqtOutput } from "../utils";
 import _store from "../store";
@@ -49,7 +49,7 @@ export const calcQuipuStake = async (
 
   if (invData.icons.length === 2) {
     const contract = await Tezos.wallet.at(
-      invData.icons[1] === "QUIPU"
+      invData.icons.includes("QUIPU" as IconValue)
         ? "KT1X3zxdTzPB9DgVzA3ad6dgZe9JEamoaeRy"
         : "KT1EtjRRCBC2exyCRXz8UfV7jz7svnkqi7di"
     );
@@ -61,7 +61,8 @@ export const calcQuipuStake = async (
       xtzPool: tez_pool.toNumber(),
       tokenPool: token_pool.toNumber(),
       lqtTotal: total_supply.toNumber(),
-      tokenDecimal: store.tokens[invData.icons[1]].decimals
+      tokenDecimal:
+        store.tokens[invData.icons[invData.icons[0] === "XTZ" ? 1 : 0]].decimals
     });
     if (output && !isNaN(output.xtz) && !isNaN(output.tokens)) {
       stakeInXtz =

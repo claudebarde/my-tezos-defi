@@ -119,7 +119,10 @@
       <p>{formatTokenAmount(tzbtcOut, 8)}</p>
     </div>
   </div>
-  <button class="primary" disabled={lqtError || !lqtBalance.isDone()}>
+  <button
+    class="primary"
+    disabled={lqtError || !lqtBalance.isDone() || !lqtValue}
+  >
     Remove
   </button>
 </div>

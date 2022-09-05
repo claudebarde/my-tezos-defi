@@ -97,7 +97,11 @@ const state = {
       }
 
       newInvestments.forEach(([invName, invData]) => {
-        if (Object.values(AvailableInvestment).includes(invName) && invData) {
+        if (
+          (Object.values(AvailableInvestment).includes(invName) ||
+            invName.includes("QUIPU-FARM")) &&
+          invData
+        ) {
           investments[invName] = invData;
         }
       });

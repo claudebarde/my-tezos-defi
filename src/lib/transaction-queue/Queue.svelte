@@ -1,7 +1,7 @@
 <script lang="ts">
   import { fly } from "svelte/transition";
-  import queueStore from "$lib/transaction-queue/queue-store";
-  import Modal from "$lib/modal/Modal.svelte";
+  import queueStore from "./queue-store";
+  import Modal from "../modal/Modal.svelte";
 
   let showModal = false;
 </script>

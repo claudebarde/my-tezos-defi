@@ -48,7 +48,7 @@
           if (stakeEntryRes && stakeEntryRes.status === 200) {
             const stakeEntry = await stakeEntryRes.json();
             if (stakeEntry && stakeEntry.active === true) {
-              const { stake, token_amount } = stakeEntry.value;
+              const { token_amount } = stakeEntry.value;
               if (!isNaN(token_amount)) {
                 if (farmsData) {
                   farmsData.push({
@@ -92,7 +92,7 @@
         $store.localStorage.addFarms(farms.map(farm => farm.id));
       } else {
         // TODO: display a toast with the error
-        console.error("Error while fetching Plenty farms");
+        console.error("Error while fetching Youves farms");
       }
     }
   });

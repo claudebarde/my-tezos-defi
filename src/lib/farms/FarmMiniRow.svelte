@@ -1,6 +1,6 @@
 <script lang="ts">
   import { afterUpdate, createEventDispatcher } from "svelte";
-  import { slide, fly } from "svelte/transition";
+  import { fly } from "svelte/transition";
   import type { Option } from "@swan-io/boxed";
   import {
     type InvestmentData,
@@ -21,6 +21,7 @@
   let localRewards: number | Array<number> | null = 0;
 
   afterUpdate(() => {
+    // TODO: fix rewards type
     localRewards = rewards.toNull();
   });
 </script>
@@ -155,7 +156,7 @@
       {/if}
     </button>
     <button class="primary" on:click={() => dispatch("modal-action", true)}>
-      <span class="material-symbols-outlined"> more_horiz </span>
+      <span class="material-icons-outlined"> more_horiz </span>
       More
     </button>
   </div>
