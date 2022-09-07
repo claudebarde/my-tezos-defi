@@ -19,21 +19,21 @@
 
   const harvestAll = async () => {
     harvestingAll = true;
-    // gets the addresses of pools with rewards to harvest
-    let allRewards = [0, 0, ...totalRewards.map(rw => rw.rewards)].reduce(
-      (a, b) => a + b
-    );
-    const contractCalls = await Promise.all(
-      farms.map(async res => {
-        const contract = await $store.Tezos.wallet.at(res.address);
-        return contract.methods.GetReward([["unit"]]);
-      })
-    );
-    const fee = $store.serviceFee
-      ? allRewards * $store.xtzExchangeRate * $store.serviceFee
-      : null;
-    // batches transactions
     try {
+      // gets the addresses of pools with rewards to harvest
+      let allRewards = [0, 0, ...totalRewards.map(rw => rw.rewards)].reduce(
+        (a, b) => a + b
+      );
+      const contractCalls = await Promise.all(
+        farms.map(async res => {
+          const contract = await $store.Tezos.wallet.at(res.address);
+          return contract.methods.GetReward([["unit"]]);
+        })
+      );
+      const fee = $store.serviceFee
+        ? allRewards * $store.xtzExchangeRate * $store.serviceFee
+        : null;
+      // batches transactions
       const batch = prepareOperation({
         contractCalls: contractCalls,
         amount: fee,

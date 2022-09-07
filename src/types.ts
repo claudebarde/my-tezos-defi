@@ -248,6 +248,7 @@ export interface InvestmentData {
   rewardToken: undefined | AvailableToken;
   favorite: boolean;
   liquidityToken: boolean;
+  open: boolean;
   alias?: string;
   shareValueInTez?: number;
   totalSupply?: number;

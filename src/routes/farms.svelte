@@ -9,6 +9,7 @@
   // import MatterFarms from "../lib/farms/matter/MatterFarms.svelte";
   import FarmsHeader from "../lib/farms/FarmsHeader.svelte";
   import type { AvailableInvestment } from "../types";
+  import BarnImg from "../assets/farm-48.png";
 
   let totalFarms:
     | Array<{
@@ -50,6 +51,20 @@
   .farms {
     width: 90%;
   }
+
+  .no-user {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    margin-top: 40%;
+  }
+
+  @media only screen and (max-height: 700px) {
+    .no-user {
+      margin-top: 20%;
+    }
+  }
 </style>
 
 <Layout>
@@ -80,7 +95,11 @@
         /> -->
       </div>
     {:else}
-      <div>No user connected</div>
+      <div class="no-user">
+        <img src={BarnImg} alt="barn" />
+        <div>Connect your wallet to see your farms</div>
+        <img src={BarnImg} alt="barn" />
+      </div>
     {/if}
   </div>
 </Layout>

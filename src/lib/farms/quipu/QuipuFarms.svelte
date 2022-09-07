@@ -123,6 +123,7 @@
                   : undefined,
                 liquidityToken: true,
                 type: "",
+                open: new Date(val.end_time).getTime() > Date.now(),
                 // to be updated later
                 alias: "",
                 icons: [],
@@ -172,7 +173,6 @@
 
             return farmData;
           });
-          console.log({ farms, quipuFarmsData });
           // updates investment balance
           store.updateInvestments(
             farms.map(farm => [

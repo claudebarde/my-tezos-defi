@@ -31,23 +31,31 @@
   class="farm-row-mini"
   in:fly={{ x: -200, duration: 500, delay: pos * 100 }}
 >
-  <div>
-    {#if invData.platform === "youves" && invData.type === "long-term"}
-      <div class="ribbon">
-        <span class="material-icons-outlined"> lock_clock </span>
+  {#if invData.open !== undefined && invData.open === false}
+    <div>
+      <div class="ribbon yellow">
+        <span class="material-icons-outlined">
+          sentiment_very_dissatisfied
+        </span>
       </div>
-    {:else if invData.platform === "quipuswap" && !invData.info.includes("no-lock")}
-      <div class="ribbon">
-        <span class="material-icons-outlined"> lock_clock </span>
-      </div>
-    {:else if invData.platform === "paul" && [AvailableInvestment["PAUL-kUSD-uUSD"], AvailableInvestment["wUSDC-PAUL"], AvailableInvestment["wWETH-PAUL"], AvailableInvestment["PAUL-uUSD"], AvailableInvestment["PAUL-YOU"]].includes(invData.id)}
-      <div class="ribbon" style="font-size:0.6rem">withdraw fee</div>
-    {:else if invData.platform === "youves" && invData.type === "saving"}
-      <div class="ribbon">
-        <span class="material-icons-outlined"> savings </span>
-      </div>
-    {/if}
-  </div>
+    </div>
+  {:else}
+    <div>
+      {#if invData.platform === "youves" && invData.type === "long-term"}
+        <div class="ribbon blue">
+          <span class="material-icons-outlined"> lock_clock </span>
+        </div>
+      {:else if invData.platform === "quipuswap" && !invData.info.includes("no-lock") && invData.open === true}
+        <div class="ribbon blue">
+          <span class="material-icons-outlined"> lock_clock </span>
+        </div>
+      {:else if invData.platform === "youves" && invData.type === "saving"}
+        <div class="ribbon blue">
+          <span class="material-icons-outlined"> savings </span>
+        </div>
+      {/if}
+    </div>
+  {/if}
   <div class="icons">
     {#each invData.icons as icon}
       <img src={`tokens/${icon}.png`} alt="farm-token-icon" />

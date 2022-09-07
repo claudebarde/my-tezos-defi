@@ -44,6 +44,51 @@ export const calcQuipuStake = async (
   invData: InvestmentData,
   Tezos: TezosToolkit
 ): Promise<Result<number, string>> => {
+  // retrieves staked token
+  const farmsContract = await Tezos.wallet.at(invData.address);
+  const farmsStorage: any = await farmsContract.storage();
+  const farmData: any = await farmsStorage.storage.farms.get(
+    invData.id.replace("QUIPU-FARM-", "")
+  );
+  if (farmData?.stake_params?.staked_token?.fA2?.token) {
+    const stakedTokenAddress = farmData.stake_params.staked_token.fA2.token;
+    // retrieves required data from staked token storage
+    const stakedTokenContract = await Tezos.wallet.at(stakedTokenAddress);
+    const stakedTokenStorage: any = await stakedTokenContract.storage();
+    if (stakedTokenStorage.storage) {
+      const { tez_pool, token_pool, total_supply } = stakedTokenStorage.storage;
+      if (tez_pool && token_pool && total_supply) {
+        // calculates price of staked token
+        const output = calculateLqtOutput({
+          lqTokens: invData.balance,
+          xtzPool: tez_pool.toNumber(),
+          tokenPool: token_pool.toNumber(),
+          lqtTotal: total_supply.toNumber(),
+          tokenDecimal: 1
+        });
+        console.log(output);
+        return Result.Ok(0);
+      } else {
+        return Result.Error(
+          `Missing properties in storage for Quipu staked token at ${stakedTokenAddress}`
+        );
+      }
+    } else {
+      return Result.Error(
+        `Unexpected storage for Quipu staked token at ${stakedTokenAddress}`
+      );
+    }
+  } else {
+    return Result.Error(
+      `Couldn't retrieve staked token address for ${invData.id} at ${invData.address}`
+    );
+  }
+};
+
+/*export const calcQuipuStake = async (
+  invData: InvestmentData,
+  Tezos: TezosToolkit
+): Promise<Result<number, string>> => {
   const store = get(_store);
   let stakeInXtz: number;
 
@@ -81,4 +126,4 @@ export const calcQuipuStake = async (
       `Stake in XTZ coudn't be computed for ${invData.alias}`
     );
   }
-};
+}; */

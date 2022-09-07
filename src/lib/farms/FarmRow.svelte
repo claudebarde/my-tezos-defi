@@ -63,6 +63,70 @@
         });
         // TODO: calculate ROI per week
         break;
+      case "plenty":
+        if (invData.id === AvailableInvestment["xPLENTY-Staking"]) {
+          const plentyAmount = await getExpectedPlenty(
+            $store.Tezos,
+            invData.balance,
+            $store.currentLevel
+          );
+          if (plentyAmount) {
+            stakeInXtz =
+              (plentyAmount / 10 ** $store.tokens.PLENTY.decimals) *
+              $store.tokens.PLENTY.getExchangeRate();
+          } else {
+            stakeInXtz = 0;
+          }
+        } else {
+          const plentyStake = await calcPlentyStake(invData);
+          plentyStake.match({
+            Ok: val => {
+              stakeInXtz = val;
+              return;
+            },
+            Error: err => console.error(err)
+          });
+          // TODO: calculate APR and APY
+          /*if (stakeInXtz) {
+              const statsRes = await fetchPlentyStatistics(invData, stakeInXtz);
+              statsRes.match({
+                Ok: stats => {
+                  apr = stats.apr;
+                  apy = stats.apy;
+                  dispatch("roi-per-week", {
+                    id: invData.id,
+                    roi: stats.roiPerWeek
+                  });
+                },
+                Error: err => console.error(err)
+              });
+            }*/
+        }
+        break;
+      case "quipuswap":
+        const quipuStake = await calcQuipuStake(invData, $store.Tezos);
+        quipuStake.match({
+          Ok: val => {
+            stakeInXtz = val;
+            return;
+          },
+          Error: err => console.error(err, "zzz")
+        });
+        break;
+      case "youves":
+        const youvesStake = await calcYouvesStake(
+          invData,
+          $store.Tezos,
+          $store.userAddress
+        );
+        youvesStake.match({
+          Ok: val => {
+            stakeInXtz = val.stakeInXtz;
+            return;
+          },
+          Error: err => console.error(err)
+        });
+        break;
       /*case "paul":
         const paulStake = await calcPaulStake(invData, $store.Tezos);
         paulStake.match({
@@ -98,56 +162,6 @@
           });
         }
         break;*/
-      case "plenty":
-        if (invData.id === AvailableInvestment["xPLENTY-Staking"]) {
-          const plentyAmount = await getExpectedPlenty(
-            $store.Tezos,
-            invData.balance,
-            $store.currentLevel
-          );
-          if (plentyAmount) {
-            stakeInXtz =
-              (plentyAmount / 10 ** $store.tokens.PLENTY.decimals) *
-              $store.tokens.PLENTY.getExchangeRate();
-          } else {
-            stakeInXtz = 0;
-          }
-        } else {
-          const plentyStake = await calcPlentyStake(invData);
-          plentyStake.match({
-            Ok: val => {
-              stakeInXtz = val;
-              return;
-            },
-            Error: err => console.error(err)
-          });
-          // TODO: calculate APR and APY
-          /*if (stakeInXtz) {
-            const statsRes = await fetchPlentyStatistics(invData, stakeInXtz);
-            statsRes.match({
-              Ok: stats => {
-                apr = stats.apr;
-                apy = stats.apy;
-                dispatch("roi-per-week", {
-                  id: invData.id,
-                  roi: stats.roiPerWeek
-                });
-              },
-              Error: err => console.error(err)
-            });
-          }*/
-        }
-        break;
-      case "quipuswap":
-        const quipuStake = await calcQuipuStake(invData, $store.Tezos);
-        quipuStake.match({
-          Ok: val => {
-            stakeInXtz = val;
-            return;
-          },
-          Error: err => console.error(err, "zzz")
-        });
-        break;
       /*case "smartlink":
         const smartlinkStake = await calcSmartlinkStake($store.Tezos, invData);
         smartlinkStake.match({
@@ -168,21 +182,7 @@
           Error: err => console.error(err)
         });
         break;*/
-      case "youves":
-        const youvesStake = await calcYouvesStake(
-          invData,
-          $store.Tezos,
-          $store.userAddress
-        );
-        youvesStake.match({
-          Ok: val => {
-            stakeInXtz = val.stakeInXtz;
-            return;
-          },
-          Error: err => console.error(err)
-        });
-        break;
-      case "matter":
+      /*case "matter":
         const matterStake = await calcMatterStake(
           [$store.tokens.uUSD, $store.tokens.WTZ],
           $store.Tezos
@@ -194,7 +194,7 @@
           },
           Error: err => console.error(err)
         });
-        break;
+        break;*/
     }
   };
 

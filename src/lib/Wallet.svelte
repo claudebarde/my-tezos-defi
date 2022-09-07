@@ -419,6 +419,7 @@
     border: none;
     border-radius: $std-border-radius;
     transition: 0.3s;
+    outline: none;
 
     &.connect {
       justify-content: center;
