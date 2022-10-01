@@ -17,6 +17,7 @@
     if (config.availableRpcUrls.includes(url)) {
       $store.localStorage.setRpcUrl(url);
       $store.Tezos.setRpcProvider(url);
+      window.location.reload();
     }
   };
 

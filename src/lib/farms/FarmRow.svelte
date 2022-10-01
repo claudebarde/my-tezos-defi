@@ -5,8 +5,9 @@
   import moment from "moment";
   import type BigNumber from "bignumber.js";
   import type { InvestmentData } from "../../types";
-  import { AvailableToken, AvailableInvestment } from "../../types";
+  import { AvailableToken, AvailableInvestment, ToastType } from "../../types";
   import store from "../../store";
+  import toastStore from "../../toastStore";
   import { formatTokenAmount, prepareOperation } from "../../utils";
   import { calcKdaoRewards, calcKdaoStake } from "../../tokenUtils/kdaoUtils";
   import {
@@ -23,7 +24,6 @@
     calcYouvesRewards,
     calcYouvesStake
   } from "../../tokenUtils/youvesUtils";
-  import { calcMatterStake } from "../../tokenUtils/spicyUtils";
   import FarmMiniRow from "./FarmMiniRow.svelte";
   import Loader from "./Loader.svelte";
   import Modal from "../modal/Modal.svelte";
@@ -382,6 +382,16 @@
               tokenSymbol: invData.rewardToken
             });
             return await youvesBatch.send();
+          case "quipuswap":
+            const farmId = invData.id.replace("QUIPU-FARM-", "");
+            const quipuBatch = prepareOperation({
+              contractCalls: [
+                contract.methods.harvest(farmId, $store.userAddress)
+              ],
+              amount: rewards.getWithDefault(0),
+              tokenSymbol: invData.rewardToken
+            });
+            return await quipuBatch.send();
         }
       })();
       await op.confirmation();
@@ -390,13 +400,13 @@
       if (opStatus === "applied") {
         harvestingSuccess = true;
         rewards = Option.Some(0);
-        /*toastStore.addToast({
-          type: "success",
-          title: "Success!",
-          text: `Successfully harvested ${rewardsToHarvest} kDAO!`,
-          dismissable: false,
-          icon: "agriculture"
-        });*/
+        toastStore.addToast({
+          type: ToastType.SUCCESS,
+          message: `Successfully harvested ${formatTokenAmount(
+            rewardsToHarvest
+          )} ${invData.rewardToken}!`,
+          dismissable: false
+        });
         setTimeout(() => {
           harvestingSuccess = undefined;
         }, 2000);
@@ -406,13 +416,11 @@
       }
     } catch (error) {
       console.log(error);
-      /*toastStore.addToast({
-        type: "error",
-        title: "Harvest error",
-        text: "Couldn't harvest PLENTY tokens",
-        dismissable: false,
-        icon: "agriculture"
-      });*/
+      toastStore.addToast({
+        type: ToastType.ERROR,
+        message: `Couldn't harvest ${invData.rewardToken} tokens`,
+        dismissable: false
+      });
     } finally {
       harvesting = false;
     }

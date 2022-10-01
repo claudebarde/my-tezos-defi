@@ -76,6 +76,14 @@
 
   const handleVisibilityChange = () => {
     if (document[hidden] && $store.localStorage) {
+      if (
+        $store.localStorage.getLastActiveLevel() > 2_000_000 &&
+        $store.currentLevel > 2_000_000 &&
+        $store.localStorage.getLastActiveLevel() + 120 < $store.currentLevel
+      ) {
+        window.location.reload();
+      }
+
       // saves the last level when user switches tabs
       $store.localStorage.updateLastActiveLevel($store.currentLevel);
     }

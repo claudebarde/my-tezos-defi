@@ -7,6 +7,11 @@
   import Queue from "./lib/transaction-queue/Queue.svelte";
   import Router, { location } from "svelte-spa-router";
   import routes from "./routes";
+
+  const reset = () => {
+    $store.localStorage.setRpcUrl("https://mainnet.api.tez.ie");
+    window.location.reload();
+  };
 </script>
 
 <style lang="scss">
@@ -18,6 +23,7 @@
     justify-content: center;
     align-items: center;
     text-align: center;
+    z-index: 100;
   }
 </style>
 
@@ -73,6 +79,8 @@
           Fetching XTZ exchange rate...
         </p>
       {/if}
+      <p>&nbsp;</p>
+      <button class="primary mini" on:click={reset}> Reset </button>
     </div>
     <Bubbles />
   {/if}
