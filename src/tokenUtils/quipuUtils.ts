@@ -43,13 +43,12 @@ export const calcQuipuRewards = async (
 export const calcQuipuStake = async (
   invData: InvestmentData,
   Tezos: TezosToolkit
-): Promise<Result<number, string>> => {
+): Promise<Result<{ xtz: number; tokens: number }, string>> => {
   // retrieves staked token
+  const farmId = invData.id.replace("QUIPU-FARM-", "");
   const farmsContract = await Tezos.wallet.at(invData.address);
   const farmsStorage: any = await farmsContract.storage();
-  const farmData: any = await farmsStorage.storage.farms.get(
-    invData.id.replace("QUIPU-FARM-", "")
-  );
+  const farmData: any = await farmsStorage.storage.farms.get(farmId);
   if (farmData?.stake_params?.staked_token?.fA2?.token) {
     const stakedTokenAddress = farmData.stake_params.staked_token.fA2.token;
     // retrieves required data from staked token storage
@@ -64,10 +63,9 @@ export const calcQuipuStake = async (
           xtzPool: tez_pool.toNumber(),
           tokenPool: token_pool.toNumber(),
           lqtTotal: total_supply.toNumber(),
-          tokenDecimal: 1
+          tokenDecimal: invData.decimals
         });
-        console.log(output);
-        return Result.Ok(0);
+        return Result.Ok(output);
       } else {
         return Result.Error(
           `Missing properties in storage for Quipu staked token at ${stakedTokenAddress}`

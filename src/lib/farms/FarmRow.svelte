@@ -107,7 +107,9 @@
         const quipuStake = await calcQuipuStake(invData, $store.Tezos);
         quipuStake.match({
           Ok: val => {
-            stakeInXtz = val;
+            stakeInXtz =
+              val.xtz +
+              val.tokens * $store.tokens[invData.icons[0]].getExchangeRate();
             return;
           },
           Error: err => console.error(err, "zzz")

@@ -8,18 +8,17 @@ import { bytes2Char } from "@taquito/utils";
 import { packDataBytes, unpackDataBytes } from "@taquito/michel-codec";
 import { get } from "svelte/store";
 import BigNumber from "bignumber.js";
-import { Option } from "@swan-io/boxed";
+import { Option, Result } from "@swan-io/boxed";
 import type {
   AvailableFiat,
   HistoricalDataState,
-  AvailableToken,
   State,
   TezosAccountAddress,
   TezosContractAddress,
   UserToken,
   Farm
 } from "./types";
-import type { AvailableInvestment } from "./types";
+import { AvailableInvestment, AvailableToken } from "./types";
 import store from "./store";
 
 export const shortenHash = (hash: string): string =>
@@ -190,7 +189,10 @@ export const tzktTokensFetch = async (
             tokensToKeep.includes(tk.token.metadata.symbol)
         )
         .map(tk => ({
-          name: tk.token.metadata.symbol,
+          name: getAvailableToken(tk.token.metadata.symbol).match({
+            Ok: val => val,
+            Error: _ => "unkown_token"
+          }),
           exchangeRate: 0,
           balance: +tk.balance
         }));
@@ -578,5 +580,22 @@ export const sortFarmsPerRewards = (
     }
   } else {
     return 0;
+  }
+};
+
+export const getAvailableToken = (
+  token: string
+): Result<AvailableToken, string> => {
+  const tokenIndex = Object.values(AvailableToken).findIndex(
+    tk => tk === token
+  );
+  if (tokenIndex >= 0) {
+    return Result.Ok(
+      Object.keys(AvailableToken)[
+        Object.values(AvailableToken).indexOf(token as AvailableToken)
+      ] as AvailableToken
+    );
+  } else {
+    return Result.Error(`Unknown token: ${token}`);
   }
 };

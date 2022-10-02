@@ -10,13 +10,18 @@
     InvestmentData,
     TezosAccountAddress,
     TezosContractAddress,
-    IconValue
+    IconValue,
+    InvestmentPlatform
   } from "../../../types";
   import { AvailableToken } from "../../../types";
   import FarmRow from "../FarmRow.svelte";
   import FarmRowHeader from "../FarmRowHeader.svelte";
   import config from "../../../config";
-  import { sortFarmsPerRewards, toNumberOpt } from "../../../utils";
+  import {
+    sortFarmsPerRewards,
+    toNumberOpt,
+    getAvailableToken
+  } from "../../../utils";
 
   interface QuipuFarmsStorage {
     storage: {
@@ -108,9 +113,9 @@
                 ([_, tokenData]) =>
                   tokenData.address === val.reward_token.fA2.token
               );
-              quipuFarmsData.push({
+              const farmData: InvestmentData = {
                 id: `QUIPU-FARM-${key}` as AvailableInvestment,
-                platform: "quipuswap",
+                platform: "quipuswap" as InvestmentPlatform,
                 address: config.quipuFarmsContract as TezosContractAddress,
                 decimals: 6,
                 info: [
@@ -129,7 +134,8 @@
                 icons: [],
                 balance: thisFarm.balance,
                 favorite: false
-              });
+              };
+              quipuFarmsData.push(farmData);
             }
           });
           // gets the token pair from the staked token
@@ -157,7 +163,13 @@
                   } else if (
                     Object.values(AvailableToken).includes(tk as AvailableToken)
                   ) {
-                    return tk as IconValue;
+                    return getAvailableToken(tk).match({
+                      Ok: val => val as IconValue,
+                      Error: err => {
+                        console.error(err);
+                        return "unknown_token" as IconValue;
+                      }
+                    });
                   } else {
                     return "unknown_token" as IconValue;
                   }
@@ -167,7 +179,7 @@
 
               farmData.decimals = toNumberOpt(decimals).match({
                 None: () => 0,
-                Some: val => val
+                Some: val => ([21].includes(id) ? 6 : val) // necessary as it looks like the metadata have an error
               });
             }
 
