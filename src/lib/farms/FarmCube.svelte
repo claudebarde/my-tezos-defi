@@ -168,6 +168,16 @@
         Harvest
       {/if}
     </button>
+    <a
+      class="button primary mini"
+      href={`https://better-call.dev/mainnet/${invData.address}/storage`}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+    >
+      <span class="material-icons-outlined" style="margin-right:0px">
+        link
+      </span>
+    </a>
     <button
       class="primary mini"
       on:click={() => dispatch("modal-action", true)}

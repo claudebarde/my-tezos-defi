@@ -63,7 +63,7 @@ export const calcQuipuStake = async (
           xtzPool: tez_pool.toNumber(),
           tokenPool: token_pool.toNumber(),
           lqtTotal: total_supply.toNumber(),
-          tokenDecimal: invData.decimals
+          tokenDecimal: invData.id === "QUIPU-FARM-5" ? 12 : invData.decimals
         });
         return Result.Ok(output);
       } else {
