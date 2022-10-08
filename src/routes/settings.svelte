@@ -106,7 +106,7 @@
 
 <div class="container">
   {#if $store.userAddress}
-    <ProfileHeader />
+    <ProfileHeader profileAddress={$store.userAddress} />
   {/if}
   <div class="settings">
     <div>

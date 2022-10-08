@@ -1,7 +1,7 @@
 {
-  "name": "taquito-test-dapp-vite",
+  "name": "my-tezos-defi",
   "private": true,
-  "version": "0.0.0",
+  "version": "5.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

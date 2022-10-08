@@ -196,7 +196,7 @@
 
 <div class="container">
   {#if $store.userAddress}
-    <ProfileHeader />
+    <ProfileHeader profileAddress={$store.userAddress} />
     <VaultsHeader vaults={allVaults} />
     <div class="vaults">
       <div
