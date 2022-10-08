@@ -7,7 +7,7 @@ import Settings from "./routes/Settings.svelte";
 
 export default {
   "/": Home,
-  "/farms": Farms,
+  "/farms/:platform?": Farms,
   "/liquidity-baking": LiquidityBaking,
   "/vaults": Vaults,
   "/profile": Profile,

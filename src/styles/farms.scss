@@ -1,5 +1,14 @@
 @import "./settings.scss";
 
+.farms-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin: 30px 0px;
+}
+
 .farm-header {
   display: flex;
   justify-content: space-between;
@@ -131,6 +140,95 @@
     height: 18px;
     width: 18px;
     vertical-align: text-top;
+  }
+}
+
+.farm-cube {
+  $size: 280px;
+
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  width: $size;
+  height: $size;
+  background-color: $blizzard-blue;
+  border-radius: $std-border-radius;
+  padding: 10px;
+  overflow: hidden;
+
+  div.ribbon {
+    width: 150px;
+    position: absolute;
+    top: 10px;
+    left: -50px;
+    text-align: center;
+    line-height: 30px;
+    letter-spacing: 1px;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+
+    &.blue {
+      background: $pacific-blue;
+      color: #f0f0f0;
+    }
+    &.yellow {
+      background: $cyber-yellow;
+      color: $midnight-blue;
+    }
+  }
+
+  .farm-cube__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+
+    .user-info {
+      text-align: center;
+      font-size: 0.8rem;
+    }
+  }
+
+  .farm-cube__body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    text-align: center;
+
+    .reward-token {
+      height: 18px;
+      width: 18px;
+      vertical-align: text-top;
+    }
+  }
+
+  .farm-cube__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .icons {
+    margin: 0 auto;
+
+    img {
+      width: 48px;
+      height: 48px;
+      background-color: transparent;
+      border-radius: 50%;
+      transition: 0.3s;
+
+      &:not(:first-child) {
+        margin-left: -8px;
+        border-radius: 50%;
+      }
+    }
+  }
+
+  &:hover .icons img:not(:first-child) {
+    margin-left: 5px;
   }
 }
 

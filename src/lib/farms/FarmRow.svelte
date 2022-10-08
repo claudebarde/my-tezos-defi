@@ -24,7 +24,7 @@
     calcYouvesRewards,
     calcYouvesStake
   } from "../../tokenUtils/youvesUtils";
-  import FarmMiniRow from "./FarmMiniRow.svelte";
+  import FarmCube from "./FarmCube.svelte";
   import Loader from "./Loader.svelte";
   import Modal from "../modal/Modal.svelte";
 
@@ -599,7 +599,7 @@
   {:else}
     <!-- Loader-->
     {#if !isNaN(stakeInXtz)}
-      <FarmMiniRow
+      <FarmCube
         {invData}
         stake={invData.platform === "plenty" &&
         invData.id !== "PLENTY-CTEZ-TEZ-LP"

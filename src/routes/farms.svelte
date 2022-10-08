@@ -11,6 +11,8 @@
   import type { AvailableInvestment } from "../types";
   import BarnImg from "../assets/farm-48.png";
 
+  export let params;
+
   let totalFarms:
     | Array<{
         id: AvailableInvestment;
@@ -49,7 +51,7 @@
 
 <style lang="scss">
   .farms {
-    width: 90%;
+    width: 100%;
   }
 
   .no-user {

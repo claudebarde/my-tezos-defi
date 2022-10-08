@@ -105,17 +105,19 @@
     {harvestingAll}
     on:harvest-all={harvestAll}
   />
-  {#each farms.sort( (a, b) => sortFarmsPerRewards(a, b, totalRewards) ) as farm, index (farm.id)}
-    <FarmRow
-      invName={farm.id}
-      pos={index}
-      on:farm-update={event => {
-        const val = event.detail;
-        const farms = totalRewards.filter(farm => farm.id !== val.id);
-        totalRewards = [...farms, val];
-        dispatch("farm-update", val);
-      }}
-      on:roi-per-week={event => dispatch("roi-per-week", event.detail)}
-    />
-  {/each}
+  <div class="farms-group">
+    {#each farms.sort( (a, b) => sortFarmsPerRewards(a, b, totalRewards) ) as farm, index (farm.id)}
+      <FarmRow
+        invName={farm.id}
+        pos={index}
+        on:farm-update={event => {
+          const val = event.detail;
+          const farms = totalRewards.filter(farm => farm.id !== val.id);
+          totalRewards = [...farms, val];
+          dispatch("farm-update", val);
+        }}
+        on:roi-per-week={event => dispatch("roi-per-week", event.detail)}
+      />
+    {/each}
+  </div>
 {/if}
