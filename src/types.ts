@@ -1,19 +1,22 @@
-import type { TezosToolkit, WalletOperation } from "@taquito/taquito";
+import type { TezosToolkit, WalletParamsWithKind } from "@taquito/taquito";
 import type { BeaconWallet } from "@taquito/beacon-wallet";
+import type Token from "./Token";
+import type { LocalStorage } from "./localStorage";
 
 export type TezosContractAddress = `KT1${string}`;
 export type TezosAccountAddress = `tz${"1" | "2" | "3"}${string}`;
+
 export type TokenAmount = number;
 export enum AvailableToken {
-  KUSD = "kUSD",
-  HDAO = "hDAO",
+  kUSD = "kUSD",
+  hDAO = "hDAO",
   PLENTY = "PLENTY",
   xPLENTY = "xPLENTY",
-  WXTZ = "wXTZ",
+  wXTZ = "wXTZ",
   STKR = "STKR",
-  TZBTC = "tzBTC",
-  USDTZ = "USDtz",
-  ETHTZ = "ETHtz",
+  tzBTC = "tzBTC",
+  USDtz = "USDtz",
+  ETHtz = "ETHtz",
   CRUNCH = "CRUNCH",
   WRAP = "WRAP",
   wAAVE = "wAAVE",
@@ -21,7 +24,7 @@ export enum AvailableToken {
   wCEL = "wCEL",
   wCOMP = "wCOMP",
   wCRO = "wCRO",
-  WDAI = "wDAI",
+  wDAI = "wDAI",
   wFTT = "wFTT",
   wHT = "wHT",
   wHUSD = "wHUSD",
@@ -35,29 +38,39 @@ export enum AvailableToken {
   wUNI = "wUNI",
   wUSDC = "wUSDC",
   wUSDT = "wUSDT",
-  WWBTC = "wWBTC",
+  wWBTC = "wWBTC",
   wWETH = "wWETH",
-  CRDAO = "crDAO",
+  crDAO = "crDAO",
   FLAME = "FLAME",
   KALAM = "KALAM",
   PAUL = "PAUL",
   SMAK = "SMAK",
   GOT = "GOT",
   HERA = "HERA",
-  KDAO = "kDAO",
+  kDAO = "kDAO",
   QUIPU = "QUIPU",
   uUSD = "uUSD",
   YOU = "YOU",
-  Ctez = "Ctez",
+  ctez = "ctez",
   MAG = "MAG",
   PXL = "PXL",
+  uDEFI = "uDEFI",
   pxlDAO = "pxlDAO",
   fDAO = "fDAO",
   BTCtz = "BTCtz",
   IDZ = "IDZ",
   GIF = "GIF",
   TezDAO = "TezDAO",
-  uBTC = "uBTC"
+  uBTC = "uBTC",
+  ANTI = "ANTI",
+  DOGA = "DOGA",
+  MTTR = "MTTR",
+  WTZ = "WTZ",
+  BUSDE = "BUSD.e",
+  USDCE = "USDC.e",
+  EURL = "EURL",
+  USDT = "USDT",
+  DAIE = "DAI.e"
 }
 export enum AvailableFiat {
   USD = "USD",
@@ -69,7 +82,7 @@ export enum AvailableFiat {
   CNY = "CNY",
   BTC = "BTC"
 }
-export enum AvailableInvestments {
+export enum AvailableInvestment {
   "PLENTY-XTZ-LP" = "PLENTY-XTZ-LP",
   "PLENTY-hDAO-LP" = "PLENTY-hDAO-LP",
   "PLENTY-ETHtz-LP" = "PLENTY-ETHtz-LP",
@@ -89,6 +102,9 @@ export enum AvailableInvestments {
   "PLENTY-KALAM-LP" = "PLENTY-KALAM-LP",
   "PLENTY-wDAI-LP" = "PLENTY-wDAI-LP",
   "PLENTY-Ctez-LP" = "PLENTY-Ctez-LP",
+  "PLENTY-uUSD-LP" = "PLENTY-uUSD-LP",
+  "PLENTY-CTEZ-TEZ-LP" = "PLENTY-CTEZ-TEZ-LP",
+  "PLENTY-DOGA-CTEZ-LP" = "PLENTY-DOGA-CTEZ-LP",
   "xPLENTY-Staking" = "xPLENTY-Staking",
   "uUSD-YOU-LP" = "uUSD-YOU-LP",
   "uUSD-wUSDC-LP" = "uUSD-wUSDC-LP",
@@ -109,6 +125,7 @@ export enum AvailableInvestments {
   "wWETH-PAUL" = "wWETH-PAUL",
   "PAUL-uUSD" = "PAUL-uUSD",
   "PAUL-kUSD-uUSD" = "PAUL-kUSD-uUSD",
+  "PAUL-YOU" = "PAUL-YOU",
   "KUSD-QUIPU-LP" = "KUSD-QUIPU-LP",
   "KUSD-KDAO" = "KUSD-KDAO",
   "KUSD-QL" = "KUSD-QL",
@@ -164,7 +181,26 @@ export enum AvailableInvestments {
   "YOUVES-UUSD-USDTZ" = "YOUVES-UUSD-USDTZ",
   "YOUVES-YOU-UBTC" = "YOUVES-YOU-UBTC",
   "YOUVES-YOU-UUSD" = "YOUVES-YOU-UUSD",
-  "YOUVES-YOU-UDEFI" = "YOUVES-YOU-UDEFI"
+  "YOUVES-UUSD-SAVING" = "YOUVES-UUSD-SAVING",
+  "YOUVES-UDEFI-SAVING" = "YOUVES-UDEFI-SAVING",
+  "YOUVES-UBTC-SAVING" = "YOUVES-UBTC-SAVING",
+  "YOUVES-YOU-STAKING" = "YOUVES-YOU-STAKING",
+  "SMLK-XTZ-ANTI" = "SMLK-XTZ-ANTI",
+  "QUIPU-FARM-0" = "QUIPU-FARM-0",
+  "QUIPU-FARM-1" = "QUIPU-FARM-1",
+  "QUIPU-FARM-2" = "QUIPU-FARM-2",
+  "QUIPU-FARM-3" = "QUIPU-FARM-3",
+  "QUIPU-FARM-4" = "QUIPU-FARM-4",
+  "QUIPU-FARM-5" = "QUIPU-FARM-5",
+  "QUIPU-FARM-6" = "QUIPU-FARM-6",
+  "MATTER-uUSD-wTZ" = "MATTER-uUSD-wTZ",
+  "PLENTY-BUSDE-USDCE-LP" = "PLENTY-BUSDE-USDCE-LP",
+  "PLENTY-KUSD-USDCE-LP" = "PLENTY-KUSD-USDCE-LP",
+  "PLENTY-USDTZ-USDCE-LP" = "PLENTY-USDTZ-USDCE-LP",
+  "PLENTY-KUSD-USDT-LP" = "PLENTY-KUSD-USDT-LP",
+  "PLENTY-UUSD-USDT-LP" = "PLENTY-UUSD-USDT-LP",
+  "PLENTY-DAIE-USDCE-LP" = "PLENTY-DAIE-USDCE-LP",
+  "PLENTY-UUSD-USDCE-LP" = "PLENTY-UUSD-USDCE-LP"
 }
 
 export type InvestmentPlatform =
@@ -174,25 +210,34 @@ export type InvestmentPlatform =
   | "paul"
   | "kdao"
   | "wrap"
-  | "smak"
-  | "youves";
+  | "smartlink"
+  | "youves"
+  | "ctez"
+  | "matter";
 
-export interface TokenContract {
-  address: TezosContractAddress;
-  dexContractAddress: TezosContractAddress;
-  decimals: number;
-  ledgerPath: string;
-  ledgerKey: "address" | ["address", number] | [string, "address"];
-  type: "fa1.2" | "fa2";
-  color: string;
-  exchangeRate: null | number; // token to XTZ
-  tokenId?: number; // only for fa2 contracts;
-  thumbnail?: string;
-  websiteLink?: string;
+export enum AvailableDex {
+  QUIPU = "quipu",
+  PLENTY = "plenty",
+  VORTEX = "vortex"
 }
 
+export enum AvailableVault {
+  WXTZ = "wXTZ",
+  KDAO = "kDAO",
+  YOUVES = "youves",
+  CTEZ = "ctez"
+}
+
+export interface UserToken {
+  name: AvailableToken;
+  balance: number;
+}
+
+export type IconValue = AvailableToken | "XTZ" | "QUIPUSWAP" | "crDAO" | "user";
+export type IconSet = IconValue[];
+
 export interface InvestmentData {
-  id: AvailableInvestments;
+  id: AvailableInvestment;
   platform: InvestmentPlatform;
   type: string;
   address: TezosContractAddress;
@@ -203,78 +248,34 @@ export interface InvestmentData {
   rewardToken: undefined | AvailableToken;
   favorite: boolean;
   liquidityToken: boolean;
+  open: boolean;
   alias?: string;
   shareValueInTez?: number;
   totalSupply?: number;
 }
 
-export type IconValue = AvailableToken | "XTZ" | "QUIPUSWAP" | "crDAO" | "user";
-export type IconSet = IconValue[];
-
-export interface Operation {
-  entryId: number;
-  id: string;
-  hash: string;
-  level: number;
-  timestamp: string;
-  entrypoint: string;
-  sender: { address: string; alias: string };
-  target: { address: string; alias: string };
-  amount: number;
-  value: number;
-  icons: IconSet;
-  raw: any;
-  tokenIds: number[] | null;
-  status: "applied" | "failed" | "backtracked" | "skipped";
-}
-
-export interface ExchangeRateData {
-  tokenToTez: number;
-  tezToToken: number;
-  realPriceInTez: number;
-  realPriceInToken: number;
-}
-
 export interface State {
-  network: "testnet" | "mainnet";
-  currentLevel: number;
-  Tezos: TezosToolkit;
-  wallet: BeaconWallet;
-  userAddress: TezosAccountAddress;
-  settings: {
-    testnet: {
-      rpcUrl: string;
-      validRpcUrls: { name: string; url: string }[];
-    };
-    mainnet: {
-      rpcUrl: string;
-      validRpcUrls: { name: string; url: string }[];
-    };
-  };
-  tokens: { [p in AvailableToken]: TokenContract } | undefined;
-  tokensBalances: { [p in AvailableToken]: number } | undefined;
+  isAppReady: boolean;
+  settings: { rpcUrl: string; defiData: string };
+  Tezos: TezosToolkit | undefined;
+  wallet: BeaconWallet | undefined;
+  userAddress: TezosAccountAddress | undefined;
+  userName: string | undefined;
+  userBalance: number | undefined;
+  userTokens: Array<UserToken> | undefined;
+  xtzExchangeRate: number | undefined;
+  xtzPriceHistoric: Array<{ timestamp: string; price: number }>;
+  tokens: { [p in AvailableToken]: Token } | undefined;
   investments:
     | {
-        [p in AvailableInvestments]: InvestmentData;
+        [p in AvailableInvestment]: InvestmentData;
       }
     | undefined;
-  lastOperations: Operation[];
-  xtzData: {
-    exchangeRate: number | undefined;
-    balance: number;
-    historic: { timestamp: string; price: number }[];
-  };
+  currentLevel: number;
   serviceFee: number;
   admin: TezosAccountAddress;
-  defiData: string;
-  liquidityBaking:
-    | {
-        tokenPool: number;
-        xtzPool: number;
-        lqtTotal: number;
-        balance: number;
-      }
-    | undefined;
+  localStorage: LocalStorage | undefined;
+  lbData: { xtzPool: number; tokenPool: number; lqtTotal: number };
   blurryBalances: boolean;
 }
 
@@ -289,30 +290,46 @@ export interface HistoricalDataState {
     | undefined;
 }
 
-export interface KolibriOvenData {
-  address: string;
-  locked: number;
-  borrowed: number;
+export enum ToastType {
+  INFO,
+  ERROR,
+  SUCCESS,
+  WARNING,
+  TRANSFER
+}
+
+export enum TxProgress {
+  INITIALIZED,
+  INJECTED,
+  BAKING,
+  CONFIRMED
+}
+
+export interface VaultData {
+  platform: AvailableVault;
+  address: TezosContractAddress;
+  xtzLocked: number;
   isLiquidated: boolean;
+  borrowed?: number;
 }
 
-export interface LocalStorageState {
-  preferredFiat: AvailableFiat;
-  pushNotifications: boolean;
-  favoriteTokens: AvailableToken[];
-  favoriteInvestments: AvailableInvestments[];
-  wXtzVaults: TezosContractAddress[];
-  kUsdVaults: TezosContractAddress[];
-  uUsdVaults: TezosContractAddress[];
-  ctezVaults: TezosContractAddress[];
-  lastUpdate: number;
-  collapsedFarmViews: Array<InvestmentPlatform>;
-}
+export type modalAction =
+  | "borrow"
+  | "payBack"
+  | "withdraw"
+  | "deposit"
+  | "stake"
+  | "unstake"
+  | undefined;
 
-export interface ComplexBatchedOp {
-  id: string;
-  type: "harvest" | "transfer" | "exchange" | "stake";
-  origin: string;
-  platform: InvestmentPlatform | undefined;
-  op: WalletOperation | null;
+export type Farm = {
+  id: AvailableInvestment;
+  address: TezosContractAddress;
+  balance: number;
+};
+
+export interface QueuedTx {
+  id: number;
+  description: string;
+  tx: WalletParamsWithKind;
 }

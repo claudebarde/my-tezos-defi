@@ -1,43 +1,46 @@
 @import "./settings.scss";
 
-$title-color: #4b5563;
-
-@mixin farm-row-template {
-  display: grid;
-  grid-template-columns: 10% 25% 16% 17% 14% 18%;
-  padding: 10px;
+.farms-group {
+  display: flex;
+  justify-content: center;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 30px;
+  margin: 30px 0px;
 }
 
-.farm-sub-row {
-  @include farm-row-template;
-  font-size: 0.9rem;
+.farm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 
-  &.expanded {
-    border-left: solid 4px $container-bg-color;
-    margin-bottom: 4px;
-  }
-}
-
-.farm-block {
-  display: grid;
-  grid-template-columns: 25% 40% 35%;
-  gap: 10px;
-  align-items: stretch;
-  padding: 20px;
-  margin: 10px 0px;
-  background-color: lighten($container-bg-color, 65);
-  border-radius: 10px;
-
-  .title {
-    color: $title-color;
+  h3 {
+    padding: 0px;
+    margin: 0px;
   }
 
-  .farm-block__name {
+  .farm-header__right {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    justify-content: space-around;
+  }
+}
+
+.farm-row {
+  display: grid;
+  grid-template-columns: 30% 45% 25%;
+  padding: 30px 20px;
+  margin: 20px 0px;
+  background-color: $blizzard-blue;
+  border-radius: $std-border-radius;
+  position: relative;
+
+  &:hover .farm-info .icons img:not(:first-child) {
+    margin-left: 5px;
+  }
+
+  .farm-info {
+    text-align: center;
 
     .icons {
       margin: 0 auto;
@@ -45,84 +48,210 @@ $title-color: #4b5563;
       img {
         width: 48px;
         height: 48px;
+        background-color: transparent;
+        border-radius: 50%;
         transition: 0.3s;
 
         &:not(:first-child) {
           margin-left: -8px;
-          background-color: lighten($container-bg-color, 65);
-          box-shadow: 0 0 0 3px lighten($container-bg-color, 65);
           border-radius: 50%;
         }
       }
-
-      &:hover img:not(:first-child) {
-        margin-left: 5px;
-        box-shadow: none;
-      }
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
+    .farm-info__link {
+      margin: 20px 0px;
+    }
 
-      &:hover {
-        text-decoration: underline;
-      }
+    .farm-info__tokens-price,
+    .farm-info__long-term-rewards {
+      font-size: 0.8rem;
     }
   }
 
-  .farm-block__data {
+  .user-info {
     text-align: center;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+
+    .bold {
+      font-weight: bold;
+    }
   }
 
-  .farm-block__actions {
+  .actions {
     text-align: center;
     display: flex;
     flex-direction: column;
-    align-items: stretch;
-    justify-content: space-around;
-    width: 90%;
-    margin: 0 auto;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+
+    .bold {
+      font-weight: bold;
+    }
+  }
+
+  .token-box_expand-less {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
   }
 }
 
-.collapsed-farm-row {
-  display: grid;
-  grid-template-columns: 15% 25% 20% 25% 15%;
-  align-items: center;
-  padding: 5px 0px;
+.farm-row-mini {
+  @include row;
+  overflow: hidden;
 
-  & > div {
+  &:hover .icons img:not(:first-child) {
+    margin-left: 5px;
+  }
+
+  div.bold,
+  p.bold {
+    font-weight: bold;
+  }
+
+  div.ribbon {
+    width: 150px;
+    position: absolute;
+    top: 10px;
+    left: -50px;
     text-align: center;
+    line-height: 40px;
+    letter-spacing: 1px;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+
+    &.blue {
+      background: $pacific-blue;
+      color: #f0f0f0;
+    }
+    &.yellow {
+      background: $cyber-yellow;
+      color: $midnight-blue;
+    }
+  }
+
+  .reward-token {
+    height: 18px;
+    width: 18px;
+    vertical-align: text-top;
+  }
+}
+
+.farm-cube {
+  $size: 280px;
+
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  width: $size;
+  height: $size;
+  background-color: $blizzard-blue;
+  border-radius: $std-border-radius;
+  padding: 10px;
+  overflow: hidden;
+
+  div.ribbon {
+    width: 150px;
+    position: absolute;
+    top: 10px;
+    left: -50px;
+    text-align: center;
+    line-height: 30px;
+    letter-spacing: 1px;
+    transform: rotate(-45deg);
+    -webkit-transform: rotate(-45deg);
+
+    &.blue {
+      background: $pacific-blue;
+      color: #f0f0f0;
+    }
+    &.yellow {
+      background: $cyber-yellow;
+      color: $midnight-blue;
+    }
+  }
+
+  .farm-cube__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+
+    .user-info {
+      text-align: center;
+      font-size: 0.8rem;
+    }
+  }
+
+  .farm-cube__body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    text-align: center;
+
+    .reward-token {
+      height: 18px;
+      width: 18px;
+      vertical-align: text-top;
+    }
+  }
+
+  .farm-cube__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
   }
 
   .icons {
     margin: 0 auto;
 
     img {
-      width: 28px;
-      height: 28px;
+      width: 48px;
+      height: 48px;
+      background-color: transparent;
+      border-radius: 50%;
       transition: 0.3s;
 
       &:not(:first-child) {
-        margin-left: -4px;
-        background-color: lighten($container-bg-color, 65);
-        box-shadow: 0 0 0 3px lighten($container-bg-color, 65);
+        margin-left: -8px;
         border-radius: 50%;
       }
     }
+  }
 
-    &:hover img:not(:first-child) {
-      margin-left: 5px;
-      box-shadow: none;
+  &:hover .icons img:not(:first-child) {
+    margin-left: 5px;
+  }
+}
+
+@media (max-width: $mobile-breakpoint) {
+  .farm-header {
+    flex-direction: column;
+    gap: 10px;
+
+    .farm-header__right {
+      flex-direction: column;
+      gap: 10px;
     }
   }
 
-  .title {
-    color: $title-color;
+  .farm-row-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 10px;
+    margin: 20px auto;
+
+    button.expand {
+      display: none;
+    }
   }
 }

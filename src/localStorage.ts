@@ -1,528 +1,197 @@
-import { writable, get } from "svelte/store";
-import type {
-  LocalStorageState,
-  TezosAccountAddress,
-  TezosContractAddress
-} from "./types";
-import {
-  AvailableFiat,
-  AvailableToken,
-  AvailableInvestments,
-  InvestmentPlatform
-} from "./types";
-import generalStore from "./store";
 import config from "./config";
+import type { AvailableInvestment, TezosAccountAddress } from "./types";
+import { AvailableFiat } from "./types";
 
-let state = null;
-const localStorageItemName = "mtd";
-const version = config.version;
-let favoriteRpcUrl = "https://mainnet.api.tez.ie";
-let forceDownloadDefiData = false;
-let initialState: LocalStorageState = {
-  preferredFiat: AvailableFiat.USD,
-  pushNotifications: false,
-  favoriteTokens: [],
-  favoriteInvestments: [],
-  kUsdVaults: [],
-  wXtzVaults: [],
-  uUsdVaults: [],
-  ctezVaults: [],
-  lastUpdate: Date.now(),
-  collapsedFarmViews: []
-};
-
-const wrapUserState = (
-  state: LocalStorageState,
-  userAddress: TezosAccountAddress,
-  favoriteRpcUrl: string,
-  forceDownloadDefiData: boolean
-) => {
-  if (!userAddress) throw "No user address";
-
-  return {
-    [userAddress]: state,
-    version,
-    favoriteRpcUrl,
-    forceDownloadDefiData
-  };
-};
-
-if (globalThis?.window?.localStorage) {
-  const store = writable(undefined);
-
-  state = {
-    subscribe: store.subscribe,
-    init: (userAddress: TezosAccountAddress) => {
-      store.update(_ => {
-        if (!userAddress) {
-          return initialState;
-        } else {
-          const localStorage =
-            window.localStorage.getItem(localStorageItemName);
-          if (localStorage) {
-            // gets the local storage
-            const stateFromStorage = JSON.parse(localStorage);
-            // saves favorite RPC URL
-            if (stateFromStorage.hasOwnProperty("favoriteRpcUrl")) {
-              favoriteRpcUrl = stateFromStorage.favoriteRpcUrl;
-            }
-            if (stateFromStorage.hasOwnProperty("forceDownloadDefiData")) {
-              forceDownloadDefiData = stateFromStorage.forceDownloadDefiData;
-            }
-
-            let newState;
-            if (stateFromStorage.version !== version) {
-              newState = { ...initialState, ...stateFromStorage[userAddress] };
-              // updates the local storage
-              try {
-                window.localStorage.setItem(
-                  localStorageItemName,
-                  JSON.stringify(
-                    wrapUserState(
-                      newState,
-                      userAddress,
-                      favoriteRpcUrl,
-                      forceDownloadDefiData
-                    )
-                  )
-                );
-              } catch (error) {
-                console.error(error);
-              }
-            } else {
-              // patches for typos in investment data
-              if (
-                stateFromStorage[userAddress] &&
-                stateFromStorage[userAddress].hasOwnProperty(
-                  "favoriteInvestments"
-                ) &&
-                stateFromStorage[userAddress].favoriteInvestments.includes(
-                  "WRAP-WBTC-FM"
-                )
-              ) {
-                const correctedFavoriteInvestments = stateFromStorage[
-                  userAddress
-                ].favoriteInvestments.filter(inv => inv !== "WRAP-WBTC-FM");
-                correctedFavoriteInvestments.push("WRAP-WWBTC-FM");
-                stateFromStorage[userAddress].favoriteInvestments =
-                  correctedFavoriteInvestments;
-              }
-              if (
-                stateFromStorage[userAddress] &&
-                stateFromStorage[userAddress].hasOwnProperty(
-                  "favoriteInvestments"
-                ) &&
-                stateFromStorage[userAddress].favoriteInvestments.includes(
-                  "WRAP-USDC-FM"
-                )
-              ) {
-                const correctedFavoriteInvestments = stateFromStorage[
-                  userAddress
-                ].favoriteInvestments.filter(inv => inv !== "WRAP-USDC-FM");
-                correctedFavoriteInvestments.push("WRAP-WUSDC-FM");
-                stateFromStorage[userAddress].favoriteInvestments =
-                  correctedFavoriteInvestments;
-              }
-              newState = { ...stateFromStorage[userAddress] };
-              // removes Ctez farms
-              // TODO: remove after a few updates
-              if (
-                newState.favoriteInvestments.find(farm => farm.includes("Ctez"))
-              ) {
-                const newFavoriteInvestments =
-                  newState.favoriteInvestments.filter(
-                    farm => !farm.includes("Ctez")
-                  );
-                newState.favoriteInvestments = [...newFavoriteInvestments];
-              }
-            }
-
-            return newState;
-          } else {
-            // sets up the local storage
-            try {
-              window.localStorage.setItem(
-                localStorageItemName,
-                JSON.stringify(
-                  wrapUserState(
-                    initialState,
-                    userAddress,
-                    favoriteRpcUrl,
-                    forceDownloadDefiData
-                  )
-                )
-              );
-            } catch (error) {
-              console.error(error);
-            }
-
-            return initialState;
-          }
-        }
-      });
-    },
-    destroy: () => {
-      store.update(_ => initialState);
-    },
-    updateFiat: (fiat: AvailableFiat, exchangeRate: number) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        const newStore = {
-          ...store,
-          preferredFiat: fiat,
-          xtzExchangeRate: exchangeRate,
-          lastUpdate: Date.now()
-        };
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  favoriteRpcUrl,
-                  forceDownloadDefiData
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    },
-    addFavoriteToken: (tokenSymbol: AvailableToken) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        const newStore = {
-          ...store,
-          favoriteTokens: !store.favoriteTokens.includes(tokenSymbol)
-            ? [...store.favoriteTokens, tokenSymbol]
-            : store.favoriteTokens
-        };
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  favoriteRpcUrl,
-                  forceDownloadDefiData
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    },
-    removeFavoriteToken: (tokenSymbol: AvailableToken) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        const newStore = {
-          ...store,
-          favoriteTokens: [
-            ...store.favoriteTokens.filter(tk => tk !== tokenSymbol)
-          ]
-        };
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  favoriteRpcUrl,
-                  forceDownloadDefiData
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    },
-    addFavoriteInvestment: (investment: AvailableInvestments) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        const newStore = {
-          ...store,
-          favoriteInvestments: !store.favoriteInvestments.includes(investment)
-            ? [...store.favoriteInvestments, investment]
-            : store.favoriteInvestments
-        };
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  favoriteRpcUrl,
-                  forceDownloadDefiData
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    },
-    removeFavoriteInvestment: (investment: AvailableInvestments) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        const newStore = {
-          ...store,
-          favoriteInvestments: [
-            ...store.favoriteInvestments.filter(inv => inv !== investment)
-          ]
-        };
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  favoriteRpcUrl,
-                  forceDownloadDefiData
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    },
-    addVault: (
-      platform: "wxtz" | "kusd" | "uusd" | "ctez",
-      vault: TezosContractAddress
-    ) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        let vaultsToUpdate;
-        switch (platform) {
-          case "wxtz":
-            vaultsToUpdate = "wXtzVaults";
-            break;
-          case "kusd":
-            vaultsToUpdate = "kUsdVaults";
-            break;
-          case "uusd":
-            vaultsToUpdate = "uUsdVaults";
-            break;
-          case "ctez":
-            vaultsToUpdate = "ctezVaults";
-            break;
-        }
-
-        const newStore = { ...store };
-        if (!store.hasOwnProperty(vaultsToUpdate)) {
-          newStore[vaultsToUpdate] = [vault];
-        } else if (!store[vaultsToUpdate].includes(vault)) {
-          newStore[vaultsToUpdate] = [...store[vaultsToUpdate], vault];
-        }
-
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  favoriteRpcUrl,
-                  forceDownloadDefiData
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    },
-    removeVault: (
-      platform: "wxtz" | "kusd" | "uusd" | "ctez",
-      vault: TezosContractAddress
-    ) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        let vaultsToUpdate;
-        switch (platform) {
-          case "wxtz":
-            vaultsToUpdate = "wXtzVaults";
-            break;
-          case "kusd":
-            vaultsToUpdate = "kUsdVaults";
-            break;
-          case "uusd":
-            vaultsToUpdate = "uUSdVaults";
-            break;
-          case "ctez":
-            vaultsToUpdate = "ctezVaults";
-            break;
-        }
-
-        const newStore = {
-          ...store,
-          [vaultsToUpdate]: [...store[vaultsToUpdate].filter(v => v !== vault)]
-        };
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  favoriteRpcUrl,
-                  forceDownloadDefiData
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    },
-    updateFavoriteRpcUrl: (url: string) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        const newStore = {
-          ...store,
-          lastUpdate: Date.now()
-        };
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  url,
-                  forceDownloadDefiData
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    },
-    updateDownloadDefiData: (status: boolean) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        const newStore = {
-          ...store,
-          lastUpdate: Date.now()
-        };
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  favoriteRpcUrl,
-                  status
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    },
-    updateCollapsedFarmViews: (farmViewPlatform: InvestmentPlatform) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        if (!store.hasOwnProperty("collapsedFarmViews")) {
-          store.collapsedFarmViews = [];
-        }
-
-        const newStore = {
-          ...store,
-          collapsedFarmViews: store.collapsedFarmViews.includes(
-            farmViewPlatform
-          )
-            ? store.collapsedFarmViews.filter(
-                platform => platform !== farmViewPlatform
-              )
-            : [farmViewPlatform, ...store.collapsedFarmViews]
-        };
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  favoriteRpcUrl,
-                  forceDownloadDefiData
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    },
-    updateForceDownloadDefiData: (status: boolean) => {
-      store.update(store => {
-        const gnrlStore = get(generalStore);
-        const newStore = {
-          ...store,
-          forceDownloadDefiData: status
-        };
-        if (gnrlStore.userAddress) {
-          try {
-            window.localStorage.setItem(
-              localStorageItemName,
-              JSON.stringify(
-                wrapUserState(
-                  newStore,
-                  gnrlStore.userAddress,
-                  favoriteRpcUrl,
-                  forceDownloadDefiData
-                )
-              )
-            );
-          } catch (error) {
-            console.error(error);
-          }
-        }
-        return newStore;
-      });
-    }
-  };
+export interface FiatData {
+  code: AvailableFiat;
+  symbol: string;
+  name: string;
+}
+export interface userStorage {
+  version: string;
+  farms: Array<AvailableInvestment>;
+  lastActiveLevel: number;
+  showLiquidatedVaults: boolean;
+  favoriteFiat: FiatData;
+}
+export interface localStorage {
+  [p: TezosAccountAddress]: userStorage;
+  rpcUrl: string;
 }
 
-export default state;
+const defaultRpcUrl = "https://mainnet.api.tez.ie";
+
+export class LocalStorage {
+  static #storageName = "mtd-storage";
+  private currentUser: TezosAccountAddress;
+  private version: string;
+  private farms: Array<AvailableInvestment>;
+  private lastActiveLevel: number;
+  private allowPushNotifications: boolean;
+  public showLiquidatedVaults: boolean;
+  public rpcUrl: string;
+  private favoriteFiat: FiatData;
+
+  constructor(userAddress: TezosAccountAddress, currentLevel: number) {
+    if (window && window.localStorage) {
+      this.currentUser = userAddress;
+      this.rpcUrl = LocalStorage.getRpcUrl();
+
+      const localStorage = this.getStorage();
+      if (localStorage) {
+        this.version = localStorage.version;
+        this.farms = localStorage.farms || [];
+        this.lastActiveLevel = currentLevel;
+        this.favoriteFiat = localStorage.favoriteFiat
+          ? localStorage.favoriteFiat
+          : config.validFiats.find(fiat => fiat.code === AvailableFiat.USD);
+        // updates the storage to add lastActiveLevel property
+        if (
+          !localStorage.hasOwnProperty("lastActiveLevel") ||
+          !localStorage.hasOwnProperty("showLiquidatedVaults")
+        ) {
+          this.showLiquidatedVaults = true;
+          this.saveStorage({
+            version: localStorage.version,
+            farms: localStorage.farms,
+            lastActiveLevel: currentLevel,
+            showLiquidatedVaults: true,
+            favoriteFiat: this.favoriteFiat
+          });
+        } else {
+          this.showLiquidatedVaults = localStorage.showLiquidatedVaults;
+        }
+      } else {
+        // new user
+        const newStorage: userStorage = {
+          version: config.version,
+          farms: [],
+          lastActiveLevel: currentLevel,
+          showLiquidatedVaults: true,
+          favoriteFiat: config.validFiats.find(
+            fiat => fiat.code === AvailableFiat.USD
+          )
+        };
+        this.saveStorage(newStorage);
+      }
+    } else {
+      console.error("local storage is not available");
+    }
+  }
+
+  private getStorage(): userStorage | null {
+    const localStorage = window.localStorage.getItem(LocalStorage.#storageName);
+    if (localStorage) {
+      const storage = JSON.parse(localStorage);
+      this.rpcUrl;
+      if (storage.hasOwnProperty(this.currentUser)) {
+        return storage[this.currentUser];
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
+
+  private saveStorage(val: Partial<userStorage>) {
+    // window.localStorage.setItem(
+    //   LocalStorage.#storageName,
+    //   JSON.stringify({ [this.currentUser]: val, rpcUrl: this.rpcUrl })
+    // );
+    window.localStorage.setItem(
+      LocalStorage.#storageName,
+      JSON.stringify({
+        [this.currentUser]: {
+          version: this.version,
+          farms: this.farms,
+          lastActiveLevel: this.lastActiveLevel,
+          showLiquidatedVaults: this.showLiquidatedVaults,
+          favoriteFiat: this.favoriteFiat,
+          ...val
+        },
+        rpcUrl: this.rpcUrl
+      })
+    );
+  }
+
+  public getVersion() {
+    return this.version;
+  }
+
+  public getFarms() {
+    return this.farms;
+  }
+
+  public getLastActiveLevel() {
+    return this.lastActiveLevel;
+  }
+
+  public getFavoriteFiat() {
+    return this.favoriteFiat;
+  }
+
+  public addFarms(farms: Array<AvailableInvestment>) {
+    const newFarms = Array.from(new Set([...this.farms, ...farms]));
+    this.farms = newFarms;
+    this.saveStorage({
+      farms: newFarms
+    });
+  }
+
+  public removeFarms(farms: Array<AvailableInvestment>) {
+    const newFarms = this.farms.filter(farm => !farms.includes(farm));
+    this.farms = newFarms;
+    this.saveStorage({
+      farms: newFarms
+    });
+  }
+
+  public updateLastActiveLevel(level: number) {
+    this.lastActiveLevel = level;
+    this.saveStorage({
+      lastActiveLevel: level
+    });
+  }
+
+  public updateLiquidatedVaultsDisplay(show: boolean) {
+    this.showLiquidatedVaults = show;
+    this.saveStorage({
+      showLiquidatedVaults: show
+    });
+  }
+
+  static getRpcUrl(): string {
+    const localStorage = window.localStorage.getItem(LocalStorage.#storageName);
+    if (localStorage) {
+      const storage = JSON.parse(localStorage);
+      if (storage.hasOwnProperty("rpcUrl")) {
+        return storage.rpcUrl;
+      }
+    }
+
+    return defaultRpcUrl;
+  }
+
+  public setRpcUrl(rpcUrl: string): boolean {
+    const localStorage = window.localStorage.getItem(LocalStorage.#storageName);
+    if (localStorage) {
+      this.rpcUrl = rpcUrl;
+      const newLocalStorage = { ...JSON.parse(localStorage), rpcUrl };
+      window.localStorage.setItem(
+        LocalStorage.#storageName,
+        JSON.stringify(newLocalStorage)
+      );
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  public setFavoriteFiat(fiat: FiatData): void {
+    this.favoriteFiat = fiat;
+    this.saveStorage({
+      favoriteFiat: fiat
+    });
+  }
+}

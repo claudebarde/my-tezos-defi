@@ -2,99 +2,84 @@
 
 .buttons {
   display: flex;
-  gap: 5px;
-
-  &:not(.stack) {
-    justify-content: center;
-    align-items: center;
-  }
-  &.stack {
-    flex-direction: column;
-  }
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 button {
-  border-radius: 10px;
-  font-size: 1rem;
-  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0px 5px;
+  border-radius: $std-border-radius;
+  padding: 10px;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: 0.3s;
+
+  span.material-icons,
+  span.material-icons-outlined,
+  span.material-symbols,
+  span.material-symbols-outlined {
+    color: inherit;
+    margin-right: 10px;
+  }
 
   &.primary {
-    padding: 10px 15px;
-    color: $container-bg-color;
-    background-color: lighten($container-bg-color, 60);
-    border: none;
-    transition: 0.3s;
+    border: solid 2px $blue-green;
+    background-color: transparent;
+    color: $blue-green;
+    font-size: inherit;
 
-    img {
-      height: 1rem;
-    }
-
-    &:not(:disabled):hover {
+    &:hover {
+      background-color: $blue-green;
       color: white;
-      background-color: $container-bg-color;
     }
 
     &:disabled {
-      background-color: transparent;
+      border-color: $light-slate-grey;
+      color: $light-slate-grey;
+      cursor: not-allowed;
+
+      &:hover {
+        background-color: transparent;
+        color: $light-slate-grey;
+      }
+    }
+  }
+
+  &.full {
+    width: 100%;
+  }
+
+  &.transparent {
+    background-color: transparent;
+    border: none;
+
+    &:hover {
+      background-color: $blizzard-blue;
+    }
+  }
+
+  &.nav {
+    background-color: transparent;
+    border: none;
+    font-size: 1rem;
+    width: 100%;
+
+    &:hover {
+      background-color: $blizzard-blue;
     }
   }
 
   &.mini {
-    padding: 5px 10px;
-    color: $container-bg-color;
-    background-color: lighten($container-bg-color, 60);
-    border: none;
-    transition: 0.3s;
-    font-size: 1rem;
-
-    &:hover {
-      color: white;
-      background-color: $container-bg-color;
-    }
-
-    .material-icons {
-      font-size: 1rem;
-    }
+    padding: 5px;
+    font-size: 0.8rem;
   }
 
-  &.loading {
-    .material-icons {
-      animation: loading-rotate 2s ease-out infinite;
-    }
-  }
-
-  &.success {
-    color: white;
-    background-color: $success-green;
-    border-color: $success-green;
-  }
-  &.error {
-    color: white;
-    background-color: $error-red;
-    border-color: $error-red;
-  }
-
-  &.outline {
-    background-color: transparent;
-    border: solid 2px $container-bg-color;
-    color: $container-bg-color;
-  }
-}
-
-@keyframes loading-rotate {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  50% {
-    transform: rotate(360deg);
-  }
-
-  100% {
-    transform: rotate(0deg);
+  &.round {
+    border-radius: 50%;
   }
 }

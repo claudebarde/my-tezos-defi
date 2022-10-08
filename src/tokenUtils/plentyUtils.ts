@@ -1,9 +1,12 @@
 import type { TezosToolkit } from "@taquito/taquito";
-import { AvailableInvestments, AvailableToken } from "../types";
 import { get } from "svelte/store";
-import store from "../store";
+import { Option, Result } from "@swan-io/boxed";
+import { AvailableInvestment, AvailableToken } from "../types";
+import type { InvestmentData, TezosAccountAddress, IconValue } from "../types";
+import _store from "../store";
 import config from "../config";
 import type { TezosContractAddress } from "../types";
+import { formatTokenAmount } from "../utils";
 
 export const formatPlentyLpAmount = (
   lpAmount: number,
@@ -23,11 +26,13 @@ export const formatPlentyLpAmount = (
     case "PLENTY-Ctez-LP":
     case "Ctez-kUSD-LP":
     case "Ctez-wDAI-LP":
+    case "PLENTY-CTEZ-TEZ-LP":
       return lpAmount / 10 ** 6;
     case "PLENTY-wWBTC":
     case "PLENTY-tzBTC-LP":
     case "PLENTY-WRAP-LP":
     case "PLENTY-UNO-LP":
+    case "PLENTY-DOGA-CTEZ-LP":
       return lpAmount / 10 ** 5;
     case "PLENTY-uUSD-LP":
     case "PLENTY-KALAM-LP":
@@ -58,7 +63,7 @@ export const getLPConversion = (
 };
 
 export const getPlentyLqtValue = async (
-  exchangePair: AvailableInvestments,
+  exchangePair: AvailableInvestment,
   exchangeAddress: string,
   lpAmount: number,
   Tezos: TezosToolkit
@@ -71,13 +76,60 @@ export const getPlentyLqtValue = async (
 
     const exchangeContract = await Tezos.wallet.at(exchangeAddress);
     const exchangeStorage: any = await exchangeContract.storage();
+    let token1_pool, token2_pool, totalSupply, token2;
+    if (exchangePair === "PLENTY-CTEZ-TEZ-LP") {
+      token1_pool = exchangeStorage.tezPool.toNumber();
+      token2_pool = exchangeStorage.ctezPool.toNumber();
+      totalSupply = exchangeStorage.lqtTotal.toNumber();
+      token2 = AvailableToken.ctez;
+    } else if (
+      [
+        "PLENTY-BUSDE-USDCE-LP",
+        "PLENTY-KUSD-USDCE-LP",
+        "PLENTY-USDTZ-USDCE-LP",
+        "PLENTY-KUSD-USDT-LP",
+        "PLENTY-UUSD-USDT-LP",
+        "PLENTY-DAIE-USDCE-LP",
+        "PLENTY-UUSD-USDCE-LP"
+      ].includes(exchangePair)
+    ) {
+      token1_pool = exchangeStorage.token1Pool.toNumber();
+      token2_pool = exchangeStorage.token2Pool.toNumber();
+      totalSupply = exchangeStorage.lqtTotal.toNumber();
+      token2 = (() => {
+        switch (exchangePair) {
+          case "PLENTY-BUSDE-USDCE-LP":
+            return AvailableToken.USDCE;
+          case "PLENTY-KUSD-USDCE-LP":
+            return AvailableToken.USDCE;
+          case "PLENTY-USDTZ-USDCE-LP":
+            return AvailableToken.USDCE;
+          case "PLENTY-KUSD-USDT-LP":
+            return AvailableToken.USDT;
+          case "PLENTY-UUSD-USDT-LP":
+            return AvailableToken.USDT;
+          case "PLENTY-DAIE-USDCE-LP":
+            return AvailableToken.USDCE;
+          case "PLENTY-UUSD-USDCE-LP":
+            return AvailableToken.USDCE;
+        }
+      })();
+    } else {
+      token1_pool = exchangeStorage.token1_pool.toNumber();
+      token2_pool = exchangeStorage.token2_pool.toNumber();
+      totalSupply = exchangeStorage.totalSupply.toNumber();
+      token2 = exchangePair.split("-")[1];
+    }
     const tokenAmounts = getLPConversion(
-      exchangeStorage.token1_pool.toNumber(),
-      exchangeStorage.token2_pool.toNumber(),
-      exchangeStorage.totalSupply.toNumber(),
+      token1_pool,
+      token2_pool,
+      totalSupply,
       formattedLpAmount
     );
-    return { ...tokenAmounts, token2: exchangePair.split("-")[1] };
+    return {
+      ...tokenAmounts,
+      token2
+    };
   } catch (error) {
     console.error(error);
     return null;
@@ -85,47 +137,68 @@ export const getPlentyLqtValue = async (
 };
 
 export const getPlentyReward = async (
-  userAddress: string,
+  userAddress: TezosAccountAddress,
   stakingContractAddress: string,
   currentLevel: number,
   decimals: number
-) => {
-  const localStore = get(store);
+): Promise<
+  | { status: true; totalRewards: Array<number> }
+  | { status: false; error: string }
+> => {
+  const localStore = get(_store);
 
   try {
     if (!stakingContractAddress) {
       throw "No contract address provided";
     }
 
-    const contract = await localStore.Tezos.wallet.at(stakingContractAddress);
-    const storage: any = await contract.storage();
-    if (storage.totalSupply.toNumber() == 0) {
-      throw "No One Staked";
-    }
-    // Calculate Reward Per Token
-    let rewardPerToken = Math.min(
-      currentLevel,
-      storage.periodFinish.toNumber()
-    );
-    rewardPerToken = rewardPerToken - storage.lastUpdateTime.toNumber();
-    rewardPerToken *= storage.rewardRate.toNumber() * Math.pow(10, decimals);
-    rewardPerToken =
-      rewardPerToken / storage.totalSupply.toNumber() +
-      storage.rewardPerTokenStored.toNumber();
-    // Fetch User's Big Map Detais;   ​
-    const userDetails = await storage.balances.get(userAddress);
-    // Calculating Rewards   ​
-    let totalRewards =
-      userDetails.balance.toNumber() *
-      (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
-    totalRewards =
-      totalRewards / Math.pow(10, decimals) + userDetails.rewards.toNumber();
-    totalRewards = totalRewards / Math.pow(10, decimals); // Reducing to Token Decimals
+    if (stakingContractAddress === "KT1WzUmmF98aQdpKnWigkg3SnJiL1s2Fj6QQ") {
+      const rewards = await calculateDualReward(
+        localStore.Tezos,
+        "KT1QkadMTUTDxyNiTaz587ssPXFuwmWWQzDG",
+        "KT1PxZCPGoxukDXq1smJcmQcLiadTB6czjCY",
+        userAddress,
+        currentLevel
+      );
 
-    if (totalRewards >= 0) {
-      return { status: true, totalRewards };
+      return rewards.match<
+        | { status: true; totalRewards: Array<number> }
+        | { status: false; error: string }
+      >({
+        Ok: val => ({ status: true, totalRewards: val }),
+        Error: err => ({ status: false, error: err })
+      });
     } else {
-      throw `Negative rewards: ${totalRewards}`;
+      const contract = await localStore.Tezos.wallet.at(stakingContractAddress);
+      const storage: any = await contract.storage();
+      if (storage.totalSupply.toNumber() == 0) {
+        throw "No One Staked";
+      }
+      // Calculate Reward Per Token
+      let rewardPerToken = Math.min(
+        currentLevel,
+        storage.periodFinish.toNumber()
+      );
+      rewardPerToken = rewardPerToken - storage.lastUpdateTime.toNumber();
+      rewardPerToken *= storage.rewardRate.toNumber() * Math.pow(10, decimals);
+      rewardPerToken =
+        rewardPerToken / storage.totalSupply.toNumber() +
+        storage.rewardPerTokenStored.toNumber();
+      // Fetch User's Big Map Detais;   ​
+      const userDetails = await storage.balances.get(userAddress);
+      // Calculating Rewards   ​
+      let totalRewards =
+        userDetails.balance.toNumber() *
+        (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
+      totalRewards =
+        totalRewards / Math.pow(10, decimals) + userDetails.rewards.toNumber();
+      totalRewards = totalRewards / Math.pow(10, decimals); // Reducing to Token Decimals
+
+      if (totalRewards >= 0) {
+        return { status: true, totalRewards: [totalRewards] };
+      } else {
+        throw `Negative rewards: ${totalRewards}`;
+      }
     }
   } catch (error) {
     return { status: false, error };
@@ -140,7 +213,7 @@ export const calcPlentyStakeInXtz = async ({
   exchangeRate,
   rewardToken
 }: {
-  id: AvailableInvestments;
+  id: AvailableInvestment;
   isPlentyLpToken: boolean;
   balance: number;
   decimals: number;
@@ -149,7 +222,7 @@ export const calcPlentyStakeInXtz = async ({
 }): Promise<number> => {
   if (!balance) return 0;
 
-  const localStore = get(store);
+  const localStore = get(_store);
 
   if (!isPlentyLpToken) {
     const stakeInXtz =
@@ -170,29 +243,32 @@ export const calcPlentyStakeInXtz = async ({
         // when reward token is YOU
         stakeInXtz =
           (tokens.token1Amount / 10 ** localStore.tokens.uUSD.decimals) *
-            localStore.tokens.uUSD.exchangeRate +
+            localStore.tokens.uUSD.getExchangeRate() +
           (tokens.token2Amount /
             10 ** localStore.tokens[tokens.token2].decimals) *
-            localStore.tokens[tokens.token2].exchangeRate;
-      } else if (id.slice(0, 4).toLowerCase() === "ctez") {
+            localStore.tokens[tokens.token2].getExchangeRate();
+      } else if (id === "PLENTY-CTEZ-TEZ-LP") {
         // when staked token is Ctez
         stakeInXtz =
-          (tokens.token1Amount / 10 ** localStore.tokens.Ctez.decimals) *
-            localStore.tokens.Ctez.exchangeRate +
-          (tokens.token2Amount /
-            10 ** localStore.tokens[tokens.token2].decimals) *
-            localStore.tokens[tokens.token2].exchangeRate;
+          tokens.token1Amount +
+          tokens.token2Amount * localStore.tokens.ctez.getExchangeRate();
+      } else if (id === "PLENTY-DOGA-CTEZ-LP") {
+        stakeInXtz =
+          (tokens.token2Amount / 10 ** localStore.tokens.ctez.decimals) *
+            localStore.tokens.ctez.getExchangeRate() +
+          (tokens.token1Amount / 10 ** localStore.tokens.DOGA.decimals) *
+            localStore.tokens.DOGA.getExchangeRate();
       } else {
         // when reward token is PLENTY
         stakeInXtz =
           (tokens.token1Amount / 10 ** localStore.tokens.PLENTY.decimals) *
-            localStore.tokens.PLENTY.exchangeRate +
+            localStore.tokens.PLENTY.getExchangeRate() +
           (tokens.token2Amount /
             10 ** localStore.tokens[tokens.token2].decimals) *
-            localStore.tokens[tokens.token2].exchangeRate;
+            localStore.tokens[tokens.token2].getExchangeRate();
       }
 
-      return +stakeInXtz.toFixed(5) / 1;
+      return +stakeInXtz;
     }
   }
 };
@@ -206,7 +282,7 @@ export const getLPTokenPrice = async ({
   lp_token_decimal,
   Tezos
 }: {
-  tokenPair: AvailableInvestments;
+  tokenPair: AvailableInvestment;
   token1_price: number;
   token1_decimal: number;
   token2_price: number;
@@ -262,7 +338,7 @@ const xPlentyComputation = async (
   Tezos: TezosToolkit,
   currentBlockLevel: number
 ) => {
-  const localStore = get(store);
+  const localStore = get(_store);
   const rewardManagerAddress = "KT1MCgouivQ2rzam5hA2gqF1eMtY5i6ndJvT";
   const xPlentyCurveAddress = "KT1PxkrCckgh5fA5v2cZEE2bX5q2RV1rv8dj";
 
@@ -425,7 +501,7 @@ export const computeTokenOutput = async (
   token2: { name: AvailableToken | "XTZ"; decimals: number },
   slippage: number
 ) => {
-  const localStore = get(store);
+  const localStore = get(_store);
 
   const dexAddressVal = Object.entries(config.plentyDexAddresses).find(
     val => val[0].includes(token1.name) && val[0].includes(token2.name)
@@ -445,4 +521,186 @@ export const computeTokenOutput = async (
   const fees = token1Amount * exchangeFee;
 
   return { token2Amount: swapOutput, minimumOut, fees };
+};
+
+export const calcPlentyRewards = async (
+  invData: InvestmentData,
+  userAddress: TezosAccountAddress,
+  currentLevel: number
+): Promise<Option<Array<number>>> => {
+  const store = get(_store);
+
+  const rewardsRes = await getPlentyReward(
+    userAddress,
+    invData.address,
+    currentLevel,
+    invData.rewardToken === AvailableToken.YOU ||
+      invData.id === "PLENTY-CTEZ-TEZ-LP"
+      ? store.investments[invData.id].decimals
+      : 18
+  );
+  if (rewardsRes && rewardsRes.status) {
+    return Option.Some(rewardsRes.totalRewards);
+  } else {
+    return Option.None();
+  }
+};
+
+export const calcPlentyStake = async (
+  invData: InvestmentData
+): Promise<Result<number, string>> => {
+  const store = get(_store);
+
+  const stakeInXtz = await calcPlentyStakeInXtz({
+    isPlentyLpToken: invData.platform === "plenty",
+    id: invData.id,
+    balance: invData.balance,
+    decimals: invData.decimals,
+    exchangeRate: store.tokens[invData.rewardToken].getExchangeRate(),
+    rewardToken: invData.rewardToken
+  });
+
+  if ((stakeInXtz || stakeInXtz === 0) && !isNaN(stakeInXtz)) {
+    return Result.Ok(stakeInXtz);
+  } else {
+    return Result.Error(
+      `Stake in XTZ coudn't be computed for ${invData.alias}`
+    );
+  }
+};
+
+export const fetchPlentyStatistics = async (
+  invData: InvestmentData,
+  stakeInXtz: number
+): Promise<
+  Result<{ roiPerWeek: number; apr: number; apy: number }, string>
+> => {
+  const store = get(_store);
+
+  const tokenPair = invData.id;
+  const token1 = invData.icons[0];
+  const token2 = invData.icons[1];
+
+  let lpTokenPrice = await (async () => {
+    // TODO: calculate APR/APY with TEZ pair
+    if (token1 === ("XTZ" as IconValue)) {
+      return Result.Error("error");
+    } else if (token2 === ("XTZ" as IconValue)) {
+      return Result.Error("error");
+    } else {
+      const res = await getLPTokenPrice({
+        tokenPair,
+        token1_price: store.tokens[token1].getExchangeRate(),
+        token1_decimal: store.tokens[token1].decimals,
+        token2_price: store.tokens[token2].getExchangeRate(),
+        token2_decimal: store.tokens[token2].decimals,
+        lp_token_decimal: store.investments[tokenPair].decimals,
+        Tezos: store.Tezos
+      });
+      return Result.Ok(res);
+    }
+  })();
+  const result = await lpTokenPrice.match({
+    Error: () => undefined,
+    Ok: async price =>
+      await calcPlentyAprApy({
+        Tezos: store.Tezos,
+        farmAddress: invData.address,
+        rewardTokenPriceInFiat:
+          store.tokens[invData.rewardToken].getExchangeRate(),
+        stakeTokenPriceInFiat: price
+      })
+  });
+  if (result && !isNaN(result.apr) && !isNaN(result.apy)) {
+    const apr = result.apr;
+    const apy = result.apy;
+    // calculates estimated ROI per week
+    const roiPerWeek = +formatTokenAmount((stakeInXtz * apr) / 100 / 52, 2);
+
+    return Result.Ok({
+      roiPerWeek,
+      apr,
+      apy
+    });
+  } else {
+    return Result.Error("Error while calculating Plenty's APR/APY");
+  }
+};
+
+const calculateDualReward = async (
+  tezos: TezosToolkit,
+  plentyRewardAddress: string,
+  xtzRewardAddress: string,
+  userAddress: string,
+  currentLevel: number
+): Promise<Result<Array<number>, string>> => {
+  try {
+    let rewardArray = [];
+    var plentyRewardContract = await tezos.contract.at(plentyRewardAddress);
+
+    var plentyRewardStorage: any = await plentyRewardContract.storage();
+    let rewardPerToken = Math.min(
+      currentLevel,
+      plentyRewardStorage.periodFinish.toNumber()
+    );
+
+    rewardPerToken =
+      rewardPerToken - plentyRewardStorage.lastUpdateTime.toNumber();
+    rewardPerToken *=
+      plentyRewardStorage.rewardRate.toNumber() * Math.pow(10, 18);
+    rewardPerToken =
+      rewardPerToken / plentyRewardStorage.totalSupply.toNumber() +
+      plentyRewardStorage.rewardPerTokenStored.toNumber();
+
+    let userDetails = await plentyRewardStorage.balances.get(userAddress);
+
+    let totalRewards =
+      userDetails.balance.toNumber() *
+      (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
+    totalRewards =
+      totalRewards / Math.pow(10, 18) + userDetails.rewards.toNumber();
+
+    totalRewards = totalRewards / Math.pow(10, 18); // Reducing to Token Decimals
+
+    rewardArray.push(totalRewards);
+    // baking reward calculation
+    const xtzRewardContract = await tezos.contract.at(xtzRewardAddress);
+    const xtzRewardStorage: any = await xtzRewardContract.storage();
+    rewardPerToken = Math.min(
+      currentLevel,
+      xtzRewardStorage.periodFinish.toNumber()
+    );
+
+    rewardPerToken =
+      rewardPerToken - xtzRewardStorage.lastUpdateTime.toNumber();
+    rewardPerToken *= xtzRewardStorage.rewardRate.toNumber() * Math.pow(10, 6);
+    rewardPerToken =
+      rewardPerToken / xtzRewardStorage.totalSupply.toNumber() +
+      xtzRewardStorage.rewardPerTokenStored.toNumber();
+
+    userDetails = await xtzRewardStorage.balances.get(userAddress);
+
+    totalRewards =
+      userDetails.balance.toNumber() *
+      (rewardPerToken - userDetails.userRewardPerTokenPaid.toNumber());
+    totalRewards =
+      totalRewards / Math.pow(10, 6) + userDetails.rewards.toNumber();
+
+    totalRewards = totalRewards / Math.pow(10, 6); // Reducing to Token Decimals
+
+    rewardArray.push(totalRewards);
+
+    if (
+      rewardArray.length === 2 &&
+      !isNaN(rewardArray[0]) &&
+      !isNaN(rewardArray[1])
+    ) {
+      return Result.Ok(rewardArray);
+    } else {
+      return Result.Error(`Unexpected result type: ${rewardArray.toString()}`);
+    }
+  } catch (error) {
+    console.log(error);
+    return Result.Error(JSON.stringify(error));
+  }
 };

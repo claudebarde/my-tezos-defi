@@ -1,31 +1,28 @@
-import { AvailableFiat } from "./types";
+import { AvailableFiat, AvailableInvestment } from "./types";
 
 export default {
-  version: "4.7.5",
-  mtdFee: 0.003,
-  wrapTokenIds: {
-    0: { name: "wAAVE", decimals: 18 },
-    1: { name: "wBUSD", decimals: 18 },
-    2: { name: "wCEL", decimals: 4 },
-    3: { name: "wCOMP", decimals: 18 },
-    4: { name: "wCRO", decimals: 8 },
-    5: { name: "wDAI", decimals: 18 },
-    6: { name: "wFTT", decimals: 18 },
-    7: { name: "wHT", decimals: 18 },
-    8: { name: "wHUSD", decimals: 8 },
-    9: { name: "wLEO", decimals: 18 },
-    10: { name: "wLINK", decimals: 18 },
-    11: { name: "wMATIC", decimals: 18 },
-    12: { name: "wMKR", decimals: 18 },
-    13: { name: "wOKB", decimals: 18 },
-    14: { name: "wPAX", decimals: 18 },
-    15: { name: "wSUSHI", decimals: 18 },
-    16: { name: "wUNI", decimals: 18 },
-    17: { name: "wUSDC", decimals: 6 },
-    18: { name: "wUSDT", decimals: 6 },
-    19: { name: "wWBTC", decimals: 8 },
-    20: { name: "wWETH", decimals: 18 }
-  },
+  version: "5.0.0",
+  rpcUrl: "https://mainnet.api.tez.ie",
+  availableRpcUrls: [
+    "https://mainnet.api.tez.ie",
+    "https://eu01-node.teztools.net",
+    "https://teznode.letzbake.com/",
+    "https://mainnet.smartpy.io"
+  ],
+  validFiats: [
+    { code: AvailableFiat.USD, name: "US dollar", symbol: "$" },
+    { code: AvailableFiat.EUR, name: "Euro", symbol: "€" },
+    { code: AvailableFiat.CAD, name: "Canadian Dollar", symbol: "CA$" },
+    { code: AvailableFiat.GBP, name: "British pound", symbol: "£" },
+    { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
+    { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" },
+    { code: AvailableFiat.CNY, name: "Chinese yuan", symbol: "¥" },
+    { code: AvailableFiat.BTC, name: "Bitcoin", symbol: "₿" }
+  ],
+  lbContracts: [
+    "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
+    "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
+  ],
   kolibriOvenOwnersUrl:
     "https://kolibri-data.s3.amazonaws.com/mainnet/oven-key-data.json",
   kusdLiquidityPoolAddress: "KT1AxaBxkFLCUi3f8rdDAAxBKHfzY8LfKDRA",
@@ -39,45 +36,6 @@ export default {
       "KT1SwH9P1Tx8a58Mm6qBExQFTcy2rwZyZiXS"
     ]
   },
-  plentyWithdrawalFeeSchema:
-    // number of levels since staking: percentage
-    {
-      general: [
-        [12288, 10],
-        [8192, 12.5],
-        [4096, 25]
-      ],
-      zeroPerCent: 12288
-    },
-  validFiats: [
-    { code: AvailableFiat.USD, name: "US dollar", symbol: "$" },
-    { code: AvailableFiat.EUR, name: "Euro", symbol: "€" },
-    { code: AvailableFiat.CAD, name: "Canadian Dollar", symbol: "CA$" },
-    { code: AvailableFiat.GBP, name: "British pound", symbol: "£" },
-    { code: AvailableFiat.SGD, name: "Singapore dollar", symbol: "S$" },
-    { code: AvailableFiat.RUB, name: "Russian ruble", symbol: "₽" },
-    { code: AvailableFiat.CNY, name: "Chinese yuan", symbol: "¥" },
-    { code: AvailableFiat.BTC, name: "Bitcoin", symbol: "₿" }
-  ],
-  stablecoins: ["kUSD", "USDtz", "uUSD", "wUSDC", "wDAI", "wUSDT"],
-  toastColor: {
-    green: {
-      theme: {
-        "--toastBackground": "#48BB78",
-        "--toastProgressBackground": "#2F855A"
-      }
-    },
-    red: {
-      theme: {
-        "--toastBackground": "#F56565",
-        "--toastProgressBackground": "#C53030"
-      }
-    }
-  },
-  lbContracts: [
-    "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
-    "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo"
-  ],
   plentyDexAddresses: {
     "PLENTY-wBUSD": "KT1XXAavg3tTj12W1ADvd3EEnm1pu6XTmiEF",
     "PLENTY-wUSDC": "KT1PuPNtDFLR6U7e7vDuxunDoKasVT6kMSkz",
@@ -127,7 +85,15 @@ export default {
     "Ctez-WRAP-LP": "KT19Qe4KbEVAiaVeNsgo9Tkqa6qvZho8c4W5",
     "Ctez-tzBTC-LP": "KT1Wryxte8NnVCm569yb8dcSPmvFBVs4ufD6",
     "Ctez-INSTA-LP": "KT1EnESbHxmzd2XeENyYNege4L5TKxeatJk9",
-    "Ctez-CRUNCH-LP": "KT1WZztBneC9NrhVqvo9yXq8St7p8c1JVTxm"
+    "Ctez-CRUNCH-LP": "KT1WZztBneC9NrhVqvo9yXq8St7p8c1JVTxm",
+    "PLENTY-CTEZ-TEZ-LP": "KT1CAYNQGvYSF5UvHK21grMrKpe2563w9UcX",
+    "PLENTY-BUSDE-USDCE-LP": "KT1LutmpUK8TDkA19tLCQNr7Eh7kbEsP3uiP",
+    "PLENTY-KUSD-USDCE-LP": "KT1HgFcDE8ZXNdT1aXXKpMbZc6GkUS2VHiPo",
+    "PLENTY-USDTZ-USDCE-LP": "KT1995R6hTYzXjV52mGtf6MboPRhzbJBJe6q",
+    "PLENTY-KUSD-USDT-LP": "KT1XfZi2K6gVM3wXDyeCwMhaT88JueVEAB8r",
+    "PLENTY-UUSD-USDT-LP": "KT19XPttmgtKtnpKXbcn41AqbcUqX7cweAmu",
+    "PLENTY-DAIE-USDCE-LP": "KT1Hxn43imdKTWXEZsLVdoUsS1R4hWTSXgDs",
+    "PLENTY-UUSD-USDCE-LP": "KT1Ji4hVDeQ5Ru7GW1Tna9buYSs3AppHLwj9"
   },
   plentyLptAddresses: {
     "PLENTY-wBUSD-LP": "KT1UC3vcVZ4K9b39uQxaMNA2N1RuJXKLCnoA",
@@ -181,7 +147,14 @@ export default {
     "Ctez-tzBTC-LP": "KT1TMZjKBvSVKzETZTyRsTxYEu4uZLLs6VpJ",
     "Ctez-PAUL-LP": "KT1N93veCzepAPydFGGUhDFiA69PoawasxXi",
     "Ctez-INSTA-LP": "KT1GkTwzN2gR6UdBicDSu2JEaRtv5KAPunrj",
-    "Ctez-CRUNCH-LP": "KT1QSA2SMDEKzEnJhGrVGheWb94Ux8Wyfuy6"
+    "Ctez-CRUNCH-LP": "KT1QSA2SMDEKzEnJhGrVGheWb94Ux8Wyfuy6",
+    "PLENTY-BUSDE-USDCE-LP": "KT1G76qEBDqmAXLCCVg4ZuNbrENsxFe8aECe",
+    "PLENTY-KUSD-USDCE-LP": "KT1J5HNUXnQwonSam3kmDQ5WbhynPPpVtgdN",
+    "PLENTY-USDTZ-USDCE-LP": "KT1P9GyfYrW9EZ8m3jej2cMu49fpmEbYa2h5",
+    "PLENTY-KUSD-USDT-LP": "KT1JaYzZooZmq9JP9FScjLShbUco8Pn8Ckct",
+    "PLENTY-UUSD-USDT-LP": "KT1Doix5iZZsQzKY3ANDkoca6GfCtJbXY9sk",
+    "PLENTY-DAIE-USDCE-LP": "KT1TupjqgajsoArMKK3ifmNveKhU2XpTJrH8",
+    "PLENTY-UUSD-USDCE-LP": "KT1Ah4Fe2hjcRdVCiCQDhRDZ2vDYLdYNjY51"
   },
   wrapLiquidityMiningDexAddress: {
     "WRAP-XTZ-LM": "KT1FG63hhFtMEEEtmBSX2vuFmP87t9E7Ab4t",
@@ -193,7 +166,12 @@ export default {
     "wWETH-XTZ-LM": "KT1DuYujxrmgepwSDHtADthhKBje9BosUs1w"
   },
   vortexDexAddresses: {
-    "PLENTY-XTZ": "KT1VSjJxNq98AkPfVktpCv82hacrvgkb6hEu",
-    "uUSD-XTZ": "KT1ND1bkLahTzVUt93zbDtGugpWcL23gyqgQ"
+    "XTZ-ANTI": "KT1VFUkjYDh6QG8iLx5uKHPU3BWFMeYoVPTL"
+  },
+  quipuFarmsContract: "KT1RdoweZPFjttwMUsaTo1E2EWNX3WcR9nxZ",
+  lbContractAddress: "KT1TxqZ8QtKvLu3V3JH7Gx58n7Co8pgtpQU5",
+  lqtContractAddress: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo",
+  matterFarms: {
+    KT1UefQz7nP8BuuDk5Dd5LWo22N1ZPB7JB5o: "MATTER-uUSD-wTZ"
   }
 };
