@@ -63,9 +63,10 @@ button, a.button {
   &.transparent {
     background-color: transparent;
     border: none;
+    color: $blue-green;
 
     &:hover {
-      background-color: $blizzard-blue;
+      font-style: italic;
     }
   }
 

@@ -5,6 +5,15 @@ import { Option, Result } from "@swan-io/boxed";
 import { calculateLqtOutput } from "../utils";
 import _store from "../store";
 
+export const getFarmId = (alias: string): Result<number, string> => {
+  const farmId = alias.replace("QUIPU-FARM-", "");
+  if (isNaN(+farmId)) {
+    return Result.Error(`Found id is not a number: "${farmId}"`);
+  } else {
+    return Result.Ok(+farmId)
+  }
+}
+
 export const calcQuipuRewards = async (
   Tezos: TezosToolkit,
   invData: InvestmentData,

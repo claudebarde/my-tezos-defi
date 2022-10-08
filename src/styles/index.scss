@@ -73,6 +73,18 @@ input {
   }
 }
 
+.input-with-max {
+  position: relative;  
+  padding: 5px;
+
+  .input-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+  }
+}
+
 .bubbles {
   position: absolute;
   bottom: 0px;

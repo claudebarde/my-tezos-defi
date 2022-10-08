@@ -632,11 +632,7 @@
     type="farm"
     platform={invData.platform}
     action={undefined}
-    payload={{
-      farmAddress: invData.address,
-      farmId: invData.id,
-      farmAlias: invData.alias
-    }}
+    payload={invData}
     on:close={() => (showModal = false)}
   />
 {/if}
