@@ -1,5 +1,16 @@
 @import "./settings.scss";
 
+@mixin disabled {
+  border-color: $light-slate-grey;
+  color: $light-slate-grey;
+  cursor: not-allowed;
+
+  &:hover {
+    background-color: transparent;
+    color: $light-slate-grey;
+  }
+}
+
 .buttons {
   display: flex;
   justify-content: center;
@@ -45,14 +56,39 @@ button, a.button {
     }
 
     &:disabled {
-      border-color: $light-slate-grey;
-      color: $light-slate-grey;
-      cursor: not-allowed;
+      @include disabled;
+    }
+  }
 
-      &:hover {
-        background-color: transparent;
-        color: $light-slate-grey;
-      }
+  &.success {
+    border: solid 2px $emerald-green;
+    background-color: transparent;
+    color: $emerald-green;
+    font-size: inherit;
+
+    &:hover {
+      background-color: $emerald-green;
+      color: white;
+    }
+
+    &:disabled {
+      @include disabled;
+    }
+  }
+
+  &.error {
+    border: solid 2px $rufous;
+    background-color: transparent;
+    color: $rufous;
+    font-size: inherit;
+
+    &:hover {
+      background-color: $rufous;
+      color: white;
+    }
+
+    &:disabled {
+      @include disabled;
     }
   }
 

@@ -28,6 +28,7 @@
     gap: 10px;
     width: 35%;
     max-height: 90px;
+    z-index: 999;
     box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px,
       rgba(0, 0, 0, 0.23) 0px 6px 6px;
 

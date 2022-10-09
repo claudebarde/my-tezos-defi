@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import {
+    onMount,
+    afterUpdate,
+    onDestroy,
+    createEventDispatcher
+  } from "svelte";
   import { slide } from "svelte/transition";
   import { Option } from "@swan-io/boxed";
   import moment from "moment";
@@ -429,7 +434,7 @@
   };
 
   onMount(async () => {
-    invData = $store.investments[invName];
+    invData = { ...$store.investments[invName] };
     if (!invData || !invData.balance) {
       stakeInXtz = 0;
     } else {
@@ -447,6 +452,13 @@
       //   });
       // } else {
       // }
+    }
+  });
+
+  afterUpdate(() => {
+    const newInvData = $store.investments[invName];
+    if (newInvData.balance !== invData.balance) {
+      invData = { ...newInvData };
     }
   });
 

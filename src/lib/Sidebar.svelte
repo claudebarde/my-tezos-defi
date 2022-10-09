@@ -291,7 +291,7 @@
       <a href="#/liquidity-baking">
         <button class="nav">
           <span class="material-icons-outlined"> bakery_dining </span>
-          <span>LB DEX</span>
+          <span>Sirius DEX</span>
         </button>
       </a>
       {#if $store.userAddress}

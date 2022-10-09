@@ -22,6 +22,7 @@
     toNumberOpt,
     getAvailableToken
   } from "../../../utils";
+  import { getFarmId } from "../../../tokenUtils/quipuUtils";
 
   interface QuipuFarmsStorage {
     storage: {
@@ -105,10 +106,10 @@
               ...farms.map(farm => +farm.id.replace("QUIPU-FARM-", ""))
             ]);
           farmsInvestmentData.forEach((val: QuipuFarmsData, key: number) => {
-            if (val) {
-              const thisFarm = farms.find(
-                farm => farm.id === `QUIPU-FARM-${key}`
-              );
+            const thisFarm = farms.find(
+              farm => farm.id === `QUIPU-FARM-${key}`
+            );
+            if (val && thisFarm && thisFarm.balance / 10 ** 6 > 0.0001) {
               const rewardToken = Object.entries($store.tokens).find(
                 ([_, tokenData]) =>
                   tokenData.address === val.reward_token.fA2.token
@@ -186,14 +187,10 @@
             return farmData;
           });
           // updates investment balance
-          store.updateInvestments(
-            farms.map(farm => [
-              farm.id,
-              quipuFarmsData.find(quipuFarm => quipuFarm.id === farm.id)
-            ])
-          );
+          store.updateInvestments(quipuFarmsData.map(farm => [farm.id, farm]));
           // updates local storage
-          $store.localStorage.addFarms(farms.map(farm => farm.id));
+          $store.localStorage.addFarms(quipuFarmsData.map(farm => farm.id));
+          farms = [...quipuFarmsData];
         }
         quipuReady = true;
       } else {

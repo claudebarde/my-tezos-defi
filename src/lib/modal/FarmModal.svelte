@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
   import { OpKind, type WalletParamsWithKind } from "@taquito/taquito";
   import { Option } from "@swan-io/boxed";
   import type {
@@ -7,16 +7,21 @@
     InvestmentPlatform,
     InvestmentData
   } from "../../types";
+  import { ToastType } from "../../types";
   import store from "../../store";
   import queueStore from "../transaction-queue/queue-store";
   import { formatTokenAmount } from "../../utils";
   import { getFarmId } from "../../tokenUtils/quipuUtils";
+  import toastStore from "../../toastStore";
 
   export let payload: InvestmentData, platform: InvestmentPlatform;
 
   let selectedAction: modalAction = "stake";
   let stakeAmount: number | null = null;
   let unstakeAmount: number | null = null;
+  let waitingForConf = false;
+
+  const dispatch = createEventDispatcher();
 
   $: enableTransaction = () => {
     if (selectedAction === "stake" && stakeAmount) {
@@ -160,8 +165,62 @@
   };
 
   const runTransaction = async () => {
+    waitingForConf = true;
     const txs = await forgeTransaction();
-    console.log(txs);
+    try {
+      const rawTxs = txs.match({
+        None: () => [],
+        Some: val => val
+      });
+      if (rawTxs.length === 0) {
+        toastStore.addToast({
+          type: ToastType.ERROR,
+          message: "This transaction could not be forged",
+          dismissable: true
+        });
+        throw "No transaction was forged for this action";
+      }
+      const batch = $store.Tezos.wallet.batch([
+        ...rawTxs.map(tx => ({ ...tx.tx }))
+      ]);
+      const batchOp = await batch.send();
+      toastStore.addToast({
+        type: ToastType.INFO,
+        message:
+          selectedAction === "stake"
+            ? `Staking ${stakeAmount} tokens`
+            : `Unstaking ${unstakeAmount} tokens`,
+        dismissable: true
+      });
+      await batchOp.confirmation();
+      // updates farm balance
+      const newFarmData = {
+        ...payload,
+        balance:
+          selectedAction === "stake"
+            ? payload.balance + stakeAmount * 10 ** payload.decimals
+            : payload.balance - unstakeAmount * 10 ** payload.decimals
+      };
+      store.updateInvestments([[newFarmData.id, newFarmData]]);
+
+      toastStore.addToast({
+        type: ToastType.SUCCESS,
+        message:
+          selectedAction === "stake"
+            ? `Tokens successfully staked!`
+            : `Tokens successfully unstaked!`,
+        dismissable: true
+      });
+    } catch (error) {
+      console.error(error);
+      toastStore.addToast({
+        type: ToastType.ERROR,
+        message: "An error has occurred during this transaction",
+        dismissable: true
+      });
+    } finally {
+      waitingForConf = false;
+    }
   };
 
   onMount(() => {
@@ -220,11 +279,14 @@
 </div>
 <div class="modal-body">
   {#if selectedAction === "stake"}
-    <label>
-      <span>Amount to stake:</span>
-      <input type="number" step="any" bind:value={stakeAmount} />
-      <span>LPT</span>
-    </label>
+    <div>Amount to stake:</div>
+    <div class="input-with-max">
+      <div class="input-container">
+        <input type="number" step="any" bind:value={stakeAmount} />
+        <div>LPT</div>
+      </div>
+      <button class="transparent mini"> max </button>
+    </div>
   {:else if selectedAction === "unstake"}
     <div>Amount to unstake:</div>
     <div class="input-with-max">
@@ -235,11 +297,11 @@
       <button
         class="transparent mini"
         on:click={() => {
-          unstakeAmount = +formatTokenAmount(
-            payload.balance / 10 ** payload.decimals
-          );
-        }}>max</button
+          unstakeAmount = payload.balance / 10 ** payload.decimals;
+        }}
       >
+        max
+      </button>
     </div>
   {/if}
 </div>
@@ -252,19 +314,32 @@
     {#if selectedAction === "stake"}
       <button
         class="primary"
-        disabled={enableTransaction()}
+        disabled={enableTransaction() || waitingForConf}
         on:click={runTransaction}
       >
+        {#if waitingForConf}
+          <span class="material-icons-outlined loading"> hourglass_empty </span>
+        {/if}
         Stake
       </button>
     {:else if selectedAction === "unstake"}
       <button
         class="primary"
-        disabled={enableTransaction()}
+        disabled={enableTransaction() || waitingForConf}
         on:click={runTransaction}
       >
+        {#if waitingForConf}
+          <span class="material-icons-outlined loading"> hourglass_empty </span>
+        {/if}
         Unstake
       </button>
     {/if}
+    <button
+      class="error"
+      on:click={() => dispatch("close")}
+      disabled={waitingForConf}
+    >
+      Close
+    </button>
   </div>
 </div>
