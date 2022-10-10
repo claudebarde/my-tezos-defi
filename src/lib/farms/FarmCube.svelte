@@ -9,6 +9,7 @@
   } from "../../types";
   import { formatTokenAmount } from "../../utils";
   import store from "../../store";
+  import pillStore, { PillTextType } from "..//pill/pillStore";
 
   export let invData: InvestmentData,
     stake: number,
@@ -91,7 +92,19 @@
             alt="reward-token"
             class="reward-token"
           />
-          <span>
+          <span
+            data-token={invData.rewardToken}
+            data-rewards={localRewards}
+            on:dblclick={() => {
+              pillStore.addText({
+                text: `1 ${invData.rewardToken} = ${formatTokenAmount(
+                  $store.tokens[invData.rewardToken].getExchangeRate(),
+                  4
+                )} XTZ`,
+                type: PillTextType.TOKEN_PRICE
+              });
+            }}
+          >
             {invData.rewardToken === AvailableToken.uBTC
               ? formatTokenAmount(localRewards, 8)
               : formatTokenAmount(localRewards)}

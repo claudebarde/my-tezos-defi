@@ -8,9 +8,10 @@
   import QuipuFarms from "../lib/farms/quipu/QuipuFarms.svelte";
   // import MatterFarms from "../lib/farms/matter/MatterFarms.svelte";
   import FarmsHeader from "../lib/farms/FarmsHeader.svelte";
-  import type { AvailableInvestment } from "../types";
+  import { type AvailableInvestment, AvailableToken } from "../types";
   import BarnImg from "../assets/farm-48.png";
-  import pillStore from "../lib/pill/pillStore";
+  import pillStore, { PillTextType } from "../lib/pill/pillStore";
+  import { formatTokenAmount } from "../utils";
 
   export let params;
 
@@ -48,6 +49,37 @@
       totalFarms = [...farms];
     }
   };
+
+  $: document.onmouseup = event => {
+    const targetTag = event.target;
+    let text = "";
+    if (typeof window.getSelection != "undefined") {
+      text = window.getSelection().toString();
+    } else if (
+      typeof document.selection != "undefined" &&
+      document.selection.type == "Text"
+    ) {
+      text = document.selection.createRange().text;
+    }
+
+    /*if (text && targetTag instanceof HTMLSpanElement) {
+      // conversion of token amount in the pill
+      console.log(text, !isNaN(+text));
+      if (targetTag.dataset.hasOwnProperty("token") && !isNaN(+text)) {
+        const token = targetTag.dataset.token;
+        if (Object.keys($store.tokens).includes(token)) {
+          // valid token
+          pillStore.addText({
+            text: `1 ${AvailableToken[token]} = ${formatTokenAmount(
+              $store.tokens[token].getExchangeRate(),
+              4
+            )} XTZ`,
+            type: PillTextType.TOKEN_PRICE
+          });
+        }
+      }
+    }*/
+  };
 </script>
 
 <style lang="scss">
@@ -74,7 +106,7 @@
   <div
     class="container"
     on:scroll={() => {
-      pillStore.hide();
+      pillStore.hide(500);
     }}
   >
     {#if $store.userAddress}

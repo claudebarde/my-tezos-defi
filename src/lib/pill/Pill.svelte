@@ -1,33 +1,47 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from "svelte";
+  import { onMount, beforeUpdate, afterUpdate } from "svelte";
   import { fly } from "svelte/transition";
   import { backInOut } from "svelte/easing";
   import pillStore, { PillTextType } from "./pillStore";
   import store from "../../store";
+  import { formatTokenAmount } from "../../utils";
 
+  let currentText = "";
+  let currentTextType = undefined;
   let xtzPriceTrend: "up" | "down" | "same" | "none" = "none";
   let isAnimated = false;
 
-  onMount(() => {
-    /*
-        Example about how to set the animation of the pill
+  const animToLargeThenToNormal = () => {
+    isAnimated = true;
+    pillStore.switchShape("large");
+    setTimeout(() => {
+      isAnimated = false;
+    }, 400);
 
-        setTimeout(() => {
-        isAnimated = true;
-        pillStore.switchShape("large");
-        setTimeout(() => {
-            isAnimated = false;
-        }, 400);
-        }, 3000);
+    setTimeout(() => {
+      isAnimated = true;
+      pillStore.addText({
+        text: `1 XTZ = ${formatTokenAmount($store.xtzExchangeRate, 2)} ${
+          $store.localStorage.getFavoriteFiat().code
+        }`,
+        type: PillTextType.XTZ_PRICE
+      });
+      pillStore.switchShape("normal");
+      setTimeout(() => {
+        isAnimated = false;
+      }, 400);
+    }, 3000);
+  };
 
-        setTimeout(() => {
-        isAnimated = true;
-        pillStore.switchShape("normal");
-        setTimeout(() => {
-            isAnimated = false;
-        }, 400);
-        }, 5000);
-    */
+  beforeUpdate(() => {
+    if (
+      $pillStore.textType === PillTextType.TOKEN_PRICE &&
+      (currentText !== $pillStore.text ||
+        currentTextType !== $pillStore.textType)
+    ) {
+      // new token price info in pill
+      animToLargeThenToNormal();
+    }
   });
 
   afterUpdate(() => {
@@ -45,6 +59,11 @@
         xtzPriceTrend = "none";
       }
     }
+
+    setTimeout(() => {
+      currentText = $pillStore.text;
+      currentTextType = $pillStore.textType;
+    }, 100);
   });
 </script>
 
@@ -117,7 +136,7 @@
     transition:fly={{ duration: 400, y: 100, easing: backInOut }}
   >
     <div class="pill__left">&nbsp;</div>
-    <div class="pill__middle">{$pillStore.text}</div>
+    <div class="pill__middle">{currentText}</div>
     <div class="pill__right">
       {#if $pillStore.textType === PillTextType.XTZ_PRICE && xtzPriceTrend === "up"}
         <span class="material-icons-outlined" style="color:green">

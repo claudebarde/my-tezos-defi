@@ -91,8 +91,21 @@
 
     fetchBalanceInterval = setInterval(async () => {
       if ($store.userAddress) {
-        const balance = await $store.Tezos.tz.getBalance($store.userAddress);
-        store.updateUserBalance(balance.toNumber());
+        const balanceBn = await $store.Tezos.tz.getBalance($store.userAddress);
+        if (balanceBn) {
+          const balance = balanceBn.toNumber();
+          if (balance !== $store.userBalance) {
+            // updates the pill
+            pillStore.switchShape("large");
+            pillStore.addText({
+              text: `${formatTokenAmount(
+                $store.userBalance - balance
+              )} XTZ received`,
+              type: PillTextType.XTZ_INCOME
+            });
+          }
+          store.updateUserBalance(balance);
+        }
       } else {
         store.updateUserBalance(undefined);
       }
@@ -115,24 +128,7 @@
         }
       });
       await setup();
-
-      fetchCoinGeckoInterval = setInterval(async () => {
-        const fiat = (() => {
-          if ($store.localStorage) {
-            return $store.localStorage.getFavoriteFiat().code;
-          } else {
-            return AvailableFiat.USD;
-          }
-        })();
-        const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
-        store.updateXtzExchangeRate(exchangeRate);
-        store.updatePriceHistoric(priceHistoric);
-        pillStore.addText(
-          `1 XTZ = ${formatTokenAmount(exchangeRate, 2)} ${fiat}`,
-          PillTextType.XTZ_PRICE,
-          2000
-        );
-      }, 30_000);
+      setCoinGeckoFetchInterval();
     } catch (err) {
       console.error(err);
     }
@@ -143,6 +139,26 @@
     store.updateWallet(undefined);
     store.updateUserAddress(undefined);
     store.updateUserName(undefined);
+  };
+
+  const setCoinGeckoFetchInterval = () => {
+    fetchCoinGeckoInterval = setInterval(async () => {
+      const fiat = (() => {
+        if ($store.localStorage) {
+          return $store.localStorage.getFavoriteFiat().code;
+        } else {
+          return AvailableFiat.USD;
+        }
+      })();
+      const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
+      store.updateXtzExchangeRate(exchangeRate);
+      store.updatePriceHistoric(priceHistoric);
+      pillStore.addText({
+        text: `1 XTZ = ${formatTokenAmount(exchangeRate, 2)} ${fiat}`,
+        type: PillTextType.XTZ_PRICE,
+        visibleFor: 2000
+      });
+    }, 30_000);
   };
 
   onMount(async () => {
@@ -320,23 +336,12 @@
       const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
       store.updateXtzExchangeRate(exchangeRate);
       store.updatePriceHistoric(priceHistoric);
-      pillStore.addText(
-        `1 XTZ = ${formatTokenAmount(exchangeRate, 2)} ${fiat}`,
-        PillTextType.XTZ_PRICE,
-        2000
-      );
-      fetchCoinGeckoInterval = setInterval(async () => {
-        const fiat = (() => {
-          if ($store.localStorage) {
-            return $store.localStorage.getFavoriteFiat().code;
-          } else {
-            return AvailableFiat.USD;
-          }
-        })();
-        const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
-        store.updateXtzExchangeRate(exchangeRate);
-        store.updatePriceHistoric(priceHistoric);
-      }, 30_000);
+      pillStore.addText({
+        text: `1 XTZ = ${formatTokenAmount(exchangeRate, 2)} ${fiat}`,
+        type: PillTextType.XTZ_PRICE,
+        visibleFor: 2000
+      });
+      setCoinGeckoFetchInterval();
     } catch (error) {
       console.error(error);
     }

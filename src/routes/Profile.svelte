@@ -10,6 +10,7 @@
     type TokenAmount,
     type UserToken
   } from "../types";
+  import pillStore from "../lib/pill/pillStore";
 
   export let param;
 
@@ -80,7 +81,12 @@
   }
 </style>
 
-<div class="container">
+<div
+  class="container"
+  on:scroll={() => {
+    pillStore.hide(500);
+  }}
+>
   <h2>
     {isConnectedUser
       ? "My profile"

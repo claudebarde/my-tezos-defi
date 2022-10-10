@@ -8,6 +8,7 @@
   import type { AvailableFiat } from "../types";
   import { coinGeckoFetch } from "../utils";
   import type { FiatData } from "../localStorage";
+  import pillStore from "../lib/pill/pillStore";
 
   let allowPushNotifications = Option.None<boolean>();
   let currentFiat = Option.None<FiatData>();
@@ -104,7 +105,12 @@
   }
 </style>
 
-<div class="container">
+<div
+  class="container"
+  on:scroll={() => {
+    pillStore.hide(500);
+  }}
+>
   {#if $store.userAddress}
     <ProfileHeader profileAddress={$store.userAddress} />
   {/if}
