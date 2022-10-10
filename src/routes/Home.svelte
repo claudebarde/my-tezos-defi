@@ -5,6 +5,7 @@
   import TokenBox from "../lib/TokenBox.svelte";
   import ProfileHeader from "../lib/ProfileHeader.svelte";
   import Bubbles from "../lib/Bubbles.svelte";
+  import pillStore from "../lib/pill/pillStore";
 </script>
 
 <style lang="scss">
@@ -41,7 +42,12 @@
 </svelte:head>
 
 <Layout>
-  <div class="container">
+  <div
+    class="container"
+    on:scroll={() => {
+      pillStore.hide();
+    }}
+  >
     {#if $store.userAddress}
       <ProfileHeader profileAddress={$store.userAddress} />
       <div class="user-tokens">

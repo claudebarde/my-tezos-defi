@@ -10,6 +10,7 @@
   import FarmsHeader from "../lib/farms/FarmsHeader.svelte";
   import type { AvailableInvestment } from "../types";
   import BarnImg from "../assets/farm-48.png";
+  import pillStore from "../lib/pill/pillStore";
 
   export let params;
 
@@ -70,7 +71,12 @@
 </style>
 
 <Layout>
-  <div class="container">
+  <div
+    class="container"
+    on:scroll={() => {
+      pillStore.hide();
+    }}
+  >
     {#if $store.userAddress}
       <ProfileHeader profileAddress={$store.userAddress} />
       <FarmsHeader farms={totalFarms} />

@@ -91,13 +91,22 @@
               inv => inv.address === data.address
             ).id,
             address: data.address,
-            balance: data.value.balance ? +data.value.balance : +data.value
+            balance: data.value.balance ? +data.value.balance : +data.value,
+            info:
+              data.value.InvestMap &&
+              Object.keys(data.value.InvestMap).length > 0
+                ? [data.value.InvestMap]
+                : []
           }));
         // updates investment balance
         store.updateInvestments(
           farms.map(farm => [
             farm.id,
-            { ...$store.investments[farm.id], balance: farm.balance }
+            {
+              ...$store.investments[farm.id],
+              balance: farm.balance,
+              info: farm.info
+            }
           ])
         );
         // updates local storage

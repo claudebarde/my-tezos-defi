@@ -153,6 +153,55 @@
         } else {
           return Option.None();
         }
+      case "plenty":
+        if (selectedAction === "stake" && stakeAmount) {
+          return Option.Some([
+            {
+              tx: {
+                kind: OpKind.TRANSACTION,
+                ...kusdContract.methodsObject
+                  .approve({
+                    spender: payload.address,
+                    value: stakeAmount * 10 ** $store.tokens.kUSD.decimals
+                  })
+                  .toTransferParams()
+              },
+              description: `Approve transfer of ${stakeAmount} kUSD`
+            },
+            {
+              tx: {
+                kind: OpKind.TRANSACTION,
+                ...contract.methods
+                  .deposit(stakeAmount * 10 ** $store.tokens.kUSD.decimals)
+                  .toTransferParams()
+              },
+              description: `Stake ${stakeAmount} kUSD in ${payload.alias}`
+            },
+            {
+              tx: {
+                kind: OpKind.TRANSACTION,
+                ...kusdContract.methodsObject
+                  .approve({ spender: payload.address, value: 0 })
+                  .toTransferParams()
+              },
+              description: `Approve transfer of 0 kUSD`
+            }
+          ]);
+        } else if (selectedAction === "unstake" && unstakeAmount) {
+          return Option.Some([
+            {
+              tx: {
+                kind: OpKind.TRANSACTION,
+                ...contract.methods
+                  .withdraw(unstakeAmount * 10 ** $store.tokens.kUSD.decimals)
+                  .toTransferParams()
+              },
+              description: `Unstake ${unstakeAmount} kUSD from ${payload.alias}`
+            }
+          ]);
+        } else {
+          return Option.None();
+        }
     }
   };
 
@@ -259,6 +308,18 @@
       }
     }
   }
+
+  .plenty-stakes {
+    padding: 10px;
+
+    & > div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 5px;
+    }
+  }
 </style>
 
 <div class="modal-header">
@@ -278,31 +339,69 @@
   </ul>
 </div>
 <div class="modal-body">
-  {#if selectedAction === "stake"}
-    <div>Amount to stake:</div>
-    <div class="input-with-max">
-      <div class="input-container">
-        <input type="number" step="any" bind:value={stakeAmount} />
-        <div>LPT</div>
+  {#if platform === "quipuswap"}
+    {#if selectedAction === "stake"}
+      <div>Amount to stake:</div>
+      <div class="input-with-max">
+        <div class="input-container">
+          <input type="number" step="any" bind:value={stakeAmount} />
+          <div>LPT</div>
+        </div>
+        <button class="transparent mini"> max </button>
       </div>
-      <button class="transparent mini"> max </button>
-    </div>
-  {:else if selectedAction === "unstake"}
-    <div>Amount to unstake:</div>
-    <div class="input-with-max">
-      <div class="input-container">
-        <input type="number" step="any" bind:value={unstakeAmount} />
-        <div>LPT</div>
+    {:else if selectedAction === "unstake"}
+      <div>Amount to unstake:</div>
+      <div class="input-with-max">
+        <div class="input-container">
+          <input type="number" step="any" bind:value={unstakeAmount} />
+          <div>LPT</div>
+        </div>
+        <button
+          class="transparent mini"
+          on:click={() => {
+            unstakeAmount = payload.balance / 10 ** payload.decimals;
+          }}
+        >
+          max
+        </button>
       </div>
-      <button
-        class="transparent mini"
-        on:click={() => {
-          unstakeAmount = payload.balance / 10 ** payload.decimals;
-        }}
-      >
-        max
-      </button>
-    </div>
+    {/if}
+  {:else if platform === "plenty"}
+    {#if selectedAction === "stake"}
+      <div>Amount to stake:</div>
+      <div class="input-with-max">
+        <div class="input-container">
+          <input type="number" step="any" bind:value={stakeAmount} />
+          <div>LPT</div>
+        </div>
+        <button class="transparent mini"> max </button>
+      </div>
+    {:else if selectedAction === "unstake"}
+      <div>Stake(s) to remove:</div>
+      <div class="plenty-stakes">
+        {#if payload.info.length > 0 && Object.values(payload.info[0]).length > 0}
+          {#each Object.values(payload.info[0]) as stake}
+            <div>
+              <span
+                >{formatTokenAmount(stake.amount / 10 ** payload.decimals)} LPT</span
+              >
+              <button class="primary mini">
+                {#if waitingForConf}
+                  <span class="material-icons-outlined loading">
+                    hourglass_empty
+                  </span>
+                {/if}
+                Unstake
+              </button>
+            </div>
+          {/each}
+        {:else}
+          No stake to display
+        {/if}
+      </div>
+    {/if}
+  {:else}
+    <div>No stake/unstake feature for this platform</div>
   {/if}
 </div>
 <div class="modal-footer">
@@ -311,7 +410,7 @@
     <button class="primary" disabled={true} on:click={addToQueue}>
       Add to queue
     </button>
-    {#if selectedAction === "stake"}
+    {#if selectedAction === "stake" && platform !== "plenty"}
       <button
         class="primary"
         disabled={enableTransaction() || waitingForConf}
@@ -322,7 +421,7 @@
         {/if}
         Stake
       </button>
-    {:else if selectedAction === "unstake"}
+    {:else if selectedAction === "unstake" && platform !== "plenty"}
       <button
         class="primary"
         disabled={enableTransaction() || waitingForConf}

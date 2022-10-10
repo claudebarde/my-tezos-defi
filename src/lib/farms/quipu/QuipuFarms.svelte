@@ -96,7 +96,8 @@
             //HACK: maybe find a more elegant way for the id
             id: `QUIPU-FARM-${data.index}` as AvailableInvestment,
             address: data.address,
-            balance: +data.value.staked
+            balance: +data.value.staked,
+            info: []
           }));
         if (farms.length > 0) {
           // populates investment data

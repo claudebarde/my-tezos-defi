@@ -311,12 +311,6 @@
     </nav>
   </div>
   <div>
-    {#if $store.xtzExchangeRate && currentFiat}
-      <p>
-        1 XTZ = {formatTokenAmount($store.xtzExchangeRate, 2)}
-        {currentFiat.code}
-      </p>
-    {/if}
     <div class="contact-links">
       <a
         href="https://twitter.com/MyTezosDefi"

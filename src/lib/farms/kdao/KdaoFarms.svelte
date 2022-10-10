@@ -38,7 +38,8 @@
               inv => inv.address === data.address
             ).id,
             address: data.address,
-            balance: +data.value.lpTokenBalance
+            balance: +data.value.lpTokenBalance,
+            info: []
           }));
         // updates investment balance
         store.updateInvestments(

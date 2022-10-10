@@ -29,6 +29,7 @@
   import config from "../config";
   import { fetchAntiPrice } from "../tokenUtils/smartlinkUtils";
   import { LocalStorage } from "../localStorage";
+  import pillStore, { PillTextType } from "./pill/pillStore";
 
   const dispatch = createEventDispatcher();
 
@@ -126,6 +127,11 @@
         const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
         store.updateXtzExchangeRate(exchangeRate);
         store.updatePriceHistoric(priceHistoric);
+        pillStore.addText(
+          `1 XTZ = ${formatTokenAmount(exchangeRate, 2)} ${fiat}`,
+          PillTextType.XTZ_PRICE,
+          2000
+        );
       }, 30_000);
     } catch (err) {
       console.error(err);
@@ -314,6 +320,11 @@
       const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
       store.updateXtzExchangeRate(exchangeRate);
       store.updatePriceHistoric(priceHistoric);
+      pillStore.addText(
+        `1 XTZ = ${formatTokenAmount(exchangeRate, 2)} ${fiat}`,
+        PillTextType.XTZ_PRICE,
+        2000
+      );
       fetchCoinGeckoInterval = setInterval(async () => {
         const fiat = (() => {
           if ($store.localStorage) {

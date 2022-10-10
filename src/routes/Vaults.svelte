@@ -13,6 +13,7 @@
   import KdaoVaultRow from "../lib/vaults/kDAO/VaultRow.svelte";
   import YouvesVaultRow from "../lib/vaults/youves/VaultRow.svelte";
   import CtezVaultRow from "../lib/vaults/ctez/VaultRow.svelte";
+  import pillStore from "../lib/pill/pillStore";
 
   let allVaults: Array<VaultData> = [];
   let vaultsUpdateInterval;
@@ -194,7 +195,12 @@
   }
 </style>
 
-<div class="container">
+<div
+  class="container"
+  on:scroll={() => {
+    pillStore.hide();
+  }}
+>
   {#if $store.userAddress}
     <ProfileHeader profileAddress={$store.userAddress} />
     <VaultsHeader vaults={allVaults} />

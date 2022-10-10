@@ -326,6 +326,7 @@ export type Farm = {
   id: AvailableInvestment;
   address: TezosContractAddress;
   balance: number;
+  info: Array<any>;
 };
 
 export interface QueuedTx {

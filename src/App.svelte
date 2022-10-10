@@ -5,6 +5,7 @@
   import store from "./store";
   import Bubbles from "./lib/Bubbles.svelte";
   import Queue from "./lib/transaction-queue/Queue.svelte";
+  import Pill from "./lib/pill/Pill.svelte";
   import Router, { location } from "svelte-spa-router";
   import routes from "./routes";
 
@@ -87,3 +88,4 @@
 </main>
 <Toast />
 <Queue />
+<Pill />
