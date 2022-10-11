@@ -12,6 +12,11 @@ export enum PillTextType {
   ERROR
 }
 
+export enum PillBehavior {
+  NONE,
+  SHAKING_TOP
+}
+
 interface PillState {
   shape: "normal" | "large";
   text: string;
@@ -19,6 +24,7 @@ interface PillState {
   active: boolean;
   show: boolean;
   hidingTimeout: NodeJS.Timeout;
+  behavior: PillBehavior
 }
 
 let initialState: PillState = {
@@ -27,7 +33,8 @@ let initialState: PillState = {
   textType: PillTextType.INFO,
   active: false,
   show: true,
-  hidingTimeout: undefined // reference to a timeout after which the pill shows up again
+  hidingTimeout: undefined, // reference to a timeout after which the pill shows up again
+  behavior: PillBehavior.NONE
 };
 
 const store = writable(initialState);
@@ -46,8 +53,9 @@ const state = {
       }
   ) => {
     // "force" is used to force the update of the pill state
-    store.update(store_ => { 
-      if (!store_.active || force) {
+    store.update(store_ => {
+      // update can only happen if the pill is not active, if the update is forced and if the pill is visible
+      if ((!store_.active || force) && store_.show) {
         if (!noTimeout) {
           let genStore = get(generalStore);
           setTimeout(() => store.update(store_ => ({
@@ -85,6 +93,11 @@ const state = {
   },
   reset: () => {
     store.update(store => ({...store, text: "Welcome", type: PillTextType.INFO, show: true, shape: "normal", active: false}));
+  },
+  behave: (behavior: PillBehavior, timeout?: number) => {
+    setTimeout(() => store.update(store => ({ ...store, behavior: PillBehavior.NONE })), timeout || 1000);
+    
+    store.update(store => ({...store, behavior}));
   },
 };
 

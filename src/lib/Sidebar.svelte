@@ -13,6 +13,7 @@
   import { formatTokenAmount } from "../utils";
   import toastStore from "../toastStore";
   import { ToastType, AvailableFiat } from "../types";
+  import pillStore, { PillBehavior } from "./pill/pillStore";
 
   let liveTrafficWorker;
   let hidden, visibilityChange;
@@ -88,6 +89,8 @@
       $store.localStorage.updateLastActiveLevel($store.currentLevel);
     }
   };
+
+  const shakePill = () => pillStore.behave(PillBehavior.SHAKING_TOP);
 
   onMount(() => {
     if (typeof document.hidden !== "undefined") {
@@ -271,24 +274,24 @@
     />
     <nav>
       <a href="#/">
-        <button class="nav">
+        <button class="nav" on:click={shakePill}>
           <span class="material-icons-outlined"> toll </span>
           <span>My tokens</span>
         </button>
       </a>
       <a href="#/farms">
-        <button class="nav">
+        <button class="nav" on:click={shakePill}>
           <span class="material-icons-outlined"> agriculture </span>
           <span>My farms</span>
         </button>
       </a>
       <a href="#/vaults">
-        <button class="nav">
+        <button class="nav" on:click={shakePill}>
           <span class="material-icons-outlined"> savings </span>
           <span>My vaults</span>
         </button>
       </a>
-      <a href="#/liquidity-baking">
+      <a href="#/liquidity-baking" on:click={shakePill}>
         <button class="nav">
           <span class="material-icons-outlined"> bakery_dining </span>
           <span>Sirius DEX</span>
@@ -296,14 +299,14 @@
       </a>
       {#if $store.userAddress}
         <a href={`#/profile/${$store.userAddress}`}>
-          <button class="nav">
+          <button class="nav" on:click={shakePill}>
             <span class="material-icons-outlined"> portrait </span>
             <span>My profile</span>
           </button>
         </a>
       {/if}
       <a href="#/settings">
-        <button class="nav">
+        <button class="nav" on:click={shakePill}>
           <span class="material-icons-outlined"> settings </span>
           <span>Settings</span>
         </button>

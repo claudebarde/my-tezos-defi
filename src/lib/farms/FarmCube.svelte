@@ -95,7 +95,7 @@
           <span
             data-token={invData.rewardToken}
             data-rewards={localRewards}
-            on:dblclick={() => {
+            on:mouseover={() => {
               pillStore.update({
                 text: `1 ${invData.rewardToken} = ${formatTokenAmount(
                   $store.tokens[invData.rewardToken].getExchangeRate(),
@@ -104,6 +104,7 @@
                 type: PillTextType.TOKEN_PRICE
               });
             }}
+            on:focus={() => undefined}
           >
             {invData.rewardToken === AvailableToken.uBTC
               ? formatTokenAmount(localRewards, 8)
