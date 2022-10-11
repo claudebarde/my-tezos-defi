@@ -32,6 +32,7 @@
   import FarmCube from "./FarmCube.svelte";
   import Loader from "./Loader.svelte";
   import Modal from "../modal/Modal.svelte";
+  import pillStore, { PillTextType } from "../pill/pillStore";
 
   export let invName: AvailableInvestment,
     farmsWorker: Worker = undefined,
@@ -347,6 +348,14 @@
     if (rewards.isNone()) return;
 
     harvesting = true;
+    pillStore.update({
+      text: `Harvesting rewards for ${invData.alias}`,
+      type: PillTextType.HARVEST_REWARDS,
+      newShape: "large",
+      noTimeout: true,
+      force: true
+    });
+
     try {
       const rewardsToHarvest = rewards.match({
         None: () => 0,
@@ -407,6 +416,14 @@
       if (opStatus === "applied") {
         harvestingSuccess = true;
         rewards = Option.Some(0);
+        // updates the pill
+        pillStore.update({
+          text: `Rewards successfully harvested!`,
+          type: PillTextType.SUCCESS,
+          newShape: "large",
+          force: true
+        });
+
         toastStore.addToast({
           type: ToastType.SUCCESS,
           message: `Successfully harvested ${formatTokenAmount(
@@ -423,6 +440,14 @@
       }
     } catch (error) {
       console.log(error);
+      // updates the pill
+      pillStore.update({
+        text: `Couldn't harvest ${invData.rewardToken} tokens`,
+        type: PillTextType.ERROR,
+        newShape: "large",
+        force: true
+      });
+
       toastStore.addToast({
         type: ToastType.ERROR,
         message: `Couldn't harvest ${invData.rewardToken} tokens`,

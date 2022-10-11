@@ -96,7 +96,7 @@
             data-token={invData.rewardToken}
             data-rewards={localRewards}
             on:dblclick={() => {
-              pillStore.addText({
+              pillStore.update({
                 text: `1 ${invData.rewardToken} = ${formatTokenAmount(
                   $store.tokens[invData.rewardToken].getExchangeRate(),
                   4

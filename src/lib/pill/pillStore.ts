@@ -1,19 +1,23 @@
-import { writable } from "svelte/store";
+import { writable, get } from "svelte/store";
+import generalStore from "../../store"
+import {formatTokenAmount} from "../../utils"
 
 export enum PillTextType {
   XTZ_PRICE,
   TOKEN_PRICE,
   XTZ_INCOME,
-  INFO
+  HARVEST_REWARDS,
+  INFO,
+  SUCCESS,
+  ERROR
 }
 
 interface PillState {
   shape: "normal" | "large";
   text: string;
   textType: PillTextType;
-  acceptingNewText: boolean;
+  active: boolean;
   show: boolean;
-  mustStayOnScreen: boolean;
   hidingTimeout: NodeJS.Timeout;
 }
 
@@ -21,9 +25,8 @@ let initialState: PillState = {
   shape: "normal",
   text: "Welcome",
   textType: PillTextType.INFO,
-  acceptingNewText: true,
+  active: false,
   show: true,
-  mustStayOnScreen: false,
   hidingTimeout: undefined // reference to a timeout after which the pill shows up again
 };
 
@@ -31,16 +34,31 @@ const store = writable(initialState);
 
 const state = {
   subscribe: store.subscribe,
-  // TODO: make the parameter an object
-  addText: (
-    { text, type, visibleFor, newShape }:
-    { text: string, type: PillTextType, visibleFor?: number, newShape?: PillState["shape"] }
+  update: (
+    { text, type, visibleFor, newShape, noTimeout, force }:
+      {
+        text: string;
+        type: PillTextType;
+        visibleFor?: number;
+        newShape?: PillState["shape"];
+        noTimeout?: boolean;
+        force?: boolean
+      }
   ) => {
-    
+    // "force" is used to force the update of the pill state
     store.update(store_ => { 
-      if (store_.acceptingNewText) {
-        setTimeout(() => store.update(store_ => ({...store_, acceptingNewText: true, shape: "normal"})), visibleFor || 3000);
-        return {...store_, text, textType: type, acceptingNewText: false, show: true, shape: newShape || store_.shape}
+      if (!store_.active || force) {
+        if (!noTimeout) {
+          let genStore = get(generalStore);
+          setTimeout(() => store.update(store_ => ({
+            ...store_,
+            active: false,
+            shape: "normal",
+            text: `1 XTZ = ${formatTokenAmount(genStore.xtzExchangeRate, 2)} ${genStore.localStorage.getFavoriteFiat().code}`,
+            textType: PillTextType.XTZ_PRICE,
+          })), visibleFor || 3000);
+        }
+        return {...store_, text, textType: type, active: true, show: true, shape: newShape || store_.shape}
       } else {
         return store_
       }
@@ -55,7 +73,7 @@ const state = {
     store.update(store => {
       clearTimeout(store.hidingTimeout);
 
-      if (store.mustStayOnScreen === false) {
+      if (!store.active) {
         return {...store, show: false, hidingTimeout: timeoutRef}
       } else {
         return store
@@ -64,7 +82,10 @@ const state = {
   },
   switchShape: (shape: PillState["shape"]) => {
     store.update(store => ({...store, shape}));
-  }
+  },
+  reset: () => {
+    store.update(store => ({...store, text: "Welcome", type: PillTextType.INFO, show: true, shape: "normal", active: false}));
+  },
 };
 
 export default state;

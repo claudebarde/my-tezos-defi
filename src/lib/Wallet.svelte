@@ -96,12 +96,12 @@
           const balance = balanceBn.toNumber();
           if (balance !== $store.userBalance) {
             // updates the pill
-            pillStore.switchShape("large");
-            pillStore.addText({
+            pillStore.update({
               text: `${formatTokenAmount(
                 $store.userBalance - balance
               )} XTZ received`,
-              type: PillTextType.XTZ_INCOME
+              type: PillTextType.XTZ_INCOME,
+              newShape: "large"
             });
           }
           store.updateUserBalance(balance);
@@ -153,10 +153,9 @@
       const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
       store.updateXtzExchangeRate(exchangeRate);
       store.updatePriceHistoric(priceHistoric);
-      pillStore.addText({
+      pillStore.update({
         text: `1 XTZ = ${formatTokenAmount(exchangeRate, 2)} ${fiat}`,
-        type: PillTextType.XTZ_PRICE,
-        visibleFor: 2000
+        type: PillTextType.XTZ_PRICE
       });
     }, 30_000);
   };
@@ -336,10 +335,9 @@
       const { exchangeRate, priceHistoric } = await coinGeckoFetch(fiat);
       store.updateXtzExchangeRate(exchangeRate);
       store.updatePriceHistoric(priceHistoric);
-      pillStore.addText({
+      pillStore.update({
         text: `1 XTZ = ${formatTokenAmount(exchangeRate, 2)} ${fiat}`,
-        type: PillTextType.XTZ_PRICE,
-        visibleFor: 2000
+        type: PillTextType.XTZ_PRICE
       });
       setCoinGeckoFetchInterval();
     } catch (error) {

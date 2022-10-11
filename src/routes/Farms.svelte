@@ -8,10 +8,9 @@
   import QuipuFarms from "../lib/farms/quipu/QuipuFarms.svelte";
   // import MatterFarms from "../lib/farms/matter/MatterFarms.svelte";
   import FarmsHeader from "../lib/farms/FarmsHeader.svelte";
-  import { type AvailableInvestment, AvailableToken } from "../types";
+  import type { AvailableInvestment } from "../types";
   import BarnImg from "../assets/farm-48.png";
   import pillStore, { PillTextType } from "../lib/pill/pillStore";
-  import { formatTokenAmount } from "../utils";
 
   export let params;
 
@@ -61,24 +60,6 @@
     ) {
       text = document.selection.createRange().text;
     }
-
-    /*if (text && targetTag instanceof HTMLSpanElement) {
-      // conversion of token amount in the pill
-      console.log(text, !isNaN(+text));
-      if (targetTag.dataset.hasOwnProperty("token") && !isNaN(+text)) {
-        const token = targetTag.dataset.token;
-        if (Object.keys($store.tokens).includes(token)) {
-          // valid token
-          pillStore.addText({
-            text: `1 ${AvailableToken[token]} = ${formatTokenAmount(
-              $store.tokens[token].getExchangeRate(),
-              4
-            )} XTZ`,
-            type: PillTextType.TOKEN_PRICE
-          });
-        }
-      }
-    }*/
   };
 </script>
 
@@ -106,7 +87,7 @@
   <div
     class="container"
     on:scroll={() => {
-      pillStore.hide(500);
+      pillStore.hide(200);
     }}
   >
     {#if $store.userAddress}

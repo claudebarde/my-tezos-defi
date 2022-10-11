@@ -198,7 +198,7 @@
 <div
   class="container"
   on:scroll={() => {
-    pillStore.hide(500);
+    pillStore.hide(200);
   }}
 >
   {#if $store.userAddress}

@@ -20,7 +20,7 @@
 
     setTimeout(() => {
       isAnimated = true;
-      pillStore.addText({
+      pillStore.update({
         text: `1 XTZ = ${formatTokenAmount($store.xtzExchangeRate, 2)} ${
           $store.localStorage.getFavoriteFiat().code
         }`,
@@ -77,7 +77,6 @@
     right: 0;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 5% 90% 5%;
     align-items: center;
     background-color: $dark-cornflower-blue;
     color: white;
@@ -87,10 +86,12 @@
     text-align: center;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px,
       rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
+    line-height: 1;
 
     &.normal {
       width: 150px;
       height: 25px;
+      grid-template-columns: 5% 90% 5%;
 
       &.animated {
         animation: retract 0.2s linear backwards;
@@ -100,6 +101,7 @@
     &.large {
       width: 300px;
       height: 30px;
+      grid-template-columns: 10% 80% 10%;
 
       &.animated {
         animation: extend 0.2s linear backwards;
@@ -135,7 +137,21 @@
     class={`pill ${$pillStore.shape} ${isAnimated ? "animated" : ""}`}
     transition:fly={{ duration: 400, y: 100, easing: backInOut }}
   >
-    <div class="pill__left">&nbsp;</div>
+    <div class="pill__left">
+      {#if $pillStore.textType === PillTextType.HARVEST_REWARDS}
+        <span class="material-icons-outlined"> agriculture </span>
+      {:else if $pillStore.textType === PillTextType.SUCCESS}
+        <span class="material-icons-outlined" style="color:green">
+          thumb_up
+        </span>
+      {:else if $pillStore.textType === PillTextType.ERROR}
+        <span class="material-icons-outlined" style="color:red">
+          thumb_down
+        </span>
+      {:else}
+        &nbsp;
+      {/if}
+    </div>
     <div class="pill__middle">{currentText}</div>
     <div class="pill__right">
       {#if $pillStore.textType === PillTextType.XTZ_PRICE && xtzPriceTrend === "up"}
