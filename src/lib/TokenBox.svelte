@@ -7,6 +7,7 @@
   import { formatTokenAmount } from "../utils";
   import type { FiatData } from "../localStorage";
   import config from "../config";
+  import Modal from "./modal/Modal.svelte";
 
   export let token: AvailableToken;
 
@@ -16,6 +17,7 @@
   let chart;
   let expand = false;
   let currentFiat: FiatData;
+  let openSendTokenModal = false;
 
   const generateChart = (chartData: { timestamp: string; price: number }[]) => {
     const data = {
@@ -425,7 +427,9 @@
         </div>
       </div>
       <div class="buttons">
-        <button class="primary">Send</button>
+        <button class="primary" on:click={() => (openSendTokenModal = true)}>
+          Send
+        </button>
         <button class="primary">Exchange</button>
       </div>
       <div class="token-expand">
@@ -441,4 +445,13 @@
       </div>
     </div>
   {/if}
+{/if}
+{#if openSendTokenModal}
+  <Modal
+    type="send-token"
+    platform={undefined}
+    action={undefined}
+    payload={{ token, balance: userBalance }}
+    on:close={() => (openSendTokenModal = false)}
+  />
 {/if}

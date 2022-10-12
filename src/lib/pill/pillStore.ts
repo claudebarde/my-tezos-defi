@@ -44,13 +44,14 @@ const store = writable(initialState);
 const state = {
   subscribe: store.subscribe,
   update: (
-    { text, type, visibleFor, newShape, noTimeout, force }:
+    { text, type, visibleFor, newShape, noTimeout, behavior, force }:
       {
         text: string;
         type: PillTextType;
         visibleFor?: number;
         newShape?: PillState["shape"];
         noTimeout?: boolean;
+        behavior?: PillBehavior;
         force?: boolean
       }
   ) => {
@@ -66,9 +67,10 @@ const state = {
             shape: "normal",
             text: `1 XTZ = ${formatTokenAmount(genStore.xtzExchangeRate, 2)} ${genStore.localStorage.getFavoriteFiat().code}`,
             textType: PillTextType.XTZ_PRICE,
+            behavior: PillBehavior.NONE,
           })), visibleFor || 3000);
         }
-        return {...store_, text, textType: type, active: true, show: true, shape: newShape || store_.shape}
+        return {...store_, text, textType: type, active: true, show: true, shape: newShape || store_.shape, behavior: behavior || PillBehavior.NONE}
       } else {
         return store_
       }

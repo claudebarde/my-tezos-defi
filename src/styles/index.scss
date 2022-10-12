@@ -71,6 +71,10 @@ input {
   &:focus {
     border-color: $pacific-blue;
   }
+
+  &.error {
+    border-color: $red;
+  }
 }
 
 .input-with-max {

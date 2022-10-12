@@ -6,8 +6,9 @@
   import CtezModal from "./CtezModal.svelte";
   import TxQueueModal from "./TxQueueModal.svelte";
   import FarmModal from "./FarmModal.svelte";
+  import SendTokenModal from "./SendTokenModal.svelte";
 
-  export let type: "vault" | "farm" | "tx-queue",
+  export let type: "vault" | "farm" | "tx-queue" | "send-token",
     platform: InvestmentPlatform | undefined,
     action: modalAction | undefined,
     payload: any;
@@ -30,6 +31,8 @@
       <TxQueueModal on:close={() => dispatch("close")} />
     {:else if type === "farm"}
       <FarmModal {platform} {payload} on:close={() => dispatch("close")} />
+    {:else if type === "send-token"}
+      <SendTokenModal {payload} on:close={() => dispatch("close")} />
     {:else}
       This is a modal
     {/if}

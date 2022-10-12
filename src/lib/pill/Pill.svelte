@@ -91,7 +91,7 @@
     text-align: center;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 13px 27px -5px,
       rgba(0, 0, 0, 0.3) 0px 8px 16px -8px;
-    line-height: 1;
+    z-index: 999;
 
     &.normal {
       width: 150px;
@@ -129,6 +129,12 @@
       cursor: pointer;
       margin: 0;
       left: 95%;
+    }
+
+    .pill__middle {
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
 
@@ -249,10 +255,6 @@
         <span class="material-icons-outlined" style="color:green">
           thumb_up
         </span>
-      {:else if $pillStore.textType === PillTextType.ERROR}
-        <span class="material-icons-outlined" style="color:red">
-          thumb_down
-        </span>
       {:else}
         &nbsp;
       {/if}
@@ -269,6 +271,10 @@
         </span>
       {:else if $pillStore.textType === PillTextType.XTZ_PRICE && xtzPriceTrend === "same"}
         <span class="material-icons-outlined"> trending_flat </span>
+      {:else if $pillStore.textType === PillTextType.ERROR}
+        <span class="material-icons-outlined" style="color:red">
+          thumb_down
+        </span>
       {:else}
         &nbsp;
       {/if}
