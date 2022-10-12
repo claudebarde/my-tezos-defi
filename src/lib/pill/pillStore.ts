@@ -24,7 +24,8 @@ interface PillState {
   active: boolean;
   show: boolean;
   hidingTimeout: NodeJS.Timeout;
-  behavior: PillBehavior
+  behavior: PillBehavior;
+  minimized: boolean;
 }
 
 let initialState: PillState = {
@@ -34,7 +35,8 @@ let initialState: PillState = {
   active: false,
   show: true,
   hidingTimeout: undefined, // reference to a timeout after which the pill shows up again
-  behavior: PillBehavior.NONE
+  behavior: PillBehavior.NONE,
+  minimized: false
 };
 
 const store = writable(initialState);
@@ -98,6 +100,12 @@ const state = {
     setTimeout(() => store.update(store => ({ ...store, behavior: PillBehavior.NONE })), timeout || 1000);
     
     store.update(store => ({...store, behavior}));
+  },
+  minimize: () => {
+    store.update(store => ({...store, minimized: true}));
+  },
+  maximize: () => {
+    store.update(store => ({...store, minimized: false}));
   },
 };
 

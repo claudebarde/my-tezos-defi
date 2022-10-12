@@ -95,7 +95,7 @@
           <span
             data-token={invData.rewardToken}
             data-rewards={localRewards}
-            on:mouseover={() => {
+            on:mouseup={() => {
               pillStore.update({
                 text: `1 ${invData.rewardToken} = ${formatTokenAmount(
                   $store.tokens[invData.rewardToken].getExchangeRate(),

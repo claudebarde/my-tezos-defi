@@ -120,6 +120,16 @@
         both;
       animation: shake-top 0.8s cubic-bezier(0.455, 0.03, 0.515, 0.955) both;
     }
+
+    &.minimized {
+      height: 25px;
+      width: 25px;
+      border-radius: 50%;
+      padding: 10px;
+      cursor: pointer;
+      margin: 0;
+      left: 95%;
+    }
   }
 
   @keyframes extend {
@@ -224,12 +234,13 @@
   }
 </style>
 
-{#if $pillStore.show && $store.isAppReady}
+{#if $pillStore.show && $store.isAppReady && !$pillStore.minimized}
   <div
     class={`pill ${$pillStore.shape} ${isAnimated ? "animated" : ""} ${
       isShaking ? "shake-top" : ""
     }`}
     transition:fly={{ duration: 400, y: 100, easing: backInOut }}
+    on:click={() => pillStore.minimize()}
   >
     <div class="pill__left">
       {#if $pillStore.textType === PillTextType.HARVEST_REWARDS}
@@ -262,5 +273,13 @@
         &nbsp;
       {/if}
     </div>
+  </div>
+{:else if $store.isAppReady && $pillStore.minimized}
+  <div
+    class="pill minimized"
+    on:click={() => pillStore.maximize()}
+    transition:fly={{ duration: 400, y: 100, easing: backInOut }}
+  >
+    <span class="material-icons-outlined"> notifications_paused </span>
   </div>
 {/if}
