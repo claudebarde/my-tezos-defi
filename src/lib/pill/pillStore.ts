@@ -7,6 +7,7 @@ export enum PillTextType {
   TOKEN_PRICE,
   XTZ_INCOME,
   HARVEST_REWARDS,
+  TRANSFER_OP,
   INFO,
   SUCCESS,
   ERROR
@@ -17,8 +18,13 @@ export enum PillBehavior {
   SHAKING_TOP
 }
 
+export enum PillShape {
+  NORMAL,
+  LARGE
+}
+
 interface PillState {
-  shape: "normal" | "large";
+  shape: PillShape;
   text: string;
   textType: PillTextType;
   active: boolean;
@@ -29,7 +35,7 @@ interface PillState {
 }
 
 let initialState: PillState = {
-  shape: "normal",
+  shape: PillShape.NORMAL,
   text: "Welcome",
   textType: PillTextType.INFO,
   active: false,
@@ -64,13 +70,21 @@ const state = {
           setTimeout(() => store.update(store_ => ({
             ...store_,
             active: false,
-            shape: "normal",
+            shape: PillShape.NORMAL,
             text: `1 XTZ = ${formatTokenAmount(genStore.xtzExchangeRate, 2)} ${genStore.localStorage.getFavoriteFiat().code}`,
             textType: PillTextType.XTZ_PRICE,
             behavior: PillBehavior.NONE,
           })), visibleFor || 3000);
         }
-        return {...store_, text, textType: type, active: true, show: true, shape: newShape || store_.shape, behavior: behavior || PillBehavior.NONE}
+        return {
+          ...store_,
+          text,
+          textType: type,
+          active: true,
+          show: true,
+          shape: newShape || store_.shape,
+          behavior: behavior || PillBehavior.NONE
+        }
       } else {
         return store_
       }
@@ -96,7 +110,7 @@ const state = {
     store.update(store => ({...store, shape}));
   },
   reset: () => {
-    store.update(store => ({...store, text: "Welcome", type: PillTextType.INFO, show: true, shape: "normal", active: false}));
+    store.update(store => ({...store, text: "Waiting...", type: PillTextType.INFO, show: true, shape: PillShape.NORMAL, active: false}));
   },
   behave: (behavior: PillBehavior, timeout?: number) => {
     setTimeout(() => store.update(store => ({ ...store, behavior: PillBehavior.NONE })), timeout || 1000);

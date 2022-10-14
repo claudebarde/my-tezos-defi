@@ -10,7 +10,11 @@
     shortenHash,
     prepareOperation
   } from "../../utils";
-  import pillStore, { PillBehavior, PillTextType } from "../pill/pillStore";
+  import pillStore, {
+    PillBehavior,
+    PillTextType,
+    PillShape
+  } from "../pill/pillStore";
 
   export let payload: { token: AvailableToken; balance: number };
 
@@ -63,42 +67,48 @@
     });
 
     if (amountToSend && recipientAddress.isSome()) {
-      const contract = await $store.Tezos.wallet.at(
-        $store.tokens[payload.token].address
-      );
-      // finds if the token is FA1.2 or FA2
-      const tokenType = $store.tokens[payload.token].type;
-      // creates the parameters of the transactions
-      const params: Result<ContractMethodObject<Wallet>[], string> = (() => {
-        if (tokenType === "fa1.2") {
-          return Result.Ok([
-            contract.methodsObject.transfer({
-              from: $store.userAddress,
-              to: recipientAddress.get(),
-              value: amountToSend
-            })
-          ]);
-        } else if (tokenType === "fa2") {
-          return Result.Ok([
-            contract.methodsObject.transfer([
-              {
-                from_: $store.userAddress,
-                txs: [
-                  {
-                    to_: recipientAddress.get(),
-                    token_id: $store.tokens[payload.token].tokenId,
-                    amount: amountToSend
-                  }
-                ]
-              }
-            ])
-          ]);
-        } else {
-          return Result.Error("Unknown token type");
-        }
-      })();
       try {
+        const contract = await $store.Tezos.wallet.at(
+          $store.tokens[payload.token].address
+        );
+        // finds if the token is FA1.2 or FA2
+        const tokenType = $store.tokens[payload.token].type;
+        // creates the parameters of the transactions
+        const params: Result<ContractMethodObject<Wallet>[], string> = (() => {
+          if (tokenType === "fa1.2") {
+            return Result.Ok([
+              contract.methodsObject.transfer({
+                from: $store.userAddress,
+                to: recipientAddress.get(),
+                value: amountToSend
+              })
+            ]);
+          } else if (tokenType === "fa2") {
+            return Result.Ok([
+              contract.methodsObject.transfer([
+                {
+                  from_: $store.userAddress,
+                  txs: [
+                    {
+                      to_: recipientAddress.get(),
+                      token_id: $store.tokens[payload.token].tokenId,
+                      amount: amountToSend
+                    }
+                  ]
+                }
+              ])
+            ]);
+          } else {
+            return Result.Error("Unknown token type");
+          }
+        })();
         if (params.isOk()) {
+          pillStore.update({
+            text: `Sending ${amount.getWithDefault(0)} ${payload.token}`,
+            type: PillTextType.TRANSFER_OP,
+            newShape: PillShape.LARGE,
+            noTimeout: true
+          });
           // forges the transaction
           const batch = await prepareOperation({
             contractCalls: params.get(),
@@ -113,6 +123,12 @@
         }
       } catch (error) {
         console.error(error);
+        pillStore.update({
+          text: `An error has occured`,
+          type: PillTextType.ERROR,
+          force: true,
+          behavior: PillBehavior.SHAKING_TOP
+        });
       }
     }
   };
@@ -190,7 +206,7 @@
   <div class="buttons">
     <button
       class="primary"
-      disabled={amount.isNone() && !recipientAddress.isNone()}
+      disabled={amount.isNone() && recipientAddress.isNone()}
       on:click={send}
     >
       Send

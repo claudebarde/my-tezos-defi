@@ -2,19 +2,40 @@
   import { onMount, beforeUpdate, afterUpdate } from "svelte";
   import { fly } from "svelte/transition";
   import { backInOut } from "svelte/easing";
-  import pillStore, { PillTextType, PillBehavior } from "./pillStore";
+  import pillStore, {
+    PillTextType,
+    PillBehavior,
+    PillShape
+  } from "./pillStore";
   import store from "../../store";
   import { formatTokenAmount } from "../../utils";
 
   let currentText = "";
   let currentTextType = undefined;
+  let currentShape: PillShape = undefined;
   let xtzPriceTrend: "up" | "down" | "same" | "none" = "none";
   let isAnimated = false;
   let isShaking = false;
 
+  const shapeToClass = (p: PillShape): string => {
+    switch (p) {
+      case PillShape.NORMAL:
+        return "normal";
+      case PillShape.LARGE:
+        return "large";
+    }
+  };
+
+  const anim = () => {
+    isAnimated = true;
+    setTimeout(() => {
+      isAnimated = false;
+    }, 400);
+  };
+
   const animToLargeThenToNormal = () => {
     isAnimated = true;
-    pillStore.switchShape("large");
+    pillStore.switchShape(PillShape.LARGE);
     setTimeout(() => {
       isAnimated = false;
     }, 400);
@@ -27,12 +48,16 @@
         }`,
         type: PillTextType.XTZ_PRICE
       });
-      pillStore.switchShape("normal");
+      pillStore.switchShape(PillShape.NORMAL);
       setTimeout(() => {
         isAnimated = false;
       }, 400);
     }, 3000);
   };
+
+  onMount(() => {
+    currentShape = $pillStore.shape;
+  });
 
   beforeUpdate(() => {
     if (
@@ -42,6 +67,16 @@
     ) {
       // new token price info in pill
       animToLargeThenToNormal();
+    } else if (
+      currentShape == PillShape.NORMAL &&
+      $pillStore.shape === PillShape.LARGE
+    ) {
+      anim();
+    } else if (
+      currentShape == PillShape.LARGE &&
+      $pillStore.shape === PillShape.NORMAL
+    ) {
+      anim();
     } else if ($pillStore.behavior === PillBehavior.SHAKING_TOP) {
       isShaking = true;
     } else {
@@ -68,6 +103,7 @@
     setTimeout(() => {
       currentText = $pillStore.text;
       currentTextType = $pillStore.textType;
+      currentShape = $pillStore.shape;
     }, 100);
   });
 </script>
@@ -142,10 +178,12 @@
     0% {
       width: 150px;
       height: 25px;
+      opacity: 0;
     }
     100% {
       width: 300px;
       height: 30px;
+      opacity: 1;
     }
   }
 
@@ -242,9 +280,9 @@
 
 {#if $pillStore.show && $store.isAppReady && !$pillStore.minimized}
   <div
-    class={`pill ${$pillStore.shape} ${isAnimated ? "animated" : ""} ${
-      isShaking ? "shake-top" : ""
-    }`}
+    class={`pill ${shapeToClass($pillStore.shape)} ${
+      isAnimated ? "animated" : ""
+    } ${isShaking ? "shake-top" : ""}`}
     transition:fly={{ duration: 400, y: 100, easing: backInOut }}
     on:click={() => pillStore.minimize()}
   >
@@ -255,8 +293,10 @@
         <span class="material-icons-outlined" style="color:green">
           thumb_up
         </span>
+      {:else if $pillStore.textType === PillTextType.TRANSFER_OP}
+        <span class="material-icons-outlined"> send </span>
       {:else}
-        &nbsp;
+        <span> &nbsp; </span>
       {/if}
     </div>
     <div class="pill__middle">{currentText}</div>
