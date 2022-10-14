@@ -1,6 +1,7 @@
 import type {
   TezosToolkit,
   ContractMethod,
+  ContractMethodObject,
   Wallet,
   WalletOperationBatch
 } from "@taquito/taquito";
@@ -430,7 +431,7 @@ export const getKdaoReward = async (
 };
 
 export const prepareOperation = (p: {
-  contractCalls: ContractMethod<Wallet>[];
+  contractCalls: ContractMethod<Wallet>[] | ContractMethodObject<Wallet>[];
   amount: number;
   tokenSymbol: AvailableToken;
 }): WalletOperationBatch => {

@@ -30,7 +30,7 @@ const initialState: State = {
   tokens: undefined,
   investments: undefined,
   currentLevel: 0,
-  serviceFee: process.env.NODE_ENV === "development" ? null : 0.003,
+  serviceFee: process.env.NODE_ENV === "development" ? null : 0.003, //0.003,
   admin: "tz1TURQUcdTHQAGJNvv6TBHZ1YZEHLXXn5At",
   localStorage: undefined,
   lbData: { xtzPool: 0, tokenPool: 0, lqtTotal: 0 },

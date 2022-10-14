@@ -1,24 +1,35 @@
 <script lang="ts">
+  import type { ContractMethodObject, Wallet } from "@taquito/taquito";
+  import { createEventDispatcher } from "svelte";
   import { validateAddress } from "@taquito/utils";
+  import { Option, Result } from "@swan-io/boxed";
   import type { AvailableToken } from "../../types";
   import store from "../../store";
-  import { formatTokenAmount, shortenHash } from "../../utils";
+  import {
+    formatTokenAmount,
+    shortenHash,
+    prepareOperation
+  } from "../../utils";
   import pillStore, { PillBehavior, PillTextType } from "../pill/pillStore";
 
   export let payload: { token: AvailableToken; balance: number };
 
-  let amount = "";
-  let amountInXtz = "";
-  let recipientAddress = "";
+  const dispatch = createEventDispatcher();
+
+  let amount: Option<number> = Option.None();
+  let amountInXtz: Option<number> = Option.None();
+  let recipientAddress: Option<string> = Option.None();
   let recipientAddressError = false;
 
   const updateAmount = ev => {
-    const val = ev.target.value;
-    if (!isNaN(+val)) {
-      amount = val;
-      amountInXtz = formatTokenAmount(
-        +val * $store.tokens[payload.token].getExchangeRate()
+    const val = +ev.target.value;
+    if (!isNaN(val) && val !== 0) {
+      amount = Option.Some(val);
+      amountInXtz = Option.Some(
+        +formatTokenAmount(val * $store.tokens[payload.token].getExchangeRate())
       );
+    } else {
+      amount = Option.None();
     }
   };
 
@@ -27,10 +38,11 @@
 
     const val = ev.target.value;
     if (validateAddress(val) === 3) {
-      recipientAddress = shortenHash(val);
+      recipientAddress = Option.Some(val);
     } else if (!val) {
-      recipientAddress = "";
+      recipientAddress = Option.None();
     } else {
+      recipientAddress = Option.None();
       recipientAddressError = true;
       pillStore.update({
         text: "Invalid address",
@@ -41,7 +53,68 @@
   };
 
   const send = async () => {
-    console.log("send tokens");
+    // verify that the amount is correct
+    let amountToSend = amount.match<number | undefined>({
+      None: () => undefined,
+      Some: val =>
+        !isNaN(val)
+          ? val * 10 ** $store.tokens[payload.token].decimals
+          : undefined
+    });
+
+    if (amountToSend && recipientAddress.isSome()) {
+      const contract = await $store.Tezos.wallet.at(
+        $store.tokens[payload.token].address
+      );
+      // finds if the token is FA1.2 or FA2
+      const tokenType = $store.tokens[payload.token].type;
+      // creates the parameters of the transactions
+      const params: Result<ContractMethodObject<Wallet>[], string> = (() => {
+        if (tokenType === "fa1.2") {
+          return Result.Ok([
+            contract.methodsObject.transfer({
+              from: $store.userAddress,
+              to: recipientAddress.get(),
+              value: amountToSend
+            })
+          ]);
+        } else if (tokenType === "fa2") {
+          return Result.Ok([
+            contract.methodsObject.transfer([
+              {
+                from_: $store.userAddress,
+                txs: [
+                  {
+                    to_: recipientAddress.get(),
+                    token_id: $store.tokens[payload.token].tokenId,
+                    amount: amountToSend
+                  }
+                ]
+              }
+            ])
+          ]);
+        } else {
+          return Result.Error("Unknown token type");
+        }
+      })();
+      try {
+        if (params.isOk()) {
+          // forges the transaction
+          const batch = await prepareOperation({
+            contractCalls: params.get(),
+            amount: amountToSend / 10 ** $store.tokens[payload.token].decimals,
+            tokenSymbol: payload.token
+          });
+          const op = await batch.send();
+          await op.confirmation();
+          // waits for confirmation
+        } else {
+          throw "Unable to prepare the parameters for the transfer operation";
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
   };
 </script>
 
@@ -69,7 +142,11 @@
     <img src={`tokens/${payload.token}.png`} alt="token-logo" />
     <div class="input-with-max">
       <div class="input-container">
-        <input type="text" value={amount} on:input={updateAmount} />
+        <input
+          type="text"
+          value={amount.match({ None: () => "", Some: val => val.toString() })}
+          on:input={updateAmount}
+        />
       </div>
       <button
         class="transparent mini"
@@ -83,18 +160,24 @@
     <span class="material-icons-outlined"> portrait </span>
     <input
       type="text"
-      value={recipientAddress}
+      value={recipientAddress.match({
+        None: () => "",
+        Some: val => shortenHash(val)
+      })}
       on:input={updateRecipientAddress}
       class:error={recipientAddressError}
     />
   </div>
   <div class="send-tokens__info">
-    {#if amount && amountInXtz}
+    {#if amount.isSome() && amountInXtz.isSome()}
       <span>
-        {formatTokenAmount(+amount)}
+        {formatTokenAmount(amount.getWithDefault(0))}
         {payload.token} =
-        {amountInXtz} XTZ =
-        {formatTokenAmount(+amountInXtz * $store.xtzExchangeRate, 2)}
+        {amountInXtz.getWithDefault(0)} XTZ =
+        {formatTokenAmount(
+          amountInXtz.getWithDefault(0) * $store.xtzExchangeRate,
+          2
+        )}
         {$store.localStorage.getFavoriteFiat().code}
       </span>
     {:else}
@@ -107,11 +190,11 @@
   <div class="buttons">
     <button
       class="primary"
-      disabled={!amount || !recipientAddress}
+      disabled={amount.isNone() && !recipientAddress.isNone()}
       on:click={send}
     >
       Send
     </button>
-    <button class="error"> Close </button>
+    <button class="error" on:click={() => dispatch("close")}> Close </button>
   </div>
 </div>
