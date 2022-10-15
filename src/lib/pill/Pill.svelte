@@ -23,6 +23,8 @@
         return "normal";
       case PillShape.LARGE:
         return "large";
+      default:
+        return "normal";
     }
   };
 
@@ -290,11 +292,13 @@
       {#if $pillStore.textType === PillTextType.HARVEST_REWARDS}
         <span class="material-icons-outlined"> agriculture </span>
       {:else if $pillStore.textType === PillTextType.SUCCESS}
-        <span class="material-icons-outlined" style="color:green">
+        <span class="material-icons-outlined" style="color:#50c878">
           thumb_up
         </span>
       {:else if $pillStore.textType === PillTextType.TRANSFER_OP}
         <span class="material-icons-outlined"> send </span>
+      {:else if $pillStore.textType === PillTextType.WAIT_CONF}
+        <span class="material-icons-outlined loading"> hourglass_empty </span>
       {:else}
         <span> &nbsp; </span>
       {/if}

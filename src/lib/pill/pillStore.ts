@@ -10,7 +10,8 @@ export enum PillTextType {
   TRANSFER_OP,
   INFO,
   SUCCESS,
-  ERROR
+  ERROR,
+  WAIT_CONF
 }
 
 export enum PillBehavior {

@@ -2,7 +2,7 @@
   import type { ContractMethodObject, Wallet } from "@taquito/taquito";
   import { createEventDispatcher } from "svelte";
   import { validateAddress } from "@taquito/utils";
-  import { Option, Result } from "@swan-io/boxed";
+  import { Option, Result, AsyncData } from "@swan-io/boxed";
   import type { AvailableToken } from "../../types";
   import store from "../../store";
   import {
@@ -24,6 +24,7 @@
   let amountInXtz: Option<number> = Option.None();
   let recipientAddress: Option<string> = Option.None();
   let recipientAddressError = false;
+  let loading = AsyncData.NotAsked<boolean>();
 
   const updateAmount = ev => {
     const val = +ev.target.value;
@@ -56,7 +57,50 @@
     }
   };
 
+  /*const send = () => {
+    loading = AsyncData.Loading();
+    pillStore.update({
+      text: `Sending 5 uUSD`,
+      type: PillTextType.TRANSFER_OP,
+      newShape: PillShape.LARGE,
+      noTimeout: true
+    });
+    setTimeout(() => {
+      pillStore.update({
+        text: `Waiting for confirmation`,
+        type: PillTextType.WAIT_CONF,
+        newShape: PillShape.LARGE,
+        noTimeout: true,
+        force: $pillStore.active
+      });
+    }, 3000);
+    setTimeout(() => {
+      pillStore.update({
+        text: `5 uUSD sent!`,
+        type: PillTextType.SUCCESS,
+        newShape: PillShape.LARGE,
+        force: $pillStore.active
+      });
+      loading = AsyncData.Done(true);
+      // updates the interface
+      amount = Option.None();
+      store.updateUserTokens([
+        ...$store.userTokens.map(tk => {
+          if (tk.name === payload.token) {
+            return { ...tk, balance: tk.balance - 5 * 10 ** 12 };
+          } else {
+            return tk;
+          }
+        })
+      ]);
+    }, 6000);
+    setTimeout(() => {
+      loading = AsyncData.NotAsked();
+    }, 9000);
+  };*/
+
   const send = async () => {
+    loading = AsyncData.Loading();
     // verify that the amount is correct
     let amountToSend = amount.match<number | undefined>({
       None: () => undefined,
@@ -116,19 +160,51 @@
             tokenSymbol: payload.token
           });
           const op = await batch.send();
-          await op.confirmation();
           // waits for confirmation
+          pillStore.update({
+            text: `Waiting for confirmation`,
+            type: PillTextType.WAIT_CONF,
+            newShape: PillShape.LARGE,
+            noTimeout: true,
+            force: $pillStore.active
+          });
+          await op.confirmation();
+          // confirmed
+          pillStore.update({
+            text: `${amount.getWithDefault(0)} ${payload.token} sent!`,
+            type: PillTextType.SUCCESS,
+            newShape: PillShape.LARGE,
+            force: $pillStore.active
+          });
+          loading = AsyncData.Done(true);
+          // updates the interface
+          amount = Option.None();
+          store.updateUserTokens([
+            ...$store.userTokens.map(tk => {
+              if (tk.name === payload.token) {
+                return { ...tk, balance: tk.balance - amountToSend };
+              } else {
+                return tk;
+              }
+            })
+          ]);
         } else {
           throw "Unable to prepare the parameters for the transfer operation";
         }
       } catch (error) {
         console.error(error);
+        loading = AsyncData.Done(false);
         pillStore.update({
           text: `An error has occured`,
           type: PillTextType.ERROR,
           force: true,
           behavior: PillBehavior.SHAKING_TOP
         });
+      } finally {
+        // resets loading state
+        setTimeout(() => {
+          loading = AsyncData.NotAsked();
+        }, 3000);
       }
     }
   };
@@ -206,10 +282,19 @@
   <div class="buttons">
     <button
       class="primary"
-      disabled={amount.isNone() && recipientAddress.isNone()}
+      disabled={amount.isNone() ||
+        recipientAddress.isNone() ||
+        loading.isLoading()}
       on:click={send}
     >
-      Send
+      {#if loading.isDone()}
+        {loading.get() ? "Sent!" : "Error"}
+      {:else if loading.isLoading()}
+        <span class="material-icons-outlined loading"> hourglass_empty </span>
+        Sending...
+      {:else}
+        Send
+      {/if}
     </button>
     <button class="error" on:click={() => dispatch("close")}> Close </button>
   </div>
