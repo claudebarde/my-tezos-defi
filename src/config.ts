@@ -173,5 +173,21 @@ export default {
   lqtContractAddress: "KT1AafHA1C1vk959wvHWBispY9Y2f3fxBUUo",
   matterFarms: {
     KT1UefQz7nP8BuuDk5Dd5LWo22N1ZPB7JB5o: "MATTER-uUSD-wTZ"
+  },
+  youvesEngines: {
+    uUSDTezosV1: 'KT1FFE2LC5JpVakVjHm5mM36QVp2p3ZzH4hH',
+    uUSDTezosV3: 'KT1DHndgk8ah1MLfciDnCV2zPJrVbnnAH9fd',
+    uUSDUSDtV3: 'KT1JmfujyCYTw5krfu9bSn7YbLYuz2VbNaje',
+    uUSDtzBTCV3: 'KT1V9Rsc4ES3eeQTr4gEfJmNhVbeHrAZmMgC',
+    uUSDtzBTCV2: 'KT1HxgqnVjGy7KsSUTEsQ6LgpD5iKSGu7QpA',
+    uUSDtzBTCLPV2: 'KT1FzcHaNhmpdYPNTgfb8frYXx7B5pvVyowu',
+    uUSDtzBTCLPV3: 'KT1F1JMgh6SfqBCK6T6o7ggRTdeTLw91KKks',
+    uDefiuUSDV2: 'KT1B2GSe47rcMCZTRk294havTpyJ36JbgdeB',
+    uDefitzV2: 'KT1LQcsXGpmLXnwrfftuQdCLNvLRLUAuNPCV',
+    uDefitzBTCLPV2: 'KT1E45AvpSr7Basw2bee3g8ri2LK2C2SV2XG',
+    uBTCTezosV2: 'KT1VjQoL5QvyZtm9m1voQKNTNcQLi5QiGsRZ',
+    uBTCTezosV3: 'KT1CP1C8afHqdNfBsSE3ggQhzM2iMHd4cRyt',
+    uBTCtzBTCLPV2: 'KT1NFWUqr9xNvVsz2LXCPef1eRcexJz5Q2MH',
+    uBTCtzBTCLPV3: 'KT1G6RzVX25YnoU55Xb7Vve3zvuZKmouf24a',
   }
 };

@@ -369,7 +369,7 @@
             }
           }}
         >
-          <span class="material-symbols-outlined"> add_circle </span>
+          <span class="material-icons-outlined"> add_circle_outline </span>
         </button>
         <button
           class="transparent mini"
@@ -379,7 +379,7 @@
             }
           }}
         >
-          <span class="material-symbols-outlined"> do_not_disturb_on </span>
+          <span class="material-icons-outlined"> do_not_disturb_on </span>
         </button>
       </div>
       {#if xtzValue && tzbtcValue}

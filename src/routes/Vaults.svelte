@@ -58,6 +58,7 @@
     //   finds balance in the vaults
 
     allVaults = [
+      ...allVaults,
       ...wxtzVaults.map(addr => ({
         platform: AvailableVault.WXTZ,
         address: addr,
@@ -103,26 +104,33 @@
   };
 
   const fetchYouvesVaults = async () => {
-    const youvesVaultsWithDataPromise = await fetch(
-      `https://api.tzkt.io/v1/bigmaps/7711/keys/${$store.userAddress}`
+    const enginesAddresses = Object.values(config.youvesEngines);
+    const bigmapName = "vault_contexts";
+    const userVaultsPromises = await Promise.allSettled(
+      enginesAddresses.map(addr =>
+        fetch(
+          `https://api.tzkt.io/v1/contracts/${addr}/bigmaps/${bigmapName}/keys/${$store.userAddress}`
+        ).then(val => val.json())
+      )
     );
-    if (
-      youvesVaultsWithDataPromise &&
-      youvesVaultsWithDataPromise.status === 200
-    ) {
-      const youvesVaultsWithData = await youvesVaultsWithDataPromise.json();
-      if (youvesVaultsWithData && youvesVaultsWithData.active) {
-        allVaults = [
-          ...allVaults,
-          {
-            platform: AvailableVault.YOUVES,
-            address: youvesVaultsWithData.value.address,
-            xtzLocked: +youvesVaultsWithData.value.balance,
-            isLiquidated: youvesVaultsWithData.value.is_being_liquidated,
-            borrowed: youvesVaultsWithData.value.minted
-          }
-        ];
-      }
+    if (userVaultsPromises.length > 0) {
+      const userVaults = userVaultsPromises
+        .filter(v => v.status === "fulfilled")
+        .map((v: PromiseFulfilledResult<any>) => ({
+          address: v.value.value.address,
+          balance: +v.value.value.balance,
+          minted: +v.value.value.minted
+        }))
+        .filter(v => !isNaN(v.balance) && !isNaN(v.minted))
+        .map(v => ({
+          platform: AvailableVault.YOUVES,
+          address: v.address,
+          xtzLocked: v.balance,
+          isLiquidated: false, // TODO: get the liquidated info
+          borrowed: v.minted
+        }));
+
+      allVaults = [...allVaults, ...userVaults];
     }
   };
 
@@ -152,20 +160,20 @@
 
   onMount(async () => {
     if ($store.userAddress) {
-      // wXTZ
-      await fetchWxtzVaults();
       // kDAO
       await fetchKdaoVaults();
-      // Youves
-      await fetchYouvesVaults();
       // Ctez
       await fetchCtezVaults();
+      // Youves
+      await fetchYouvesVaults();
+      // wXTZ
+      await fetchWxtzVaults();
 
       vaultsUpdateInterval = setInterval(async () => {
-        await fetchWxtzVaults();
         await fetchKdaoVaults();
-        await fetchYouvesVaults();
         await fetchCtezVaults();
+        await fetchYouvesVaults();
+        await fetchWxtzVaults();
       }, 60_000 * 10);
     }
   });
