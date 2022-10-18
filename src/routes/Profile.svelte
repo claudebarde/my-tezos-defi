@@ -12,48 +12,56 @@
   } from "../types";
   import pillStore from "../lib/pill/pillStore";
 
-  export let param;
+  export let params: { address: TezosAccountAddress } = { address: undefined };
 
   let isConnectedUser = false;
   let profileAddress: TezosAccountAddress;
   let userTokens: Array<UserToken> = [];
 
-  onMount(async () => {
-    if (param) {
-      profileAddress = param as TezosAccountAddress;
+  const sortTokens = (tokens: Array<UserToken>): Array<UserToken> => {
+    return [
+      ...tokens.sort((a, b) =>
+        b.name.toLowerCase() < a.name.toLowerCase() ? 1 : -1
+      )
+    ];
+  };
 
-      if ($store.userAddress && param === $store.userAddress) {
+  /**
+   * const sortTokens = (tokens: Array<UserToken>): Array<UserToken> => {
+    return [
+      ...tokens.sort(
+        (a, b) =>
+          b.balance / 10 ** $store.tokens[b.name].decimals -
+          a.balance / 10 ** $store.tokens[a.name].decimals
+      )
+    ];
+  };
+  */
+
+  onMount(async () => {
+    if (params && params.hasOwnProperty("address") && params.address) {
+      profileAddress = params.address;
+
+      if ($store.userAddress && profileAddress === $store.userAddress) {
         isConnectedUser = true;
       }
 
       // loads the user's details
       if (profileAddress === $store.userAddress) {
-        userTokens = [
-          ...$store.userTokens.sort(
-            (a, b) =>
-              b.balance / 10 ** $store.tokens[b.name].decimals -
-              a.balance / 10 ** $store.tokens[a.name].decimals
-          )
-        ];
+        userTokens = sortTokens($store.userTokens);
       } else {
         const tokens = await tzktTokensFetch(
           profileAddress,
           Object.values(AvailableToken)
         );
         if (tokens) {
-          userTokens = [
-            ...tokens.sort(
-              (a, b) =>
-                b.balance / 10 ** $store.tokens[b.name].decimals -
-                a.balance / 10 ** $store.tokens[a.name].decimals
-            )
-          ];
+          userTokens = sortTokens(tokens);
         } else {
           userTokens = [];
         }
       }
     } else {
-      push("/index");
+      push("/");
     }
   });
 </script>
@@ -64,8 +72,8 @@
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 30px;
-    width: 100%;
+    gap: 50px;
+    width: 90%;
 
     .profile-tokens__token {
       display: flex;

@@ -10,6 +10,6 @@ export default {
   "/farms/:platform?": Farms,
   "/liquidity-baking": LiquidityBaking,
   "/vaults": Vaults,
-  "/profile": Profile,
+  "/profile/:address": Profile,
   "/settings": Settings
 };
