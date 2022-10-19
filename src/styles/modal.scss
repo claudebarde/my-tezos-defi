@@ -54,6 +54,10 @@
         justify-content: center;
         align-items: center;
         gap: 10px;
+
+        &.baseline {
+          align-items: baseline;
+        }
       }
     }
 

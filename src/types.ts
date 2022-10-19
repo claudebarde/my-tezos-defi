@@ -311,6 +311,7 @@ export interface VaultData {
   xtzLocked: number;
   isLiquidated: boolean;
   borrowed?: number;
+  youvesEngineAddress?: TezosContractAddress;
 }
 
 export type modalAction =

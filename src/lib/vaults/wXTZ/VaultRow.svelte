@@ -30,6 +30,20 @@
   });
 </script>
 
+<style lang="scss">
+  @import "../../../styles/settings.scss";
+
+  .liquidated {
+    background-color: $cyber-yellow;
+  }
+
+  .buttons {
+    button {
+      flex-basis: 40%;
+    }
+  }
+</style>
+
 <div class="vault-row">
   <div>
     <a
@@ -72,5 +86,10 @@
     </div>
   </div>
   <div>slot 2</div>
-  <div class="buttons">buttons</div>
+  <div class="buttons">
+    <button class="primary mini">Borrow</button>
+    <button class="primary mini">Pay back</button>
+    <button class="primary mini">Withdraw ꜩ</button>
+    <button class="primary mini">Deposit ꜩ</button>
+  </div>
 </div>

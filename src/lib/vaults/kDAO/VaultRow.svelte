@@ -62,6 +62,19 @@
     });*/
   };
 
+  const newDeposit = async () => {
+    const blnc = await $store.Tezos.tz.getBalance(vault.address);
+    console.log({ blnc });
+    if (blnc) {
+      balance = AsyncData.Done(Result.Ok(blnc.dividedBy(10 ** 6).toString()));
+      dispatch("update-xtz-locked", {
+        address: vault.address,
+        balance: blnc.toNumber()
+      });
+      console.log({ blnc, balance });
+    }
+  };
+
   onMount(async () => {
     balance = AsyncData.Loading();
     const blnc = await $store.Tezos.tz.getBalance(vault.address);
@@ -143,7 +156,7 @@
   </div>
   <div class="icons">
     <img src={`tokens/kDAO.png`} alt="vault-icon" />
-    {#if collateralPercent}
+    {#if collateralPercent && +collateralPercent.toFixed(2) > 0}
       <div
         class="collateral-info"
         class:over={collateralPercent > 9}
@@ -251,5 +264,6 @@
     action={modalAction}
     payload={{ vault, ovenClient }}
     on:close={() => (showModal = false)}
+    on:deposit={newDeposit}
   />
 {/if}

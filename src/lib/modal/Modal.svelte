@@ -24,7 +24,12 @@
   />
   <div class="modal" transition:fly={{ y: -200, duration: 300 }}>
     {#if type === "vault" && platform === "kdao"}
-      <KdaoModal {action} {payload} on:close={() => dispatch("close")} />
+      <KdaoModal
+        {action}
+        {payload}
+        on:close={() => dispatch("close")}
+        on:deposit={() => dispatch("deposit")}
+      />
     {:else if type === "vault" && platform === "ctez"}
       <CtezModal {action} {payload} on:close={() => dispatch("close")} />
     {:else if type === "tx-queue"}

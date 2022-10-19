@@ -319,6 +319,8 @@
         <span class="material-icons-outlined" style="color:red">
           thumb_down
         </span>
+      {:else if $pillStore.textType === PillTextType.COMING_SOON}
+        <span class="material-icons-outlined"> mood </span>
       {:else}
         &nbsp;
       {/if}

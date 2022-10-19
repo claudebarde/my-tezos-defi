@@ -29,7 +29,7 @@
   import config from "../config";
   import { fetchAntiPrice } from "../tokenUtils/smartlinkUtils";
   import { LocalStorage } from "../localStorage";
-  import pillStore, { PillTextType } from "./pill/pillStore";
+  import pillStore, { PillTextType, PillShape } from "./pill/pillStore";
 
   const dispatch = createEventDispatcher();
 
@@ -94,14 +94,23 @@
         const balanceBn = await $store.Tezos.tz.getBalance($store.userAddress);
         if (balanceBn) {
           const balance = balanceBn.toNumber();
-          if (balance !== $store.userBalance) {
+          if (balance > $store.userBalance) {
             // updates the pill
             pillStore.update({
               text: `${formatTokenAmount(
-                $store.userBalance - balance
+                (balance - $store.userBalance) / 10 ** 6
               )} XTZ received`,
-              type: PillTextType.XTZ_INCOME,
-              newShape: "large"
+              type: PillTextType.XTZ_INGOING,
+              newShape: PillShape.LARGE
+            });
+          } else if (balance < $store.userBalance) {
+            // updates the pill
+            pillStore.update({
+              text: `${formatTokenAmount(
+                ($store.userBalance - balance) / 10 ** 6
+              )} XTZ spent`,
+              type: PillTextType.XTZ_OUTGOING,
+              newShape: PillShape.LARGE
             });
           }
           store.updateUserBalance(balance);

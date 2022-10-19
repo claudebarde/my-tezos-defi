@@ -9,10 +9,11 @@
   } from "../../types";
   import { ToastType } from "../../types";
   import store from "../../store";
-  import queueStore from "../transaction-queue/queue-store";
+  // import queueStore from "../transaction-queue/queue-store";
   import { formatTokenAmount } from "../../utils";
   import { getFarmId } from "../../tokenUtils/quipuUtils";
   import toastStore from "../../toastStore";
+  import pillStore, { PillTextType, PillBehavior } from "../pill/pillStore";
 
   export let payload: InvestmentData, platform: InvestmentPlatform;
 
@@ -206,11 +207,16 @@
   };
 
   const addToQueue = async () => {
-    const txs = await forgeTransaction();
-    txs.match({
-      None: () => undefined,
-      Some: txs => queueStore.addToQueue(txs)
+    pillStore.update({
+      text: "Coming soon!",
+      type: PillTextType.COMING_SOON,
+      behavior: PillBehavior.SHAKING_TOP
     });
+    // const txs = await forgeTransaction();
+    // txs.match({
+    //   None: () => undefined,
+    //   Some: txs => queueStore.addToQueue(txs)
+    // });
   };
 
   const runTransaction = async () => {

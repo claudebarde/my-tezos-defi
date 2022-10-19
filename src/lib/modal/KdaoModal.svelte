@@ -1,10 +1,18 @@
 <script lang="ts">
+  import { createEventDispatcher } from "svelte";
   import { OpKind, type WalletParamsWithKind } from "@taquito/taquito";
-  import { Option } from "@swan-io/boxed";
+  import { Option, AsyncData } from "@swan-io/boxed";
   import type { OvenClient } from "@hover-labs/kolibri-js";
+  import BigNumber from "bignumber.js";
   import type { modalAction, VaultData } from "../../types";
   import store from "../../store";
-  import queueStore from "../transaction-queue/queue-store";
+  import pillStore, {
+    PillTextType,
+    PillBehavior,
+    PillShape
+  } from "../pill/pillStore";
+  import { formatTokenAmount } from "../../utils";
+  // import queueStore from "../transaction-queue/queue-store";
 
   export let action: modalAction,
     payload: { ovenClient: OvenClient; vault: VaultData };
@@ -13,7 +21,10 @@
   let borrowAmount: number | null = null;
   let payBackAmount: number | null = null;
   let withdrawAmount: number | null = null;
-  let depositAmount: number | null = null;
+  let depositAmount: Option<number> = Option.None();
+  let loading = AsyncData.NotAsked<boolean>();
+
+  const dispatch = createEventDispatcher();
 
   $: enableTransaction = () => {
     if (selectedAction === "borrow" && borrowAmount) {
@@ -23,6 +34,8 @@
     } else if (selectedAction === "deposit" && depositAmount) {
       return false;
     } else if (selectedAction === "withdraw" && withdrawAmount) {
+      return false;
+    } else if (loading.isLoading()) {
       return false;
     } else {
       return true;
@@ -63,7 +76,7 @@
         {
           tx: {
             kind: OpKind.TRANSACTION,
-            amount: depositAmount * 10 ** 6,
+            amount: depositAmount.getWithDefault(0) * 10 ** 6,
             ...contract.methods.default([["unit"]]).toTransferParams()
           },
           description: `Deposit ${depositAmount} XTZ in kDAO oven`
@@ -86,12 +99,76 @@
     }
   };
 
-  const addToQueue = async () => {
-    const tx = await forgeTransaction();
-    tx.match({
-      None: () => undefined,
-      Some: txs => queueStore.addToQueue(txs)
+  const updateDepositAmount = ev => {
+    const val = +ev.target.value;
+    if (!isNaN(val) && val !== 0) {
+      depositAmount = Option.Some(val);
+    } else {
+      depositAmount = Option.None();
+    }
+  };
+
+  const deposit = async () => {
+    loading = AsyncData.Loading();
+    const amount = depositAmount.match<number | null>({
+      None: () => null,
+      Some: v => v
     });
+
+    try {
+      if (!amount) throw "No amount";
+
+      pillStore.update({
+        text: `Depositing ${amount} XTZ`,
+        type: PillTextType.WAIT_CONF,
+        newShape: PillShape.LARGE,
+        noTimeout: true
+      });
+
+      const op = await payload.ovenClient.deposit(
+        new BigNumber(amount).times(10 ** 6)
+      );
+      await op.confirmation();
+
+      pillStore.update({
+        text: `${amount} XTZ deposited!`,
+        type: PillTextType.SUCCESS,
+        newShape: PillShape.LARGE,
+        force: true
+      });
+
+      depositAmount = Option.None<number>();
+      dispatch("deposit");
+      loading = AsyncData.Done(true);
+    } catch (error) {
+      console.error(error);
+      pillStore.update({
+        text: "An error has occurred",
+        type: PillTextType.ERROR,
+        behavior: PillBehavior.SHAKING_TOP,
+        newShape: PillShape.LARGE,
+        force: true
+      });
+      loading = AsyncData.Done(false);
+    } finally {
+      // resets loading state
+      setTimeout(() => {
+        loading = AsyncData.NotAsked();
+      }, 3000);
+    }
+  };
+
+  const addToQueue = async () => {
+    pillStore.update({
+      text: "Coming soon!",
+      type: PillTextType.COMING_SOON,
+      behavior: PillBehavior.SHAKING_TOP
+    });
+    // const tx = await forgeTransaction();
+    // tx.match({
+    //   None: () => undefined,
+    //   Some: txs => queueStore.addToQueue(txs)
+    // });
   };
 </script>
 
@@ -125,29 +202,37 @@
 
 <div class="modal-header">
   <ul class="vault-nav">
-    <li
-      class:selected={selectedAction === "borrow"}
-      on:click={() => (selectedAction = "borrow")}
-    >
-      <button>Borrow kUSD</button>
+    <li class:selected={selectedAction === "borrow"}>
+      <button
+        on:click={() => (selectedAction = "borrow")}
+        disabled={loading.isLoading()}
+      >
+        Borrow kUSD
+      </button>
     </li>
-    <li
-      class:selected={selectedAction === "payBack"}
-      on:click={() => (selectedAction = "payBack")}
-    >
-      <button>Pay back kUSD</button>
+    <li class:selected={selectedAction === "payBack"}>
+      <button
+        on:click={() => (selectedAction = "payBack")}
+        disabled={loading.isLoading()}
+      >
+        Pay back kUSD
+      </button>
     </li>
-    <li
-      class:selected={selectedAction === "withdraw"}
-      on:click={() => (selectedAction = "withdraw")}
-    >
-      <button>Withdraw ꜩ</button>
+    <li class:selected={selectedAction === "withdraw"}>
+      <button
+        on:click={() => (selectedAction = "withdraw")}
+        disabled={loading.isLoading()}
+      >
+        Withdraw ꜩ
+      </button>
     </li>
-    <li
-      class:selected={selectedAction === "deposit"}
-      on:click={() => (selectedAction = "deposit")}
-    >
-      <button>Deposit ꜩ</button>
+    <li class:selected={selectedAction === "deposit"}>
+      <button
+        on:click={() => (selectedAction = "deposit")}
+        disabled={loading.isLoading()}
+      >
+        Deposit ꜩ
+      </button>
     </li>
   </ul>
 </div>
@@ -165,9 +250,32 @@
       <span>kUSD</span>
     </label>
   {:else if selectedAction === "deposit"}
-    <label>
+    <label class="baseline" for="deposit-amount-input">
       <span>Amount to deposit:</span>
-      <input type="number" bind:value={depositAmount} />
+      <div class="input-with-max">
+        <div class="input-container">
+          <input
+            id="deposit-amount-input"
+            type="number"
+            value={depositAmount.match({
+              None: () => "",
+              Some: val => val.toString()
+            })}
+            disabled={loading.isLoading()}
+            on:input={updateDepositAmount}
+          />
+        </div>
+        <button
+          class="transparent mini"
+          disabled={loading.isLoading()}
+          on:click={() =>
+            updateDepositAmount({
+              target: { value: formatTokenAmount($store.userBalance / 10 ** 6) }
+            })}
+        >
+          max: {formatTokenAmount($store.userBalance / 10 ** 6)} XTZ
+        </button>
+      </div>
       <span>XTZ</span>
     </label>
   {:else if selectedAction === "withdraw"}
@@ -193,7 +301,16 @@
     {:else if selectedAction === "payBack"}
       <button class="primary" disabled={enableTransaction()}>Pay Back</button>
     {:else if selectedAction === "deposit"}
-      <button class="primary" disabled={enableTransaction()}>Deposit</button>
+      <button class="primary" disabled={enableTransaction()} on:click={deposit}>
+        {#if loading.isDone()}
+          {loading.get() ? "Deposited!" : "Error"}
+        {:else if loading.isLoading()}
+          <span class="material-icons-outlined loading"> hourglass_empty </span>
+          Depositing...
+        {:else}
+          Deposit
+        {/if}
+      </button>
     {:else if selectedAction === "withdraw"}
       <button class="primary" disabled={enableTransaction()}>Withdraw</button>
     {/if}

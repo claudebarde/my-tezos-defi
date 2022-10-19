@@ -5,13 +5,15 @@ import {formatTokenAmount} from "../../utils"
 export enum PillTextType {
   XTZ_PRICE,
   TOKEN_PRICE,
-  XTZ_INCOME,
+  XTZ_INGOING,
+  XTZ_OUTGOING,
   HARVEST_REWARDS,
   TRANSFER_OP,
   INFO,
   SUCCESS,
   ERROR,
-  WAIT_CONF
+  WAIT_CONF,
+  COMING_SOON
 }
 
 export enum PillBehavior {

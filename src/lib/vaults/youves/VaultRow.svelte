@@ -1,12 +1,27 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
-  import type { VaultData } from "../../../types";
+  import { onMount } from "svelte";
+  import type { VaultData, AvailableToken } from "../../../types";
   import store from "../../../store";
   import { formatTokenAmount } from "../../../utils";
+  import config from "../../../config";
 
   export let vault: VaultData;
 
-  const dispatch = createEventDispatcher();
+  let tokens: Array<AvailableToken | string> = ["unknown-token"];
+
+  onMount(() => {
+    if (
+      vault.hasOwnProperty("youvesEngineAddress") &&
+      !!vault.youvesEngineAddress
+    ) {
+      const engine = Object.entries(config.youvesEngines).find(
+        ([_, engine]) => engine.address === vault.youvesEngineAddress
+      );
+      if (engine) {
+        tokens = [...engine[1].tokens];
+      }
+    }
+  });
 </script>
 
 <style lang="scss">
@@ -34,7 +49,9 @@
     </a>
   </div>
   <div class="icons">
-    <img src={`tokens/uUSD.png`} alt="vault-icon" />
+    {#each tokens as token}
+      <img src={`tokens/${token}.png`} alt="vault-icon" />
+    {/each}
   </div>
   <div class="user-info">
     <div>
@@ -43,12 +60,14 @@
         <div class:blurry-text={$store.blurryBalances}>
           <b>{formatTokenAmount(vault.xtzLocked / 10 ** 6)} ꜩ</b>
         </div>
-        <div class:blurry-text={$store.blurryBalances}>
-          {formatTokenAmount(
-            (+vault.xtzLocked / 10 ** 6) * $store.xtzExchangeRate,
-            2
-          )} USD
-        </div>
+        {#if vault.xtzLocked > 0}
+          <div class:blurry-text={$store.blurryBalances}>
+            {formatTokenAmount(
+              (+vault.xtzLocked / 10 ** 6) * $store.xtzExchangeRate,
+              2
+            )} USD
+          </div>
+        {/if}
       {:else}
         <div>---</div>
         <div>&nbsp;</div>
@@ -60,12 +79,12 @@
   {:else}
     <div>
       <div>Borrowed</div>
-      {#if vault.borrowed}
+      {#if vault.borrowed && vault.borrowed > 0}
         <div class:blurry-text={$store.blurryBalances}>
           <b
             >{formatTokenAmount(
               vault.borrowed / 10 ** $store.tokens.uUSD.decimals,
-              3
+              4
             )} uUSD</b
           >
         </div>
@@ -75,6 +94,8 @@
               $store.tokens.uUSD.getExchangeRate()
           )} ꜩ
         </div>
+      {:else if vault.borrowed && vault.borrowed === 0}
+        <div>0 uUSD</div>
       {:else}
         <div><span>---</span></div>
         <div>&nbsp;</div>

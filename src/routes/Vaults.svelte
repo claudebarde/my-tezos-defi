@@ -107,19 +107,22 @@
     const enginesAddresses = Object.values(config.youvesEngines);
     const bigmapName = "vault_contexts";
     const userVaultsPromises = await Promise.allSettled(
-      enginesAddresses.map(addr =>
+      enginesAddresses.map(engine =>
         fetch(
-          `https://api.tzkt.io/v1/contracts/${addr}/bigmaps/${bigmapName}/keys/${$store.userAddress}`
-        ).then(val => val.json())
+          `https://api.tzkt.io/v1/contracts/${engine.address}/bigmaps/${bigmapName}/keys/${$store.userAddress}`
+        )
+          .then(val => val.json())
+          .then(val => ({ val, engine: engine.address }))
       )
     );
     if (userVaultsPromises.length > 0) {
       const userVaults = userVaultsPromises
         .filter(v => v.status === "fulfilled")
         .map((v: PromiseFulfilledResult<any>) => ({
-          address: v.value.value.address,
-          balance: +v.value.value.balance,
-          minted: +v.value.value.minted
+          address: v.value.val.value.address,
+          balance: +v.value.val.value.balance,
+          minted: +v.value.val.value.minted,
+          youvesEngine: v.value.engine
         }))
         .filter(v => !isNaN(v.balance) && !isNaN(v.minted))
         .map(v => ({
@@ -127,7 +130,8 @@
           address: v.address,
           xtzLocked: v.balance,
           isLiquidated: false, // TODO: get the liquidated info
-          borrowed: v.minted
+          borrowed: v.minted,
+          youvesEngineAddress: v.youvesEngine
         }));
 
       allVaults = [...allVaults, ...userVaults];
@@ -170,6 +174,7 @@
       await fetchWxtzVaults();
 
       vaultsUpdateInterval = setInterval(async () => {
+        allVaults = [];
         await fetchKdaoVaults();
         await fetchCtezVaults();
         await fetchYouvesVaults();
@@ -190,6 +195,7 @@
 <style lang="scss">
   .vaults {
     width: 90%;
+    padding-bottom: 60px;
 
     h3 {
       padding: 0px;
